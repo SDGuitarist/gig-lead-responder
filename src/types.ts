@@ -99,3 +99,32 @@ export interface PipelineOutput {
   verified: boolean;
   timing: Record<string, number>; // stage name → milliseconds
 }
+
+// --- Lead persistence types (Phase 1) ---
+
+export type LeadStatus = "received" | "sent" | "done" | "failed";
+
+export interface LeadRecord {
+  id: number;
+  source_platform: string | null;
+  mailgun_message_id: string | null;
+  raw_email: string;
+  client_name: string | null;
+  event_date: string | null;
+  event_type: string | null;
+  venue: string | null;
+  guest_count: number | null;
+  budget_note: string | null;
+  status: LeadStatus;
+  classification_json: string | null;
+  pricing_json: string | null;
+  full_draft: string | null;
+  compressed_draft: string | null;
+  gate_passed: boolean | null;
+  gate_json: string | null;
+  edit_round: number;
+  edit_instructions: string | null;
+  done_reason: string | null;
+  created_at: string;
+  updated_at: string;
+}
