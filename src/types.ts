@@ -1,0 +1,101 @@
+// Valid format strings — must match rate table keys exactly
+export type Format =
+  | "solo"
+  | "duo"
+  | "flamenco_duo"
+  | "flamenco_trio"
+  | "mariachi_4piece"
+  | "mariachi_full"
+  | "bolero_trio";
+
+export interface Classification {
+  // Mode & action
+  mode: "confirmation" | "evaluation";
+  action: "quote" | "assume_and_quote" | "one_question";
+  vagueness: "clear" | "vague";
+
+  // Competition
+  competition_level: "low" | "medium" | "high" | "extreme";
+  competition_quote_count: number;
+
+  // Stealth premium
+  stealth_premium: boolean;
+  stealth_premium_signals: string[];
+
+  // Pricing
+  tier: "premium" | "standard" | "qualification";
+  rate_card_tier: "T1" | "T2" | "T3";
+  lead_source_column: "P" | "D";
+  price_point: "full_premium" | "slight_premium" | "at_market" | "below_market";
+
+  // Format — BOTH the client's request AND the corrected recommendation
+  format_requested: string; // What the client asked for (raw)
+  format_recommended: Format; // Corrected format for pricing lookup
+
+  // Duration — extracted from lead text
+  duration_hours: 1 | 1.5 | 2 | 3 | 4;
+
+  // Timeline & urgency
+  timeline_band: "comfortable" | "short" | "urgent";
+  close_type: "direct" | "soft_hold" | "hesitant";
+
+  // Cultural
+  cultural_context_active: boolean;
+  cultural_tradition: "spanish_latin" | null;
+
+  // Context modifiers
+  planner_effort_active: boolean;
+  social_proof_active: boolean;
+  context_modifiers: string[];
+  flagged_concerns: string[];
+}
+
+export interface PricingResult {
+  format: Format;
+  duration_hours: number;
+  tier_key: string; // e.g., "T3P"
+  anchor: number;
+  floor: number;
+  quote_price: number;
+  competition_position: string; // e.g., "at anchor, willing to flex"
+}
+
+export interface Drafts {
+  full_draft: string;
+  compressed_draft: string;
+  compressed_word_count: number;
+}
+
+export interface GateResult {
+  validation_line: string;
+  best_line: string;
+  concern_traceability: Array<{
+    concern: string;
+    draft_sentence: string; // Empty string = FAIL
+  }>;
+  scene_quote: string;
+  scene_type: "cinematic" | "structural";
+  competitor_test: boolean; // false = rewrite
+  gut_checks: {
+    can_see_it: boolean;
+    validated_them: boolean;
+    named_fear: boolean;
+    differentiated: boolean;
+    preempted_questions: boolean;
+    creates_relief: boolean;
+    best_line_present: boolean;
+    prose_flows: boolean;
+    competitor_test: boolean;
+  };
+  gate_status: "pass" | "fail";
+  fail_reasons: string[];
+}
+
+export interface PipelineOutput {
+  classification: Classification;
+  pricing: PricingResult;
+  drafts: Drafts;
+  gate: GateResult;
+  verified: boolean;
+  timing: Record<string, number>; // stage name → milliseconds
+}
