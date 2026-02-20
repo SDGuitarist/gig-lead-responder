@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gig Lead Responder</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 2rem 1rem;
+      color: #1a1a1a;
+      background: #fafafa;
+      line-height: 1.5;
+    }
+
+    h1 { font-size: 1.5rem; font-weight: 700; }
+    .subtitle { color: #666; margin-bottom: 1.5rem; }
+
+    textarea {
+      width: 100%;
+      min-height: 140px;
+      padding: 0.75rem;
+      font-family: inherit;
+      font-size: 0.95rem;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      resize: vertical;
+    }
+    textarea:focus { outline: none; border-color: #555; }
+
+    button {
+      margin-top: 0.75rem;
+      padding: 0.6rem 1.5rem;
+      font-size: 0.95rem;
+      font-weight: 600;
+      background: #1a1a1a;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    button:hover { background: #333; }
+    button:disabled { background: #999; cursor: not-allowed; }
+
+    /* Stage progress */
+    #stages {
+      margin-top: 1.5rem;
+      display: none;
+    }
+    .stage-row {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.4rem 0;
+      font-size: 0.9rem;
+      color: #888;
+    }
+    .stage-row.running { color: #1a1a1a; font-weight: 600; }
+    .stage-row.done { color: #2d8a4e; }
+    .stage-row.error { color: #c0392b; }
+
+    .dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: #ddd;
+      flex-shrink: 0;
+    }
+    .running .dot { background: #f0ad4e; animation: pulse 1s infinite alternate; }
+    .done .dot { background: #2d8a4e; }
+    .error .dot { background: #c0392b; }
+
+    @keyframes pulse { from { opacity: 1; } to { opacity: 0.4; } }
+
+    .stage-time { margin-left: auto; font-size: 0.8rem; color: #999; font-weight: 400; }
+
+    /* Results */
+    #results {
+      display: none;
+      margin-top: 2rem;
+    }
+
+    .section {
+      margin-bottom: 1.5rem;
+    }
+    .section h2 {
+      font-size: 1rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      border-bottom: 2px solid #1a1a1a;
+      padding-bottom: 0.3rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .kv { display: flex; gap: 0.5rem; font-size: 0.9rem; padding: 0.15rem 0; }
+    .kv-label { font-weight: 600; min-width: 140px; flex-shrink: 0; }
+    .kv-value { color: #333; }
+
+    .drafts-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+    @media (max-width: 700px) { .drafts-grid { grid-template-columns: 1fr; } }
+
+    .draft-box h3 {
+      font-size: 0.85rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 0.5rem;
+    }
+    .draft-text {
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+      font-size: 0.82rem;
+      white-space: pre-wrap;
+      background: #f0f0f0;
+      padding: 0.75rem;
+      border-radius: 6px;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+
+    .gate-pass { color: #2d8a4e; font-weight: 700; }
+    .gate-fail { color: #c0392b; font-weight: 700; }
+
+    #error-box {
+      display: none;
+      margin-top: 1.5rem;
+      padding: 1rem;
+      background: #fdecea;
+      border: 1px solid #c0392b;
+      border-radius: 6px;
+      color: #c0392b;
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+  <h1>Gig Lead Responder</h1>
+  <p class="subtitle">Paste a lead message below and click Analyze.</p>
+
+  <textarea id="lead-input" placeholder="Paste the lead text here..."></textarea>
+  <br>
+  <button id="submit-btn" onclick="analyze()">Analyze</button>
+
+  <div id="stages">
+    <div class="stage-row" data-stage="1"><span class="dot"></span> 1. Classify Lead <span class="stage-time"></span></div>
+    <div class="stage-row" data-stage="2"><span class="dot"></span> 2. Look Up Pricing <span class="stage-time"></span></div>
+    <div class="stage-row" data-stage="3"><span class="dot"></span> 3. Assemble Context <span class="stage-time"></span></div>
+    <div class="stage-row" data-stage="4"><span class="dot"></span> 4. Generate Drafts <span class="stage-time"></span></div>
+    <div class="stage-row" data-stage="5"><span class="dot"></span> 5. Verify &amp; Gate <span class="stage-time"></span></div>
+  </div>
+
+  <div id="error-box"></div>
+
+  <div id="results">
+    <div class="section" id="classification-section">
+      <h2>Classification</h2>
+      <div id="classification-kv"></div>
+    </div>
+
+    <div class="section" id="pricing-section">
+      <h2>Pricing</h2>
+      <div id="pricing-kv"></div>
+    </div>
+
+    <div class="section" id="drafts-section">
+      <h2>Drafts</h2>
+      <div class="drafts-grid">
+        <div class="draft-box">
+          <h3>Full Draft</h3>
+          <div class="draft-text" id="full-draft"></div>
+        </div>
+        <div class="draft-box">
+          <h3>Compressed Draft</h3>
+          <div class="draft-text" id="compressed-draft"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section" id="gate-section">
+      <h2>Verification Gate</h2>
+      <div id="gate-kv"></div>
+    </div>
+  </div>
+
+  <script>
+    const STAGE_NAMES = {
+      1: "classify", 2: "price", 3: "context", 4: "generate", 5: "verify"
+    };
+
+    function resetUI() {
+      document.getElementById("stages").style.display = "block";
+      document.getElementById("results").style.display = "none";
+      document.getElementById("error-box").style.display = "none";
+      document.querySelectorAll(".stage-row").forEach(row => {
+        row.className = "stage-row";
+        row.querySelector(".stage-time").textContent = "";
+      });
+    }
+
+    function setStage(num, status, ms) {
+      const row = document.querySelector(`.stage-row[data-stage="${num}"]`);
+      if (!row) return;
+      row.className = `stage-row ${status}`;
+      if (ms !== undefined) {
+        row.querySelector(".stage-time").textContent = `${(ms / 1000).toFixed(1)}s`;
+      }
+    }
+
+    function kvHTML(pairs) {
+      return pairs.map(([label, value]) =>
+        `<div class="kv"><span class="kv-label">${label}</span><span class="kv-value">${value}</span></div>`
+      ).join("");
+    }
+
+    function renderResults(data) {
+      const c = data.classification;
+      document.getElementById("classification-kv").innerHTML = kvHTML([
+        ["Mode", c.mode],
+        ["Competition", `${c.competition_level} (${c.competition_quote_count} quotes)`],
+        ["Stealth Premium", c.stealth_premium ? `YES — ${c.stealth_premium_signals.join(", ")}` : "No"],
+        ["Tier", `${c.tier} / ${c.rate_card_tier}`],
+        ["Format", `${c.format_requested} -> ${c.format_recommended}`],
+        ["Duration", `${c.duration_hours}hr`],
+        ["Cultural", c.cultural_context_active ? c.cultural_tradition : "N/A"],
+        ["Timeline", `${c.timeline_band} / ${c.close_type} close`],
+        ...(c.flagged_concerns.length ? [["Concerns", c.flagged_concerns.join(", ")]] : []),
+      ]);
+
+      const p = data.pricing;
+      document.getElementById("pricing-kv").innerHTML = kvHTML([
+        ["Format", `${p.format} | ${p.duration_hours}hr | ${p.tier_key}`],
+        ["Anchor", `$${p.anchor}`],
+        ["Floor", `$${p.floor}`],
+        ["Quote", `$${p.quote_price} (${p.competition_position})`],
+      ]);
+
+      document.getElementById("full-draft").textContent = data.drafts.full_draft;
+      document.getElementById("compressed-draft").textContent = data.drafts.compressed_draft;
+
+      const g = data.gate;
+      const passed = Object.values(g.gut_checks).filter(Boolean).length;
+      document.getElementById("gate-kv").innerHTML = kvHTML([
+        ["Status", `<span class="${g.gate_status === 'pass' ? 'gate-pass' : 'gate-fail'}">${g.gate_status.toUpperCase()}</span>${data.verified ? '' : ' (unverified — best attempt)'}`],
+        ["Validation", `"${g.validation_line}"`],
+        ["Best Line", `"${g.best_line}"`],
+        ["Scene", `${g.scene_type} — "${g.scene_quote}"`],
+        ["Competitor Test", g.competitor_test ? "FAIL — could be any vendor" : "PASS — unique"],
+        ["Gut Checks", `${passed}/9 passed`],
+        ...(g.fail_reasons.length ? [["Fail Reasons", g.fail_reasons.join("; ")]] : []),
+      ]);
+
+      document.getElementById("results").style.display = "block";
+    }
+
+    async function analyze() {
+      const text = document.getElementById("lead-input").value.trim();
+      if (!text) return;
+
+      const btn = document.getElementById("submit-btn");
+      btn.disabled = true;
+      btn.textContent = "Analyzing...";
+      resetUI();
+
+      try {
+        const response = await fetch("/api/analyze", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text }),
+        });
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = "";
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split("\n");
+          // Keep the last potentially incomplete line in the buffer
+          buffer = lines.pop();
+
+          let currentEvent = null;
+          for (const line of lines) {
+            if (line.startsWith("event: ")) {
+              currentEvent = line.slice(7);
+            } else if (line.startsWith("data: ") && currentEvent) {
+              const payload = JSON.parse(line.slice(6));
+
+              if (currentEvent === "stage") {
+                setStage(payload.stage, payload.status, payload.ms);
+              } else if (currentEvent === "complete") {
+                renderResults(payload);
+              } else if (currentEvent === "error") {
+                const errorBox = document.getElementById("error-box");
+                errorBox.textContent = `Error: ${payload.error}`;
+                errorBox.style.display = "block";
+              }
+              currentEvent = null;
+            }
+          }
+        }
+      } catch (err) {
+        const errorBox = document.getElementById("error-box");
+        errorBox.textContent = `Network error: ${err.message}`;
+        errorBox.style.display = "block";
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "Analyze";
+      }
+    }
+
+    // Allow Ctrl+Enter to submit
+    document.getElementById("lead-input").addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) analyze();
+    });
+  </script>
+</body>
+</html>

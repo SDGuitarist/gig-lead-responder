@@ -20,7 +20,7 @@ function stripCodeFences(text: string): string {
 export async function callClaude<T>(
   systemPrompt: string,
   userMessage: string,
-  model: string = "claude-sonnet-4-5-20250514"
+  model: string = "claude-sonnet-4-6"
 ): Promise<T> {
   const makeRequest = async (extraInstruction?: string): Promise<string> => {
     const finalUser = extraInstruction
@@ -72,7 +72,7 @@ export async function callClaude<T>(
 export async function callClaudeText(
   systemPrompt: string,
   userMessage: string,
-  model: string = "claude-sonnet-4-5-20250514"
+  model: string = "claude-sonnet-4-6"
 ): Promise<string> {
   const response = await client.messages.create({
     model,
