@@ -1,7 +1,7 @@
 # Gig Lead Responder — Session Handoff
 
-**Last updated:** 2026-02-20 (v12)
-**Current phase:** Work — Production Loop (post-review fixes complete)
+**Last updated:** 2026-02-20 (v13)
+**Current phase:** Work — Production Loop (all review fixes complete)
 **Next session:** Deploy to Railway + run e2e tests (see `docs/deployment.md` + `docs/e2e-test.md`)
 
 ---
@@ -475,6 +475,12 @@ Two fix batches from `/workflows:review` findings. All commits on `main`, pushed
 - **Pipeline timeout** — `runPipeline()` wrapped in `Promise.race` with 2-minute timeout. Timeout fires `postPipelineError()` → lead marked `failed` + SMS alert to Alex. Prevents silent hangs.
 - **Atomic dedup** — `isEmailProcessed` + `markEmailProcessed` + `insertLead` wrapped in a `better-sqlite3` transaction via new `runTransaction()` helper. Eliminates TOCTOU race on duplicate webhooks.
 - **Atomic postPipeline** — SMS sent before any DB write. All 10 pipeline fields + `status="sent"` + `sms_sent_at` written in one `updateLead` call. Prevents split-brain where SMS is sent but lead stays in `"received"`.
+
+### Batch C — Code quality P2s (`3883489`)
+
+- **EmailFields export** — `email-parser.ts` exports `EmailFields` interface; `webhook.ts` imports and types the reconstructed fields object instead of inline `as` casts
+- **SQL column whitelist** — `leads.ts` adds `UPDATE_ALLOWED_COLUMNS` set (24 cols matching LeadRecord). `updateLead()` throws before building SQL if any key isn't in the whitelist. Defense-in-depth against runtime key injection.
+- **`runEditPipeline()` abstraction** — `run-pipeline.ts` exports `runEditPipeline(classification, pricing, instructions)` owning context assembly + generate + verify. `twilio-webhook.ts` drops 3 pipeline internal imports, calls `runEditPipeline()` instead. Webhook handler is now a thin routing layer.
 
 ### What's left before deploy
 
