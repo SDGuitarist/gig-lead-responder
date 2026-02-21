@@ -1,7 +1,7 @@
 # Gig Lead Responder — Session Handoff
 
-**Last updated:** 2026-02-21 (v19)
-**Current phase:** Compound complete — all 5 phases done
+**Last updated:** 2026-02-21 (v20)
+**Current phase:** Work complete — reasoning stage + sparse lead handling
 **Next session:** Deploy to Railway + run e2e tests (see `docs/deployment.md` + `docs/e2e-test.md`)
 
 ---
@@ -61,8 +61,8 @@ Raw Lead → [classify] → [price] → [context] → [generate] → [verify] �
 - `src/data/rates.ts` — 7 format rate tables hardcoded from source .md files
 - `src/data/venues.ts` — 29 venues with tier + stealth premium flags
 - `src/prompts/classify.ts` — Classification prompt (PROTOCOL.md Steps 0-5)
-- `src/prompts/generate.ts` — Generation prompt (RESPONSE_CRAFT.md 7-component framework)
-- `src/prompts/verify.ts` — Verification gate prompt (evidence-based pass/fail)
+- `src/prompts/generate.ts` — Generation prompt (reasoning stage + 5-step draft + sparse lead protocol)
+- `src/prompts/verify.ts` — Verification gate prompt (10 gut checks, 8/10 to pass, lead-specificity check)
 
 ### Business Logic Docs (in `docs/`)
 All source docs were found in `~/Downloads/Manual Library/` (Sparkle moved them) and copied to the project. Key files:
@@ -543,6 +543,72 @@ GigSalad prohibits direct contact info (phone, email, website) in platform messa
 1. ~~**Website URLs / social handles**~~ — Fixed in `88d801a`. Hard constraint added near top of generate prompt prohibiting all contact info (phone, email, URLs, social handles, "call me"/"text me" phrasing) in the entire response body, not just the contact block. Contact block omission (v14) still in place lower in the prompt as a second layer.
 2. **No platform-policy config** — The `=== "gigsalad"` check is hardcoded in three files (generate prompt, verify prompt, pipeline/generate.ts). If more platforms with different rules appear, a config object would be cleaner.
 3. ~~**Verification gate unaware**~~ — Fixed in `7d69d9c` (GigSalad) and `d997751` (The Bash/direct). Verify prompt section 8 is now a platform-conditional hard gate: GigSalad gets "Platform Policy Check" (fails if contact info detected), The Bash/direct get "Contact Block Check" (fails if name, business name, or phone number missing). Section numbering is now consistent (8→9→10) regardless of platform. Also fixed in v16: compressed draft says "GigSalad messaging system" / "The Bash messaging system" (platform-specific) and omits "contact block" from must-retain list for GigSalad.
+
+---
+
+## Reasoning Stage + Sparse Lead Handling (2026-02-21)
+
+### Problem
+
+The generation model skipped straight to drafting and produced generic output — especially on sparse leads. Opening sentences were cinematic but referenced no lead details. Named fears were implied but never stated explicitly. Sparse leads with minimal info got the same treatment as rich leads.
+
+### What Changed
+
+**7 commits across `src/prompts/generate.ts`, `src/types.ts`, `src/pipeline/generate.ts`, `src/prompts/verify.ts`, `src/index.ts`.**
+
+#### Reasoning Stage (`generate.ts`)
+- Model must fill a `reasoning` JSON block before writing any prose: `details_present`, `absences`, `emotional_core`, `cinematic_opening`, `validation_line`
+- Replaced 7-component framework with 5-step draft sequence: cinematic hook + validation → differentiator + named fear → fear/concern resolution → recommendation + price → CTA
+- `GenerateResponse` interface in `pipeline/generate.ts` captures reasoning; only drafts flow downstream
+
+#### Lead-Specificity Check (`verify.ts`, `types.ts`)
+- New section 6b in verify prompt: does the opening sentence reference a concrete detail from the classification?
+- `lead_specific_opening: boolean` added to `GateResult.gut_checks` (now 10 checks total)
+- Pass threshold updated: 7/9 → 8/10 (same 2-failure tolerance)
+- `src/index.ts` uses `Object.keys(checks).length` instead of hardcoded `/9`
+
+#### Named Fear Fix (`generate.ts`)
+- Step 2 rewritten as "Differentiator + Named Fear" — must name a specific failure mode before showing differentiation
+- Sparse Lead Protocol includes fear inference: infer fears from context even when lead doesn't state concerns
+
+#### Sparse Lead Type System (`generate.ts`)
+- **Type 1 — Price shopper**: far date, no details → memorable, not exhaustive
+- **Type 2 — Overwhelmed**: emotional event, sparse form → remove friction, validate
+- **Type 3 — Impatient filler**: category-only, short lead → assume and quote, bundle concerns
+- **Type 4 — Still figuring it out**: vague request → one binary question
+- Ambiguous defaults to Type 4
+
+#### Forcing Instruction (`generate.ts`)
+- Deletion test: "If you remove the detail and the sentence still works for any lead, it fails"
+- Pass/fail examples in the prompt
+- Corporate event emotional_core: background music, ambience, musician handles everything
+
+#### Concern Traceability Rules (`generate.ts`)
+- Type 3 bundling: one confident sentence can cover multiple gaps
+- Genre default rule: always state default style when unspecified (corporate: fingerstyle jazz/acoustic pop)
+- Date proximity rule: events within 6 weeks must have timeline acknowledged
+
+#### Sparse Lead Scene Strategy (`generate.ts`)
+- When lead gives no venue/guest count, build cinematic from the experience: guests at table, glasses in hands, time of night, music responding to room
+
+### Test Results (all 4 passing)
+
+| # | Lead | Type | Gate | Attempts | Confidence |
+|---|------|------|------|----------|------------|
+| 1 | Wedding @ Hilton La Jolla (120 guests, flamenco, $400-500 budget) | Rich | PASS | 2 | 90 |
+| 2 | Birthday March 22, "not sure on details" | Sparse | PASS | 1 | 70 |
+| 3 | October 2026 birthday, "just getting pricing" | Type 1 | PASS | 2 | 70 |
+| 4 | Corporate March 14, downtown San Diego | Type 3 | PASS | 1 | 80 |
+
+All 10/10 gut checks across the board.
+
+### Three Questions
+
+**Hardest decision:** Where to put the genre default rule. The model was already seeing genre in the Type 3 bundling *example* and ignoring it. Had to decide between scoping it to Type 3, to corporate emotional_core, or as a standalone rule. Went standalone inside Type 3 with explicit default strings per event type. Risk is prompt bloat — the Sparse Lead Protocol section is getting long.
+
+**What was rejected:** Fixing the classifier instead of the generate prompt. Lead 2 kept failing because the classifier flagged 4-5 concerns on a lead with almost no info. Could have tightened the classify prompt to flag fewer concerns on sparse leads. Rejected because: (a) classify prompt wasn't in scope, (b) strict classifier + capable generator is better than lenient classifier that misses issues on richer leads, (c) generate-side fixes (bundling, date proximity rule) solved it without touching a second prompt file.
+
+**Least confident about:** Scene consistency on ultra-sparse leads. Lead 2 was the most volatile — sometimes `cinematic`, sometimes `structural`, depending on how the model phrased the fear. The sparse scene strategy helps but has no testable constraint like the forcing rule's deletion test. On Railway with real leads sparser than the test set, this will be the most common first-attempt failure. The rewrite loop catches it, so it's not a blocker — but it's the least deterministic part of the pipeline.
 
 ---
 
