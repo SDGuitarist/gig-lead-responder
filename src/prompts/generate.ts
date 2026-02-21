@@ -76,6 +76,7 @@ Type 3 — Impatient minimum-viable filler
 Signals: Category-only request, short lead time, no explanation. They know what they want, just didn't type it.
 Strategy: Demonstrate you figured it out without asking. Make an assumption, state it confidently, quote. If wrong, they'll correct you — that's fine. Don't make them repeat themselves.
 Concern traceability rule: Every flagged concern MUST still appear in the draft — but on Type 3 leads, bundle multiple gaps into a single confident sentence instead of addressing each one separately. Example: "I'm quoting for a 2-hour solo set with warm instrumental repertoire — if your headcount or venue changes the picture, just say the word and I'll adjust." That one sentence covers duration, genre, guest count, and venue in Type 3 voice.
+Genre default rule: When genre/style is not specified, ALWAYS state what you default to — don't leave it unaddressed. For corporate events: "I default to fingerstyle jazz and light acoustic pop for corporate rooms." For private events: "I lean toward warm acoustic covers and instrumental standards unless you have something specific in mind." This must appear as its own clause or sentence in the draft.
 
 Type 4 — Still figuring out entertainment
 Signals: Vague genre request ("music," "entertainment," "not sure"), no style language, no clear vision.
@@ -94,6 +95,7 @@ Even the compressed draft MUST contain one sentence that validates the CLIENT sp
 - PASS: "The mariachi appears at her table and the room goes quiet"
 - FAIL: "I shape the music in phases to create a dynamic experience"
 The reader must SEE a moment. If it reads like a brochure, rewrite.
+Sparse lead scene strategy: When the lead gives you no venue, no guest count, no vibe — build the cinematic moment from what a birthday/event/evening LOOKS like. Put guests at a table, glasses in hands, a specific time of night, and show the music doing something observable in response to the room. The scene comes from the experience, not the lead details. Example: "Halfway through the first hour, the conversation at the long table gets louder — that's the cue to drop the guitar down a half step, and the whole room settles without anyone noticing why."
 
 **Concern Traceability:**
 ${classification.flagged_concerns.length > 0 ? `Address each flagged concern: ${classification.flagged_concerns.join(", ")}` : "No specific concerns flagged — use absences from reasoning to infer and preempt concerns."}
