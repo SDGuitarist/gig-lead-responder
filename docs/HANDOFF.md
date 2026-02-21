@@ -1,8 +1,8 @@
 # Gig Lead Responder — Session Handoff
 
-**Last updated:** 2026-02-20 (v6)
+**Last updated:** 2026-02-20 (v7)
 **Current phase:** Work — Production Loop (next chunk)
-**Next session:** Twilio reply webhook + YES/edit handler (Chunk 4)
+**Next session:** Dashboard with Basic Auth (Chunk 5)
 
 ---
 
@@ -219,8 +219,8 @@ Read docs/plans/2026-02-20-feat-production-automation-loop-plan.md sections "Typ
 | 2 | Twilio SMS sender (outbound only) | Done (`4fa610c`) |
 | 3 | Mailgun webhook + email parser + HMAC | Done (`fc9043a`) |
 | 4 | Extract `runPipeline()` + wire end-to-end | Done — Chunk 1 (`c4b740e`) + Chunk 3 (`936c2f0`) |
-| 5 | Twilio reply webhook + YES/edit handler | **Next** |
-| 6 | Dashboard with Basic Auth | Pending |
+| 5 | Twilio reply webhook + YES/edit handler | Done (`f5a32a1`) |
+| 6 | Dashboard with Basic Auth | **Next** |
 | 7 | Railway deployment + env config | Pending |
 | 8 | Gmail forward filter + e2e test | Pending |
 
@@ -344,26 +344,40 @@ Wires the back half of the webhook fire-and-forget. Key files:
 - Used plan's 4-state machine (`sent`/`failed`) not spec's invented states (`draft_ready`/`awaiting_approval`/`pipeline_error`)
 - Used correct PipelineOutput paths (`output.drafts.full_draft`, `output.gate.gate_status === "pass"`)
 
-## Next Work: Chunk 4 — Twilio reply webhook + YES/edit handler
+## Completed: Chunk 4 — Twilio reply webhook + YES/edit handler (f5a32a1)
+
+Inbound SMS handler for the approval/edit loop. Key file:
+
+- **`src/twilio-webhook.ts`** — Express router with `POST /webhook/twilio`. Twilio signature validation via `twilio.validateRequest()` using `TWILIO_AUTH_TOKEN` + `BASE_URL`. Only accepts messages from `ALEX_PHONE`. Three parsing paths:
+  1. **Approval:** `YES`, `Y`, `APPROVE`, `OK` with optional `-ID` or ` ID` suffix → marks lead as `done` with `done_reason: "approved"`, sends confirmation SMS with dashboard link.
+  2. **Edit with ID:** `#42 instructions` or `42: instructions` → routes edit to specific lead.
+  3. **Edit without ID:** Entire SMS body is edit instructions → routes to single pending lead, or asks for ID if multiple.
+- **`resolveLead()`** — Resolves lead by explicit ID or falls back to most recent `sent` lead. Returns discriminated union `{ ok: true, lead } | { ok: false, error }`.
+- **`handleEdit()`** — Checks max 3 edit rounds, parses stored classification/pricing JSON, re-assembles context, calls `generateResponse()` with edit instructions + `verifyGate()` (single attempt per round), updates lead, sends new draft via SMS.
+- **Fire-and-forget pattern** — Returns empty TwiML immediately, processes async. Error handler sends SMS on failure.
+- **`.env.example`** — Added `BASE_URL`.
+
+## Next Work: Chunk 5 — Dashboard with Basic Auth
 
 ### Scope
 
-Inbound SMS handler. When Alex replies YES → mark lead as done, send confirmation SMS with dashboard link. When Alex sends edit instructions → re-run generate+verify, send new draft. Twilio signature validation on inbound webhook.
+Express router serving HTML pages for lead management. `GET /leads` lists all leads with status, edit_round, timestamps. `GET /leads/:id` shows full lead detail with copy-paste ready draft. Protected by Basic Auth using `DASHBOARD_USER` + `DASHBOARD_PASS` env vars.
 
 ### Prompt for next session
 
 ```
-Read docs/HANDOFF.md (the "Next Work: Chunk 4" section).
-Read docs/plans/2026-02-20-feat-production-automation-loop-plan.md (SMS Parsing Rules + Edit Re-run sections).
-Read src/post-pipeline.ts. Read src/sms.ts. Read src/webhook.ts. Read src/leads.ts.
+Read docs/HANDOFF.md (the "Next Work: Chunk 5" section).
+Read docs/plans/2026-02-20-feat-production-automation-loop-plan.md (Dashboard + Acceptance Criteria sections).
+Read src/leads.ts. Read src/server.ts.
 
-Implement Chunk 4:
-1. POST /webhook/twilio with Twilio signature validation
-2. Parse inbound SMS: APPROVAL_PATTERN for YES/Y/APPROVE/OK with optional lead ID
-3. Approval path: mark done, send confirmation SMS with dashboard link
-4. Edit path: re-run generate+verify only, send new draft, increment edit_round
-5. Edge cases: multiple pending leads + no ID, no pending leads, max edits (3)
+Implement Chunk 5:
+1. Create src/dashboard.ts with Express router
+2. Inline Basic Auth middleware (~10 lines, no external package)
+3. GET /leads — HTML table of all leads (status, event_type, event_date, venue, edit_round, created_at)
+4. GET /leads/:id — Full lead detail page with copy-paste ready full_draft
+5. Visually distinguish leads with client_name = null (unparsed email)
 6. Mount in src/server.ts
+7. Add DASHBOARD_USER and DASHBOARD_PASS to .env.example
 
 Commit when done.
 ```
@@ -372,9 +386,9 @@ Commit when done.
 
 | Chunk | Description | Key files |
 |---|---|---|
-| 3 | Wire Mailgun → pipeline → Twilio (end-to-end) | `src/server.ts`, `src/run-pipeline.ts` |
-| 4 | Twilio reply webhook + YES/edit handler | `src/twilio.ts`, `src/server.ts` |
-| 5 | Dashboard with Basic Auth | `src/dashboard.ts`, `src/server.ts` |
+| 6 | Dashboard with Basic Auth | `src/dashboard.ts`, `src/server.ts` |
+| 7 | Railway deployment + env config | `railway.json`, `.env.example` |
+| 8 | Gmail forward filter + e2e test | Setup docs |
 
 ---
 
