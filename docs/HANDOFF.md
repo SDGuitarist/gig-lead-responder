@@ -1,8 +1,8 @@
 # Gig Lead Responder — Session Handoff
 
-**Last updated:** 2026-02-20 (v9)
-**Current phase:** Work — Production Loop (next chunk)
-**Next session:** Gmail forward filter + e2e test (Chunk 7)
+**Last updated:** 2026-02-20 (v10)
+**Current phase:** Work — Production Loop (all implementation chunks complete)
+**Next session:** Deploy to Railway + run e2e tests (see `docs/deployment.md` + `docs/e2e-test.md`)
 
 ---
 
@@ -222,7 +222,7 @@ Read docs/plans/2026-02-20-feat-production-automation-loop-plan.md sections "Typ
 | 5 | Twilio reply webhook + YES/edit handler | Done (`f5a32a1`) |
 | 6 | Dashboard with Basic Auth | Done (`33394db`) |
 | 7 | Railway deployment + env config | Done (`a45b59f`) |
-| 8 | Gmail forward filter + e2e test | **Next** |
+| 8 | Gmail forward filter + e2e test | Done (`dbd51c9`) |
 
 **Pre-requisite before Phase 3:** Save 2-3 sample lead emails from GigSalad and The Bash to `examples/`.
 
@@ -406,21 +406,61 @@ Railway deployment configuration. Key files:
 
 ---
 
-## Next Work: Chunk 7 — Gmail Forward Filter + E2E Test
+## Completed: Chunk 7 — Gmail Forward Filter + E2E Test (dbd51c9)
 
-### Scope
+Documentation-only chunk. Key files:
 
-Documentation-only: Gmail filter setup details with sequencing requirements, and a manual e2e test checklist covering the full loop.
+- **`docs/deployment.md` section 7** — Rewrote Gmail forward filter setup with:
+  - Sequencing warning (deploy Railway + Mailgun BEFORE Gmail verification)
+  - Per-platform filter criteria: The Bash (`from:info@thebash.com` + `subject:Gig Alert`),
+    GigSalad (`from:leads@gigsalad.com` only — no subject filter, dedup handles reminders),
+    Squarespace (optional, parser not built yet)
+  - Detailed forwarding verification steps
+- **`docs/e2e-test.md`** — 9-test manual checklist: healthcheck, direct Mailgun
+  webhook, Gmail full path, YES approval, edit reply, dedup, error path, volume
+  persistence, DISABLE_TWILIO_VALIDATION toggle. Includes flow diagram and
+  troubleshooting for each step.
 
-### Prompt for next session
+### Three Questions — Chunk 7
+
+**Hardest decision:** Whether to add a subject filter on GigSalad's Gmail filter.
+Decided against it — GigSalad sends multiple emails per lead from the same `leads@`
+address with varying subjects. Adding `subject:New lead` risks silently dropping
+leads if GigSalad changes their format. Better to forward everything from `leads@`
+and let the application-layer parser + dedup handle filtering.
+
+**Rejected:** Building an automated test script (curl-based or similar) that hits
+the Mailgun webhook. It would simulate the webhook POST but wouldn't test the
+actual Gmail → Mailgun → Railway path, which is the part most likely to break.
+A manual checklist that tests the real path is more valuable for first deploy.
+
+**First thing that will break:** The Mailgun HMAC signature validation on the
+`/webhook/mailgun` endpoint. Gmail-forwarded emails arrive at Mailgun as new
+inbound messages, and Mailgun signs the webhook POST with its own key. But the
+`MAILGUN_WEBHOOK_KEY` in Railway must match Mailgun's *webhook signing key* (not
+the API key, not the domain key). These are easy to confuse in Mailgun's dashboard,
+and a mismatch means every webhook POST returns 401 silently — no lead created,
+no SMS sent, no error visible unless you check Railway logs.
+
+---
+
+## All Implementation Chunks Complete
+
+All 8 chunks are done. The system is ready for first Railway deploy.
+
+### Next Steps
+
+1. **Deploy to Railway** — Follow `docs/deployment.md` sections 1-4
+2. **Configure services** — Mailgun (section 5), Twilio (section 6), Gmail (section 7)
+3. **Run e2e tests** — Follow `docs/e2e-test.md` tests 0-8
+4. **Review phase** — `/workflows:review` on the full codebase
+5. **Compound phase** — Document learnings in `docs/solutions/`
+
+### Prompt for next session (deploy)
 
 ```
-Read docs/HANDOFF.md (v9). Read docs/deployment.md.
-
-Implement Chunk 7 — Gmail forward filter + e2e test:
-1. Document Gmail forwarding setup in docs/deployment.md (enhance existing section)
-2. Write manual e2e test checklist in docs/e2e-test.md
-3. Commit when done
+Read docs/deployment.md. Follow sections 1-4 to deploy to Railway.
+Then read docs/e2e-test.md and run Test 0 (healthcheck + dashboard).
 ```
 
 ---
