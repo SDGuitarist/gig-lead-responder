@@ -1,8 +1,8 @@
 # Gig Lead Responder — Session Handoff
 
-**Last updated:** 2026-02-20 (v8)
+**Last updated:** 2026-02-20 (v9)
 **Current phase:** Work — Production Loop (next chunk)
-**Next session:** Railway deployment (Chunk 6)
+**Next session:** Gmail forward filter + e2e test (Chunk 7)
 
 ---
 
@@ -221,8 +221,8 @@ Read docs/plans/2026-02-20-feat-production-automation-loop-plan.md sections "Typ
 | 4 | Extract `runPipeline()` + wire end-to-end | Done — Chunk 1 (`c4b740e`) + Chunk 3 (`936c2f0`) |
 | 5 | Twilio reply webhook + YES/edit handler | Done (`f5a32a1`) |
 | 6 | Dashboard with Basic Auth | Done (`33394db`) |
-| 7 | Railway deployment + env config | **Next** |
-| 8 | Gmail forward filter + e2e test | Pending |
+| 7 | Railway deployment + env config | Done (`a45b59f`) |
+| 8 | Gmail forward filter + e2e test | **Next** |
 
 **Pre-requisite before Phase 3:** Save 2-3 sample lead emails from GigSalad and The Bash to `examples/`.
 
@@ -385,35 +385,43 @@ No new dependencies. Type checks clean (only pre-existing `import.meta.dirname` 
 
 ---
 
-## Next Work: Chunk 6 — Railway Deployment
+## Completed: Chunk 6 — Railway Deployment (a45b59f)
+
+Railway deployment configuration. Key files:
+
+- **`railway.json`** — Nixpacks builder, `npx tsx src/server.ts` start command, `/health` healthcheck, ON_FAILURE restart with 3 retries.
+- **`src/server.ts`** — Added `GET /health` endpoint returning `{ status: "ok" }`.
+- **`src/twilio-webhook.ts`** — Added `DISABLE_TWILIO_VALIDATION` escape hatch to `verifyTwilioSignature()`. When `true`, skips signature validation and logs a warning.
+- **`package.json`** — Moved `tsx` from devDependencies to dependencies (prevents cold deploy failure when Railway runs `npm ci --omit=dev`).
+- **`.env.example`** — Full rewrite with grouped sections, comments, and `DISABLE_TWILIO_VALIDATION=false`.
+- **`docs/deployment.md`** — Step-by-step Railway setup: volume config, all env vars with descriptions, Mailgun inbound route, Twilio webhook URL, Gmail forward filter, redeploy checklist.
+
+### Three Questions — Chunk 6
+
+**Hardest decision:** The `tsx` production dependency question. `tsx` was in devDependencies, so `npx tsx` would fail silently on Railway's cold deploy. Fix was trivial (move one line in package.json) but the failure mode was nasty — works locally, crashes only in production.
+
+**Rejected:** Adding a `tsc` build step + `node dist/server.js`. Three moving parts for zero benefit at this scale. Also rejected making `/health` do a DB check — healthcheck should mean "process alive," not "every dependency working."
+
+**Least confident:** Gmail forwarding verification flow — chicken-and-egg between Railway deploy and Gmail verification email delivery.
+
+---
+
+## Next Work: Chunk 7 — Gmail Forward Filter + E2E Test
 
 ### Scope
 
-Deployment configuration, env var documentation, and step-by-step setup guide. No new application code — this is infrastructure and documentation.
+Documentation-only: Gmail filter setup details with sequencing requirements, and a manual e2e test checklist covering the full loop.
 
 ### Prompt for next session
 
 ```
-Read docs/HANDOFF.md (v8). Read src/server.ts, src/leads.ts, .env.example.
+Read docs/HANDOFF.md (v9). Read docs/deployment.md.
 
-Implement Chunk 6 — Railway deployment:
-1. Create railway.json with start command + healthcheck
-2. Verify process.env.PORT binding in src/server.ts
-3. Document Railway Volume setup for SQLite (DATABASE_PATH env var)
-4. Add DISABLE_TWILIO_VALIDATION=false to .env.example with comment explaining
-   the escape hatch (set true temporarily to debug Twilio URL mismatch)
-5. Create docs/deployment.md — step-by-step Railway setup: volume config,
-   all env vars with descriptions, Mailgun inbound route setup, Twilio
-   webhook URL config, Gmail forward filter setup
-6. Commit when done
+Implement Chunk 7 — Gmail forward filter + e2e test:
+1. Document Gmail forwarding setup in docs/deployment.md (enhance existing section)
+2. Write manual e2e test checklist in docs/e2e-test.md
+3. Commit when done
 ```
-
-### Remaining Chunks (Queued)
-
-| Chunk | Description | Key files |
-|---|---|---|
-| 7 | Railway deployment + env config | `railway.json`, `.env.example`, `docs/deployment.md` |
-| 8 | Gmail forward filter + e2e test | Setup docs |
 
 ---
 
