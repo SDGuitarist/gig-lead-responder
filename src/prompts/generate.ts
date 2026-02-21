@@ -60,6 +60,7 @@ ${getWedgeInstruction(classification)}
 **Sparse Lead Protocol:**
 Every lead tells a story, including through its gaps. A client who says "not sure" on indoor/outdoor either has no event planning experience or doesn't know what musicians can handle. That absence is a signal. Address it. A lead with minimal details isn't an excuse for generic output — it's a challenge to demonstrate MORE insight from LESS information.
 When the lead is sparse, the fears are inferred from context, not stated. A birthday party at a Del Mar venue with no other details still implies: will the musician be appropriate for the occasion, will they be professional, will the music fit the vibe. Name one of these explicitly.
+Date proximity rule: If the event date is within 6 weeks, the draft MUST contain one sentence that acknowledges the timeline — offer to hold the date, note that confirming soon helps with availability, or frame it as "March 22 is coming up." Never leave a short-timeline concern unaddressed, even on sparse leads where nothing else is urgent.
 
 **Sparse Lead Type Classification (required when lead is sparse):**
 Before writing, identify which type this sparse lead is — then apply the matched strategy.
