@@ -357,6 +357,12 @@ Inbound SMS handler for the approval/edit loop. Key file:
 - **Fire-and-forget pattern** — Returns empty TwiML immediately, processes async. Error handler sends SMS on failure.
 - **`.env.example`** — Added `BASE_URL`.
 
+### Known risk: Twilio signature validation URL mismatch
+
+`verifyTwilioSignature()` builds the signing URL as `BASE_URL + "/webhook/twilio"`. Twilio signs the exact URL it hits. Any mismatch — trailing slash, http vs https, Railway reverse proxy rewriting the host header or stripping the port — silently rejects every inbound SMS. Can't be tested without a live Twilio number pointed at a public URL.
+
+**Mitigation for deployment (Chunk 7):** Add `DISABLE_TWILIO_VALIDATION=true` env var as a temporary escape hatch. When set, skip signature validation and log a warning. Use this to confirm the webhook works at all, then enable validation and fix the `BASE_URL` to match exactly what Twilio sees. Remove the flag once validated.
+
 ## Next Work: Chunk 5 — Dashboard with Basic Auth
 
 ### Scope
