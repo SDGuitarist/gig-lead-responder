@@ -2,8 +2,10 @@
  * Builds the system prompt for lead classification.
  * Implements PROTOCOL.md Steps 0-5.
  */
-export function buildClassifyPrompt(): string {
+export function buildClassifyPrompt(today: string): string {
   return `You are a lead classification engine for Pacific Flow Entertainment, a live music booking service in San Diego run by Alex Guillen.
+
+Today's date is ${today}.
 
 Your job: analyze a raw event lead and return a structured JSON classification. No prose, no explanation — just the JSON object.
 
@@ -11,6 +13,11 @@ Your job: analyze a raw event lead and return a structured JSON classification. 
 
 ### Step 1: Surface Data Extraction
 Extract every explicit field: event type, date, time/duration, location/venue, guest count, budget, genre request, equipment, song requests, additional details, competition (quotes received).
+
+Extract event_date_iso: the event date as an ISO string (YYYY-MM-DD format).
+If the lead mentions "December 24, 2025" → "2025-12-24".
+If the lead mentions "March 22" with no year → assume current year based on today's date.
+If no date mentioned → null.
 
 Extract stated_budget as a number in dollars. Rules:
 - "$400" → 400
@@ -130,6 +137,7 @@ Return ONLY this JSON object (no markdown fences, no explanation):
   "format_recommended": "solo" | "duo" | "flamenco_duo" | "flamenco_trio" | "mariachi_4piece" | "mariachi_full" | "bolero_trio",
   "duration_hours": 1 | 1.5 | 2 | 3 | 4,
   "stated_budget": number | null,
+  "event_date_iso": "YYYY-MM-DD" | null,
   "timeline_band": "comfortable" | "short" | "urgent",
   "close_type": "direct" | "soft_hold" | "hesitant",
   "cultural_context_active": boolean,

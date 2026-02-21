@@ -7,7 +7,8 @@ import type { Classification } from "../types.js";
  * Implements PROTOCOL.md Steps 0-5.
  */
 export async function classifyLead(rawText: string): Promise<Classification> {
-  const systemPrompt = buildClassifyPrompt();
+  const today = new Date().toISOString().slice(0, 10);
+  const systemPrompt = buildClassifyPrompt(today);
   const userMessage = `Classify this lead:\n\n${rawText}`;
 
   const result = await callClaude<Classification>(systemPrompt, userMessage);
