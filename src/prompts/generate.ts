@@ -38,8 +38,8 @@ Before writing a single word of the draft, you MUST fill the "reasoning" block i
 
 - **details_present**: List EVERY concrete detail from the classification and lead — event type, date, venue, format, guest count, cultural context, concerns, anything specific. If the lead is sparse, list what little you have.
 - **absences**: List what's MISSING from the lead and what each absence signals. Example: "No venue mentioned → client may be early in planning or comparing options." "Said 'not sure' on indoor/outdoor → either no event planning experience or doesn't know what musicians can handle."
-- **emotional_core**: In one sentence, what is this person actually trying to create or protect? Not "they want music" — what emotional outcome are they after?
-- **cinematic_opening**: Write the EXACT first sentence of the full_draft here, standalone. It must reference at least one item from details_present.
+- **emotional_core**: In one sentence, what is this person actually trying to create or protect? Not "they want music" — what emotional outcome are they after? For corporate events specifically: they want background music that adds to the ambience without overwhelming conversation, and they want to know the musician handles everything — setup, volume, professionalism — so they can stop thinking about it.
+- **cinematic_opening**: Write the EXACT first sentence of the full_draft here, standalone. It MUST contain a concrete detail from details_present (event type, date, location, format). If you remove that detail and the sentence still works for any lead, rewrite it.
 - **validation_line**: Write the EXACT validation sentence here, standalone. It must validate the PERSON, not the event.
 
 ## STEP 2: WRITE DRAFTS
@@ -149,7 +149,7 @@ function getCompressedTarget(level: string): { target: number; max: number } {
 }
 
 function getWedgeInstruction(classification: Classification): string {
-  const forcing = `\nYour first sentence in full_draft MUST use at least one item from reasoning.details_present. Generic openings are not permitted.`;
+  const forcing = `\nFORCING RULE — Your first sentence in full_draft MUST contain a concrete detail from this lead (event type, date, location, format, or cultural context). Do NOT write a cinematic scene first and add details later — lead with the detail, build the scene around it. Test: if you delete the detail, does the sentence still work for any random lead? If yes, it fails. Example FAIL: "The room hums with conversation and the guitar slips underneath it." Example PASS: "A corporate evening downtown on March 14 — the guitar is already working the room before anyone finds their seat."`;
 
   if (classification.cultural_context_active && classification.format_requested !== classification.format_recommended) {
     return `Genre correction is the wedge. The client asked for "${classification.format_requested}" but this is a ${classification.cultural_tradition === "spanish_latin" ? "Mexican heritage" : "cultural"} celebration. The correct format is ${classification.format_recommended}. Deliver this correction with cultural confidence — it's expertise, not rejection. This insight is what no competitor will write.${forcing}`;
