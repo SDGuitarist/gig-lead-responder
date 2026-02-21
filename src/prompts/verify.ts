@@ -80,7 +80,7 @@ If the contact block is missing or incomplete → gate_status = "fail" with fail
   - scene_type is "cinematic"
   - competitor_test is false
   - All concern_traceability entries have non-empty draft_sentence
-  - At least 9 of 11 gut_checks are true
+  - At least 12 of 14 gut_checks are true
   - Platform check passes (${classification.platform === "gigsalad" ? "no contact info detected" : "contact block present with name, business, phone"})
 - "fail": Any of the above conditions not met
 
