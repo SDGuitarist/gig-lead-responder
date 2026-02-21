@@ -62,6 +62,7 @@ Does the opening sentence reference a CONCRETE DETAIL from the classification? T
 - lead_specific_opening: First sentence references a concrete detail from the classification (not generic)
 - budget_acknowledged: ${buildBudgetAcknowledgedInstruction(budget, classification)}
 - past_date_acknowledged: ${buildPastDateInstruction(classification)}
+- mariachi_pricing_format: ${buildMariachiPricingInstruction(classification)}
 
 ${classification.platform === "gigsalad"
     ? `### 8. Platform Policy Check — GigSalad (HARD GATE)
@@ -112,7 +113,8 @@ Return ONLY this JSON (no markdown fences, no explanation):
     "competitor_test": boolean,
     "lead_specific_opening": boolean,
     "budget_acknowledged": boolean,
-    "past_date_acknowledged": boolean
+    "past_date_acknowledged": boolean,
+    "mariachi_pricing_format": boolean
   },
   "gate_status": "pass" | "fail",
   "fail_reasons": ["specific fix instruction 1", "..."]
@@ -156,4 +158,21 @@ function buildPastDateInstruction(classification: Classification): string {
     return "Always true — no past date detected.";
   }
   return 'Draft must contain language clarifying the date (asking about the year, suggesting next occurrence). Deletion test: remove the date clarification — does the draft still work for a future event? If yes → false.';
+}
+
+/**
+ * Build the mariachi_pricing_format gut check instruction.
+ * No-op (always true) when no dual-format context exists.
+ */
+function buildMariachiPricingInstruction(classification: Classification): string {
+  if (
+    !classification.flagged_concerns.includes("mention_4piece_alternative") &&
+    !classification.flagged_concerns.includes("mention_full_ensemble_upgrade")
+  ) {
+    return "Always true — no dual-format context.";
+  }
+  if (classification.flagged_concerns.includes("mention_4piece_alternative")) {
+    return "First price presented must be the full ensemble (higher option). Deletion test: remove the context and does the high anchor still lead? If not → false.";
+  }
+  return "Always true — 4-piece is the lead format, no anchor-high requirement.";
 }

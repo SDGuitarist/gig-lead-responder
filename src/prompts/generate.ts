@@ -114,6 +114,7 @@ ${classification.flagged_concerns.length > 0 ? `Address each flagged concern: ${
 
 **Cultural Context:**
 ${classification.cultural_context_active ? "ACTIVE — Use cultural terminology, gift-giver frame, heritage validation. See CULTURAL_SPANISH_LATIN.md in context above." : "Not active for this lead."}
+${buildDualFormatBlock(classification, pricing)}
 
 ${classification.platform === "gigsalad"
     ? `**Contact Block: OMIT** — GigSalad prohibits direct contact info in platform messages. Do NOT include phone number, email, or website URL anywhere in the response.`
@@ -182,6 +183,30 @@ function getValidationTarget(classification: Classification): string {
     return "the parent/family member making this cultural milestone happen — validate their care, not just the event";
   }
   return "the person making this decision — their taste, their care, their vision";
+}
+
+/**
+ * Build the dual-format instruction block for mariachi leads with alternative options.
+ * Returns empty string when no dual-format context exists.
+ */
+function buildDualFormatBlock(classification: Classification, pricing: PricingResult): string {
+  if (classification.flagged_concerns.includes("mention_4piece_alternative")) {
+    return `
+**Dual Format: Anchor High**
+Lead with the full ensemble at $${pricing.quote_price}. Then offer the 4-piece as:
+"For a weekday event, a confident 4-piece — the format designed for intimate rooms and weekday energy."
+The 4-piece is NOT "mariachi without extra musicians." It IS "the format designed for weekday events."
+Never use: "instead of", "budget option", "if cost is a concern."
+`;
+  }
+  if (classification.flagged_concerns.includes("mention_full_ensemble_upgrade")) {
+    return `
+**Format Note**
+You are quoting the 4-piece as the right fit for this weekday corporate setting.
+Mention the full ensemble only if asked: "If the event grows, a full ensemble is also available."
+`;
+  }
+  return "";
 }
 
 /**

@@ -88,7 +88,7 @@ Close type:
 
 You must determine the RECOMMENDED format, which may differ from what the client requested:
 
-- Mexican heritage event (quinceañera, Mexican wedding, Día de los Muertos, Cinco de Mayo) + ANY guitar/music request → **mariachi_4piece** (default) or **mariachi_full** (if 150+ guests OR client explicitly requests large ensemble)
+- Mexican heritage event (quinceañera, Mexican wedding, Día de los Muertos, Cinco de Mayo) + ANY guitar/music request → **mariachi_full** (default). Code may override to mariachi_4piece for weekday corporate background events — classify the event context signals, not the format constraint.
 - Flamenco request WITHOUT Mexican/Latin cultural context → **flamenco_duo** (background) or **flamenco_trio** (featured performance)
 - Generic "Spanish guitar" or "Latin music" → **solo** (background) or **duo** (cocktail/dinner)
 - Bolero, romantic Mexican trio → **bolero_trio**
@@ -140,6 +140,7 @@ Return ONLY this JSON object (no markdown fences, no explanation):
   "event_date_iso": "YYYY-MM-DD" | null,
   "timeline_band": "comfortable" | "short" | "urgent",
   "close_type": "direct" | "soft_hold" | "hesitant",
+  "event_energy": "background" | "performance" | null,
   "cultural_context_active": boolean,
   "cultural_tradition": "spanish_latin" | null,
   "planner_effort_active": boolean,

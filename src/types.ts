@@ -46,6 +46,9 @@ export interface Classification {
   timeline_band: "comfortable" | "short" | "urgent";
   close_type: "direct" | "soft_hold" | "hesitant";
 
+  // Event energy — LLM judgment for format routing
+  event_energy?: "background" | "performance" | null;
+
   // Cultural
   cultural_context_active: boolean;
   cultural_tradition: "spanish_latin" | null;
@@ -111,6 +114,7 @@ export interface GateResult {
     lead_specific_opening: boolean;
     budget_acknowledged: boolean;
     past_date_acknowledged: boolean;
+    mariachi_pricing_format: boolean;
   };
   gate_status: "pass" | "fail";
   fail_reasons: string[];
