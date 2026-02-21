@@ -14,7 +14,12 @@ export function buildGeneratePrompt(
   return `You are a master response writer for Pacific Flow Entertainment, a live music booking service in San Diego run by Alex Guillen.
 
 Your job: write two response drafts for a client lead. Return ONLY valid JSON with the structure shown at the end.
-
+${classification.platform === "gigsalad"
+    ? `
+## PLATFORM POLICY — GIGSALAD (HARD CONSTRAINT)
+Do not include any phone numbers, email addresses, website URLs, or social media handles anywhere in the response. GigSalad policy prohibits direct contact information. This applies to the entire response body — not just a contact block. Do not mention "call me," "text me," "visit our site," or any variation that implies off-platform contact.
+`
+    : ""}
 ## CLASSIFICATION (from analysis)
 ${JSON.stringify(classification, null, 2)}
 
