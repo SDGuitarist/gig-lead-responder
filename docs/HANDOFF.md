@@ -1,7 +1,7 @@
 # Gig Lead Responder — Session Handoff
 
-**Last updated:** 2026-02-20 (v16)
-**Current phase:** Work — Production Loop (platform policy fully enforced)
+**Last updated:** 2026-02-20 (v17)
+**Current phase:** Work — Production Loop (platform policy fully enforced, both directions)
 **Next session:** Deploy to Railway + run e2e tests (see `docs/deployment.md` + `docs/e2e-test.md`)
 
 ---
@@ -542,7 +542,7 @@ GigSalad prohibits direct contact info (phone, email, website) in platform messa
 
 1. ~~**Website URLs / social handles**~~ — Fixed in `88d801a`. Hard constraint added near top of generate prompt prohibiting all contact info (phone, email, URLs, social handles, "call me"/"text me" phrasing) in the entire response body, not just the contact block. Contact block omission (v14) still in place lower in the prompt as a second layer.
 2. **No platform-policy config** — The `=== "gigsalad"` check is hardcoded in three files (generate prompt, verify prompt, pipeline/generate.ts). If more platforms with different rules appear, a config object would be cleaner.
-3. ~~**Verification gate unaware**~~ — Fixed in `7d69d9c`. Verify prompt now includes "Platform Policy Check — GigSalad (HARD GATE)" section that scans the entire draft for contact info. Added as a gate condition alongside scene_type, competitor_test, concern traceability, and gut checks. Also fixed compressed draft instructions: "send-ready for GigSalad messaging system" (platform-specific) and removed "contact block" from the must-retain list for GigSalad.
+3. ~~**Verification gate unaware**~~ — Fixed in `7d69d9c` (GigSalad) and `d997751` (The Bash/direct). Verify prompt section 8 is now a platform-conditional hard gate: GigSalad gets "Platform Policy Check" (fails if contact info detected), The Bash/direct get "Contact Block Check" (fails if name, business name, or phone number missing). Section numbering is now consistent (8→9→10) regardless of platform. Also fixed in v16: compressed draft says "GigSalad messaging system" / "The Bash messaging system" (platform-specific) and omits "contact block" from must-retain list for GigSalad.
 
 ---
 
