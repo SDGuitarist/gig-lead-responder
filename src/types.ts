@@ -89,6 +89,7 @@ export interface GateResult {
     best_line_present: boolean;
     prose_flows: boolean;
     competitor_test: boolean;
+    lead_specific_opening: boolean;
   };
   gate_status: "pass" | "fail";
   fail_reasons: string[];
