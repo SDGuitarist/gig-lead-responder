@@ -48,15 +48,22 @@ The opening must contain an insight specific to THIS lead.
 - prose_flows: Reads as one continuous movement, not assembled sections
 - competitor_test: false means PASS (no competitor would write this)
 
-### 8. Gate Status
+${classification.platform === "gigsalad"
+    ? `### 8. Platform Policy Check — GigSalad (HARD GATE)
+Scan the ENTIRE draft for any phone number, email address, website URL, social media handle (Instagram, Facebook, etc.), or off-platform contact language ("call me," "text me," "visit our site," "reach out directly," etc.).
+If ANY of the above appears anywhere in the draft → gate_status = "fail" with fail_reason: "GigSalad platform policy violation: response contains external contact information."
+This overrides all other checks — a draft that passes every other test but contains a URL still FAILS.
+
+`
+    : ""}### ${classification.platform === "gigsalad" ? "9" : "8"}. Gate Status
 - "pass": All of the following must be true:
   - scene_type is "cinematic"
   - competitor_test is false
   - All concern_traceability entries have non-empty draft_sentence
-  - At least 7 of 9 gut_checks are true
+  - At least 7 of 9 gut_checks are true${classification.platform === "gigsalad" ? "\n  - Platform policy check passes (no contact info detected)" : ""}
 - "fail": Any of the above conditions not met
 
-### 9. Fail Reasons
+### ${classification.platform === "gigsalad" ? "10" : "9"}. Fail Reasons
 If gate_status is "fail", list the SPECIFIC items that need fixing. Be precise:
 - BAD: "Improve the scene"
 - GOOD: "Scene is structural ('I create phases of music') — rewrite with a specific cinematic moment (time, place, sensory detail)"
