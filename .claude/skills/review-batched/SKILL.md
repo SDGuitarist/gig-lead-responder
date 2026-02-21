@@ -222,6 +222,21 @@ No agents are launched for this step. Instead:
 | batch3 | data-integrity-guardian | <count> |
 | batch3 | git-history-analyzer | <count> |
 | batch3 | deployment-verification-agent | <count> |
+
+## Three Questions
+
+### 1. Hardest judgment call in this review?
+
+<answer — e.g., severity assignment, dedup merge decision, or dismissal>
+
+### 2. What did you consider flagging but chose not to, and why?
+
+<answer — e.g., findings downgraded or dismissed, with reasoning>
+
+### 3. What might this review have missed?
+
+<answer — e.g., categories no agent checked: accessibility, i18n, logging
+consistency, error message leakage, env var hygiene, etc.>
 ```
 
 Then tell the user:
