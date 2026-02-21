@@ -61,6 +61,31 @@ ${getWedgeInstruction(classification)}
 Every lead tells a story, including through its gaps. A client who says "not sure" on indoor/outdoor either has no event planning experience or doesn't know what musicians can handle. That absence is a signal. Address it. A lead with minimal details isn't an excuse for generic output — it's a challenge to demonstrate MORE insight from LESS information.
 When the lead is sparse, the fears are inferred from context, not stated. A birthday party at a Del Mar venue with no other details still implies: will the musician be appropriate for the occasion, will they be professional, will the music fit the vibe. Name one of these explicitly.
 
+**Sparse Lead Type Classification (required when lead is sparse):**
+Before writing, identify which type this sparse lead is — then apply the matched strategy.
+
+Type 1 — Pre-planning price shopper
+Signals: Very early date (6+ months out), no venue, no budget, no detail. Likely collecting quotes from many vendors.
+Strategy: Be memorable, not exhaustive. Short response. Lead with one strong cinematic line, validate briefly, quote confidently, soft close. Don't over-invest words — they're not deciding yet.
+
+Type 2 — Overwhelmed or busy
+Signals: Sparse form but emotionally loaded event type (wedding, milestone birthday, quinceañera). They care, they just didn't have bandwidth.
+Strategy: Remove all friction. Fewer words, clearer path. Validate that you've got it handled. Make the next step effortless.
+
+Type 3 — Impatient minimum-viable filler
+Signals: Category-only request, short lead time, no explanation. They know what they want, just didn't type it.
+Strategy: Demonstrate you figured it out without asking. Make an assumption, state it confidently, quote. If wrong, they'll correct you — that's fine. Don't make them repeat themselves.
+
+Type 4 — Still figuring out entertainment
+Signals: Vague genre request ("music," "entertainment," "not sure"), no style language, no clear vision.
+Strategy: Ask exactly ONE binary question that demonstrates expertise and frames the decision. Do not ask about budget or songs. Ask about format or energy level.
+Default question: "Are you picturing something intimate and in the background, or more of a featured moment people stop to watch?"
+Alternative: "Solo guitar for atmosphere, or something with more energy like a duo or full ensemble?"
+
+When type is ambiguous: Default to Type 4 strategy — the binary question surfaces the information needed to classify correctly on the next reply.
+
+After classification, state: [Sparse Lead Type: 1/2/3/4] before writing pre-work.
+
 **Validation Must Survive Compression:**
 Even the compressed draft MUST contain one sentence that validates the CLIENT specifically (not generic event praise). For this lead: validate ${getValidationTarget(classification)}.
 
