@@ -1,8 +1,8 @@
 # Gig Lead Responder — Session Handoff
 
-**Last updated:** 2026-02-21 (v20)
-**Current phase:** Complete — compound done, ready for deploy
-**Next session:** Deploy to Railway + run e2e tests (see `docs/deployment.md` + `docs/e2e-test.md`)
+**Last updated:** 2026-02-21 (v21)
+**Current phase:** Budget mismatch feature complete (Sessions 1-3 done)
+**Next session:** Compound (document learnings) or deploy to Railway
 
 ---
 
@@ -62,7 +62,7 @@ Raw Lead → [classify] → [price] → [context] → [generate] → [verify] �
 - `src/data/venues.ts` — 29 venues with tier + stealth premium flags
 - `src/prompts/classify.ts` — Classification prompt (PROTOCOL.md Steps 0-5)
 - `src/prompts/generate.ts` — Generation prompt (reasoning stage + 5-step draft + sparse lead protocol)
-- `src/prompts/verify.ts` — Verification gate prompt (10 gut checks, 8/10 to pass, lead-specificity check)
+- `src/prompts/verify.ts` — Verification gate prompt (11 gut checks incl. `budget_acknowledged`, 9/11 to pass, lead-specificity check)
 
 ### Business Logic Docs (in `docs/`)
 All source docs were found in `~/Downloads/Manual Library/` (Sparkle moved them) and copied to the project. Key files:
@@ -623,6 +623,169 @@ This project is a demo for an AI user group presentation showcasing the **compou
 5. **Compound** — Done (6 solutions in `docs/solutions/`)
 
 The quinceañera lead was chosen because it's the stress test that generic tools fail — requires cultural context detection, genre correction, stealth premium override, and gift-giver framing all at once.
+
+---
+
+## Budget Mismatch Handling (2026-02-21)
+
+### Problem
+
+When a lead states a budget below the rate floor, the pipeline classifies as
+Standard, quotes at anchor, and ignores the budget entirely. Client's next reply
+is "but I said $400" — a second round-trip that loses deals. Root cause: budget
+extracted as text, never compared numerically to floor. LLM fails at the math.
+
+### Brainstorm + Plan
+
+- **Brainstorm:** `docs/brainstorms/2026-02-21-budget-mismatch-handling-brainstorm.md`
+- **Plan (deepened):** `docs/plans/2026-02-21-feat-budget-mismatch-handling-plan.md`
+
+### Architecture (from deepening — 7 agents reviewed)
+
+**Hybrid:** LLM extracts `stated_budget` as number → deterministic code computes
+gap → routes generate prompt to matching response mode.
+
+**Three-tier gap strategy:**
+- Small (<$75 gap): name the gap, quote anchor
+- Large ($75-$200 gap): offer scoped alternative (shorter set at floor price)
+- No viable scope (>$200 or no scope-down): warm redirect
+
+**Key design decisions (from agent reviews):**
+1. `BudgetGapResult` is a discriminated union — type-safe, no null-check bugs
+2. `detectBudgetGap` is a separate pure function — `lookupPrice` stays single-purpose
+3. `enrichClassification` pure function instead of mutation — preserves audit trail
+4. Budget mode injected at TOP of generate prompt (from prompt-placement learning)
+5. Deletion test for `budget_acknowledged` gut check (from testable-constraints learning)
+6. Input validation: bounds check, NaN filter, prompt injection defense
+
+**Dropped from original plan (simplicity review):**
+- Phase 6 confidence caps (YAGNI — nothing reads confidence to make decisions)
+- Simplified 3-check verify gate for redirects (standard checks work fine)
+- `stated_budget` on PricingResult (redundant — already on Classification)
+
+### Implementation Order (3 sessions)
+
+| Session | Phases | Status | Commits |
+|---------|--------|--------|---------|
+| 1 | Types + classify extraction + detectBudgetGap | Done | `d30dc90` |
+| 2 | Enrichment + generate routing + pipeline wiring | Done | `fc24cdc` |
+| 3 | Near-miss fix + verify budget_acknowledged + full test suite | Done | `0fdaae6`, `e55731d` |
+
+### Prompt for Session 1
+
+```
+Read docs/plans/2026-02-21-feat-budget-mismatch-handling-plan.md Phase 1 and Phase 2.
+Read src/types.ts, src/prompts/classify.ts, src/pipeline/price.ts.
+Implement: BudgetGapResult discriminated union + stated_budget on Classification +
+classify extraction rules + detectBudgetGap pure function in price.ts.
+Commit after types, commit after detectBudgetGap.
+```
+
+### Prompt for Session 2
+
+```
+Read docs/plans/2026-02-21-feat-budget-mismatch-handling-plan.md Phase 3.
+Read src/run-pipeline.ts, src/prompts/generate.ts, src/pipeline/price.ts.
+Implement: enrichClassification in new src/pipeline/enrich.ts + wire detectBudgetGap
+and enrichClassification in run-pipeline.ts + budget mode injection at top of
+generate prompt (small/large/no_viable_scope). Commit after enrich, commit after
+generate routing.
+```
+
+### Prompt for Session 3
+
+```
+Read docs/plans/2026-02-21-feat-budget-mismatch-handling-plan.md Phase 4 + Test Plan.
+Read src/prompts/verify.ts. Implement: optional pricing param on buildVerifyPrompt +
+budget_acknowledged gut check with deletion test framing. Then test all 7 leads
+(4 existing + 3 new budget leads). Tune thresholds if needed.
+```
+
+### Completed: Session 3 — Near-miss fix + Phase 4 verify + full test suite
+
+**Commits:** `0fdaae6` (near-miss fix), `e55731d` (Phase 4 verify)
+
+#### Near-miss fix (`0fdaae6`)
+
+`findScopedAlternative` in `price.ts` was rejecting scoped alternatives where
+the shorter-duration floor slightly exceeded the stated budget. A $400 budget
+against a $450 1hr floor (gap $50) was escalating to `no_viable_scope` instead
+of offering the 1hr set.
+
+**Fix:** Added `NEAR_MISS_TOLERANCE = 75` constant. Changed comparison from
+`floor > budget` to `floor >= budget + NEAR_MISS_TOLERANCE`. Now a $50 gap
+passes into "large" mode; gap exactly $75 still rejects (boundary: strictly
+less than tolerance).
+
+Also changed `generate.ts` large mode copy from "fits their budget" to "starts
+at" — with near-miss tolerance, the scoped price may exceed stated budget, so
+the old phrasing was sometimes false. The LLM has both numbers in context and
+frames the gap appropriately.
+
+**Plan discrepancy:** Plan specified `>` operator but test expectations required
+`>=` for boundary behavior (gap exactly at tolerance must reject). Used `>=` to
+match test expectations.
+
+#### Phase 4: budget_acknowledged gut check (`e55731d`)
+
+`buildVerifyPrompt` now accepts optional `pricing` parameter (defaults to
+`{ tier: "none" }` for edit pipeline backward compat). When budget tier is
+active, injects an 11th gut check with deletion-test framing:
+
+- **small:** draft must name the rate directly in relation to stated budget
+- **large:** draft must name the specific scoped alternative price
+- **no_viable_scope:** draft must state the floor and suggest a concrete alternative
+- **none:** always true (no-op)
+
+Threshold updated from 8/10 to 9/11. For non-budget leads, the freebie
+`budget_acknowledged: true` means effective difficulty is unchanged (still need
+8 of the original 10 to pass). For budget leads, it's a real check.
+
+Threading: `verifyGate()` and `runWithVerification()` accept optional `pricing`.
+`runEditPipeline()` also passes pricing through (edit pipeline re-checks budget
+acknowledgment on rewrites).
+
+#### Test results
+
+**48 unit tests passing** (40 original + 4 near-miss + 4 security):
+- Near-miss: $400/$376 budgets pass through tolerance, $375 (exact boundary) rejects
+- Security: -500, 0, 999999999 all route to `tier: "none"`
+- 1 existing test updated (gap=75 now routes to "large" with near-miss tolerance)
+
+**Lead A regression (end-to-end):**
+- Classification: `flamenco_duo`, T3D, stealth premium, $400 stated budget
+- Pricing: `no_viable_scope` (gap $700 — classify recommended flamenco_duo at T3D floor $1100)
+- Gate: PASS on attempt 2, 11/11 gut checks, `budget_acknowledged: true`
+- Draft: names $1,100 floor, suggests playlist/DJ alternative, no DJ as scoped alternative
+- Confidence: 90/100
+
+**Known issue:** `no_viable_scope` compressed draft came in at 113 words vs 50-75
+target. The warm redirect prompt says 50-75 words but the LLM over-writes.
+Prompt calibration issue for a future session, not a code bug.
+
+#### Three Questions — Session 3
+
+**Hardest decision:** Whether to use `>` (as the plan specified) or `>=` for
+the near-miss comparison. The plan's code snippet and its test expectations
+contradicted each other. Chose `>=` because the tests were the source of truth
+for boundary behavior: "gap $75 = tolerance, NOT less than" means the tolerance
+must be strictly less than, requiring `>=` in the guard.
+
+**What was rejected:** (1) Making `budget_acknowledged` optional in `GateResult`
+(only present when tier !== "none"). Rejected because it would break
+`Object.keys(checks).length` and require null checks everywhere. Always-present
+with "always true" for non-budget leads is simpler. (2) A separate simplified
+verify gate for `no_viable_scope` redirects. The plan explicitly said "standard
+checks apply to all modes" and the production watch item in MEMORY.md warns
+against this — if redirects start failing standard checks, fix with scoped
+definitions, not a simplified gate.
+
+**Least confident about:** Whether the 9/11 threshold is correctly calibrated
+for budget leads. For non-budget leads, `budget_acknowledged` is free so it's
+effectively still 8/10. For budget leads, it's a real 9/11 = 82% bar. If budget
+drafts start failing gate disproportionately because `budget_acknowledged` is
+hard to satisfy alongside 8 other checks, may need to adjust. The Lead A
+regression passed 11/11 so no signal yet.
 
 ---
 
