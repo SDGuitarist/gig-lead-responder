@@ -139,6 +139,10 @@ export interface LeadRecord {
   compressed_draft: string | null;
   gate_passed: boolean | null;
   gate_json: string | null;
+  confidence_score: number | null;
+  error_message: string | null;
+  pipeline_completed_at: string | null;
+  sms_sent_at: string | null;
   edit_round: number;
   edit_instructions: string | null;
   done_reason: string | null;

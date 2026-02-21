@@ -3,6 +3,7 @@ import { Router } from "express";
 import { parseEmail } from "./email-parser.js";
 import { insertLead, isEmailProcessed, markEmailProcessed } from "./leads.js";
 import { runPipeline } from "./run-pipeline.js";
+import { postPipeline, postPipelineError } from "./post-pipeline.js";
 
 const router = Router();
 
@@ -117,10 +118,17 @@ router.post("/webhook/mailgun", (req, res) => {
 
   console.log(`Webhook received: ${lead.platform} lead #${leadRecord.id} (${lead.event_type})`);
 
-  // --- Fire-and-forget pipeline ---
-  runPipeline(lead.raw_text).catch((err) => {
-    console.error(`Pipeline failed for lead #${leadRecord.id}:`, err);
-  });
+  // --- Fire-and-forget pipeline with post-processing ---
+  runPipeline(lead.raw_text)
+    .then((output) => postPipeline(leadRecord.id, output))
+    .catch((err) =>
+      postPipelineError(leadRecord.id, err).catch((innerErr) => {
+        // Double fault: postPipelineError itself failed (Twilio down + DB write failed)
+        // Last resort: log both errors. Nothing else we can do.
+        console.error("postPipelineError failed:", innerErr);
+        console.error("Original error:", err);
+      }),
+    );
 
   res.status(200).json({ status: "accepted", lead_id: leadRecord.id });
 });

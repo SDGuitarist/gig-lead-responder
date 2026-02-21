@@ -47,6 +47,22 @@ export function initDb(): Database.Database {
     );
   `);
 
+  // Add columns that didn't exist in Phase 1 (safe for existing DBs)
+  const existingCols = new Set(
+    (db.pragma("table_info(leads)") as Array<{ name: string }>).map((c) => c.name),
+  );
+  const migrations: Array<[string, string]> = [
+    ["confidence_score", "INTEGER"],
+    ["error_message", "TEXT"],
+    ["pipeline_completed_at", "TEXT"],
+    ["sms_sent_at", "TEXT"],
+  ];
+  for (const [col, type] of migrations) {
+    if (!existingCols.has(col)) {
+      db.exec(`ALTER TABLE leads ADD COLUMN ${col} ${type}`);
+    }
+  }
+
   return db;
 }
 
