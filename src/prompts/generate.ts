@@ -113,7 +113,7 @@ Sparse lead scene strategy: When the lead gives you no venue, no guest count, no
 ${classification.flagged_concerns.length > 0 ? `Address each flagged concern: ${classification.flagged_concerns.join(", ")}` : "No specific concerns flagged — use absences from reasoning to infer and preempt concerns."}
 
 **Cultural Context:**
-${classification.cultural_context_active ? "ACTIVE — Use cultural terminology, gift-giver frame, heritage validation. See CULTURAL_SPANISH_LATIN.md in context above." : "Not active for this lead."}
+${classification.cultural_context_active ? buildCulturalVocabBlock(classification) : "Not active for this lead."}
 ${buildDualFormatBlock(classification, pricing)}
 
 ${classification.platform === "gigsalad"
@@ -183,6 +183,30 @@ function getValidationTarget(classification: Classification): string {
     return "the parent/family member making this cultural milestone happen — validate their care, not just the event";
   }
   return "the person making this decision — their taste, their care, their vision";
+}
+
+/**
+ * Build cultural vocabulary instruction with FAIL/PASS contrastive examples.
+ * Returns generic instruction for non-Spanish/Latin traditions.
+ */
+function buildCulturalVocabBlock(classification: Classification): string {
+  if (classification.cultural_tradition !== "spanish_latin") {
+    return "ACTIVE — Use cultural terminology appropriate to the tradition.";
+  }
+
+  return `ACTIVE — Gift-giver frame, heritage validation. See CULTURAL_SPANISH_LATIN.md in context above.
+
+CULTURAL VOCABULARY — Use the word the family uses, not an adjacent tradition.
+
+FAIL: "the mariachi opens with the first notes of Las Posadas"
+PASS: "Nochebuena in Chula Vista — the mariachi opens and someone stops mid-sentence"
+WHY: Las Posadas is a 9-day procession, not Christmas Eve. The family calls it Nochebuena. Use THEIR word.
+
+FAIL: "a traditional birthday performance with Mexican songs"
+PASS: "Las Mañanitas at her table, three generations surrounding her"
+WHY: Las Mañanitas IS the birthday song. Name it — the family knows exactly what it is and hearing it named creates instant recognition.
+
+GENERALIZATION: This rule applies to ALL cultural terms. Adjacent terms from the same tradition are NOT interchangeable — each names a distinct event. Match the term to the event signal in the lead.`;
 }
 
 /**

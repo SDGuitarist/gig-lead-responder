@@ -63,6 +63,7 @@ Does the opening sentence reference a CONCRETE DETAIL from the classification? T
 - budget_acknowledged: ${buildBudgetAcknowledgedInstruction(budget, classification)}
 - past_date_acknowledged: ${buildPastDateInstruction(classification)}
 - mariachi_pricing_format: ${buildMariachiPricingInstruction(classification)}
+- cultural_vocabulary_used: ${buildCulturalVocabInstruction(classification)}
 
 ${classification.platform === "gigsalad"
     ? `### 8. Platform Policy Check — GigSalad (HARD GATE)
@@ -114,7 +115,8 @@ Return ONLY this JSON (no markdown fences, no explanation):
     "lead_specific_opening": boolean,
     "budget_acknowledged": boolean,
     "past_date_acknowledged": boolean,
-    "mariachi_pricing_format": boolean
+    "mariachi_pricing_format": boolean,
+    "cultural_vocabulary_used": boolean
   },
   "gate_status": "pass" | "fail",
   "fail_reasons": ["specific fix instruction 1", "..."]
@@ -175,4 +177,15 @@ function buildMariachiPricingInstruction(classification: Classification): string
     return "First price presented must be the full ensemble (higher option). Deletion test: remove the context and does the high anchor still lead? If not → false.";
   }
   return "Always true — 4-piece is the lead format, no anchor-high requirement.";
+}
+
+/**
+ * Build the cultural_vocabulary_used gut check instruction.
+ * No-op (always true) when no cultural context is active.
+ */
+function buildCulturalVocabInstruction(classification: Classification): string {
+  if (!classification.cultural_context_active) {
+    return "Always true — no cultural context active.";
+  }
+  return 'Draft must use specific cultural terminology (e.g., "Nochebuena" not "Christmas Eve", "Las Mañanitas" not "birthday song"). Deletion test: swap the cultural term for a generic English equivalent — does the sentence still work? If yes → false.';
 }

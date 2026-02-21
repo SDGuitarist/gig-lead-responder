@@ -115,6 +115,7 @@ export interface GateResult {
     budget_acknowledged: boolean;
     past_date_acknowledged: boolean;
     mariachi_pricing_format: boolean;
+    cultural_vocabulary_used: boolean;
   };
   gate_status: "pass" | "fail";
   fail_reasons: string[];
