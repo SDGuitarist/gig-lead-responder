@@ -3,9 +3,7 @@ import { Router } from "express";
 import type { Request, Response } from "express";
 import { getLead, getLeadsByStatus, updateLead } from "./leads.js";
 import { sendSms } from "./sms.js";
-import { selectContext } from "./pipeline/context.js";
-import { generateResponse } from "./pipeline/generate.js";
-import { verifyGate } from "./pipeline/verify.js";
+import { runEditPipeline } from "./run-pipeline.js";
 import type { Classification, LeadRecord, PricingResult } from "./types.js";
 
 const router = Router();
@@ -135,12 +133,8 @@ async function handleEdit(leadId: number | null, instructions: string): Promise<
   const classification: Classification = JSON.parse(lead.classification_json);
   const pricing: PricingResult = JSON.parse(lead.pricing_json);
 
-  // Re-assemble context from static doc files (cheap, needed for generate)
-  const context = await selectContext(classification);
-
-  // Generate with edit instructions, then verify (single attempt per edit round)
-  const drafts = await generateResponse(classification, pricing, context, [instructions]);
-  const gate = await verifyGate(drafts, classification);
+  // Re-run context → generate (with instructions) → verify
+  const { drafts, gate } = await runEditPipeline(classification, pricing, instructions);
 
   // Update lead with new drafts
   const newRound = lead.edit_round + 1;

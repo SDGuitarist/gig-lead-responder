@@ -131,6 +131,17 @@ export function getLeadsByStatus(status: LeadStatus): LeadRecord[] {
   }));
 }
 
+// Whitelist of columns allowed in updateLead() — must match LeadRecord fields exactly.
+// Prevents runtime key injection into SQL SET clauses.
+const UPDATE_ALLOWED_COLUMNS = new Set<string>([
+  "source_platform", "mailgun_message_id", "raw_email",
+  "client_name", "event_date", "event_type", "venue", "guest_count", "budget_note",
+  "status", "classification_json", "pricing_json",
+  "full_draft", "compressed_draft", "gate_passed", "gate_json",
+  "confidence_score", "error_message", "pipeline_completed_at", "sms_sent_at",
+  "edit_round", "edit_instructions", "done_reason", "updated_at",
+]);
+
 export function updateLead(
   id: number,
   fields: Partial<Omit<LeadRecord, "id" | "created_at">>,
@@ -143,6 +154,13 @@ export function updateLead(
     ([key]) => key !== "updated_at",
   );
   if (entries.length === 0) return current;
+
+  // Validate all keys against whitelist before building SQL
+  for (const [key] of entries) {
+    if (!UPDATE_ALLOWED_COLUMNS.has(key)) {
+      throw new Error(`updateLead: invalid column "${key}"`);
+    }
+  }
 
   // Convert gate_passed boolean back to integer for SQLite
   const params: Record<string, unknown> = {};

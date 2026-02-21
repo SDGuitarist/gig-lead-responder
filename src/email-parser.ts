@@ -1,6 +1,6 @@
 import type { ParseResult } from "./types.js";
 
-interface EmailFields {
+export interface EmailFields {
   from: string;
   subject: string;
   "body-plain": string;

@@ -1,8 +1,9 @@
 import { classifyLead } from "./pipeline/classify.js";
 import { lookupPrice } from "./pipeline/price.js";
 import { selectContext } from "./pipeline/context.js";
-import { runWithVerification } from "./pipeline/verify.js";
-import type { Classification, GateResult, PipelineOutput } from "./types.js";
+import { generateResponse } from "./pipeline/generate.js";
+import { verifyGate, runWithVerification } from "./pipeline/verify.js";
+import type { Classification, Drafts, GateResult, PipelineOutput, PricingResult } from "./types.js";
 
 /** Progress event emitted between pipeline stages. */
 export interface StageEvent {
@@ -111,4 +112,26 @@ export async function runPipeline(
   return {
     classification, pricing, drafts, gate, verified, timing, confidence_score,
   };
+}
+
+/** Result of an edit pipeline run (context → generate with instructions → verify). */
+export interface EditPipelineResult {
+  drafts: Drafts;
+  gate: GateResult;
+}
+
+/**
+ * Re-run the generate+verify stages with edit instructions.
+ * Used for SMS edit replies — classification and pricing are reused from the
+ * original pipeline run, only context assembly + generation + verification re-run.
+ */
+export async function runEditPipeline(
+  classification: Classification,
+  pricing: PricingResult,
+  instructions: string,
+): Promise<EditPipelineResult> {
+  const context = await selectContext(classification);
+  const drafts = await generateResponse(classification, pricing, context, [instructions]);
+  const gate = await verifyGate(drafts, classification);
+  return { drafts, gate };
 }

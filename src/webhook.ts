@@ -1,6 +1,6 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { Router } from "express";
-import { parseEmail } from "./email-parser.js";
+import { parseEmail, type EmailFields } from "./email-parser.js";
 import { insertLead, isEmailProcessed, markEmailProcessed, runTransaction } from "./leads.js";
 import { runPipeline } from "./run-pipeline.js";
 import { postPipeline, postPipelineError } from "./post-pipeline.js";
@@ -61,7 +61,7 @@ router.post("/webhook/mailgun", (req, res) => {
   }
 
   // --- Parse email ---
-  const fields = {
+  const fields: EmailFields = {
     from: (body.from as string) || "",
     subject: (body.subject as string) || "",
     "body-plain": (body["body-plain"] as string) || "",
