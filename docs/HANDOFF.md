@@ -1,6 +1,6 @@
 # Gig Lead Responder — Session Handoff
 
-**Last updated:** 2026-02-20 (v18)
+**Last updated:** 2026-02-21 (v19)
 **Current phase:** Compound complete — all 5 phases done
 **Next session:** Deploy to Railway + run e2e tests (see `docs/deployment.md` + `docs/e2e-test.md`)
 
@@ -474,7 +474,7 @@ Two fix batches from `/workflows:review` findings. All commits on `main`, pushed
 
 - **Pipeline timeout** — `runPipeline()` wrapped in `Promise.race` with 2-minute timeout. Timeout fires `postPipelineError()` → lead marked `failed` + SMS alert to Alex. Prevents silent hangs.
 - **Atomic dedup** — `isEmailProcessed` + `markEmailProcessed` + `insertLead` wrapped in a `better-sqlite3` transaction via new `runTransaction()` helper. Eliminates TOCTOU race on duplicate webhooks.
-- **Atomic postPipeline** — SMS sent before any DB write. All 10 pipeline fields + `status="sent"` + `sms_sent_at` written in one `updateLead` call. Prevents split-brain where SMS is sent but lead stays in `"received"`.
+- ~~**Atomic postPipeline**~~ — Revised in `fb6c5fe`. Originally SMS was sent before any DB write. Now pipeline results (drafts, classification, pricing, gate, confidence) are saved to DB first, then SMS is attempted, then status is marked `"sent"`. Drafts survive SMS failures (e.g., missing Twilio creds during local testing). Trade-off: if process crashes between DB write and SMS, lead has drafts but status stays `"received"` — the stuck-lead sweep catches this.
 
 ### Batch C — Code quality P2s (`3883489`)
 
@@ -553,7 +553,7 @@ This project is a demo for an AI user group presentation showcasing the **compou
 1. **Brainstorm** — Explored requirements, chose tech stack, picked demo lead
 2. **Plan** — 9-phase implementation plan with SpecFlow analysis (found 10 gaps, fixed 6 critical/important ones)
 3. **Work** — Built all 9 phases with incremental commits (~50-100 lines each)
-4. **Review** — Not yet done
+4. **Review** — Done (9 agents, 34 findings, 3 fix batches)
 5. **Compound** — Done (6 solutions in `docs/solutions/`)
 
 The quinceañera lead was chosen because it's the stress test that generic tools fail — requires cultural context detection, genre correction, stealth premium override, and gift-giver framing all at once.
