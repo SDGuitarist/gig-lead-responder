@@ -11,6 +11,9 @@ export function enrichClassification(
 ): Classification {
   let enriched = classification;
 
+  // ⚠️ Enrichment order matters: budget enrichment (last) overwrites tier/close_type,
+  // so format routing (middle) must run first while tier still reflects the LLM's value.
+
   // Past-date detection (deterministic — never ask the LLM)
   if (classification.event_date_iso) {
     const eventDate = parseLocalDate(classification.event_date_iso);
@@ -75,6 +78,8 @@ function resolveFormatRouting(
   }
 
   const day = parseLocalDate(dateISO).getDay(); // 0=Sun, 6=Sat
+  // Friday counts as weekend: 4-piece musicians have day-job conflicts on weekdays,
+  // but Friday evening gigs run like weekend events for scheduling purposes.
   const isWeekend = day === 0 || day === 5 || day === 6; // Fri, Sat, Sun
 
   if (isWeekend) {
@@ -82,7 +87,9 @@ function resolveFormatRouting(
     return { format_recommended: "mariachi_full", show_alternative: false };
   }
 
-  // Weekday: default full ensemble, exception for corporate background
+  // Weekday: default full ensemble, exception for corporate background.
+  // Proxy: tier "premium" covers corporate events (see classify.ts Step 4).
+  // If non-corporate events start getting premium tier, revisit this check.
   const isCorporateBackground =
     classification.tier === "premium" &&
     classification.event_energy === "background";

@@ -88,7 +88,7 @@ Close type:
 
 You must determine the RECOMMENDED format, which may differ from what the client requested:
 
-- Mexican heritage event (quinceañera, Mexican wedding, Día de los Muertos, Cinco de Mayo) + ANY guitar/music request → **mariachi_full** (default). Code may override to mariachi_4piece for weekday corporate background events — classify the event context signals, not the format constraint.
+- Mexican heritage event (quinceañera, Mexican wedding, Día de los Muertos, Cinco de Mayo) + ANY guitar/music request → **mariachi_full** (default). Classify the event context signals (day of week, corporate vs private, background vs performance), not the format constraint.
 - Flamenco request WITHOUT Mexican/Latin cultural context → **flamenco_duo** (background) or **flamenco_trio** (featured performance)
 - Generic "Spanish guitar" or "Latin music" → **solo** (background) or **duo** (cocktail/dinner)
 - Bolero, romantic Mexican trio → **bolero_trio**
