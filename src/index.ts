@@ -97,7 +97,7 @@ async function main() {
 
   const checks = gate.gut_checks;
   const passed = Object.values(checks).filter(Boolean).length;
-  console.log(`Gut checks:    ${passed}/9 passed`);
+  console.log(`Gut checks:    ${passed}/${Object.keys(checks).length} passed`);
 
   if (gate.fail_reasons.length > 0) {
     console.log("Fail reasons:");

@@ -2,6 +2,19 @@ import { callClaude } from "../claude.js";
 import { buildGeneratePrompt } from "../prompts/generate.js";
 import type { Classification, Drafts, PricingResult } from "../types.js";
 
+/** Shape returned by the generate prompt (reasoning is discarded, only drafts used downstream) */
+interface GenerateResponse {
+  reasoning: {
+    details_present: string[];
+    absences: string[];
+    emotional_core: string;
+    cinematic_opening: string;
+    validation_line: string;
+  };
+  full_draft: string;
+  compressed_draft: string;
+}
+
 const CONTACT_BLOCK = `\nAlex Guillen\nPacific Flow Entertainment\n(619) 755-3246`;
 
 /**
@@ -16,13 +29,13 @@ export async function generateResponse(
 ): Promise<Drafts> {
   const systemPrompt = buildGeneratePrompt(classification, pricing, context);
 
-  let userMessage = "Write the two response drafts for this lead based on the classification, pricing, and context provided in the system prompt.";
+  let userMessage = "Reason about this lead, then write the two response drafts based on the classification, pricing, and context provided in the system prompt.";
 
   if (rewriteInstructions && rewriteInstructions.length > 0) {
     userMessage += `\n\nREWRITE INSTRUCTIONS — Fix these specific issues from the previous draft:\n${rewriteInstructions.map((r, i) => `${i + 1}. ${r}`).join("\n")}`;
   }
 
-  const result = await callClaude<{ full_draft: string; compressed_draft: string }>(
+  const result = await callClaude<GenerateResponse>(
     systemPrompt,
     userMessage
   );

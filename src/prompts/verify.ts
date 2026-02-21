@@ -37,6 +37,13 @@ structural = AUTOMATIC FAIL
 Could another vendor have written this exact opening? If yes → competitor_test = true → FAIL.
 The opening must contain an insight specific to THIS lead.
 
+### 6b. Lead-Specificity Check
+Does the opening sentence reference a CONCRETE DETAIL from the classification? This is different from the Competitor Test: competitor_test asks "could another vendor write this?" (voice/insight), while lead-specificity asks "does the opening reference a factual detail from this specific lead?" (grounding).
+- Look at the FIRST sentence of the draft
+- Check if it mentions a specific detail from the classification: event type, date, venue, format, cultural context, or any other concrete fact
+- Generic openings like "What a beautiful event" or "Congratulations on your upcoming celebration" → lead_specific_opening = false
+- Specific openings like "A mariachi serenata at sunset for your parents' 50th anniversary" → lead_specific_opening = true
+
 ### 7. Gut Checks (all boolean)
 - can_see_it: Reader can visualize a specific moment
 - validated_them: Draft validates the person, not just the event
@@ -47,6 +54,7 @@ The opening must contain an insight specific to THIS lead.
 - best_line_present: There's a genuinely strong line
 - prose_flows: Reads as one continuous movement, not assembled sections
 - competitor_test: false means PASS (no competitor would write this)
+- lead_specific_opening: First sentence references a concrete detail from the classification (not generic)
 
 ${classification.platform === "gigsalad"
     ? `### 8. Platform Policy Check — GigSalad (HARD GATE)
@@ -63,7 +71,7 @@ If the contact block is missing or incomplete → gate_status = "fail" with fail
   - scene_type is "cinematic"
   - competitor_test is false
   - All concern_traceability entries have non-empty draft_sentence
-  - At least 7 of 9 gut_checks are true
+  - At least 8 of 10 gut_checks are true
   - Platform check passes (${classification.platform === "gigsalad" ? "no contact info detected" : "contact block present with name, business, phone"})
 - "fail": Any of the above conditions not met
 
@@ -94,7 +102,8 @@ Return ONLY this JSON (no markdown fences, no explanation):
     "creates_relief": boolean,
     "best_line_present": boolean,
     "prose_flows": boolean,
-    "competitor_test": boolean
+    "competitor_test": boolean,
+    "lead_specific_opening": boolean
   },
   "gate_status": "pass" | "fail",
   "fail_reasons": ["specific fix instruction 1", "..."]
