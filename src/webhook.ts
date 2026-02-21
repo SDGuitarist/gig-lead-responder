@@ -117,7 +117,7 @@ router.post("/webhook/mailgun", (req, res) => {
   const PIPELINE_TIMEOUT_MS = 2 * 60 * 1000;
 
   Promise.race([
-    runPipeline(lead.raw_text),
+    runPipeline(lead.raw_text, undefined, lead.platform),
     new Promise<never>((_, reject) =>
       setTimeout(() => reject(new Error("Pipeline timeout after 2 minutes")), PIPELINE_TIMEOUT_MS),
     ),

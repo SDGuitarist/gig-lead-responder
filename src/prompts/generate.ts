@@ -59,12 +59,14 @@ ${classification.flagged_concerns.length > 0 ? `Address each flagged concern: ${
 **Cultural Context:**
 ${classification.cultural_context_active ? "ACTIVE — Use cultural terminology, gift-giver frame, heritage validation. See CULTURAL_SPANISH_LATIN.md in context above." : "Not active for this lead."}
 
-**Contact Block (ALWAYS append to both drafts):**
+${classification.platform === "gigsalad"
+    ? `**Contact Block: OMIT** — GigSalad prohibits direct contact info in platform messages. Do NOT include phone number, email, or website URL anywhere in the response.`
+    : `**Contact Block (ALWAYS append to both drafts):**
 \`\`\`
 Alex Guillen
 Pacific Flow Entertainment
 (619) 755-3246
-\`\`\`
+\`\`\``}
 
 ### Full Draft
 - All 7 components naturally woven (no visible structure/labels)

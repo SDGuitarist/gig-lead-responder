@@ -27,9 +27,10 @@ export async function generateResponse(
     userMessage
   );
 
-  // Ensure contact block is present
-  const fullDraft = ensureContactBlock(result.full_draft);
-  const compressedDraft = ensureContactBlock(result.compressed_draft);
+  // GigSalad prohibits direct contact info — suppress contact block
+  const suppressContact = classification.platform === "gigsalad";
+  const fullDraft = suppressContact ? result.full_draft : ensureContactBlock(result.full_draft);
+  const compressedDraft = suppressContact ? result.compressed_draft : ensureContactBlock(result.compressed_draft);
 
   const compressedWordCount = countWords(compressedDraft);
 

@@ -131,6 +131,8 @@ async function handleEdit(leadId: number | null, instructions: string): Promise<
   }
 
   const classification: Classification = JSON.parse(lead.classification_json);
+  // Re-stamp platform from DB (not stored in classification JSON)
+  classification.platform = (lead.source_platform as Classification["platform"]) ?? undefined;
   const pricing: PricingResult = JSON.parse(lead.pricing_json);
 
   // Re-run context → generate (with instructions) → verify

@@ -55,11 +55,13 @@ function computeConfidence(
  *
  * @param rawText  - The raw lead text (email body, form submission, etc.)
  * @param onStage  - Optional callback for progress updates (SSE streaming, console logs)
+ * @param platform - Optional platform source (stamped on classification for policy rules)
  * @returns PipelineOutput with classification, pricing, drafts, gate, and confidence score
  */
 export async function runPipeline(
   rawText: string,
   onStage?: OnStage,
+  platform?: Classification["platform"],
 ): Promise<PipelineOutput> {
   const timing: Record<string, number> = {};
   const totalStart = Date.now();
@@ -68,6 +70,7 @@ export async function runPipeline(
   onStage?.({ stage: 1, name: "classify", status: "running" });
   let start = Date.now();
   const classification = await classifyLead(rawText);
+  if (platform) classification.platform = platform;
   timing.classify = Date.now() - start;
   onStage?.({
     stage: 1, name: "classify", status: "done",

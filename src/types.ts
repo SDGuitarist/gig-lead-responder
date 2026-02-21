@@ -48,6 +48,9 @@ export interface Classification {
   social_proof_active: boolean;
   context_modifiers: string[];
   flagged_concerns: string[];
+
+  // Platform — stamped post-classification, not AI-generated
+  platform?: "gigsalad" | "thebash" | "direct";
 }
 
 export interface PricingResult {
