@@ -101,6 +101,22 @@ export interface PipelineOutput {
   confidence_score: number; // 0-100, how much pipeline intelligence was activated and verified
 }
 
+// --- Email parser types (Chunk 2) ---
+
+export interface ParsedLead {
+  platform: "gigsalad" | "thebash";
+  external_id: string;
+  event_type: string;
+  event_date: string;
+  location?: string;
+  token_url: string;
+  raw_text: string;
+}
+
+export type ParseResult =
+  | { ok: true; lead: ParsedLead }
+  | { ok: false; reason: "skip" | "parse_error"; detail: string };
+
 // --- Lead persistence types (Phase 1) ---
 
 export type LeadStatus = "received" | "sent" | "done" | "failed";

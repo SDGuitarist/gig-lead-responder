@@ -2,15 +2,24 @@ import "dotenv/config";
 import express from "express";
 import { join } from "node:path";
 import { runPipeline } from "./run-pipeline.js";
+import { initDb } from "./leads.js";
+import webhookRouter from "./webhook.js";
 
 if (!process.env.ANTHROPIC_API_KEY) {
   console.error("Error: ANTHROPIC_API_KEY not set in .env file");
   process.exit(1);
 }
 
+// Initialize SQLite (creates tables if needed)
+initDb();
+
 const app = express();
 app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
 app.use(express.static(join(import.meta.dirname, "..", "public")));
+
+// Mailgun inbound webhook
+app.use(webhookRouter);
 
 // SSE helper — sends a named event to the client
 function sendSSE(res: express.Response, event: string, data: unknown) {

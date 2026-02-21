@@ -39,6 +39,12 @@ export function initDb(): Database.Database {
     );
 
     CREATE INDEX IF NOT EXISTS idx_leads_status ON leads(status);
+
+    CREATE TABLE IF NOT EXISTS processed_emails (
+      external_id TEXT PRIMARY KEY,
+      platform TEXT NOT NULL,
+      received_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
   `);
 
   return db;
@@ -142,6 +148,21 @@ export function updateLead(
     .run(params);
 
   return getLead(id);
+}
+
+// --- Idempotency (processed_emails) ---
+
+export function isEmailProcessed(externalId: string): boolean {
+  const row = initDb()
+    .prepare("SELECT 1 FROM processed_emails WHERE external_id = ?")
+    .get(externalId);
+  return row !== undefined;
+}
+
+export function markEmailProcessed(externalId: string, platform: string): void {
+  initDb()
+    .prepare("INSERT OR IGNORE INTO processed_emails (external_id, platform) VALUES (?, ?)")
+    .run(externalId, platform);
 }
 
 export function listLeads(): LeadRecord[] {
