@@ -1,7 +1,7 @@
 # Gig Lead Responder — Session Handoff
 
-**Last updated:** 2026-02-20 (v11)
-**Current phase:** Work — Production Loop (all implementation chunks complete)
+**Last updated:** 2026-02-20 (v12)
+**Current phase:** Work — Production Loop (post-review fixes complete)
 **Next session:** Deploy to Railway + run e2e tests (see `docs/deployment.md` + `docs/e2e-test.md`)
 
 ---
@@ -457,6 +457,28 @@ Added after Chunk 7 to address the "first thing that will break" prediction.
   disable-validate-fix-re-enable workflow.
 
 Both webhook handlers now have matching escape hatches for first-deploy debugging.
+
+---
+
+## Post-Review: Batch A + Batch B Fixes (045eb8f, 84c4cf4)
+
+Two fix batches from `/workflows:review` findings. All commits on `main`, pushed.
+
+### Batch A — Deletes and quick wins (`045eb8f`)
+
+- **Deleted `src/twilio.ts`** — Dead file, zero imports (superseded by `src/sms.ts`)
+- **Removed no-op middleware** in `webhook.ts` — Called `next()` in both branches, global `express.urlencoded()` already handles form-encoded bodies
+- **Fixed escape hatch ordering** in `webhook.ts` — `DISABLE_MAILGUN_VALIDATION` check now runs before the missing-fields guard, so the escape hatch actually works when signature fields are absent
+
+### Batch B — Data integrity (`84c4cf4`)
+
+- **Pipeline timeout** — `runPipeline()` wrapped in `Promise.race` with 2-minute timeout. Timeout fires `postPipelineError()` → lead marked `failed` + SMS alert to Alex. Prevents silent hangs.
+- **Atomic dedup** — `isEmailProcessed` + `markEmailProcessed` + `insertLead` wrapped in a `better-sqlite3` transaction via new `runTransaction()` helper. Eliminates TOCTOU race on duplicate webhooks.
+- **Atomic postPipeline** — SMS sent before any DB write. All 10 pipeline fields + `status="sent"` + `sms_sent_at` written in one `updateLead` call. Prevents split-brain where SMS is sent but lead stays in `"received"`.
+
+### What's left before deploy
+
+Stuck-lead recovery (`setInterval` marking `received` > 5 min as `failed`) was in the plan but not yet built. The pipeline timeout partially covers this — a hung pipeline will fail after 2 minutes. But a crash between lead insert and pipeline start (process restart, OOM) would leave a lead in `received` forever. Build the recovery sweep if that scenario matters in production.
 
 ---
 
