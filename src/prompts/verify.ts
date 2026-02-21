@@ -53,17 +53,21 @@ ${classification.platform === "gigsalad"
 Scan the ENTIRE draft for any phone number, email address, website URL, social media handle (Instagram, Facebook, etc.), or off-platform contact language ("call me," "text me," "visit our site," "reach out directly," etc.).
 If ANY of the above appears anywhere in the draft → gate_status = "fail" with fail_reason: "GigSalad platform policy violation: response contains external contact information."
 This overrides all other checks — a draft that passes every other test but contains a URL still FAILS.
-
 `
-    : ""}### ${classification.platform === "gigsalad" ? "9" : "8"}. Gate Status
+    : `### 8. Contact Block Check (HARD GATE)
+Verify the draft ends with a contact block containing a name ("Alex Guillen"), business name ("Pacific Flow Entertainment"), and a phone number. All three must be present.
+If the contact block is missing or incomplete → gate_status = "fail" with fail_reason: "Missing contact block: The Bash and direct leads must include Alex's contact information."
+`}
+### 9. Gate Status
 - "pass": All of the following must be true:
   - scene_type is "cinematic"
   - competitor_test is false
   - All concern_traceability entries have non-empty draft_sentence
-  - At least 7 of 9 gut_checks are true${classification.platform === "gigsalad" ? "\n  - Platform policy check passes (no contact info detected)" : ""}
+  - At least 7 of 9 gut_checks are true
+  - Platform check passes (${classification.platform === "gigsalad" ? "no contact info detected" : "contact block present with name, business, phone"})
 - "fail": Any of the above conditions not met
 
-### ${classification.platform === "gigsalad" ? "10" : "9"}. Fail Reasons
+### 10. Fail Reasons
 If gate_status is "fail", list the SPECIFIC items that need fixing. Be precise:
 - BAD: "Improve the scene"
 - GOOD: "Scene is structural ('I create phases of music') — rewrite with a specific cinematic moment (time, place, sensory detail)"
