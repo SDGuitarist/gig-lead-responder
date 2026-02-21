@@ -98,6 +98,7 @@ export interface PipelineOutput {
   gate: GateResult;
   verified: boolean;
   timing: Record<string, number>; // stage name → milliseconds
+  confidence_score: number; // 0-100, how much pipeline intelligence was activated and verified
 }
 
 // --- Lead persistence types (Phase 1) ---
