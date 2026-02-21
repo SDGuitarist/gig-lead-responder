@@ -7,16 +7,6 @@ import { postPipeline, postPipelineError } from "./post-pipeline.js";
 
 const router = Router();
 
-// Mailgun sends form-encoded POST bodies
-router.use("/webhook/mailgun", (req, _res, next) => {
-  // express.urlencoded() for this route only
-  if (!req.is("application/x-www-form-urlencoded")) {
-    next();
-    return;
-  }
-  next();
-});
-
 /**
  * Validate Mailgun V2 webhook signature.
  * Mailgun sends: timestamp, token, signature in the POST body.
@@ -54,18 +44,20 @@ router.post("/webhook/mailgun", (req, res) => {
   const token = body.token as string | undefined;
   const signature = body.signature as string | undefined;
 
-  if (!timestamp || !token || !signature) {
-    console.warn("Webhook missing signature fields");
-    res.status(401).json({ error: "Missing signature fields" });
-    return;
-  }
-
   if (process.env.DISABLE_MAILGUN_VALIDATION === "true") {
     console.warn("⚠ Mailgun signature validation disabled via DISABLE_MAILGUN_VALIDATION");
-  } else if (!verifyMailgunSignature(timestamp, token, signature)) {
-    console.warn("Webhook HMAC validation failed");
-    res.status(401).json({ error: "Invalid signature" });
-    return;
+  } else {
+    if (!timestamp || !token || !signature) {
+      console.warn("Webhook missing signature fields");
+      res.status(401).json({ error: "Missing signature fields" });
+      return;
+    }
+
+    if (!verifyMailgunSignature(timestamp, token, signature)) {
+      console.warn("Webhook HMAC validation failed");
+      res.status(401).json({ error: "Invalid signature" });
+      return;
+    }
   }
 
   // --- Parse email ---
