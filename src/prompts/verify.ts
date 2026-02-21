@@ -61,6 +61,7 @@ Does the opening sentence reference a CONCRETE DETAIL from the classification? T
 - competitor_test: false means PASS (no competitor would write this)
 - lead_specific_opening: First sentence references a concrete detail from the classification (not generic)
 - budget_acknowledged: ${buildBudgetAcknowledgedInstruction(budget, classification)}
+- past_date_acknowledged: ${buildPastDateInstruction(classification)}
 
 ${classification.platform === "gigsalad"
     ? `### 8. Platform Policy Check — GigSalad (HARD GATE)
@@ -110,7 +111,8 @@ Return ONLY this JSON (no markdown fences, no explanation):
     "prose_flows": boolean,
     "competitor_test": boolean,
     "lead_specific_opening": boolean,
-    "budget_acknowledged": boolean
+    "budget_acknowledged": boolean,
+    "past_date_acknowledged": boolean
   },
   "gate_status": "pass" | "fail",
   "fail_reasons": ["specific fix instruction 1", "..."]
@@ -143,4 +145,15 @@ function buildBudgetAcknowledgedInstruction(
 
   // no_viable_scope
   return `${deletion} For "no_viable_scope": draft states the floor and suggests a concrete alternative.`;
+}
+
+/**
+ * Build the past_date_acknowledged gut check instruction.
+ * No-op (always true) when no past date detected.
+ */
+function buildPastDateInstruction(classification: Classification): string {
+  if (!classification.past_date_detected) {
+    return "Always true — no past date detected.";
+  }
+  return 'Draft must contain language clarifying the date (asking about the year, suggesting next occurrence). Deletion test: remove the date clarification — does the draft still work for a future event? If yes → false.';
 }

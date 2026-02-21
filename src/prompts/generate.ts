@@ -14,10 +14,18 @@ export function buildGeneratePrompt(
 
   const budgetBlock = buildBudgetModeBlock(classification, pricing);
 
+  const pastDateBlock = classification.past_date_detected
+    ? `
+## FLAGGED: EVENT DATE APPEARS TO BE IN THE PAST
+The event date in this lead has already passed. Address this politely in the draft — ask to confirm the year, assume they meant the next occurrence, and frame it as a quick clarification rather than an error. Example: "Quick note — your request mentions December 24, 2025, which has already passed. I'm guessing you mean 2026?"
+This must appear in the first 2-3 sentences of the draft. Do NOT ignore this flag.
+`
+    : "";
+
   return `You are a master response writer for Pacific Flow Entertainment, a live music booking service in San Diego run by Alex Guillen.
 
 Your job: REASON about a client lead, then write two response drafts. Return ONLY valid JSON with the structure shown at the end.
-${budgetBlock}${classification.platform === "gigsalad"
+${budgetBlock}${pastDateBlock}${classification.platform === "gigsalad"
     ? `
 ## PLATFORM POLICY — GIGSALAD (HARD CONSTRAINT)
 Do not include any phone numbers, email addresses, website URLs, or social media handles anywhere in the response. GigSalad policy prohibits direct contact information. This applies to the entire response body — not just a contact block. Do not mention "call me," "text me," "visit our site," or any variation that implies off-platform contact.

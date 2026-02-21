@@ -56,6 +56,9 @@ async function main() {
   console.log(`Duration:      ${classification.duration_hours}hr`);
   console.log(`Cultural:      ${classification.cultural_context_active ? classification.cultural_tradition : "N/A"}`);
   console.log(`Timeline:      ${classification.timeline_band} → ${classification.close_type} close`);
+  if (classification.past_date_detected) {
+    console.log("** WARNING: Event date appears to be in the past **");
+  }
   if (classification.flagged_concerns.length > 0) {
     console.log(`Concerns:      ${classification.flagged_concerns.join(", ")}`);
   }

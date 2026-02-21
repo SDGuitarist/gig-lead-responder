@@ -110,6 +110,7 @@ export interface GateResult {
     competitor_test: boolean;
     lead_specific_opening: boolean;
     budget_acknowledged: boolean;
+    past_date_acknowledged: boolean;
   };
   gate_status: "pass" | "fail";
   fail_reasons: string[];
