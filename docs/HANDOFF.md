@@ -1,8 +1,8 @@
 # Gig Lead Responder — Session Handoff
 
-**Last updated:** 2026-02-20 (v4)
-**Current phase:** Work — Production Loop Phase 4 (next chunk)
-**Next session:** Mailgun webhook + email parser + HMAC validation (Chunk 2)
+**Last updated:** 2026-02-20 (v5)
+**Current phase:** Work — Production Loop (next chunk)
+**Next session:** Wire Mailgun → pipeline → Twilio end-to-end (Chunk 3)
 
 ---
 
@@ -217,8 +217,8 @@ Read docs/plans/2026-02-20-feat-production-automation-loop-plan.md sections "Typ
 |---|---|---|
 | 1 | SQLite store + LeadRecord types + CRUD | Done (`b31a193`) |
 | 2 | Twilio SMS sender (outbound only) | Done (`4fa610c`) |
-| 3 | Mailgun webhook + email parser + HMAC | **Next** |
-| 4 | Extract `runPipeline()` + wire end-to-end | Chunk 1 done (`c4b740e`), wiring pending |
+| 3 | Mailgun webhook + email parser + HMAC | Done (`fc9043a`) |
+| 4 | Extract `runPipeline()` + wire end-to-end | Chunk 1 done (`c4b740e`), **wiring next (Chunk 3)** |
 | 5 | Twilio reply webhook + YES/edit handler | Pending |
 | 6 | Dashboard with Basic Auth | Pending |
 | 7 | Railway deployment + env config | Pending |
@@ -318,34 +318,37 @@ Files changed: `src/run-pipeline.ts` (new), `src/types.ts`, `src/server.ts`, `sr
 
 ---
 
-## Next Work: Chunk 2 — Mailgun webhook + email parser + HMAC
+## Completed: Chunk 2 — Email parser + Mailgun webhook (fc9043a)
+
+Email intake layer for the pipeline. Key files:
+
+- **`src/email-parser.ts`** — `parseEmail(fields)` routes to GigSalad or The Bash parser by `from` address. Returns discriminated union `ParseResult` (ok/skip/parse_error). Regex extraction for event_type, event_date, location, token_url, external_id.
+- **`src/email-parser.test.ts`** — 12 tests covering happy paths, skip cases, parse errors, edge cases (parentheses in event type, missing location, article "a" vs "an").
+- **`src/webhook.ts`** — Express router with `POST /webhook/mailgun`. HMAC-SHA256 validation (Node crypto, timingSafeEqual). Dual dedup: `processed_emails` table (platform-level gate) + `leads.mailgun_message_id` (delivery-level). Creates LeadRecord, fires `runPipeline()` without awaiting.
+- **`src/leads.ts`** — Added `processed_emails` table + `isEmailProcessed()` / `markEmailProcessed()` helpers.
+- **`.env.example`** — Added `MAILGUN_WEBHOOK_KEY`.
+
+## Next Work: Chunk 3 — Wire Mailgun → pipeline → Twilio end-to-end
 
 ### Scope
 
-Create `src/mailgun.ts` with Mailgun inbound webhook handler, email body parser (extract fields from GigSalad/The Bash emails), and HMAC signature validation. Mount in `src/server.ts`.
+Connect the Mailgun webhook to the full pipeline and Twilio SMS delivery. When a lead email arrives, the pipeline runs and the drafts are sent via SMS for approval.
 
 ### Prompt for next session
 
 ```
-Read docs/HANDOFF.md (the "Next Work: Chunk 2" section).
-Read docs/plans/2026-02-20-feat-production-automation-loop-plan.md (Phase 3 section).
-Read src/server.ts. Read src/leads.ts. Read src/run-pipeline.ts.
+Read docs/HANDOFF.md (the "Next Work: Chunk 3" section).
+Read src/webhook.ts. Read src/sms.ts. Read src/run-pipeline.ts. Read src/leads.ts.
 
-Implement Chunk 2:
-1. Create src/mailgun.ts with:
-   - HMAC signature validation middleware (MAILGUN_SIGNING_KEY from env)
-   - Email body parser: extract client_name, event_date, event_type, venue, guest_count, budget_note from GigSalad/The Bash email formats
-   - POST /webhooks/mailgun handler that validates signature, parses email, creates LeadRecord
-2. Mount the webhook route in src/server.ts
-3. Add MAILGUN_SIGNING_KEY to .env.example
-4. Verify: npx tsc --noEmit passes
+Implement Chunk 3: Wire the end-to-end flow.
+When runPipeline() completes in the webhook fire-and-forget:
+1. Update the LeadRecord with classification, pricing, drafts, gate results
+2. Send compressed_draft via Twilio SMS with lead ID (e.g., "Lead #42: [draft]. Reply YES to send, or EDIT: [instructions]")
+3. Update lead status to "sent"
+4. Handle pipeline failures: update lead status to "failed"
 
-Commit: "feat: add Mailgun inbound webhook with HMAC validation and email parser"
+Commit when done.
 ```
-
-### Pre-requisite
-
-Save 2-3 sample lead emails from GigSalad and The Bash to `examples/` before testing.
 
 ### Remaining Chunks (Queued)
 
