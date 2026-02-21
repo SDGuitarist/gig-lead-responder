@@ -181,6 +181,11 @@ export function markEmailProcessed(externalId: string, platform: string): void {
     .run(externalId, platform);
 }
 
+/** Run a callback inside a SQLite transaction (atomic, serialized). */
+export function runTransaction<T>(fn: () => T): T {
+  return initDb().transaction(fn)();
+}
+
 export function listLeads(): LeadRecord[] {
   const rows = initDb()
     .prepare("SELECT * FROM leads ORDER BY created_at DESC")

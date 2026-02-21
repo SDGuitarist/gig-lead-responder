@@ -1,7 +1,7 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { Router } from "express";
 import { parseEmail } from "./email-parser.js";
-import { insertLead, isEmailProcessed, markEmailProcessed } from "./leads.js";
+import { insertLead, isEmailProcessed, markEmailProcessed, runTransaction } from "./leads.js";
 import { runPipeline } from "./run-pipeline.js";
 import { postPipeline, postPipelineError } from "./post-pipeline.js";
 
@@ -91,29 +91,37 @@ router.post("/webhook/mailgun", (req, res) => {
 
   const lead = result.lead;
 
-  // --- Idempotency check ---
-  if (isEmailProcessed(lead.external_id)) {
+  // --- Atomic dedup + insert (transaction prevents TOCTOU race) ---
+  const leadRecord = runTransaction(() => {
+    if (isEmailProcessed(lead.external_id)) return null;
+    markEmailProcessed(lead.external_id, lead.platform);
+    return insertLead({
+      raw_email: lead.raw_text,
+      source_platform: lead.platform,
+      mailgun_message_id: lead.external_id,
+      event_date: lead.event_date,
+      event_type: lead.event_type,
+      venue: lead.location ?? null,
+    });
+  });
+
+  if (!leadRecord) {
     console.log(`Webhook dedup: ${lead.platform} ${lead.external_id} already processed`);
     res.status(200).json({ status: "duplicate" });
     return;
   }
 
-  // --- Insert into processed_emails + create LeadRecord ---
-  markEmailProcessed(lead.external_id, lead.platform);
-
-  const leadRecord = insertLead({
-    raw_email: lead.raw_text,
-    source_platform: lead.platform,
-    mailgun_message_id: lead.external_id,
-    event_date: lead.event_date,
-    event_type: lead.event_type,
-    venue: lead.location ?? null,
-  });
-
   console.log(`Webhook received: ${lead.platform} lead #${leadRecord.id} (${lead.event_type})`);
 
-  // --- Fire-and-forget pipeline with post-processing ---
-  runPipeline(lead.raw_text)
+  // --- Fire-and-forget pipeline with 2-minute timeout ---
+  const PIPELINE_TIMEOUT_MS = 2 * 60 * 1000;
+
+  Promise.race([
+    runPipeline(lead.raw_text),
+    new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error("Pipeline timeout after 2 minutes")), PIPELINE_TIMEOUT_MS),
+    ),
+  ])
     .then((output) => postPipeline(leadRecord.id, output))
     .catch((err) =>
       postPipelineError(leadRecord.id, err).catch((innerErr) => {

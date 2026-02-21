@@ -4,32 +4,18 @@ import type { PipelineOutput } from "./types.js";
 
 /**
  * Handle successful pipeline completion:
- * 1. Write PipelineOutput to LeadRecord
- * 2. Send compressed draft via SMS
- * 3. Mark lead as "sent"
+ * 1. Build SMS from existing lead fields + pipeline output
+ * 2. Send SMS (must succeed before any DB write)
+ * 3. Write all pipeline data + status="sent" in one atomic UPDATE
  */
 export async function postPipeline(
   leadId: number,
   output: PipelineOutput,
 ): Promise<void> {
-  const now = new Date().toISOString();
-
-  // Step 1 — Write pipeline results to DB
-  updateLead(leadId, {
-    classification_json: JSON.stringify(output.classification),
-    pricing_json: JSON.stringify(output.pricing),
-    full_draft: output.drafts.full_draft,
-    compressed_draft: output.drafts.compressed_draft,
-    gate_passed: output.gate.gate_status === "pass",
-    gate_json: JSON.stringify(output.gate),
-    confidence_score: output.confidence_score,
-    pipeline_completed_at: now,
-  });
-
-  // Step 2 — Build and send SMS
+  // Step 1 — Build SMS body (uses fields set at insert time, no pipeline write needed)
   const lead = getLead(leadId);
   if (!lead) {
-    throw new Error(`Lead #${leadId} not found after pipeline update`);
+    throw new Error(`Lead #${leadId} not found`);
   }
 
   const lines: string[] = [];
@@ -42,12 +28,22 @@ export async function postPipeline(
   lines.push("");
   lines.push("Reply YES to send, or send edits.");
 
+  // Step 2 — Send SMS (must succeed before DB write)
   await sendSms(lines.join("\n"));
 
-  // Step 3 — Mark as sent with SMS timestamp
+  // Step 3 — Write all pipeline data + status="sent" in one atomic UPDATE
+  const now = new Date().toISOString();
   updateLead(leadId, {
+    classification_json: JSON.stringify(output.classification),
+    pricing_json: JSON.stringify(output.pricing),
+    full_draft: output.drafts.full_draft,
+    compressed_draft: output.drafts.compressed_draft,
+    gate_passed: output.gate.gate_status === "pass",
+    gate_json: JSON.stringify(output.gate),
+    confidence_score: output.confidence_score,
+    pipeline_completed_at: now,
     status: "sent",
-    sms_sent_at: new Date().toISOString(),
+    sms_sent_at: now,
   });
 
   console.log(`Lead #${leadId}: draft sent via SMS (confidence: ${output.confidence_score})`);
