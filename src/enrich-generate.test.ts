@@ -138,7 +138,7 @@ describe("buildGeneratePrompt — budget mode", () => {
     });
     const prompt = buildGeneratePrompt(c, p, "some context");
     assert.ok(prompt.includes("BUDGET MODE: LARGE GAP"));
-    assert.ok(prompt.includes("1hr set at $400"));
+    assert.ok(prompt.includes("1hr set starts at $400"));
     assert.ok(prompt.includes("full 2hr set"));
   });
 

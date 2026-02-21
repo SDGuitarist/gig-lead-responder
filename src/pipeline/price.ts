@@ -3,6 +3,7 @@ import type { Classification, Format, PricingResult, BudgetGapResult, ScopedAlte
 
 const BUDGET_GAP_SMALL_THRESHOLD = 75;  // exclusive: gap < 75 is "small"
 const BUDGET_GAP_LARGE_THRESHOLD = 200; // inclusive: gap <= 200 is "large"
+const NEAR_MISS_TOLERANCE = 75;         // scoped alt floor can exceed budget by up to this amount
 
 /**
  * Stage 2: Look up pricing from rate cards.
@@ -145,7 +146,7 @@ function findScopedAlternative(
 
   const shorterDuration = allDurations[currentIdx - 1];
   const shorterRates = rateTable[String(shorterDuration)]?.[tier_key as keyof TierRates];
-  if (!shorterRates || shorterRates.floor > stated_budget) return null;
+  if (!shorterRates || shorterRates.floor >= stated_budget + NEAR_MISS_TOLERANCE) return null;
 
   return {
     duration_hours: shorterDuration,

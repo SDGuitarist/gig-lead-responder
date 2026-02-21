@@ -202,7 +202,7 @@ Word count: 100-125 words.
     const alt = budget.scoped_alternative;
     return `
 ## BUDGET MODE: LARGE GAP — OFFER SCOPED ALTERNATIVE (OVERRIDES STEALTH PREMIUM)
-The client stated a budget of $${stated}. Your ${pricing.duration_hours}hr rate starts at $${pricing.floor} — above their range. A ${alt.duration_hours}hr set at $${alt.price} fits their budget.
+The client stated a budget of $${stated}. Your ${pricing.duration_hours}hr rate starts at $${pricing.floor} — above their range. A ${alt.duration_hours}hr set starts at $${alt.price}.
 
 Structure:
 1. Cinematic opening (same as standard — still hook them)
