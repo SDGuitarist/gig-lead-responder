@@ -35,6 +35,9 @@ export interface Classification {
   // Duration — extracted from lead text
   duration_hours: 1 | 1.5 | 2 | 3 | 4;
 
+  // Budget — extracted as number from lead text (null if not mentioned)
+  stated_budget: number | null;
+
   // Timeline & urgency
   timeline_band: "comfortable" | "short" | "urgent";
   close_type: "direct" | "soft_hold" | "hesitant";
@@ -53,6 +56,17 @@ export interface Classification {
   platform?: "gigsalad" | "thebash" | "direct";
 }
 
+export interface ScopedAlternative {
+  duration_hours: number;
+  price: number; // floor of scoped duration, not anchor
+}
+
+export type BudgetGapResult =
+  | { tier: "none" }
+  | { tier: "small"; gap: number }
+  | { tier: "large"; gap: number; scoped_alternative: ScopedAlternative }
+  | { tier: "no_viable_scope"; gap: number };
+
 export interface PricingResult {
   format: Format;
   duration_hours: number;
@@ -61,6 +75,7 @@ export interface PricingResult {
   floor: number;
   quote_price: number;
   competition_position: string; // e.g., "at anchor, willing to flex"
+  budget: BudgetGapResult;
 }
 
 export interface Drafts {

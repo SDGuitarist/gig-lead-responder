@@ -12,6 +12,15 @@ Your job: analyze a raw event lead and return a structured JSON classification. 
 ### Step 1: Surface Data Extraction
 Extract every explicit field: event type, date, time/duration, location/venue, guest count, budget, genre request, equipment, song requests, additional details, competition (quotes received).
 
+Extract stated_budget as a number in dollars. Rules:
+- "$400" → 400
+- "around $400" → 400 (use the stated number, don't infer a range)
+- "$350-400" → 350 (use the LOW end of any range)
+- "four hundred dollars" → 400
+- "$350 per musician" → 350 (per-musician price, not total)
+- No budget mentioned → null
+- "free", "no budget" → null (not zero)
+
 ### Step 2: Mode Assessment
 - **Confirmation Mode**: They've decided to book you. Signals: specific song requests, clear style articulation, high detail, reviewed your profile, "want to book you" language.
 - **Evaluation Mode**: They're comparing options. Signals: generic category request, "not sure yet" on key fields, no budget, no specific vision.
@@ -120,6 +129,7 @@ Return ONLY this JSON object (no markdown fences, no explanation):
   "format_requested": string,
   "format_recommended": "solo" | "duo" | "flamenco_duo" | "flamenco_trio" | "mariachi_4piece" | "mariachi_full" | "bolero_trio",
   "duration_hours": 1 | 1.5 | 2 | 3 | 4,
+  "stated_budget": number | null,
   "timeline_band": "comfortable" | "short" | "urgent",
   "close_type": "direct" | "soft_hold" | "hesitant",
   "cultural_context_active": boolean,

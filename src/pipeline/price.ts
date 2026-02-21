@@ -1,5 +1,8 @@
 import { RATE_TABLES, type TierRates } from "../data/rates.js";
-import type { Classification, PricingResult } from "../types.js";
+import type { Classification, Format, PricingResult, BudgetGapResult, ScopedAlternative } from "../types.js";
+
+const BUDGET_GAP_SMALL_THRESHOLD = 75;  // exclusive: gap < 75 is "small"
+const BUDGET_GAP_LARGE_THRESHOLD = 200; // inclusive: gap <= 200 is "large"
 
 /**
  * Stage 2: Look up pricing from rate cards.
@@ -67,5 +70,85 @@ export function lookupPrice(classification: Classification): PricingResult {
     floor,
     quote_price,
     competition_position,
+    budget: { tier: "none" },
+  };
+}
+
+/**
+ * Detect gap between client's stated budget and the rate floor.
+ * Pure function — returns a discriminated union describing the gap tier.
+ */
+export function detectBudgetGap(
+  stated_budget: number | null,
+  floor: number,
+  format: Format,
+  duration_hours: number,
+  tier_key: string,
+): BudgetGapResult {
+  // Input validation: treat invalid budgets as "no budget stated"
+  if (
+    stated_budget === null ||
+    typeof stated_budget !== "number" ||
+    Number.isNaN(stated_budget) ||
+    stated_budget <= 0 ||
+    stated_budget >= 100_000
+  ) {
+    return { tier: "none" };
+  }
+
+  const gap = floor - stated_budget;
+
+  // Budget meets or exceeds floor — no mismatch
+  if (gap <= 0) {
+    return { tier: "none" };
+  }
+
+  // Small gap: name it, quote anchor
+  if (gap < BUDGET_GAP_SMALL_THRESHOLD) {
+    return { tier: "small", gap };
+  }
+
+  // Large gap: try scope-down before deciding
+  if (gap <= BUDGET_GAP_LARGE_THRESHOLD) {
+    const alt = findScopedAlternative(format, duration_hours, tier_key, stated_budget);
+    if (alt) {
+      return { tier: "large", gap, scoped_alternative: alt };
+    }
+    // No scope-down available — escalate
+    return { tier: "no_viable_scope", gap };
+  }
+
+  // Extreme gap: warm redirect
+  return { tier: "no_viable_scope", gap };
+}
+
+/**
+ * Try to find a shorter duration at the same tier that fits the stated budget.
+ */
+function findScopedAlternative(
+  format: Format,
+  duration_hours: number,
+  tier_key: string,
+  stated_budget: number,
+): ScopedAlternative | null {
+  const rateTable = RATE_TABLES[format];
+  if (!rateTable) return null;
+
+  // Sort duration keys numerically, filter NaN safety net
+  const allDurations = Object.keys(rateTable)
+    .map(Number)
+    .filter((n) => !Number.isNaN(n))
+    .sort((a, b) => a - b);
+
+  const currentIdx = allDurations.indexOf(duration_hours);
+  if (currentIdx <= 0) return null; // No shorter duration exists
+
+  const shorterDuration = allDurations[currentIdx - 1];
+  const shorterRates = rateTable[String(shorterDuration)]?.[tier_key as keyof TierRates];
+  if (!shorterRates || shorterRates.floor > stated_budget) return null;
+
+  return {
+    duration_hours: shorterDuration,
+    price: shorterRates.floor, // floor, not anchor — gives client a real yes
   };
 }
