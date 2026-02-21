@@ -60,7 +60,9 @@ router.post("/webhook/mailgun", (req, res) => {
     return;
   }
 
-  if (!verifyMailgunSignature(timestamp, token, signature)) {
+  if (process.env.DISABLE_MAILGUN_VALIDATION === "true") {
+    console.warn("⚠ Mailgun signature validation disabled via DISABLE_MAILGUN_VALIDATION");
+  } else if (!verifyMailgunSignature(timestamp, token, signature)) {
     console.warn("Webhook HMAC validation failed");
     res.status(401).json({ error: "Invalid signature" });
     return;

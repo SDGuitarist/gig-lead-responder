@@ -49,6 +49,7 @@ Set all of these in your Railway service's **Variables** tab.
 | `DASHBOARD_USER` | `admin` | Basic Auth username for the `/leads` dashboard |
 | `DASHBOARD_PASS` | *(strong password)* | Basic Auth password for the `/leads` dashboard |
 | `DISABLE_TWILIO_VALIDATION` | `false` | Escape hatch — set `true` temporarily to debug Twilio webhook 401 errors caused by BASE_URL mismatch. **Set back to `false` immediately after debugging.** |
+| `DISABLE_MAILGUN_VALIDATION` | `false` | Escape hatch — set `true` temporarily to debug Mailgun webhook 401 errors caused by wrong signing key. **Set back to `false` immediately after debugging.** |
 | `PORT` | *(do not set)* | Railway injects this automatically. Do not override. |
 
 ### Getting Your Railway URL
@@ -83,6 +84,22 @@ Mailgun forwards incoming emails to your app as webhook POSTs.
 
 Send an email to your inbound address. Check Railway logs for the webhook hit.
 If you get a 401, verify `MAILGUN_WEBHOOK_KEY` matches exactly.
+
+### Mailgun Webhook 401 Debugging
+
+If Railway logs show `Webhook HMAC validation failed`, the signing key is wrong.
+Mailgun has multiple keys that look similar:
+
+- **API Key** (under API Keys) — for sending email via API. **Not this one.**
+- **Domain Sending Key** (under Domains) — for SMTP sending. **Not this one.**
+- **Webhook Signing Key** (under Settings → Webhooks) — **This is the one you need.**
+
+**Quick fix:**
+1. Set `DISABLE_MAILGUN_VALIDATION=true` in Railway variables
+2. Send a test email to your inbound address — confirm the webhook fires (check logs)
+3. Go to Mailgun → **Settings** → **Webhooks** → copy the **Webhook Signing Key**
+4. Update `MAILGUN_WEBHOOK_KEY` in Railway variables with the correct key
+5. Set `DISABLE_MAILGUN_VALIDATION=false` immediately
 
 ---
 
