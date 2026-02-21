@@ -47,7 +47,7 @@ Before writing a single word of the draft, you MUST fill the "reasoning" block i
 Using your reasoning, write two drafts following this 5-step sequence (woven seamlessly, NOT as labeled sections):
 
 1. **Cinematic hook + validation** — Opens with a story moment (the reader SEEs it), then the client sees themselves acknowledged
-2. **Differentiator** — One thing no other vendor does or understands about this lead
+2. **Differentiator + Named Fear** — Name what typically goes wrong with this type of booking, then show why you're different. This is not a feature list. It is one specific failure mode — the thing a lesser vendor does that this client is right to worry about — followed by the one behavior that makes you different. The fear must be named explicitly, not implied. Example: "A guitarist who shows up, plays their set at whatever volume they feel like, and never once adjusts for the room — that's the version of background music no one remembers fondly. What I do is different: I read the room in real time..."
 3. **Fear/concern resolution** — Every explicit AND inferred question answered (use absences from reasoning)
 4. **Recommendation + price** — Format recommendation, quote price, positioning
 5. **CTA** — Clear next step (${classification.close_type} close)
@@ -59,6 +59,7 @@ ${getWedgeInstruction(classification)}
 
 **Sparse Lead Protocol:**
 Every lead tells a story, including through its gaps. A client who says "not sure" on indoor/outdoor either has no event planning experience or doesn't know what musicians can handle. That absence is a signal. Address it. A lead with minimal details isn't an excuse for generic output — it's a challenge to demonstrate MORE insight from LESS information.
+When the lead is sparse, the fears are inferred from context, not stated. A birthday party at a Del Mar venue with no other details still implies: will the musician be appropriate for the occasion, will they be professional, will the music fit the vibe. Name one of these explicitly.
 
 **Validation Must Survive Compression:**
 Even the compressed draft MUST contain one sentence that validates the CLIENT specifically (not generic event praise). For this lead: validate ${getValidationTarget(classification)}.
