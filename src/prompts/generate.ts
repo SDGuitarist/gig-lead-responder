@@ -75,6 +75,7 @@ Strategy: Remove all friction. Fewer words, clearer path. Validate that you've g
 Type 3 — Impatient minimum-viable filler
 Signals: Category-only request, short lead time, no explanation. They know what they want, just didn't type it.
 Strategy: Demonstrate you figured it out without asking. Make an assumption, state it confidently, quote. If wrong, they'll correct you — that's fine. Don't make them repeat themselves.
+Concern traceability rule: Every flagged concern MUST still appear in the draft — but on Type 3 leads, bundle multiple gaps into a single confident sentence instead of addressing each one separately. Example: "I'm quoting for a 2-hour solo set with warm instrumental repertoire — if your headcount or venue changes the picture, just say the word and I'll adjust." That one sentence covers duration, genre, guest count, and venue in Type 3 voice.
 
 Type 4 — Still figuring out entertainment
 Signals: Vague genre request ("music," "entertainment," "not sure"), no style language, no clear vision.
