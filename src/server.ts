@@ -5,6 +5,7 @@ import { runPipeline } from "./run-pipeline.js";
 import { initDb } from "./leads.js";
 import webhookRouter from "./webhook.js";
 import twilioWebhookRouter from "./twilio-webhook.js";
+import dashboardRouter from "./dashboard.js";
 
 if (!process.env.ANTHROPIC_API_KEY) {
   console.error("Error: ANTHROPIC_API_KEY not set in .env file");
@@ -24,6 +25,9 @@ app.use(webhookRouter);
 
 // Twilio inbound SMS webhook
 app.use(twilioWebhookRouter);
+
+// Dashboard (leads list + detail pages)
+app.use(dashboardRouter);
 
 // SSE helper — sends a named event to the client
 function sendSSE(res: express.Response, event: string, data: unknown) {
