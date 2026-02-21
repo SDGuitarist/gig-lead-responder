@@ -1,8 +1,8 @@
 # Gig Lead Responder — Session Handoff
 
-**Last updated:** 2026-02-20 (v5)
+**Last updated:** 2026-02-20 (v6)
 **Current phase:** Work — Production Loop (next chunk)
-**Next session:** Wire Mailgun → pipeline → Twilio end-to-end (Chunk 3)
+**Next session:** Twilio reply webhook + YES/edit handler (Chunk 4)
 
 ---
 
@@ -218,8 +218,8 @@ Read docs/plans/2026-02-20-feat-production-automation-loop-plan.md sections "Typ
 | 1 | SQLite store + LeadRecord types + CRUD | Done (`b31a193`) |
 | 2 | Twilio SMS sender (outbound only) | Done (`4fa610c`) |
 | 3 | Mailgun webhook + email parser + HMAC | Done (`fc9043a`) |
-| 4 | Extract `runPipeline()` + wire end-to-end | Chunk 1 done (`c4b740e`), **wiring next (Chunk 3)** |
-| 5 | Twilio reply webhook + YES/edit handler | Pending |
+| 4 | Extract `runPipeline()` + wire end-to-end | Done — Chunk 1 (`c4b740e`) + Chunk 3 (`936c2f0`) |
+| 5 | Twilio reply webhook + YES/edit handler | **Next** |
 | 6 | Dashboard with Basic Auth | Pending |
 | 7 | Railway deployment + env config | Pending |
 | 8 | Gmail forward filter + e2e test | Pending |
@@ -328,24 +328,42 @@ Email intake layer for the pipeline. Key files:
 - **`src/leads.ts`** — Added `processed_emails` table + `isEmailProcessed()` / `markEmailProcessed()` helpers.
 - **`.env.example`** — Added `MAILGUN_WEBHOOK_KEY`.
 
-## Next Work: Chunk 3 — Wire Mailgun → pipeline → Twilio end-to-end
+## Completed: Chunk 3 — Pipeline → DB Write → Twilio SMS (936c2f0)
+
+Wires the back half of the webhook fire-and-forget. Key files:
+
+- **`src/post-pipeline.ts`** — `postPipeline(leadId, output)` writes all PipelineOutput fields to LeadRecord (classification_json, pricing_json, full_draft, compressed_draft, gate_passed, gate_json, confidence_score), then sends compressed draft via SMS, then marks status = "sent". `postPipelineError(leadId, err)` marks status = "failed" with error_message, sends review alert SMS.
+- **`src/sms.ts`** — `sendSms(body)` with lazy Twilio client init. Throws on failure.
+- **`src/webhook.ts`** — Updated fire-and-forget chain: `runPipeline().then(postPipeline).catch(postPipelineError.catch(log))`. Nested `.catch()` handles double-fault (Twilio + DB both down).
+- **`src/leads.ts`** — PRAGMA-based column migration adds `confidence_score`, `error_message`, `pipeline_completed_at`, `sms_sent_at` to existing DBs.
+- **`src/types.ts`** — 4 new fields on LeadRecord interface.
+- **`.env.example`** — Added `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_FROM_NUMBER`, `ALEX_PHONE`.
+
+### Spec discrepancies corrected
+- Used existing column names (`full_draft` not `draft_full`, `compressed_draft` not `draft_compressed`)
+- Used plan's 4-state machine (`sent`/`failed`) not spec's invented states (`draft_ready`/`awaiting_approval`/`pipeline_error`)
+- Used correct PipelineOutput paths (`output.drafts.full_draft`, `output.gate.gate_status === "pass"`)
+
+## Next Work: Chunk 4 — Twilio reply webhook + YES/edit handler
 
 ### Scope
 
-Connect the Mailgun webhook to the full pipeline and Twilio SMS delivery. When a lead email arrives, the pipeline runs and the drafts are sent via SMS for approval.
+Inbound SMS handler. When Alex replies YES → mark lead as done, send confirmation SMS with dashboard link. When Alex sends edit instructions → re-run generate+verify, send new draft. Twilio signature validation on inbound webhook.
 
 ### Prompt for next session
 
 ```
-Read docs/HANDOFF.md (the "Next Work: Chunk 3" section).
-Read src/webhook.ts. Read src/sms.ts. Read src/run-pipeline.ts. Read src/leads.ts.
+Read docs/HANDOFF.md (the "Next Work: Chunk 4" section).
+Read docs/plans/2026-02-20-feat-production-automation-loop-plan.md (SMS Parsing Rules + Edit Re-run sections).
+Read src/post-pipeline.ts. Read src/sms.ts. Read src/webhook.ts. Read src/leads.ts.
 
-Implement Chunk 3: Wire the end-to-end flow.
-When runPipeline() completes in the webhook fire-and-forget:
-1. Update the LeadRecord with classification, pricing, drafts, gate results
-2. Send compressed_draft via Twilio SMS with lead ID (e.g., "Lead #42: [draft]. Reply YES to send, or EDIT: [instructions]")
-3. Update lead status to "sent"
-4. Handle pipeline failures: update lead status to "failed"
+Implement Chunk 4:
+1. POST /webhook/twilio with Twilio signature validation
+2. Parse inbound SMS: APPROVAL_PATTERN for YES/Y/APPROVE/OK with optional lead ID
+3. Approval path: mark done, send confirmation SMS with dashboard link
+4. Edit path: re-run generate+verify only, send new draft, increment edit_round
+5. Edge cases: multiple pending leads + no ID, no pending leads, max edits (3)
+6. Mount in src/server.ts
 
 Commit when done.
 ```
