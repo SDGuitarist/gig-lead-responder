@@ -1,8 +1,8 @@
 # Gig Lead Responder — Session Handoff
 
-**Last updated:** 2026-02-20 (v7)
+**Last updated:** 2026-02-20 (v8)
 **Current phase:** Work — Production Loop (next chunk)
-**Next session:** Dashboard with Basic Auth (Chunk 5)
+**Next session:** Railway deployment (Chunk 6)
 
 ---
 
@@ -220,8 +220,8 @@ Read docs/plans/2026-02-20-feat-production-automation-loop-plan.md sections "Typ
 | 3 | Mailgun webhook + email parser + HMAC | Done (`fc9043a`) |
 | 4 | Extract `runPipeline()` + wire end-to-end | Done — Chunk 1 (`c4b740e`) + Chunk 3 (`936c2f0`) |
 | 5 | Twilio reply webhook + YES/edit handler | Done (`f5a32a1`) |
-| 6 | Dashboard with Basic Auth | **Next** |
-| 7 | Railway deployment + env config | Pending |
+| 6 | Dashboard with Basic Auth | Done (`33394db`) |
+| 7 | Railway deployment + env config | **Next** |
 | 8 | Gmail forward filter + e2e test | Pending |
 
 **Pre-requisite before Phase 3:** Save 2-3 sample lead emails from GigSalad and The Bash to `examples/`.
@@ -363,37 +363,56 @@ Inbound SMS handler for the approval/edit loop. Key file:
 
 **Mitigation for deployment (Chunk 7):** Add `DISABLE_TWILIO_VALIDATION=true` env var as a temporary escape hatch. When set, skip signature validation and log a warning. Use this to confirm the webhook works at all, then enable validation and fix the `BASE_URL` to match exactly what Twilio sees. Remove the flag once validated.
 
-## Next Work: Chunk 5 — Dashboard with Basic Auth
+## Completed: Chunk 5 — Dashboard with Basic Auth (33394db)
+
+Express router serving HTML lead list and detail pages. Key file:
+
+- **`src/dashboard.ts`** — Express router with inline Basic Auth middleware (~15 lines). Auth checks `DASHBOARD_USER` + `DASHBOARD_PASS` env vars; skips auth entirely when both are missing (local dev convenience). Two routes:
+  1. **`GET /leads`** — HTML table of all leads: ID (linked), color-coded status badge, event type, date, venue, client name, edit round, confidence score, received time. Unparsed leads (`client_name = null`) get amber background row + italic "unparsed" label.
+  2. **`GET /leads/:id`** — Full detail page with all LeadRecord fields in a 2-column grid. Click-to-copy draft boxes (border turns green on copy). Raw email in scrollable monospace box. Amber banner for unparsed leads, red error for failed leads.
+- **`src/server.ts`** — Added `import dashboardRouter` + `app.use(dashboardRouter)`.
+- **`.env.example`** — Added `DASHBOARD_USER=admin` and `DASHBOARD_PASS=change-me`.
+
+No new dependencies. Type checks clean (only pre-existing `import.meta.dirname` issue).
+
+### Three Questions — Chunk 5
+
+**Hardest decision:** Whether to skip auth when env vars are missing vs. blocking the server from starting. Went with skip — Alex is the only user, and the dashboard just working on `localhost` without configuring dummy credentials removes friction during development. In production, Railway will have the env vars set, so auth kicks in automatically.
+
+**Rejected alternatives:** (1) A template engine (EJS, Handlebars) — one more dependency for two pages. Inline HTML strings are ugly but the dashboard is simple enough. (2) A separate auth middleware file — the plan explicitly said "~10 lines, lives inline in `dashboard.ts`." (3) Protecting `/api/analyze` with the same auth — that's the web UI pipeline runner, different concern, would break the existing `public/` frontend.
+
+**Least confident about going into Chunk 6 (Railway deployment):** (1) SQLite on Railway — filesystem is ephemeral by default, need a Volume mounted at the right path. If misconfigured, every deploy silently wipes the leads DB. (2) `BASE_URL` matching exactly what Twilio sees — Railway's reverse proxy might rewrite headers, causing silent 403 on every inbound SMS. The `DISABLE_TWILIO_VALIDATION` escape hatch will be important. (3) Port binding — Railway sets `PORT` dynamically, server already reads it, but haven't verified Railway doesn't do anything unexpected.
+
+---
+
+## Next Work: Chunk 6 — Railway Deployment
 
 ### Scope
 
-Express router serving HTML pages for lead management. `GET /leads` lists all leads with status, edit_round, timestamps. `GET /leads/:id` shows full lead detail with copy-paste ready draft. Protected by Basic Auth using `DASHBOARD_USER` + `DASHBOARD_PASS` env vars.
+Deployment configuration, env var documentation, and step-by-step setup guide. No new application code — this is infrastructure and documentation.
 
 ### Prompt for next session
 
 ```
-Read docs/HANDOFF.md (the "Next Work: Chunk 5" section).
-Read docs/plans/2026-02-20-feat-production-automation-loop-plan.md (Dashboard + Acceptance Criteria sections).
-Read src/leads.ts. Read src/server.ts.
+Read docs/HANDOFF.md (v8). Read src/server.ts, src/leads.ts, .env.example.
 
-Implement Chunk 5:
-1. Create src/dashboard.ts with Express router
-2. Inline Basic Auth middleware (~10 lines, no external package)
-3. GET /leads — HTML table of all leads (status, event_type, event_date, venue, edit_round, created_at)
-4. GET /leads/:id — Full lead detail page with copy-paste ready full_draft
-5. Visually distinguish leads with client_name = null (unparsed email)
-6. Mount in src/server.ts
-7. Add DASHBOARD_USER and DASHBOARD_PASS to .env.example
-
-Commit when done.
+Implement Chunk 6 — Railway deployment:
+1. Create railway.json with start command + healthcheck
+2. Verify process.env.PORT binding in src/server.ts
+3. Document Railway Volume setup for SQLite (DATABASE_PATH env var)
+4. Add DISABLE_TWILIO_VALIDATION=false to .env.example with comment explaining
+   the escape hatch (set true temporarily to debug Twilio URL mismatch)
+5. Create docs/deployment.md — step-by-step Railway setup: volume config,
+   all env vars with descriptions, Mailgun inbound route setup, Twilio
+   webhook URL config, Gmail forward filter setup
+6. Commit when done
 ```
 
 ### Remaining Chunks (Queued)
 
 | Chunk | Description | Key files |
 |---|---|---|
-| 6 | Dashboard with Basic Auth | `src/dashboard.ts`, `src/server.ts` |
-| 7 | Railway deployment + env config | `railway.json`, `.env.example` |
+| 7 | Railway deployment + env config | `railway.json`, `.env.example`, `docs/deployment.md` |
 | 8 | Gmail forward filter + e2e test | Setup docs |
 
 ---
