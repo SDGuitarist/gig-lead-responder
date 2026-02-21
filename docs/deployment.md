@@ -113,25 +113,101 @@ match the URL Twilio is POSTing to.
 
 ## 7. Gmail Forward Filter Setup
 
-Gmail forwards lead notification emails to Mailgun for processing.
+Gmail forwards lead notification emails to your Mailgun inbound address,
+which POSTs them to the webhook on Railway.
 
-1. In Gmail (`alex.guillen.music@gmail.com`), go to **Settings** → **Filters and Blocked Addresses** → **Create a new filter**
-2. Set **From** to the sender you want to forward:
-   - `form-submission@squarespace.info` (Squarespace leads)
-   - `info@thebash.com` (The Bash leads)
-   - `leads@gigsalad.com` (GigSalad leads)
-3. Click **Create filter** → check **Forward it to** → enter your Mailgun inbound address (e.g., `leads@yourdomain.com`)
-4. Optionally check **Also keep in Inbox** to retain a copy
-5. Repeat for each sender
+### IMPORTANT: Setup Sequencing
 
-### Gmail Forwarding Verification
+This is a chicken-and-egg situation. Gmail sends a verification email to your
+Mailgun address before it allows forwarding. That verification email must
+actually be received by Mailgun and forwarded to your Railway webhook.
 
-Gmail requires you to verify the forwarding address first:
-1. Go to **Settings** → **Forwarding and POP/IMAP**
-2. Click **Add a forwarding address** → enter your Mailgun inbound address
-3. Gmail sends a confirmation code to that address
-4. Check Mailgun logs for the verification email, click the link or enter the code
-5. After verification, the forwarding address becomes available in filter actions
+**You must complete these steps IN ORDER:**
+
+1. Deploy to Railway (sections 1-4 above)
+2. Configure the Mailgun inbound route (section 5 above)
+3. Verify the Mailgun route works (send a test email to the inbound address)
+4. THEN start Gmail forwarding setup (this section)
+
+If you try to set up Gmail forwarding before Railway + Mailgun are working,
+the verification email will be lost and you'll have to start over.
+
+### Step 1: Verify the Forwarding Address
+
+1. In Gmail (`alex.guillen.music@gmail.com`), go to **Settings** → **Forwarding and POP/IMAP**
+2. Click **Add a forwarding address**
+3. Enter your Mailgun inbound address (e.g., `leads@yourdomain.com`)
+4. Gmail sends a confirmation email to that address
+5. The confirmation email hits Mailgun → your Railway webhook. Check Railway
+   logs to confirm it arrived. The email contains a confirmation code AND a
+   click-to-verify link.
+6. **To get the code:** Check Mailgun dashboard → **Logs** → find the
+   verification email. Or check Railway logs for the raw email body. Copy the
+   confirmation code and enter it in Gmail, or click the verification link.
+7. After verification, the forwarding address appears in Gmail's forwarding
+   dropdown and is available in filter actions.
+
+### Step 2: Create Filter for The Bash
+
+The Bash sends lead notifications AND marketing emails from the same address.
+Use a subject filter to only forward lead alerts.
+
+1. Go to **Settings** → **Filters and Blocked Addresses** → **Create a new filter**
+2. Set:
+   - **From:** `info@thebash.com`
+   - **Subject:** `Gig Alert`
+3. Click **Create filter**
+4. Check **Forward it to** → select your Mailgun inbound address
+5. Check **Also keep in Inbox** (recommended — keeps a copy for manual review)
+6. Save
+
+**Why the subject filter:** The Bash subject format is machine-generated
+(`Gig Alert: {TYPE} Lead! (Gig ID #{ID})`), so `Gig Alert` is safe to match.
+The email parser (`src/email-parser.ts:85`) also checks for "Gig Alert" in the
+subject, so this filter aligns with the application logic.
+
+### Step 3: Create Filter for GigSalad
+
+GigSalad sends leads from `leads@gigsalad.com` and status updates/reminders
+from `noreply@gigsalad.com`. The from-address alone separates leads from noise.
+
+1. **Create a new filter**
+2. Set:
+   - **From:** `leads@gigsalad.com`
+   - *(no subject filter needed)*
+3. Click **Create filter**
+4. Check **Forward it to** → select your Mailgun inbound address
+5. Check **Also keep in Inbox**
+6. Save
+
+**Why no subject filter:** GigSalad sends multiple emails per lead (initial
+notification + reminders like "Last reminder", "waiting to hear from you").
+These may come from `leads@gigsalad.com` with different subjects. The
+application handles dedup at two levels: `processed_emails` table (Message-Id)
+and the email parser. Adding a Gmail subject filter risks silently dropping
+leads if GigSalad changes their subject format.
+
+### Step 4: Create Filter for Squarespace (Optional — Phase 1)
+
+1. **Create a new filter**
+2. Set:
+   - **From:** `form-submission@squarespace.info`
+3. Click **Create filter**
+4. Check **Forward it to** → select your Mailgun inbound address
+5. Check **Also keep in Inbox**
+6. Save
+
+**Note:** Squarespace form submissions don't have a parser in `src/email-parser.ts`
+yet. This filter is for Phase 1 when the Squarespace parser is built.
+
+### Verifying Filters Work
+
+After creating all filters:
+1. Wait for a real lead to arrive, OR
+2. Send yourself a test email that matches the filter criteria (from the
+   matching address with the right subject)
+3. Check Railway logs for the webhook hit
+4. Check `/leads` dashboard for the new lead
 
 ---
 
