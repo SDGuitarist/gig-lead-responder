@@ -30,8 +30,14 @@ function emptyTwiml(res: Response): void {
   res.type("text/xml").send('<?xml version="1.0" encoding="UTF-8"?><Response></Response>');
 }
 
-/** Validate Twilio webhook signature using X-Twilio-Signature header. */
+/** Validate Twilio webhook signature using X-Twilio-Signature header.
+ *  Set DISABLE_TWILIO_VALIDATION=true to bypass (debug URL mismatches only). */
 function verifyTwilioSignature(req: Request): boolean {
+  if (process.env.DISABLE_TWILIO_VALIDATION === "true") {
+    console.warn("⚠ Twilio signature validation disabled via DISABLE_TWILIO_VALIDATION");
+    return true;
+  }
+
   const authToken = process.env.TWILIO_AUTH_TOKEN;
   const base = process.env.BASE_URL;
   if (!authToken || !base) {

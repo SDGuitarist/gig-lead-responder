@@ -29,6 +29,11 @@ app.use(twilioWebhookRouter);
 // Dashboard (leads list + detail pages)
 app.use(dashboardRouter);
 
+// Healthcheck for Railway
+app.get("/health", (_req, res) => {
+  res.json({ status: "ok" });
+});
+
 // SSE helper — sends a named event to the client
 function sendSSE(res: express.Response, event: string, data: unknown) {
   res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
