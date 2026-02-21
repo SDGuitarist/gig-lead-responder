@@ -1,8 +1,8 @@
 # Gig Lead Responder — Session Handoff
 
 **Last updated:** 2026-02-21 (v20)
-**Current phase:** Work complete — reasoning stage + sparse lead handling
-**Next session:** Deploy to Railway + run e2e tests (see `docs/deployment.md` + `docs/e2e-test.md`)
+**Current phase:** Compound — document learnings from reasoning stage + sparse lead work
+**Next session:** Compound, then deploy to Railway + run e2e tests (see `docs/deployment.md` + `docs/e2e-test.md`)
 
 ---
 
@@ -623,3 +623,29 @@ This project is a demo for an AI user group presentation showcasing the **compou
 5. **Compound** — Done (6 solutions in `docs/solutions/`)
 
 The quinceañera lead was chosen because it's the stress test that generic tools fail — requires cultural context detection, genre correction, stealth premium override, and gift-giver framing all at once.
+
+---
+
+## Prompt for Next Session (Compound)
+
+```
+Read docs/HANDOFF.md section "Reasoning Stage + Sparse Lead Handling (2026-02-21)".
+Run /workflows:compound to document these solved problems in docs/solutions/:
+
+1. "Testable constraints for AI prompt compliance" — The model understood intent
+   but produced generic output. Fix: deletion tests, pass/fail examples, forcing
+   rules. Pattern: examples beat instructions, testable constraints beat vague
+   rules.
+
+2. "Sparse lead type classification for response generation" — Sparse leads got
+   same treatment as rich leads. Fix: 4-type system (price shopper, overwhelmed,
+   impatient filler, still figuring it out) with matched strategies, concern
+   bundling, genre defaults, date proximity rules.
+
+Existing solutions in docs/solutions/ for cross-reference:
+- prompt-placement-for-hard-constraints.md (related — constraint placement)
+- platform-policy-enforcement.md (related — platform-conditional logic)
+
+Key files: src/prompts/generate.ts (primary), src/prompts/verify.ts,
+src/types.ts, src/pipeline/generate.ts, src/index.ts.
+```
