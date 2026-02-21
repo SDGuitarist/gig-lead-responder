@@ -1,7 +1,7 @@
 # Gig Lead Responder — Session Handoff
 
-**Last updated:** 2026-02-20 (v15)
-**Current phase:** Work — Production Loop (platform policy hardened)
+**Last updated:** 2026-02-20 (v16)
+**Current phase:** Work — Production Loop (platform policy fully enforced)
 **Next session:** Deploy to Railway + run e2e tests (see `docs/deployment.md` + `docs/e2e-test.md`)
 
 ---
@@ -541,8 +541,8 @@ GigSalad prohibits direct contact info (phone, email, website) in platform messa
 ### Known gaps
 
 1. ~~**Website URLs / social handles**~~ — Fixed in `88d801a`. Hard constraint added near top of generate prompt prohibiting all contact info (phone, email, URLs, social handles, "call me"/"text me" phrasing) in the entire response body, not just the contact block. Contact block omission (v14) still in place lower in the prompt as a second layer.
-2. **No platform-policy config** — The `=== "gigsalad"` check is hardcoded in two files. If more platforms with different rules appear, a config object would be cleaner.
-3. **Verification gate unaware** — The verify prompt does not check for contact info leakage in GigSalad responses. If the generator ignores the hard constraint, the gate won't catch it.
+2. **No platform-policy config** — The `=== "gigsalad"` check is hardcoded in three files (generate prompt, verify prompt, pipeline/generate.ts). If more platforms with different rules appear, a config object would be cleaner.
+3. ~~**Verification gate unaware**~~ — Fixed in `7d69d9c`. Verify prompt now includes "Platform Policy Check — GigSalad (HARD GATE)" section that scans the entire draft for contact info. Added as a gate condition alongside scene_type, competitor_test, concern traceability, and gut checks. Also fixed compressed draft instructions: "send-ready for GigSalad messaging system" (platform-specific) and removed "contact block" from the must-retain list for GigSalad.
 
 ---
 
