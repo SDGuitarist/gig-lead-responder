@@ -5,12 +5,14 @@ import type { Classification, Drafts, GateResult, PricingResult } from "../types
 
 /**
  * Run the verification gate on a set of drafts.
+ * Accepts optional pricing to enable budget_acknowledged gut check.
  */
 export async function verifyGate(
   drafts: Drafts,
-  classification: Classification
+  classification: Classification,
+  pricing?: PricingResult,
 ): Promise<GateResult> {
-  const systemPrompt = buildVerifyPrompt(classification);
+  const systemPrompt = buildVerifyPrompt(classification, pricing);
   const userMessage = `Evaluate this draft:\n\n## FULL DRAFT\n${drafts.full_draft}\n\n## COMPRESSED DRAFT\n${drafts.compressed_draft}`;
 
   return await callClaude<GateResult>(systemPrompt, userMessage);
@@ -27,7 +29,7 @@ export async function runWithVerification(
   maxRetries: number = 2
 ): Promise<{ drafts: Drafts; gate: GateResult; verified: boolean }> {
   let drafts = await generateResponse(classification, pricing, context);
-  let gate = await verifyGate(drafts, classification);
+  let gate = await verifyGate(drafts, classification, pricing);
 
   if (gate.gate_status === "pass") {
     return { drafts, gate, verified: true };
@@ -39,7 +41,7 @@ export async function runWithVerification(
     console.warn("Rewriting with targeted instructions...");
 
     drafts = await generateResponse(classification, pricing, context, gate.fail_reasons);
-    gate = await verifyGate(drafts, classification);
+    gate = await verifyGate(drafts, classification, pricing);
 
     if (gate.gate_status === "pass") {
       console.log(`Gate PASSED on attempt ${attempt + 1}.`);

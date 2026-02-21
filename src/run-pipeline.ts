@@ -146,6 +146,6 @@ export async function runEditPipeline(
 ): Promise<EditPipelineResult> {
   const context = await selectContext(classification);
   const drafts = await generateResponse(classification, pricing, context, [instructions]);
-  const gate = await verifyGate(drafts, classification);
+  const gate = await verifyGate(drafts, classification, pricing);
   return { drafts, gate };
 }

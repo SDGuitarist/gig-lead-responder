@@ -1,10 +1,15 @@
-import type { Classification } from "../types.js";
+import type { Classification, PricingResult } from "../types.js";
 
 /**
  * Builds the verification gate prompt.
  * Requires Claude to extract exact quotes from the draft as evidence.
+ * Accepts optional pricing to enable budget_acknowledged gut check.
  */
-export function buildVerifyPrompt(classification: Classification): string {
+export function buildVerifyPrompt(
+  classification: Classification,
+  pricing?: Pick<PricingResult, "budget">,
+): string {
+  const budget = pricing?.budget ?? { tier: "none" as const };
   return `You are a quality gate for Pacific Flow Entertainment response drafts.
 
 Your job: evaluate a draft response against the classification and return structured evidence. You must extract EXACT QUOTES from the draft — not paraphrases.
@@ -55,6 +60,7 @@ Does the opening sentence reference a CONCRETE DETAIL from the classification? T
 - prose_flows: Reads as one continuous movement, not assembled sections
 - competitor_test: false means PASS (no competitor would write this)
 - lead_specific_opening: First sentence references a concrete detail from the classification (not generic)
+- budget_acknowledged: ${buildBudgetAcknowledgedInstruction(budget, classification)}
 
 ${classification.platform === "gigsalad"
     ? `### 8. Platform Policy Check — GigSalad (HARD GATE)
@@ -71,7 +77,7 @@ If the contact block is missing or incomplete → gate_status = "fail" with fail
   - scene_type is "cinematic"
   - competitor_test is false
   - All concern_traceability entries have non-empty draft_sentence
-  - At least 8 of 10 gut_checks are true
+  - At least 9 of 11 gut_checks are true
   - Platform check passes (${classification.platform === "gigsalad" ? "no contact info detected" : "contact block present with name, business, phone"})
 - "fail": Any of the above conditions not met
 
@@ -103,9 +109,38 @@ Return ONLY this JSON (no markdown fences, no explanation):
     "best_line_present": boolean,
     "prose_flows": boolean,
     "competitor_test": boolean,
-    "lead_specific_opening": boolean
+    "lead_specific_opening": boolean,
+    "budget_acknowledged": boolean
   },
   "gate_status": "pass" | "fail",
   "fail_reasons": ["specific fix instruction 1", "..."]
 }`;
+}
+
+/**
+ * Build the budget_acknowledged gut check instruction based on budget tier.
+ * When tier is "none", the check is a no-op (always true).
+ */
+function buildBudgetAcknowledgedInstruction(
+  budget: PricingResult["budget"],
+  classification: Classification,
+): string {
+  if (budget.tier === "none") {
+    return "Always true — no budget mismatch to acknowledge.";
+  }
+
+  const stated = classification.stated_budget;
+  const deletion = `Deletion test: remove the sentence that references the client's stated budget ($${stated}) or the pricing gap. Does the remaining draft still work for any lead with any budget? If yes → false. The budget must be specifically addressed.`;
+
+  if (budget.tier === "small") {
+    return `${deletion} For "small" gap: draft names the rate directly in relation to stated budget ($${stated}).`;
+  }
+
+  if (budget.tier === "large") {
+    const alt = budget.scoped_alternative;
+    return `${deletion} For "large" gap: draft names a specific scoped alternative price ($${alt.price} for ${alt.duration_hours}hr).`;
+  }
+
+  // no_viable_scope
+  return `${deletion} For "no_viable_scope": draft states the floor and suggests a concrete alternative.`;
 }
