@@ -1,8 +1,8 @@
 # Gig Lead Responder — Session Handoff
 
-**Date:** 2026-02-20
-**Session:** Brainstorm → Plan → Work (all 9 phases)
-**Next:** Test live with API key → Review → Compound
+**Last updated:** 2026-02-20 (v4)
+**Current phase:** Work — Production Loop Phase 4 (next chunk)
+**Next session:** Mailgun webhook + email parser + HMAC validation (Chunk 2)
 
 ---
 
@@ -15,7 +15,7 @@ Raw Lead → [classify] → [price] → [context] → [generate] → [verify] �
 ```
 
 **Project:** `~/projects/gig-lead-responder`
-**Branch:** `feat/gig-lead-pipeline` (9 commits, all passing `tsc --noEmit`)
+**Branch:** `main` (pushed, all passing `tsc --noEmit` except pre-existing `import.meta.dirname` type issue)
 
 ---
 
@@ -49,8 +49,9 @@ Raw Lead → [classify] → [price] → [context] → [generate] → [verify] �
 ## Key Files
 
 ### Source Code
-- `src/index.ts` — CLI entry point, reads stdin, runs pipeline, prints formatted output
-- `src/types.ts` — All interfaces: Classification, PricingResult, Drafts, GateResult, PipelineOutput
+- `src/run-pipeline.ts` — Shared `runPipeline(rawText, onStage?)` orchestration + confidence scoring (0-100)
+- `src/index.ts` — CLI entry point, reads stdin, calls `runPipeline()`, prints formatted output
+- `src/types.ts` — All interfaces: Classification, PricingResult, Drafts, GateResult, PipelineOutput (includes confidence_score)
 - `src/claude.ts` — Shared `callClaude<T>()` helper with JSON parsing, code fence stripping, one retry
 - `src/pipeline/classify.ts` — Stage 1: `classifyLead(rawText)` → Classification
 - `src/pipeline/price.ts` — Stage 2: `lookupPrice(classification)` → PricingResult (pure function)
@@ -161,6 +162,198 @@ Read docs/HANDOFF.md. Run /workflows:compound to capture solved problems in docs
 4. **Rewrite loop** — Failed gate feeds specific fail_reasons back to generator, max 2 retries, returns `verified: false` if all fail (never silently passes)
 5. **Required vs optional docs** — RESPONSE_CRAFT.md and PRICING_TABLES.md throw if missing; everything else skips with warning
 6. **format_requested vs format_recommended** — Classification outputs both the client's original ask AND the corrected format; pricing uses the corrected one
+7. **Shared `runPipeline()` with `onStage` callback** — Single orchestration function used by CLI, web UI, and automation webhook. Progress reporting is decoupled via optional callback (SSE, console, or silent)
+
+---
+
+## Production Loop (Current Work)
+
+**Brainstorm:** `docs/brainstorms/2026-02-20-production-loop-brainstorm.md`
+**Plan:** `docs/plans/2026-02-20-feat-production-automation-loop-plan.md`
+**Status:** Plan reviewed (3-agent parallel review), simplified, ready for Phase 1.
+
+Automated email -> AI pipeline -> SMS approval loop. Wraps the existing 5-stage pipeline in delivery infrastructure (Mailgun inbound, Twilio SMS, SQLite persistence, dashboard with Basic Auth).
+
+### How to Start Phase 1
+
+Paste this into a fresh Claude Code session:
+
+```
+Read docs/plans/2026-02-20-feat-production-automation-loop-plan.md sections "TypeScript Types" and "SQLite Schema". Read src/types.ts. Implement Phase 1: SQLite store + LeadRecord types + CRUD. Files to create/edit: src/leads.ts (new), src/types.ts (add LeadRecord + LeadStatus). Install better-sqlite3 + @types/better-sqlite3. Commit when done.
+```
+
+### Phase 1 Deliverables
+
+**`src/types.ts`** — Add to existing file:
+- `LeadStatus` type: `"received" | "sent" | "done" | "failed"`
+- `LeadRecord` interface: 20 fields, auto-increment integer ID, inline draft storage
+
+**`src/leads.ts`** — New file:
+- `initDb(dbPath?)` — creates SQLite DB with WAL mode, `PRAGMA foreign_keys = ON`, creates `leads` table
+- `createLead(fields)` — inserts a new lead, returns the `LeadRecord` with auto-generated ID
+- `getLead(id)` — returns `LeadRecord | null`
+- `updateLead(id, fields)` — partial update, sets `updated_at`
+- `getLeadsByStatus(status)` — returns `LeadRecord[]`, ordered by `created_at DESC`
+- `getMostRecentSentLead()` — returns the most recent lead with `status = "sent"`, or null
+
+**Install:** `npm install better-sqlite3 && npm install -D @types/better-sqlite3`
+
+### Key Decisions (from plan review)
+- **1 table** instead of 3 (cut `draft_versions` and `sms_log`)
+- **4 states:** `received`, `sent`, `done`, `failed` (edit_round column tracks revisions)
+- **Integer IDs** double as SMS short IDs (`YES-42` not `YES-abc123`)
+- **Inline drafts** on leads table (no versioning — Alex never needs old drafts)
+- **Null = unparsed:** `client_name = null` means regex parsing failed (no separate flag)
+- **No expiration:** idle leads cost nothing; sort by recency for fallback
+- **Flat files:** 4 new files in `src/`, no nested directories
+- **Edit re-runs:** generate+verify only (not all 5 stages)
+- **429 retry:** once after 60s in `callClaude()` (not a future enhancement)
+- **Dedup:** `mailgun_message_id UNIQUE` prevents re-processing
+- **Stuck recovery:** `received` > 5 min -> `failed` via `setInterval`
+
+### 8 Implementation Phases
+
+| Phase | Description | Status |
+|---|---|---|
+| 1 | SQLite store + LeadRecord types + CRUD | Done (`b31a193`) |
+| 2 | Twilio SMS sender (outbound only) | Done (`4fa610c`) |
+| 3 | Mailgun webhook + email parser + HMAC | **Next** |
+| 4 | Extract `runPipeline()` + wire end-to-end | Chunk 1 done (`c4b740e`), wiring pending |
+| 5 | Twilio reply webhook + YES/edit handler | Pending |
+| 6 | Dashboard with Basic Auth | Pending |
+| 7 | Railway deployment + env config | Pending |
+| 8 | Gmail forward filter + e2e test | Pending |
+
+**Pre-requisite before Phase 3:** Save 2-3 sample lead emails from GigSalad and The Bash to `examples/`.
+
+---
+
+## Classification Verification (2026-02-20)
+
+**Ran classification stage in isolation on the demo lead. Result: 6/6 expected behaviors fire.**
+
+```json
+{
+  "mode": "evaluation",
+  "action": "quote",
+  "vagueness": "clear",
+  "competition_level": "medium",
+  "competition_quote_count": 4,
+  "stealth_premium": true,
+  "stealth_premium_signals": [
+    "Premium venue: Estancia La Jolla",
+    "Affluent zip: La Jolla (92037)",
+    "Saturday evening at named venue",
+    "Guest count 120 (approaching 150 threshold)"
+  ],
+  "tier": "premium",
+  "rate_card_tier": "T3",
+  "lead_source_column": "P",
+  "price_point": "full_premium",
+  "format_requested": "Spanish guitar / flamenco",
+  "format_recommended": "mariachi_4piece",
+  "duration_hours": 3,
+  "timeline_band": "short",
+  "close_type": "direct",
+  "cultural_context_active": true,
+  "cultural_tradition": "spanish_latin",
+  "planner_effort_active": true,
+  "social_proof_active": true,
+  "context_modifiers": [
+    "Mexican family explicitly requesting authentic cultural music",
+    "Milestone celebration (quinceañera) elevates emotional and cultural significance",
+    "Luxury venue (Estancia La Jolla) signals high-end event expectations",
+    "Genre request (flamenco/Spanish guitar) may be a proxy for mariachi — upsell opportunity",
+    "Budget of $800 is likely a placeholder or underestimate for this venue and event scale"
+  ],
+  "flagged_concerns": [
+    "Budget mismatch: $800 is significantly below market rate for T3 premium venue, 3-hour event, 120 guests",
+    "Genre mismatch: Spanish guitar/flamenco requested but quinceañera + Mexican family context strongly favors mariachi",
+    "Equipment uncertainty may indicate inexperience with live music logistics — may need guidance",
+    "Medium competition (4 quotes) on GigSalad requires strong differentiation and fast response"
+  ]
+}
+```
+
+### Scorecard
+
+| # | Expected Behavior | Result | Verdict |
+|---|---|---|---|
+| 1 | Stealth premium → T3 | `stealth_premium: true`, `rate_card_tier: "T3"`, 4 signals | PASS |
+| 2 | Genre correction → mariachi | `format_requested: "Spanish guitar / flamenco"` → `format_recommended: "mariachi_4piece"` | PASS |
+| 3 | Cultural full activation | `cultural_context_active: true`, `cultural_tradition: "spanish_latin"` | PASS |
+| 4 | Gift-giver frame | `planner_effort_active: true` + context_modifiers | PASS |
+| 5 | Budget mismatch flagged | flagged_concern: "$800 is significantly below market rate" | PASS |
+| 6 | Platform competition = medium | `competition_level: "medium"`, `competition_quote_count: 4` | PASS |
+
+### Two Surprises (Both Are Better Behavior)
+
+1. **`tier: "premium"` instead of brainstorm's expected `"qualification"`** — Stealth premium signals override budget mismatch. The system sees past the low stated budget to the client's actual spending capacity (Estancia La Jolla, 120 guests, La Jolla zip). This is *smarter* than what the brainstorm predicted.
+
+2. **`close_type: "direct"` instead of `"hesitant"`** — Same reason. Premium venue signals push toward confident closing. The system treats this as a premium client who underestimated the price, not a budget-constrained client.
+
+**Bottom line:** The demo assumption holds. Classification produces all 6 behaviors on one lead. The two surprises make the demo *more* interesting, not less.
+
+---
+
+## Three Questions — This Session
+
+**Hardest decision:** Whether `tier: "premium"` (vs. brainstorm's expected `"qualification"`) is correct or a bug. Decided it's correct — stealth premium signals should override stated budget.
+
+**Rejected alternatives:** (1) Running full pipeline to verify — classification alone was the minimum viable check. (2) Tweaking the prompt to force `"qualification"` — the model's reasoning is better business logic than the brainstorm assumed.
+
+**Least confident about:** Whether the verification gate (Stage 5) can reliably distinguish cinematic from structural scene descriptions. Classification is verified; the gate is the next unverified assumption. Should run generate + verify in isolation before wiring up the full pipeline.
+
+---
+
+## Completed: Chunk 1 — Extract `runPipeline()` (c4b740e)
+
+Extracted inline pipeline orchestration from both `src/server.ts` and `src/index.ts` into `src/run-pipeline.ts`. Key design:
+
+- **`onStage` callback** — Optional progress reporter. Server passes SSE sender, CLI passes console logger, webhook handler passes nothing. No coupling between pipeline logic and delivery.
+- **Confidence scoring** — `computeConfidence()` returns 0-100: gate pass (+40), verified (+20), stealth premium (+10), cultural context (+10), competition handling (+10), concern traceability (+10). Demo quinceañera lead should score 100.
+- **`StageEvent` type** — Exported for consumers that need typed progress events.
+
+Files changed: `src/run-pipeline.ts` (new), `src/types.ts`, `src/server.ts`, `src/index.ts`.
+
+---
+
+## Next Work: Chunk 2 — Mailgun webhook + email parser + HMAC
+
+### Scope
+
+Create `src/mailgun.ts` with Mailgun inbound webhook handler, email body parser (extract fields from GigSalad/The Bash emails), and HMAC signature validation. Mount in `src/server.ts`.
+
+### Prompt for next session
+
+```
+Read docs/HANDOFF.md (the "Next Work: Chunk 2" section).
+Read docs/plans/2026-02-20-feat-production-automation-loop-plan.md (Phase 3 section).
+Read src/server.ts. Read src/leads.ts. Read src/run-pipeline.ts.
+
+Implement Chunk 2:
+1. Create src/mailgun.ts with:
+   - HMAC signature validation middleware (MAILGUN_SIGNING_KEY from env)
+   - Email body parser: extract client_name, event_date, event_type, venue, guest_count, budget_note from GigSalad/The Bash email formats
+   - POST /webhooks/mailgun handler that validates signature, parses email, creates LeadRecord
+2. Mount the webhook route in src/server.ts
+3. Add MAILGUN_SIGNING_KEY to .env.example
+4. Verify: npx tsc --noEmit passes
+
+Commit: "feat: add Mailgun inbound webhook with HMAC validation and email parser"
+```
+
+### Pre-requisite
+
+Save 2-3 sample lead emails from GigSalad and The Bash to `examples/` before testing.
+
+### Remaining Chunks (Queued)
+
+| Chunk | Description | Key files |
+|---|---|---|
+| 3 | Wire Mailgun → pipeline → Twilio (end-to-end) | `src/server.ts`, `src/run-pipeline.ts` |
+| 4 | Twilio reply webhook + YES/edit handler | `src/twilio.ts`, `src/server.ts` |
+| 5 | Dashboard with Basic Auth | `src/dashboard.ts`, `src/server.ts` |
 
 ---
 
