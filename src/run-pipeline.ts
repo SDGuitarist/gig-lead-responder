@@ -1,5 +1,6 @@
 import { classifyLead } from "./pipeline/classify.js";
-import { lookupPrice } from "./pipeline/price.js";
+import { lookupPrice, detectBudgetGap } from "./pipeline/price.js";
+import { enrichClassification } from "./pipeline/enrich.js";
 import { selectContext } from "./pipeline/context.js";
 import { generateResponse } from "./pipeline/generate.js";
 import { verifyGate, runWithVerification } from "./pipeline/verify.js";
@@ -77,10 +78,20 @@ export async function runPipeline(
     ms: timing.classify, result: classification,
   });
 
-  // --- Stage 2: Pricing ---
+  // --- Stage 2: Pricing + Budget Gap ---
   onStage?.({ stage: 2, name: "price", status: "running" });
   start = Date.now();
   const pricing = lookupPrice(classification);
+  // Detect budget gap and attach to pricing result
+  pricing.budget = detectBudgetGap(
+    classification.stated_budget,
+    pricing.floor,
+    pricing.format,
+    pricing.duration_hours,
+    pricing.tier_key,
+  );
+  // Enrich classification based on budget gap (pure — returns new object if overriding)
+  const enriched = enrichClassification(classification, pricing);
   timing.price = Date.now() - start;
   onStage?.({
     stage: 2, name: "price", status: "done",
@@ -90,7 +101,7 @@ export async function runPipeline(
   // --- Stage 3: Context Assembly ---
   onStage?.({ stage: 3, name: "context", status: "running" });
   start = Date.now();
-  const context = await selectContext(classification);
+  const context = await selectContext(enriched);
   timing.context = Date.now() - start;
   onStage?.({
     stage: 3, name: "context", status: "done",
@@ -102,7 +113,7 @@ export async function runPipeline(
   onStage?.({ stage: 5, name: "verify", status: "running" });
   start = Date.now();
   const { drafts, gate, verified } = await runWithVerification(
-    classification, pricing, context,
+    enriched, pricing, context,
   );
   timing.generateAndVerify = Date.now() - start;
   onStage?.({ stage: 4, name: "generate", status: "done", ms: timing.generateAndVerify });

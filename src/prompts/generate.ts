@@ -1,3 +1,4 @@
+import { RATE_TABLES, type TierRates } from "../data/rates.js";
 import type { Classification, PricingResult } from "../types.js";
 
 /**
@@ -11,10 +12,12 @@ export function buildGeneratePrompt(
 ): string {
   const compressedTarget = getCompressedTarget(classification.competition_level);
 
+  const budgetBlock = buildBudgetModeBlock(classification, pricing);
+
   return `You are a master response writer for Pacific Flow Entertainment, a live music booking service in San Diego run by Alex Guillen.
 
 Your job: REASON about a client lead, then write two response drafts. Return ONLY valid JSON with the structure shown at the end.
-${classification.platform === "gigsalad"
+${budgetBlock}${classification.platform === "gigsalad"
     ? `
 ## PLATFORM POLICY — GIGSALAD (HARD CONSTRAINT)
 Do not include any phone numbers, email addresses, website URLs, or social media handles anywhere in the response. GigSalad policy prohibits direct contact information. This applies to the entire response body — not just a contact block. Do not mention "call me," "text me," "visit our site," or any variation that implies off-platform contact.
@@ -171,4 +174,89 @@ function getValidationTarget(classification: Classification): string {
     return "the parent/family member making this cultural milestone happen — validate their care, not just the event";
   }
   return "the person making this decision — their taste, their care, their vision";
+}
+
+/**
+ * Build the budget mode instruction block injected at the top of the prompt.
+ * Returns empty string when no budget mismatch exists.
+ */
+function buildBudgetModeBlock(
+  classification: Classification,
+  pricing: PricingResult,
+): string {
+  const { budget } = pricing;
+  if (budget.tier === "none") return "";
+
+  const stated = classification.stated_budget;
+
+  if (budget.tier === "small") {
+    return `
+## BUDGET MODE: SMALL GAP (OVERRIDES STEALTH PREMIUM)
+The client stated a budget of $${stated}. Your rate is $${pricing.quote_price}. The gap is small ($${budget.gap}). In your validation step, add ONE sentence that names the rate directly. Be matter-of-fact: "You mentioned $${stated} — my rate for a ${pricing.duration_hours}hr ${pricing.format} set is $${pricing.quote_price}, fully self-contained." No apology. No negotiation framing.
+
+Word count: 100-125 words.
+`;
+  }
+
+  if (budget.tier === "large") {
+    const alt = budget.scoped_alternative;
+    return `
+## BUDGET MODE: LARGE GAP — OFFER SCOPED ALTERNATIVE (OVERRIDES STEALTH PREMIUM)
+The client stated a budget of $${stated}. Your ${pricing.duration_hours}hr rate starts at $${pricing.floor} — above their range. A ${alt.duration_hours}hr set at $${alt.price} fits their budget.
+
+Structure:
+1. Cinematic opening (same as standard — still hook them)
+2. Lead with the scoped option as a concrete yes — one confident sentence naming the duration, format, and price. Make it feel like a complete experience, not a consolation.
+3. Name the upgrade: "If you want the full ${pricing.duration_hours}hr set, that's $${pricing.quote_price}." One sentence, no pressure.
+4. CTA: "Want me to hold [date] for the ${alt.duration_hours}hr set?"
+
+Do NOT lead with the higher price. Do NOT enumerate concessions. Do NOT use "normally" or "instead" or "but" framing.
+
+Word count: 100-125 words.
+`;
+  }
+
+  // no_viable_scope
+  const { min_floor, min_duration } = findMinFloor(pricing.format, pricing.tier_key);
+  const gigsaladClose = classification.platform === "gigsalad"
+    ? `\nGigSalad close: End with "If your plans change, you can find me here on GigSalad." Do NOT include phone, email, or "reach out."`
+    : "";
+
+  return `
+## BUDGET MODE: NO VIABLE SCOPE — WARM REDIRECT (OVERRIDES STEALTH PREMIUM)
+The client stated a budget of $${stated}. Your minimum for any ${pricing.format} set is $${min_floor} for ${min_duration}hr. No combination fits their budget.
+
+Write a warm redirect (NOT a rejection):
+1. Acknowledge what they're planning — show you read the lead.
+2. Be direct about the floor: "My ${pricing.format} sets start at $${min_floor}."
+3. Suggest a concrete alternative: "A curated playlist or a DJ could work well for your setting and budget."
+4. Leave the door open: "If your budget shifts, I'd love to help."
+
+Tone: warm, respectful, not dismissive. No cinematic opening. No wedge instruction.${gigsaladClose}
+
+Word count: 50-75 words.
+`;
+}
+
+/**
+ * Find the minimum floor price across all durations for a format+tier_key.
+ * Used by no_viable_scope mode to state the absolute minimum.
+ */
+function findMinFloor(
+  format: PricingResult["format"],
+  tier_key: string,
+): { min_floor: number; min_duration: number } {
+  const rateTable = RATE_TABLES[format];
+  let min_floor = Infinity;
+  let min_duration = 0;
+
+  for (const [durationKey, tiers] of Object.entries(rateTable)) {
+    const rates = tiers[tier_key as keyof TierRates];
+    if (rates && rates.floor < min_floor) {
+      min_floor = rates.floor;
+      min_duration = Number(durationKey);
+    }
+  }
+
+  return { min_floor, min_duration };
 }
