@@ -1,6 +1,6 @@
 # Gig Lead Responder — Session Handoff
 
-**Last updated:** 2026-02-20 (v10)
+**Last updated:** 2026-02-20 (v11)
 **Current phase:** Work — Production Loop (all implementation chunks complete)
 **Next session:** Deploy to Railway + run e2e tests (see `docs/deployment.md` + `docs/e2e-test.md`)
 
@@ -441,6 +441,22 @@ inbound messages, and Mailgun signs the webhook POST with its own key. But the
 the API key, not the domain key). These are easy to confuse in Mailgun's dashboard,
 and a mismatch means every webhook POST returns 401 silently — no lead created,
 no SMS sent, no error visible unless you check Railway logs.
+
+---
+
+## Post-Chunk: DISABLE_MAILGUN_VALIDATION Escape Hatch (44b15b8)
+
+Added after Chunk 7 to address the "first thing that will break" prediction.
+
+- **`src/webhook.ts`** — Added `DISABLE_MAILGUN_VALIDATION` escape hatch,
+  mirroring the Twilio pattern. When `true`, skips HMAC validation and logs a warning.
+- **`.env.example`** — Added `DISABLE_MAILGUN_VALIDATION=false` with comment
+  explaining the three Mailgun key types and which one is correct.
+- **`docs/deployment.md`** — Added debugging section under Mailgun setup explaining
+  the key confusion (API key vs domain key vs webhook signing key) and the
+  disable-validate-fix-re-enable workflow.
+
+Both webhook handlers now have matching escape hatches for first-deploy debugging.
 
 ---
 
