@@ -22,7 +22,7 @@ If no date mentioned → null.
 Extract stated_budget as a number in dollars. Rules:
 - "$400" → 400
 - "around $400" → 400 (use the stated number, don't infer a range)
-- "$350-400" → 350 (use the LOW end of any range)
+- "$350-400" → 400 (use the HIGH end of any range)
 - "four hundred dollars" → 400
 - "$350 per musician" → 350 (per-musician price, not total)
 - No budget mentioned → null
