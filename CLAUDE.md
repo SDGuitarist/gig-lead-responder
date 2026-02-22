@@ -25,3 +25,26 @@ Append as a `## Three Questions` section at the bottom of REVIEW-SUMMARY.md:
 
 The work phase already captures these per chunk in HANDOFF.md. The fix-batched
 skill has its own hardcoded version per batch.
+
+### Feed-Forward: Read the Previous Phase's Three Questions
+
+Each phase MUST read the `## Three Questions` section from the previous phase's
+output before starting its own work. Specifically, read the **"Least confident
+about"** answer — that is the previous phase flagging a risk for you.
+
+| Current Phase | Read Three Questions From |
+|---------------|--------------------------|
+| Plan | Brainstorm (`docs/brainstorms/`) |
+| Work | Plan (`docs/plans/`) |
+| Review | — (reviews code, not prior phase output) |
+| Fix-batched | Review (`docs/reviews/.../REVIEW-SUMMARY.md`) |
+| Compound | Fix results (`docs/fixes/.../batchN.md`) |
+
+**How to address it:** Near the top of your output document, add a short
+`### Prior Phase Risk` section that:
+
+1. Quotes the previous phase's "Least confident about" answer verbatim.
+2. States in one sentence how this phase addresses or accepts that risk.
+
+If the previous phase document has no `## Three Questions` section, note its
+absence and proceed normally.
