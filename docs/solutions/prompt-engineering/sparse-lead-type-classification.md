@@ -3,7 +3,7 @@
 **Category:** Prompt engineering
 **Tags:** llm, sparse-data, lead-classification, bundling, response-strategy
 **Module:** src/prompts/generate.ts
-**Related:** [testable-constraints-for-prompt-compliance.md](./testable-constraints-for-prompt-compliance.md), [platform-policy-enforcement.md](./platform-policy-enforcement.md)
+**Related:** [testable-constraints-for-prompt-compliance.md](./testable-constraints-for-prompt-compliance.md), [platform-policy-enforcement.md](../architecture/platform-policy-enforcement.md)
 
 ## Problem
 
