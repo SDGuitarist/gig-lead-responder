@@ -1,4 +1,4 @@
-import type { Classification, Format, PricingResult } from "../types.js";
+import { CONCERN_4PIECE_ALT, CONCERN_FULL_ENSEMBLE, type Classification, type Format, type PricingResult } from "../types.js";
 import { parseLocalDate } from "../utils/dates.js";
 
 /**
@@ -35,8 +35,8 @@ export function enrichClassification(
         flagged_concerns: [
           ...enriched.flagged_concerns,
           routing.format_recommended === "mariachi_full"
-            ? "mention_4piece_alternative"
-            : "mention_full_ensemble_upgrade",
+            ? CONCERN_4PIECE_ALT
+            : CONCERN_FULL_ENSEMBLE,
         ],
       }),
     };

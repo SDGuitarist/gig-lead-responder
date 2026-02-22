@@ -1,4 +1,4 @@
-import type { Classification, PricingResult } from "../types.js";
+import { CONCERN_4PIECE_ALT, CONCERN_FULL_ENSEMBLE, type Classification, type PricingResult } from "../types.js";
 
 /**
  * Builds the verification gate prompt.
@@ -168,12 +168,12 @@ function buildPastDateInstruction(classification: Classification): string {
  */
 function buildMariachiPricingInstruction(classification: Classification): string {
   if (
-    !classification.flagged_concerns.includes("mention_4piece_alternative") &&
-    !classification.flagged_concerns.includes("mention_full_ensemble_upgrade")
+    !classification.flagged_concerns.includes(CONCERN_4PIECE_ALT) &&
+    !classification.flagged_concerns.includes(CONCERN_FULL_ENSEMBLE)
   ) {
     return "Always true — no dual-format context.";
   }
-  if (classification.flagged_concerns.includes("mention_4piece_alternative")) {
+  if (classification.flagged_concerns.includes(CONCERN_4PIECE_ALT)) {
     return "First price presented must be the full ensemble (higher option). Deletion test: remove the context and does the high anchor still lead? If not → false.";
   }
   return "Always true — 4-piece is the lead format, no anchor-high requirement.";

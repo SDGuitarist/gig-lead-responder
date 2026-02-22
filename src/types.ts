@@ -1,3 +1,7 @@
+// Flagged concern constants — used in enrich, generate, and verify prompts
+export const CONCERN_4PIECE_ALT = "mention_4piece_alternative" as const;
+export const CONCERN_FULL_ENSEMBLE = "mention_full_ensemble_upgrade" as const;
+
 // Valid format strings — must match rate table keys exactly
 export type Format =
   | "solo"

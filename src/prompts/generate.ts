@@ -1,5 +1,5 @@
 import { RATE_TABLES, type TierRates } from "../data/rates.js";
-import type { Classification, PricingResult } from "../types.js";
+import { CONCERN_4PIECE_ALT, CONCERN_FULL_ENSEMBLE, type Classification, type PricingResult } from "../types.js";
 
 /**
  * Builds the system prompt for response generation.
@@ -214,7 +214,7 @@ GENERALIZATION: This rule applies to ALL cultural terms. Adjacent terms from the
  * Returns empty string when no dual-format context exists.
  */
 function buildDualFormatBlock(classification: Classification, pricing: PricingResult): string {
-  if (classification.flagged_concerns.includes("mention_4piece_alternative")) {
+  if (classification.flagged_concerns.includes(CONCERN_4PIECE_ALT)) {
     return `
 **Dual Format: Anchor High**
 Lead with the full ensemble at $${pricing.quote_price}. Then offer the 4-piece as:
@@ -223,7 +223,7 @@ The 4-piece is NOT "mariachi without extra musicians." It IS "the format designe
 Never use: "instead of", "budget option", "if cost is a concern."
 `;
   }
-  if (classification.flagged_concerns.includes("mention_full_ensemble_upgrade")) {
+  if (classification.flagged_concerns.includes(CONCERN_FULL_ENSEMBLE)) {
     return `
 **Format Note**
 You are quoting the 4-piece as the right fit for this weekday corporate setting.
