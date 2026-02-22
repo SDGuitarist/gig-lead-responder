@@ -2,10 +2,10 @@
 
 ## Three Questions (Mandatory)
 
-Every **brainstorm**, **plan**, and **review** session MUST end with three
-questions answered in the output document before stopping. Do not skip them even
-if the session felt straightforward — the "obvious" sessions are where
-unexamined assumptions hide.
+Every phase of the compound engineering loop MUST end with three questions
+answered in its output document before stopping. Do not skip them even if the
+session felt straightforward — the "obvious" sessions are where unexamined
+assumptions hide.
 
 ### Brainstorm and Plan phases
 
@@ -15,6 +15,14 @@ Append as a `## Three Questions` section at the bottom of the output document:
 2. **What did you reject, and why?**
 3. **Least confident about going into the next phase?**
 
+### Work phase
+
+Append as a `## Three Questions` section at the bottom of HANDOFF.md:
+
+1. **Hardest implementation decision in this session?**
+2. **What did you consider changing but left alone, and why?**
+3. **Least confident about going into review?**
+
 ### Review phase (synthesize step)
 
 Append as a `## Three Questions` section at the bottom of REVIEW-SUMMARY.md:
@@ -23,8 +31,21 @@ Append as a `## Three Questions` section at the bottom of REVIEW-SUMMARY.md:
 2. **What did you consider flagging but chose not to, and why?**
 3. **What might this review have missed?** — categories, file types, or failure modes no agent checked
 
-The work phase already captures these per chunk in HANDOFF.md. The fix-batched
-skill has its own hardcoded version per batch.
+### Fix-batched phase
+
+Append as a `## Three Questions` section at the bottom of each batch file:
+
+1. **Hardest fix in this batch?**
+2. **What did you consider fixing differently, and why didn't you?**
+3. **Least confident about going into the next batch or compound phase?**
+
+### Compound phase
+
+Append as a `## Three Questions` section at the bottom of the solutions document:
+
+1. **Hardest pattern to extract from the fixes?**
+2. **What did you consider documenting but left out, and why?**
+3. **What might future sessions miss that this solution doesn't cover?**
 
 ### Feed-Forward: Read the Previous Phase's Three Questions
 
