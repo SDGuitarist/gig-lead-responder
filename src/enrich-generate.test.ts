@@ -54,7 +54,7 @@ describe("enrichClassification", () => {
   it("returns original when budget.tier is none", () => {
     const c = makeClassification({ tier: "standard", close_type: "soft_hold" });
     const p = makePricing({ budget: { tier: "none" } });
-    const result = enrichClassification(c, p);
+    const result = enrichClassification(c, p, "2026-02-21");
     assert.equal(result, c); // Same reference — no copy
     assert.equal(result.tier, "standard");
     assert.equal(result.close_type, "soft_hold");
@@ -63,7 +63,7 @@ describe("enrichClassification", () => {
   it("returns original when budget.tier is small", () => {
     const c = makeClassification({ tier: "standard" });
     const p = makePricing({ budget: { tier: "small", gap: 50 } });
-    const result = enrichClassification(c, p);
+    const result = enrichClassification(c, p, "2026-02-21");
     assert.equal(result, c); // Same reference
     assert.equal(result.tier, "standard");
   });
@@ -73,7 +73,7 @@ describe("enrichClassification", () => {
     const p = makePricing({
       budget: { tier: "large", gap: 150, scoped_alternative: { duration_hours: 1, price: 400 } },
     });
-    const result = enrichClassification(c, p);
+    const result = enrichClassification(c, p, "2026-02-21");
     assert.notEqual(result, c); // New object
     assert.equal(result.tier, "qualification");
     assert.equal(result.close_type, "hesitant");
@@ -82,7 +82,7 @@ describe("enrichClassification", () => {
   it("overrides to qualification + hesitant for no_viable_scope", () => {
     const c = makeClassification({ tier: "premium", close_type: "direct" });
     const p = makePricing({ budget: { tier: "no_viable_scope", gap: 300 } });
-    const result = enrichClassification(c, p);
+    const result = enrichClassification(c, p, "2026-02-21");
     assert.notEqual(result, c);
     assert.equal(result.tier, "qualification");
     assert.equal(result.close_type, "hesitant");
@@ -95,7 +95,7 @@ describe("enrichClassification", () => {
       stealth_premium: true,
     });
     const p = makePricing({ budget: { tier: "no_viable_scope", gap: 300 } });
-    const result = enrichClassification(c, p);
+    const result = enrichClassification(c, p, "2026-02-21");
     assert.equal(result.format_recommended, "duo");
     assert.equal(result.stealth_premium, true);
   });

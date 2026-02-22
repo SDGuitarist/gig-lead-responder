@@ -6,8 +6,7 @@ import type { Classification } from "../types.js";
  * Stage 1: Classify a raw lead into structured JSON.
  * Implements PROTOCOL.md Steps 0-5.
  */
-export async function classifyLead(rawText: string): Promise<Classification> {
-  const today = new Date().toISOString().slice(0, 10);
+export async function classifyLead(rawText: string, today: string): Promise<Classification> {
   const systemPrompt = buildClassifyPrompt(today);
   const userMessage = `Classify this lead:\n\n${rawText}`;
 

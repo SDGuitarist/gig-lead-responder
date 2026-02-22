@@ -1,6 +1,7 @@
 import { classifyLead } from "./pipeline/classify.js";
 import { lookupPrice, detectBudgetGap } from "./pipeline/price.js";
 import { enrichClassification } from "./pipeline/enrich.js";
+import { getTodayISO } from "./utils/dates.js";
 import { selectContext } from "./pipeline/context.js";
 import { generateResponse } from "./pipeline/generate.js";
 import { verifyGate, runWithVerification } from "./pipeline/verify.js";
@@ -66,11 +67,12 @@ export async function runPipeline(
 ): Promise<PipelineOutput> {
   const timing: Record<string, number> = {};
   const totalStart = Date.now();
+  const today = getTodayISO();
 
   // --- Stage 1: Classification ---
   onStage?.({ stage: 1, name: "classify", status: "running" });
   let start = Date.now();
-  const classification = await classifyLead(rawText);
+  const classification = await classifyLead(rawText, today);
   if (platform) classification.platform = platform;
   timing.classify = Date.now() - start;
   onStage?.({
@@ -91,7 +93,7 @@ export async function runPipeline(
     pricing.tier_key,
   );
   // Enrich classification based on budget gap (pure — returns new object if overriding)
-  const enriched = enrichClassification(classification, pricing);
+  const enriched = enrichClassification(classification, pricing, today);
   timing.price = Date.now() - start;
   onStage?.({
     stage: 2, name: "price", status: "done",
