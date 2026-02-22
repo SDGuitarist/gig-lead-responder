@@ -1,8 +1,19 @@
 # Gig Lead Responder — Session Handoff
 
-**Last updated:** 2026-02-21 (v25)
-**Current phase:** Compound + low-effort cross-pollinate complete
-**Next session:** Deploy to Railway
+**Last updated:** 2026-02-22 (v26)
+**Current phase:** Deploy to Railway (in progress)
+**Next session:** Twilio A2P approval + first real lead e2e test
+
+### Deploy Progress (as of 2026-02-22)
+
+- [x] Railway deployed, healthcheck passing
+- [x] Mailgun account + subdomain (`mg.alexguillenmusic.com`) + DNS records
+- [x] Mailgun receiving route → Railway webhook (HMAC verified)
+- [x] Gmail filters forwarding The Bash + GigSalad leads
+- [x] `MAILGUN_WEBHOOK_KEY` set in Railway env vars
+- [ ] Twilio A2P campaign approval (SMS blocked until approved)
+- [ ] First real lead end-to-end test
+- [ ] Enable `DISABLE_TWILIO_VALIDATION=false` after confirming signature URL match
 
 ---
 
@@ -830,28 +841,13 @@ $450 floor < $400 + $75 = $475 → passes → `tier: "large"`, scoped alt 1hr @ 
 
 ---
 
-## Prompt for Next Session (Compound)
+## Prompt for Next Session (Post-Deploy)
 
 ```
-Read docs/HANDOFF.md section "Reasoning Stage + Sparse Lead Handling (2026-02-21)".
-Run /workflows:compound to document these solved problems in docs/solutions/:
-
-1. "Testable constraints for AI prompt compliance" — The model understood intent
-   but produced generic output. Fix: deletion tests, pass/fail examples, forcing
-   rules. Pattern: examples beat instructions, testable constraints beat vague
-   rules.
-
-2. "Sparse lead type classification for response generation" — Sparse leads got
-   same treatment as rich leads. Fix: 4-type system (price shopper, overwhelmed,
-   impatient filler, still figuring it out) with matched strategies, concern
-   bundling, genre defaults, date proximity rules.
-
-Existing solutions in docs/solutions/ for cross-reference:
-- prompt-placement-for-hard-constraints.md (related — constraint placement)
-- platform-policy-enforcement.md (related — platform-conditional logic)
-
-Key files: src/prompts/generate.ts (primary), src/prompts/verify.ts,
-src/types.ts, src/pipeline/generate.ts, src/index.ts.
+Read docs/HANDOFF.md "Deploy Progress" checklist at the top.
+Remaining: Twilio A2P campaign approval, first real lead e2e test,
+re-enable Twilio signature validation. Read docs/e2e-test.md tests 3-8
+for the SMS and approval flow tests once Twilio is unblocked.
 ```
 
 ---
