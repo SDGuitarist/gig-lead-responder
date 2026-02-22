@@ -19,8 +19,10 @@ export function lookupPrice(classification: Classification): PricingResult {
     throw new Error(`No rate table for format "${format_recommended}". Available: ${available}`);
   }
 
-  // 2. Find duration entry
-  const durationKey = String(duration_hours);
+  // 2. Find duration entry (snap to nearest valid if classifier returns e.g. 2.5)
+  const validDurations = Object.keys(rateTable).map(Number).filter((n) => !Number.isNaN(n)).sort((a, b) => a - b);
+  const snapped = validDurations.reduce((best, d) => Math.abs(d - duration_hours) < Math.abs(best - duration_hours) ? d : best);
+  const durationKey = String(snapped);
   const durationRates = rateTable[durationKey];
   if (!durationRates) {
     const available = Object.keys(rateTable).join(", ");
