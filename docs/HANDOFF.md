@@ -1,8 +1,8 @@
 # Gig Lead Responder — Session Handoff
 
-**Last updated:** 2026-02-21 (v23)
-**Current phase:** Fix phase complete — 19 findings fixed across 3 batches
-**Next session:** Compound (document learnings from fix patterns) or deploy to Railway
+**Last updated:** 2026-02-21 (v24)
+**Current phase:** Compound phase complete — 15 solutions in `docs/solutions/`
+**Next session:** Deploy to Railway or cross-pollinate process docs
 
 ---
 
@@ -987,3 +987,41 @@ Relevant paths:
 - ~/Projects/research-agent/
 - ~/Projects/pf-intel/
 ```
+
+---
+
+## Compound Phase Complete — rubric-comparison-fixes (2026-02-21)
+
+3 new solutions documented from the rubric-comparison-fixes implementation
+and budget-mismatch handling work. Total: 15 solutions in `docs/solutions/`.
+
+| # | Solution | Category | Pattern |
+|---|----------|----------|---------|
+| 13 | `contrastive-pair-vocabulary-enforcement.md` | prompt-engineering | FAIL/PASS example pairs teach vocabulary precision (wrong-but-specific vs correct term) |
+| 14 | `hybrid-llm-deterministic-computation.md` | architecture | LLM does fuzzy extraction, code does precise math — 3 instances (dates, budgets, format routing) |
+| 15 | `noop-gut-checks-conditional-features.md` | verification-design | Conditional checks return "Always true" when inactive — stable threshold, fixed types |
+
+### What was already documented (from prior sessions)
+
+- Solutions 1-6: Original pipeline compound phase
+- Solutions 7-8: `testable-constraints-for-prompt-compliance.md`, `sparse-lead-type-classification.md`
+- Solutions 9-12: `logic-errors/` patterns from fix-batched phase
+
+### Three Questions
+
+**Hardest pattern to extract:** Whether the hybrid LLM+code pattern is one
+solution or three. Each instance (dates, budgets, format routing) has the same
+structure but different domains. Documented as one solution with three examples
+because the principle — "LLMs are fuzzy parsers, not calculators" — is the
+reusable insight.
+
+**What was left out:** The range extraction rule ("$350-400" → take high end
+for scope-down math). It's a one-line classify prompt fix documented in the
+handoff, not a reusable pattern. Also left out: the calibration of 2 contrastive
+pairs as sweet spot — research detail, not an architectural pattern.
+
+**What might future sessions miss:** The GENERALIZATION rule at the end of
+contrastive pair blocks. Without it, the LLM learns the specific examples but
+doesn't transfer the principle to new cultural terms. Every contrastive pair
+block needs its own generalization rule — this isn't documented as a hard
+requirement in the reusable pattern checklist.
