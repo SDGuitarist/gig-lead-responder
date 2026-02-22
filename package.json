@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "AI-powered gig lead response pipeline",
   "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "start": "tsx src/index.ts",
     "demo": "tsx src/index.ts < examples/quinceanera-lead.txt",
