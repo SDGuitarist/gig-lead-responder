@@ -1,8 +1,8 @@
 # Gig Lead Responder — Session Handoff
 
-**Last updated:** 2026-02-21 (v24)
-**Current phase:** Compound phase complete — 15 solutions in `docs/solutions/`
-**Next session:** Deploy to Railway or cross-pollinate process docs
+**Last updated:** 2026-02-21 (v25)
+**Current phase:** Compound + low-effort cross-pollinate complete
+**Next session:** Cross-pollinate medium (workflow templates or project skills) or deploy to Railway
 
 ---
 
@@ -961,31 +961,52 @@ flagged for compound phase.
 
 ---
 
-## Next Session: Cross-Pollinate Process Docs Across Projects
+## Cross-Pollinate Process Docs — Status
 
-All three projects (gig-lead-responder, research-agent, pf-intel) now share the
-same three questions + feed-forward rules. But each project has unique process
-artifacts the others lack.
+All three projects share three questions + feed-forward rules. Low-effort
+cross-pollination is done. Medium-effort items remain.
 
-### What to cross-pollinate
+### Completed
 
-| What | From | To | Effort |
+| What | From | To | Commit |
 |------|------|----|--------|
-| `docs/workflow-templates.md` | pf-intel | gig-lead-responder, research-agent | Medium — adapt templates per project |
-| `FAILURE_MODES_CATALOG.md` | research-agent | gig-lead-responder, pf-intel | Low — start empty catalogs |
-| Auto-memory (`MEMORY.md`) | gig-lead-responder | pf-intel | Low — create starter from handoffs |
-| Solutions category structure | research-agent (6 categories) | gig-lead-responder (2 categories) | Low — reorganize existing 12 solutions |
-| Project-specific skills | pf-intel (4 skills) | gig-lead-responder | Medium — create scaffolding skills |
+| `FAILURE_MODES_CATALOG.md` | research-agent | gig-lead-responder, pf-intel | `08f362f`, `8e08482` |
+| Solutions category structure | research-agent (7 categories) | gig-lead-responder (now 5 categories, 15 files) | `08f362f` |
+| Auto-memory (`MEMORY.md`) | — | pf-intel already had one (34 lines) | Skipped |
 
-### Prompt for next session
+### Remaining (Medium Effort)
+
+| What | From | To | What's Involved |
+|------|------|----|-----------------|
+| `docs/workflow-templates.md` | pf-intel | gig-lead-responder, research-agent | Copy-paste prompt templates for every compound phase. Adapt per project: swap file paths, stage names, and example commands. |
+| Project-specific skills | pf-intel (4 skills) | gig-lead-responder | pf-intel has: FastAPI scaffold, test scaffold, migration, Expo screen. gig-lead-responder needs: pipeline stage scaffold, prompt iteration, lead test runner, deploy checklist. Create 2-4 SKILL.md files in `.claude/commands/`. |
+
+### Prompt for next session (workflow templates)
 
 ```
-Read docs/HANDOFF.md section "Cross-Pollinate Process Docs Across Projects".
-Pick one row from the table and implement it. Start with the lowest effort item.
+Read docs/HANDOFF.md section "Cross-Pollinate Process Docs — Status".
+Read ~/Projects/pf-intel/docs/workflow-templates.md (the source).
+Create docs/workflow-templates.md for gig-lead-responder with adapted
+prompts for: brainstorm, plan, work, review, compound. Swap file paths
+and stage names to match this project's conventions. Then do the same
+for ~/Projects/research-agent/docs/workflow-templates.md.
 Relevant paths:
 - ~/Projects/gig-lead-responder/
 - ~/Projects/research-agent/
 - ~/Projects/pf-intel/
+```
+
+### Prompt for next session (project-specific skills)
+
+```
+Read docs/HANDOFF.md section "Cross-Pollinate Process Docs — Status".
+Read ~/Projects/pf-intel/.claude/commands/ to see pf-intel's 4 skills.
+Create 2-4 skills in .claude/commands/ for gig-lead-responder:
+1. pipeline-stage — scaffold a new pipeline stage (prompt + pipeline fn + types)
+2. prompt-iteration — run a lead, compare output, tune prompt, repeat
+3. lead-test — run all test leads and show pass/fail table
+4. deploy-checklist — Railway deploy verification steps
+Start with the most useful one (likely lead-test or prompt-iteration).
 ```
 
 ---
