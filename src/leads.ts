@@ -1,3 +1,5 @@
+import { mkdirSync } from "node:fs";
+import { dirname } from "node:path";
 import Database from "better-sqlite3";
 import type { LeadRecord, LeadStatus } from "./types.js";
 
@@ -8,6 +10,7 @@ let db: Database.Database;
 export function initDb(): Database.Database {
   if (db) return db;
 
+  mkdirSync(dirname(DB_PATH), { recursive: true });
   db = new Database(DB_PATH);
   db.pragma("journal_mode = WAL");
   db.pragma("foreign_keys = ON");
