@@ -29,6 +29,8 @@ function makeClassification(overrides: Partial<Classification> = {}): Classifica
     planner_effort_active: false,
     social_proof_active: false,
     context_modifiers: [],
+    event_date_iso: null,
+    event_energy: null,
     flagged_concerns: [],
     ...overrides,
   };

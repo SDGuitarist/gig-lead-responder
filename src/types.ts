@@ -39,7 +39,7 @@ export interface Classification {
   stated_budget: number | null;
 
   // Event date — extracted by LLM, used by code for date math
-  event_date_iso?: string | null; // ISO date (YYYY-MM-DD) or null if not mentioned
+  event_date_iso: string | null; // ISO date (YYYY-MM-DD) or null if not mentioned
   past_date_detected?: boolean; // Computed in TypeScript, not by LLM
 
   // Timeline & urgency
@@ -47,7 +47,7 @@ export interface Classification {
   close_type: "direct" | "soft_hold" | "hesitant";
 
   // Event energy — LLM judgment for format routing
-  event_energy?: "background" | "performance" | null;
+  event_energy: "background" | "performance" | null;
 
   // Cultural
   cultural_context_active: boolean;
