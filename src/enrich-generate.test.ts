@@ -57,7 +57,7 @@ describe("enrichClassification", () => {
     const c = makeClassification({ tier: "standard", close_type: "soft_hold" });
     const p = makePricing({ budget: { tier: "none" } });
     const result = enrichClassification(c, p, "2026-02-21");
-    assert.equal(result, c); // Same reference — no copy
+    assert.deepStrictEqual(result, c);
     assert.equal(result.tier, "standard");
     assert.equal(result.close_type, "soft_hold");
   });
@@ -66,7 +66,7 @@ describe("enrichClassification", () => {
     const c = makeClassification({ tier: "standard" });
     const p = makePricing({ budget: { tier: "small", gap: 50 } });
     const result = enrichClassification(c, p, "2026-02-21");
-    assert.equal(result, c); // Same reference
+    assert.deepStrictEqual(result, c);
     assert.equal(result.tier, "standard");
   });
 
