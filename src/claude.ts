@@ -58,8 +58,11 @@ export async function callClaude<T>(
     try {
       return JSON.parse(retryCleaned) as T;
     } catch {
+      const truncated = retryCleaned.length > 200
+        ? retryCleaned.slice(0, 200) + "... (truncated)"
+        : retryCleaned;
       throw new Error(
-        `Failed to parse JSON after retry.\nRaw response:\n${retryResponse}`
+        `Failed to parse JSON after retry.\nRaw response (first 200 chars):\n${truncated}`
       );
     }
   }
