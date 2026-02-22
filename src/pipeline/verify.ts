@@ -5,12 +5,12 @@ import type { Classification, Drafts, GateResult, PricingResult } from "../types
 
 /**
  * Run the verification gate on a set of drafts.
- * Accepts optional pricing to enable budget_acknowledged gut check.
+ * Requires pricing for budget_acknowledged gut check.
  */
 export async function verifyGate(
   drafts: Drafts,
   classification: Classification,
-  pricing?: PricingResult,
+  pricing: PricingResult,
 ): Promise<GateResult> {
   const systemPrompt = buildVerifyPrompt(classification, pricing);
   const userMessage = `Evaluate this draft:\n\n## FULL DRAFT\n${drafts.full_draft}\n\n## COMPRESSED DRAFT\n${drafts.compressed_draft}`;

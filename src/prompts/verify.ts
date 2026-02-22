@@ -3,13 +3,13 @@ import { CONCERN_4PIECE_ALT, CONCERN_FULL_ENSEMBLE, GUT_CHECK_THRESHOLD, GUT_CHE
 /**
  * Builds the verification gate prompt.
  * Requires Claude to extract exact quotes from the draft as evidence.
- * Accepts optional pricing to enable budget_acknowledged gut check.
+ * Requires pricing for budget_acknowledged gut check.
  */
 export function buildVerifyPrompt(
   classification: Classification,
-  pricing?: Pick<PricingResult, "budget">,
+  pricing: Pick<PricingResult, "budget">,
 ): string {
-  const budget = pricing?.budget ?? { tier: "none" as const };
+  const budget = pricing.budget;
   return `You are a quality gate for Pacific Flow Entertainment response drafts.
 
 Your job: evaluate a draft response against the classification and return structured evidence. You must extract EXACT QUOTES from the draft — not paraphrases.
