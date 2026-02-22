@@ -6,7 +6,8 @@
   "scripts": {
     "start": "tsx src/index.ts",
     "demo": "tsx src/index.ts < examples/quinceanera-lead.txt",
-    "serve": "tsx src/server.ts"
+    "serve": "tsx src/server.ts",
+    "test": "node --import tsx --test src/*.test.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.39.0",
