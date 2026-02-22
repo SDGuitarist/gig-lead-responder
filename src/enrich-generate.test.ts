@@ -155,8 +155,8 @@ describe("buildGeneratePrompt — budget mode", () => {
     assert.ok(prompt.includes("BUDGET MODE: NO VIABLE SCOPE"));
     assert.ok(prompt.includes("warm redirect"));
     assert.ok(prompt.includes("50-75 words"));
-    // Min floor for duo T2P is 600 (2hr)
-    assert.ok(prompt.includes("$600"));
+    // Min floor for duo T2P is 850 (1hr)
+    assert.ok(prompt.includes("$850"));
   });
 
   it("no_viable_scope on GigSalad includes platform-safe close", () => {

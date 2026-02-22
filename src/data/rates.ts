@@ -18,59 +18,101 @@ export interface FormatRates {
 }
 
 // --- Solo (Spanish Guitar / Latin) ---
-// Source: PRICING_TABLES.md — Solo rates use ranges, converted to anchor/floor
+// Source: Rate_Card_Solo_Duo.md — ceremony rates used for 1hr
 export const SOLO_RATES: FormatRates = {
   "1": {
-    T2P: { anchor: 450, floor: 400 },
-    T2D: { anchor: 500, floor: 450 },
-    T3P: { anchor: 600, floor: 550 },
-    T3D: { anchor: 650, floor: 600 },
+    T1: { anchor: 400, floor: 400 },
+    T2P: { anchor: 500, floor: 450 },
+    T2D: { anchor: 595, floor: 550 },
+    T3P: { anchor: 550, floor: 500 },
+    T3D: { anchor: 650, floor: 595 },
   },
   "2": {
-    T2P: { anchor: 500, floor: 400 },
-    T2D: { anchor: 550, floor: 500 },
-    T3P: { anchor: 650, floor: 550 },
-    T3D: { anchor: 700, floor: 650 },
+    T1: { anchor: 400, floor: 400 },
+    T2P: { anchor: 595, floor: 550 },
+    T2D: { anchor: 700, floor: 650 },
+    T3P: { anchor: 795, floor: 750 },
+    T3D: { anchor: 895, floor: 795 },
   },
   "3": {
-    T2P: { anchor: 650, floor: 600 },
-    T2D: { anchor: 750, floor: 700 },
-    T3P: { anchor: 800, floor: 750 },
-    T3D: { anchor: 900, floor: 850 },
+    T1: { anchor: 400, floor: 400 },
+    T2P: { anchor: 750, floor: 700 },
+    T2D: { anchor: 895, floor: 795 },
+    T3P: { anchor: 895, floor: 895 },
+    T3D: { anchor: 1200, floor: 1000 },
+  },
+  "4": {
+    T1: { anchor: 400, floor: 400 },
+    T2P: { anchor: 950, floor: 900 },
+    T2D: { anchor: 1100, floor: 1000 },
+    T3P: { anchor: 1250, floor: 1100 },
+    T3D: { anchor: 1500, floor: 1400 },
   },
 };
 
-// --- Duo (Spanish Guitar / Latin) ---
-// Source: PRICING_TABLES.md
+// --- Duo (Guitar + Second Musician) ---
+// Source: Rate_Card_Solo_Duo.md
 export const DUO_RATES: FormatRates = {
+  "1": {
+    T1: { anchor: 700, floor: 700 },
+    T2P: { anchor: 950, floor: 850 },
+    T2D: { anchor: 1100, floor: 1000 },
+    T3P: { anchor: 1050, floor: 950 },
+    T3D: { anchor: 1200, floor: 1100 },
+  },
   "2": {
-    T2P: { anchor: 700, floor: 600 },
-    T2D: { anchor: 800, floor: 700 },
-    T3P: { anchor: 995, floor: 900 },
-    T3D: { anchor: 1200, floor: 995 },
+    T1: { anchor: 700, floor: 700 },
+    T2P: { anchor: 1100, floor: 1000 },
+    T2D: { anchor: 1300, floor: 1200 },
+    T3P: { anchor: 1495, floor: 1325 },
+    T3D: { anchor: 1700, floor: 1500 },
   },
   "3": {
-    T2P: { anchor: 900, floor: 800 },
-    T2D: { anchor: 995, floor: 900 },
-    T3P: { anchor: 1100, floor: 995 },
-    T3D: { anchor: 1300, floor: 1100 },
+    T1: { anchor: 700, floor: 700 },
+    T2P: { anchor: 1400, floor: 1275 },
+    T2D: { anchor: 1700, floor: 1500 },
+    T3P: { anchor: 1700, floor: 1575 },
+    T3D: { anchor: 2200, floor: 1900 },
+  },
+  "4": {
+    T1: { anchor: 700, floor: 700 },
+    T2P: { anchor: 1750, floor: 1575 },
+    T2D: { anchor: 2100, floor: 1900 },
+    T3P: { anchor: 2200, floor: 1925 },
+    T3D: { anchor: 2800, floor: 2450 },
   },
 };
 
 // --- Flamenco Duo (Guitar + Cajón) ---
-// Source: PRICING_TABLES.md
+// Source: Rate_Card_Solo_Duo.md — specialty cultural premium
 export const FLAMENCO_DUO_RATES: FormatRates = {
+  "1": {
+    T1: { anchor: 750, floor: 750 },
+    T2P: { anchor: 950, floor: 850 },
+    T2D: { anchor: 1100, floor: 1000 },
+    T3P: { anchor: 1200, floor: 1100 },
+    T3D: { anchor: 1400, floor: 1250 },
+  },
   "2": {
-    T2P: { anchor: 900, floor: 800 },
-    T2D: { anchor: 1000, floor: 900 },
-    T3P: { anchor: 1100, floor: 1000 },
-    T3D: { anchor: 1200, floor: 1100 },
+    T1: { anchor: 750, floor: 750 },
+    T2P: { anchor: 1100, floor: 1000 },
+    T2D: { anchor: 1350, floor: 1200 },
+    T3P: { anchor: 1595, floor: 1400 },
+    T3D: { anchor: 1895, floor: 1700 },
   },
   "3": {
-    T2P: { anchor: 1100, floor: 1000 },
-    T2D: { anchor: 1200, floor: 1100 },
-    T3P: { anchor: 1300, floor: 1200 },
-    T3D: { anchor: 1400, floor: 1300 },
+    T1: { anchor: 750, floor: 750 },
+    T2P: { anchor: 1400, floor: 1275 },
+    T2D: { anchor: 1700, floor: 1500 },
+    T3P: { anchor: 1895, floor: 1750 },
+    T3D: { anchor: 2400, floor: 2100 },
+  },
+  "4": {
+    T1: { anchor: 750, floor: 750 },
+    T2P: { anchor: 1750, floor: 1575 },
+    T2D: { anchor: 2100, floor: 1900 },
+    T3P: { anchor: 2350, floor: 2100 },
+    T3D: { anchor: 2995, floor: 2650 },
   },
 };
 
