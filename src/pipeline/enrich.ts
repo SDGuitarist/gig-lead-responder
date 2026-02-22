@@ -1,6 +1,12 @@
 import { CONCERN_4PIECE_ALT, CONCERN_FULL_ENSEMBLE, type Classification, type Format, type PricingResult } from "../types.js";
 import { parseLocalDate } from "../utils/dates.js";
 
+/** Result of format routing override — null means no override needed. */
+interface FormatRoutingResult {
+  format_recommended: Format;
+  show_alternative: boolean;
+}
+
 /**
  * Enrich classification based on budget gap, date analysis, and format routing.
  * Deterministic given inputs — no system clock reads.
@@ -28,18 +34,20 @@ export function enrichClassification(
   // Format routing override (mariachi weekday/weekend rules)
   const routing = resolveFormatRouting(enriched);
   if (routing) {
-    enriched = {
-      ...enriched,
-      format_recommended: routing.format_recommended,
-      ...(routing.show_alternative && {
-        flagged_concerns: [
-          ...enriched.flagged_concerns,
-          routing.format_recommended === "mariachi_full"
-            ? CONCERN_4PIECE_ALT
-            : CONCERN_FULL_ENSEMBLE,
-        ],
-      }),
-    };
+    enriched = { ...enriched, format_recommended: routing.format_recommended };
+
+    if (routing.show_alternative) {
+      const concern = routing.format_recommended === "mariachi_full"
+        ? CONCERN_4PIECE_ALT
+        : CONCERN_FULL_ENSEMBLE;
+
+      if (!enriched.flagged_concerns.includes(concern)) {
+        enriched = {
+          ...enriched,
+          flagged_concerns: [...enriched.flagged_concerns, concern],
+        };
+      }
+    }
   }
 
   // Budget enrichment
@@ -64,7 +72,7 @@ export function enrichClassification(
  */
 function resolveFormatRouting(
   classification: Classification,
-): { format_recommended: Format; show_alternative: boolean } | null {
+): FormatRoutingResult | null {
   // Only applies to mariachi formats
   if (
     classification.format_recommended !== "mariachi_4piece" &&
