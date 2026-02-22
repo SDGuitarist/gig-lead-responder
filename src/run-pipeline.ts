@@ -83,7 +83,7 @@ export async function runPipeline(
   // --- Stage 2: Pricing + Budget Gap ---
   onStage?.({ stage: 2, name: "price", status: "running" });
   start = Date.now();
-  const pricing = lookupPrice(classification);
+  let pricing = lookupPrice(classification);
   // Detect budget gap and attach to pricing result
   pricing.budget = detectBudgetGap(
     classification.stated_budget,
@@ -92,8 +92,19 @@ export async function runPipeline(
     pricing.duration_hours,
     pricing.tier_key,
   );
-  // Enrich classification based on budget gap (pure — returns new object if overriding)
+  // Enrich classification (may override format, tier, close_type)
   const enriched = enrichClassification(classification, pricing, today);
+  // Re-price if enrichment changed the format (e.g., mariachi_4piece → mariachi_full)
+  if (enriched.format_recommended !== classification.format_recommended) {
+    pricing = lookupPrice(enriched);
+    pricing.budget = detectBudgetGap(
+      enriched.stated_budget,
+      pricing.floor,
+      pricing.format,
+      pricing.duration_hours,
+      pricing.tier_key,
+    );
+  }
   timing.price = Date.now() - start;
   onStage?.({
     stage: 2, name: "price", status: "done",
