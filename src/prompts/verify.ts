@@ -1,4 +1,4 @@
-import { CONCERN_4PIECE_ALT, CONCERN_FULL_ENSEMBLE, type Classification, type PricingResult } from "../types.js";
+import { CONCERN_4PIECE_ALT, CONCERN_FULL_ENSEMBLE, GUT_CHECK_THRESHOLD, GUT_CHECK_TOTAL, type Classification, type PricingResult } from "../types.js";
 
 /**
  * Builds the verification gate prompt.
@@ -80,7 +80,7 @@ If the contact block is missing or incomplete → gate_status = "fail" with fail
   - scene_type is "cinematic"
   - competitor_test is false
   - All concern_traceability entries have non-empty draft_sentence
-  - At least 12 of 14 gut_checks are true
+  - At least ${GUT_CHECK_THRESHOLD} of ${GUT_CHECK_TOTAL} gut_checks are true
   - Platform check passes (${classification.platform === "gigsalad" ? "no contact info detected" : "contact block present with name, business, phone"})
 - "fail": Any of the above conditions not met
 

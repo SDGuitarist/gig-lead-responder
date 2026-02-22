@@ -95,6 +95,27 @@ export interface Drafts {
   compressed_word_count: number;
 }
 
+// Gut check keys — single source of truth for count and threshold
+export const GUT_CHECK_KEYS = [
+  "can_see_it",
+  "validated_them",
+  "named_fear",
+  "differentiated",
+  "preempted_questions",
+  "creates_relief",
+  "best_line_present",
+  "prose_flows",
+  "competitor_test",
+  "lead_specific_opening",
+  "budget_acknowledged",
+  "past_date_acknowledged",
+  "mariachi_pricing_format",
+  "cultural_vocabulary_used",
+] as const;
+
+export const GUT_CHECK_TOTAL = GUT_CHECK_KEYS.length; // 14
+export const GUT_CHECK_THRESHOLD = GUT_CHECK_TOTAL - 2; // 12
+
 export interface GateResult {
   validation_line: string;
   best_line: string;
