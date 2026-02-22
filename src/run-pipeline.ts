@@ -134,10 +134,10 @@ export async function runPipeline(
 
   timing.total = Date.now() - totalStart;
 
-  const confidence_score = computeConfidence(gate, verified, classification);
+  const confidence_score = computeConfidence(gate, verified, enriched);
 
   return {
-    classification, pricing, drafts, gate, verified, timing, confidence_score,
+    classification: enriched, pricing, drafts, gate, verified, timing, confidence_score,
   };
 }
 
