@@ -1,10 +1,8 @@
 import { readFile } from "node:fs/promises";
-import { dirname, join } from "node:path";
-import { fileURLToPath } from "node:url";
+import { join } from "node:path";
 import type { Classification } from "../types.js";
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const DOCS_DIR = join(__dirname, "..", "..", "docs");
+const DOCS_DIR = join(process.cwd(), "docs");
 
 /**
  * Read a file from docs/ directory. Returns content or null if missing.
