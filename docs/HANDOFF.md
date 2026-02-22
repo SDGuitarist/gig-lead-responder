@@ -787,6 +787,47 @@ drafts start failing gate disproportionately because `budget_acknowledged` is
 hard to satisfy alongside 8 other checks, may need to adjust. The Lead A
 regression passed 11/11 so no signal yet.
 
+### Integration test: 7 leads (post-Session 3)
+
+Ran all 7 leads from the plan test table. Results before range fix (`aa019b2`):
+
+| # | Lead | Expected tier | Actual tier | Gate | budget_ack | Verdict |
+|---|------|--------------|-------------|------|------------|---------|
+| A | Wedding $400, 2hr solo | large | no_viable_scope | FAIL 9/11 | true | Not a bug — plan assumed T2D, classifier correctly detected stealth premium → T3D floor $650, gap $250 |
+| B | Wedding, no budget | none | none | PASS 10/11 | true | No change |
+| C | Birthday, no budget (sparse) | none | none | PASS 10/11 | true | No change |
+| D | Corporate, no budget (sparse) | none | none | FAIL 9/11 | true | Pre-existing gate flakiness on sparse leads |
+| E | $475 solo, small gap | small | small | PASS 10/11 | true | Gap $25, quotes $550, names gap |
+| F | $250 duo, no_viable_scope | no_viable_scope | no_viable_scope | PASS 10/11 | true | Warm redirect, duo 2hr floor $700 |
+| G | $350-400 solo, large | no_viable_scope | FAIL 9/11 | true | Range extraction bug — see fix below |
+
+**5/7 tiers correct, budget_acknowledged 7/7.** Two mismatches explained:
+
+**Lead A:** Plan test table assumed T2D rates but Hilton La Jolla triggers stealth
+premium → T3D. Floor $650, gap $250 → `no_viable_scope`. Pipeline is correct;
+plan assumption was wrong.
+
+**Lead G:** Classify extracted $350 (low end of "$350-400") per the extraction
+rule. Gap $150 is in "large" range, but 1hr floor $450 >= $350 + $75 = $425 →
+near-miss rejects → `no_viable_scope`. Root cause: low-end extraction rule was
+designed to prevent overpromising on quote price, but scope-down math needs the
+client's ceiling, not their floor.
+
+### Range extraction fix (`aa019b2`)
+
+One-line change in `src/prompts/classify.ts`:
+```
+- "$350-400" → 350 (use the LOW end of any range)
++ "$350-400" → 400 (use the HIGH end of any range)
+```
+
+**Reasoning:** A client who writes "$350-400" is telling you their ceiling is
+$400. The pipeline saying "you mentioned $400" is accurate. Scope-down math:
+$450 floor < $400 + $75 = $475 → passes → `tier: "large"`, scoped alt 1hr @ $450.
+
+**Lead G after fix:** `stated_budget: 400`, gap $100, `tier: "large"`,
+`scoped_alt: 1hr @ $450`, gate PASS 13/14, `budget_acknowledged: true`.
+
 ---
 
 ## Prompt for Next Session (Compound)
