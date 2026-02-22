@@ -2,7 +2,7 @@
 
 **Last updated:** 2026-02-21 (v25)
 **Current phase:** Compound + low-effort cross-pollinate complete
-**Next session:** Cross-pollinate medium (project skills) or deploy to Railway
+**Next session:** Deploy to Railway
 
 ---
 
@@ -979,7 +979,7 @@ cross-pollination is done. Medium-effort items remain.
 | What | From | To | What's Involved |
 |------|------|----|-----------------|
 | ~~`docs/workflow-templates.md`~~ | pf-intel | gig-lead-responder (`6f15eda`), research-agent (`b40821f`) | Done — adapted per project: TS reviewer + prompt iteration template (gig), Python reviewer + pytest commands (research) |
-| Project-specific skills | pf-intel (4 skills) | gig-lead-responder | pf-intel has: FastAPI scaffold, test scaffold, migration, Expo screen. gig-lead-responder needs: pipeline stage scaffold, prompt iteration, lead test runner, deploy checklist. Create 2-4 SKILL.md files in `.claude/commands/`. |
+| ~~Project-specific skills~~ | pf-intel (4 skills) | gig-lead-responder (`018f7c9`) | Done — 3 skills: `/lead-test`, `/prompt-iteration`, `/deploy-checklist`. Dropped `pipeline-stage` (pipeline is stable, not worth scaffolding). |
 
 ### Prompt for next session (workflow templates)
 
