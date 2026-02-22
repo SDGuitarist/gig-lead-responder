@@ -91,7 +91,7 @@ Use contrastive pairs when the constraint is **vocabulary precision**, not quali
 
 2. **Include a WHY line** — explains the semantic distinction, not just which word to prefer. The model needs to understand *why* the adjacent term is wrong.
 
-3. **Add a GENERALIZATION rule at the end of the block** — without it, the model applies the specific examples but not the principle. Each contrastive pair block must close with a generalization that tells the model to extend the rule beyond the listed examples.
+3. **HARD REQUIREMENT: Every contrastive pair block MUST end with a GENERALIZATION rule.** Without it, the model memorizes the specific examples ("use Nochebuena, not Las Posadas") but does not transfer the principle to new terms not covered by the pairs. The generalization tells the model: "this rule applies to ALL terms in this domain, not just the ones I showed you." Omitting the generalization is the most common failure mode when applying this pattern — the pairs feel complete without it, but the model will fail on the first uncovered term.
 
 4. **Two pairs is the right calibration** — one pair risks the model treating it as a one-off exception; three or more risks over-prompting and inconsistent behavior. Two pairs establishes the pattern without over-constraining.
 
