@@ -26,5 +26,11 @@ export async function classifyLead(rawText: string, today: string): Promise<Clas
     throw new Error("Classification missing lead_source_column");
   }
 
+  // Sanitize event_date_iso — LLM may return "March 22" or "TBD" instead of YYYY-MM-DD
+  if (result.event_date_iso && !/^\d{4}-\d{2}-\d{2}$/.test(result.event_date_iso)) {
+    console.warn(`Invalid event_date_iso from LLM: "${result.event_date_iso}" — treating as null`);
+    result.event_date_iso = null;
+  }
+
   return result;
 }

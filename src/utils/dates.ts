@@ -13,5 +13,7 @@ export function getTodayISO(): string {
  * new Date("2026-03-14T12:00:00") = noon = correct day everywhere in US.
  */
 export function parseLocalDate(isoDate: string): Date {
-  return new Date(`${isoDate}T12:00:00`);
+  const d = new Date(`${isoDate}T12:00:00`);
+  if (isNaN(d.getTime())) throw new Error(`Invalid ISO date: "${isoDate}"`);
+  return d;
 }
