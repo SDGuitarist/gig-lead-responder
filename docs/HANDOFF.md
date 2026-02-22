@@ -917,3 +917,32 @@ leads. The rewrite loop handles it, but each retry costs ~$0.03 in API calls.
 **Total:** 19 fixed, 8 deferred. All P1s resolved (pricing recompute, enriched
 classification return, timezone centralization, date validation). 4 patterns
 flagged for compound phase.
+
+---
+
+## Next Session: Cross-Pollinate Process Docs Across Projects
+
+All three projects (gig-lead-responder, research-agent, pf-intel) now share the
+same three questions + feed-forward rules. But each project has unique process
+artifacts the others lack.
+
+### What to cross-pollinate
+
+| What | From | To | Effort |
+|------|------|----|--------|
+| `docs/workflow-templates.md` | pf-intel | gig-lead-responder, research-agent | Medium — adapt templates per project |
+| `FAILURE_MODES_CATALOG.md` | research-agent | gig-lead-responder, pf-intel | Low — start empty catalogs |
+| Auto-memory (`MEMORY.md`) | gig-lead-responder | pf-intel | Low — create starter from handoffs |
+| Solutions category structure | research-agent (6 categories) | gig-lead-responder (2 categories) | Low — reorganize existing 12 solutions |
+| Project-specific skills | pf-intel (4 skills) | gig-lead-responder | Medium — create scaffolding skills |
+
+### Prompt for next session
+
+```
+Read docs/HANDOFF.md section "Cross-Pollinate Process Docs Across Projects".
+Pick one row from the table and implement it. Start with the lowest effort item.
+Relevant paths:
+- ~/Projects/gig-lead-responder/
+- ~/Projects/research-agent/
+- ~/Projects/pf-intel/
+```
