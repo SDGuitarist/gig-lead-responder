@@ -60,7 +60,7 @@ Does the opening sentence reference a CONCRETE DETAIL from the classification? T
 - prose_flows: Reads as one continuous movement, not assembled sections
 - competitor_test: false means PASS (no competitor would write this)
 - lead_specific_opening: First sentence references a concrete detail from the classification (not generic)
-- budget_acknowledged: ${buildBudgetAcknowledgedInstruction(budget, classification)}
+- budget_acknowledged: ${buildBudgetInstruction(budget, classification)}
 - past_date_acknowledged: ${buildPastDateInstruction(classification)}
 - mariachi_pricing_format: ${buildMariachiPricingInstruction(classification)}
 - cultural_vocabulary_used: ${buildCulturalVocabInstruction(classification)}
@@ -127,7 +127,7 @@ Return ONLY this JSON (no markdown fences, no explanation):
  * Build the budget_acknowledged gut check instruction based on budget tier.
  * When tier is "none", the check is a no-op (always true).
  */
-function buildBudgetAcknowledgedInstruction(
+function buildBudgetInstruction(
   budget: PricingResult["budget"],
   classification: Classification,
 ): string {
