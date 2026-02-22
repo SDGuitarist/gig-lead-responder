@@ -1026,7 +1026,7 @@ and budget-mismatch handling work. Total: 15 solutions in `docs/solutions/`.
 
 - Solutions 1-6: Original pipeline compound phase
 - Solutions 7-8: `testable-constraints-for-prompt-compliance.md`, `sparse-lead-type-classification.md`
-- Solutions 9-12: `logic-errors/` patterns from fix-batched phase
+- Solutions 9-12: `logic-errors/` patterns from fix-batched phase (= the 4 "Patterns Worth Capturing" in FIXES-SUMMARY: reprice-after-enrichment, today-as-parameter, required-nullable-vs-optional, constants-at-the-boundary)
 
 ### Three Questions
 

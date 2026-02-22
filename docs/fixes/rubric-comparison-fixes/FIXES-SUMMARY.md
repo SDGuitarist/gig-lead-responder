@@ -41,12 +41,9 @@
 | 7 | #24 Three sequential object spreads | P3 | No action needed per review |
 | 8 | #27 Duration "4" valid in type but missing from rate tables | P3 | Needs product decision on duration constraints |
 
-## Patterns Worth Capturing
+## Patterns Captured (solutions 9-12)
 
-1. **"Reprice after enrichment" pattern** — When a pure enrichment step changes inputs to a pricing function, reprice conditionally rather than restructuring the enrichment into pre/post phases. Simpler code, same correctness. (Batch B, fix #1)
-
-2. **"Today as parameter" pattern** — Wall-clock dependencies (`new Date()`, timezone-dependent calculations) should be computed once at pipeline entry and passed as parameters. Makes functions pure and testable. (Batch B, fix #3)
-
-3. **"Required-nullable vs optional" type convention** — When an LLM always returns a field but the value can be absent, use `field: T | null` (required-nullable), not `field?: T | null` (optional). The `?` hides the contract. (Batch C, fix #5)
-
-4. **"Constants at the boundary" pattern** — Magic strings used across 3+ files should be extracted to a shared constants location. Gut check thresholds that must stay in sync with the type definition should be derived from or co-located with the source of truth. (Batch C, fixes #6 and #7)
+1. **"Reprice after enrichment"** → [`logic-errors/reprice-after-enrichment-override.md`](../../solutions/logic-errors/reprice-after-enrichment-override.md) (Batch B, fix #1)
+2. **"Today as parameter"** → [`logic-errors/today-as-parameter-timezone.md`](../../solutions/logic-errors/today-as-parameter-timezone.md) (Batch B, fix #3)
+3. **"Required-nullable vs optional"** → [`logic-errors/required-nullable-vs-optional-types.md`](../../solutions/logic-errors/required-nullable-vs-optional-types.md) (Batch C, fix #5)
+4. **"Constants at the boundary"** → [`logic-errors/constants-at-the-boundary.md`](../../solutions/logic-errors/constants-at-the-boundary.md) (Batch C, fixes #6 and #7)
