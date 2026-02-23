@@ -1,8 +1,8 @@
 # Gig Lead Responder — Session Handoff
 
-**Last updated:** 2026-02-22 (v26)
-**Current phase:** Deploy to Railway (in progress)
-**Next session:** Twilio A2P approval + first real lead e2e test
+**Last updated:** 2026-02-22 (v27)
+**Current phase:** Work — Dashboard UI Redesign (Chunks 1-2 done)
+**Next session:** Chunk 3 — Dashboard HTML (layout + stats + table)
 
 ### Deploy Progress (as of 2026-02-22)
 
@@ -1042,3 +1042,55 @@ contrastive pair blocks. Without it, the LLM learns the specific examples but
 doesn't transfer the principle to new cultural terms. Every contrastive pair
 block needs its own generalization rule — this isn't documented as a hard
 requirement in the reusable pattern checklist.
+
+---
+
+## Dashboard UI Redesign — Work Phase (2026-02-22)
+
+**Brainstorm:** `docs/brainstorms/2026-02-22-dashboard-ui-redesign-brainstorm.md`
+**Plan:** `docs/plans/2026-02-22-feat-dashboard-ui-redesign-plan.md`
+
+### Chunk Progress
+
+| Chunk | Description | Status | Commit |
+|-------|-------------|--------|--------|
+| 1 | Database layer — `listLeadsFiltered()` + `getLeadStats()` | Done | `ddb515d` |
+| 2 | API router — `GET /api/leads`, `GET /api/stats`, `POST /api/leads/:id/approve` | Done | `b918790` |
+| 3 | Dashboard HTML — layout + stats + table | Next | — |
+| 4 | Dashboard HTML — expanded row + approve action | — | — |
+| 5 | Dashboard HTML — Analyze tab (SSE migration) | — | — |
+
+### Chunk 1: Database Layer (`ddb515d`)
+
+Two new query functions in `src/leads.ts`:
+
+- **`listLeadsFiltered(opts)`** — optional `status` filter + `sort` by date/score/event. Uses `event_date IS NULL, event_date ASC` workaround for SQLite's lack of `NULLS LAST`.
+- **`getLeadStats()`** — single query with conditional aggregation: pending count, sent count, avg confidence (nulls excluded), this-month count.
+
+### Chunk 2: API Router (`b918790`)
+
+- **`src/auth.ts`** — Extracted Basic Auth middleware from `dashboard.ts` into shared module.
+- **`src/api.ts`** — Three endpoints behind Basic Auth:
+  - `GET /api/leads` — returns shaped JSON with parsed classification/pricing/gate sub-fields, excludes `raw_email`
+  - `GET /api/stats` — returns `{ pending, sent, avg_score, this_month }`
+  - `POST /api/leads/:id/approve` — validates lead has draft + correct status, sends SMS via `sendSms()`, updates to `done`/`approved_dashboard`. On Twilio failure: 500, status unchanged.
+- **`src/dashboard.ts`** — Replaced inline auth with import from `src/auth.ts`.
+- **`src/server.ts`** — Mounted `apiRouter`.
+
+### Prompt for Next Session (Chunk 3)
+
+```
+Read docs/plans/2026-02-22-feat-dashboard-ui-redesign-plan.md Chunk 3.
+Read public/mockup-hybrid.html (template). Read src/api.ts (API shape).
+Implement: public/dashboard.html with top bar, stats cards, filter pills,
+sort dropdown, data table, fetchLeads(), tab switching. Mount in server.ts.
+Commit when done.
+```
+
+## Three Questions
+
+1. **Hardest implementation decision in this session?** Whether to put the `shapeLead()` JSON parsing logic in the API router or in the database layer. Chose API router — the DB layer returns raw `LeadRecord`, and the API is responsible for presentation concerns (parsing JSON columns, computing gut check counts, excluding `raw_email`). Keeps the DB layer simple and reusable.
+
+2. **What did you consider changing but left alone, and why?** Considered replacing the existing `listLeads()` function with `listLeadsFiltered()` (since no-arg call returns the same result). Left it alone because `dashboard.ts` still imports `listLeads()` for the server-rendered HTML pages, and changing it would touch a file that wasn't in scope for this chunk. The old function can be deprecated later when the new dashboard fully replaces the old one.
+
+3. **Least confident about going into review?** The `shapeLead()` function parses three JSON columns (`classification_json`, `pricing_json`, `gate_json`) with try/catch and returns nulls on failure. If the stored JSON shape ever drifts from what the API expects (e.g., a field gets renamed in `Classification` but old leads have the old key), the API will silently return nulls for those fields. No validation or versioning on the stored JSON shape.
