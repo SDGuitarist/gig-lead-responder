@@ -1,8 +1,8 @@
 # Gig Lead Responder — Session Handoff
 
-**Last updated:** 2026-02-22 (v29)
-**Current phase:** Work — Dashboard UI Redesign (Chunks 1-4 done)
-**Next session:** Chunk 5 — Analyze tab (SSE migration)
+**Last updated:** 2026-02-22 (v30)
+**Current phase:** Work — Dashboard UI Redesign (Chunks 1-5 done)
+**Next session:** Chunk 6 — Route cleanup + polish
 
 ### Deploy Progress (as of 2026-02-22)
 
@@ -1058,7 +1058,8 @@ requirement in the reusable pattern checklist.
 | 2 | API router — `GET /api/leads`, `GET /api/stats`, `POST /api/leads/:id/approve` | Done | `b918790` |
 | 3 | Dashboard HTML — layout + stats + table + filters + tabs | Done | `524f3e3` |
 | 4 | Dashboard HTML — expanded row + approve action | Done | `449b32e` |
-| 5 | Dashboard HTML — Analyze tab (SSE migration) | Next | — |
+| 5 | Dashboard HTML — Analyze tab (SSE migration) | Done | `af60ac2` |
+| 6 | Route cleanup + polish | Next | — |
 
 ### Chunk 1: Database Layer (`ddb515d`)
 
@@ -1105,20 +1106,30 @@ Two new query functions in `src/leads.ts`:
   - `failed_checks: string[]` added to `shapeLead` response (names of gut checks that failed)
   - `POST /api/leads/:id/edit` — validates `full_draft` string, updates DB, increments `edit_round`, returns shaped lead
 
-### Prompt for Next Session (Chunk 5)
+### Chunk 5: Analyze Tab — SSE Migration (`af60ac2`)
+
+- **`public/dashboard.html`** — 1543 lines (+340). Full Analyze tab replacing placeholder:
+  - Textarea with placeholder + Ctrl+Enter shortcut
+  - "Analyze" button triggers `POST /api/analyze` with SSE streaming
+  - 5-stage progress indicator with pulse animation (classify → price → context → generate → verify)
+  - SSE manual parser ported from `index.html` (`fetch` + `getReader` + `buffer.split("\n")` loop)
+  - Results display: classification KVs, pricing KVs, dual drafts grid, verification gate (gut check count, fail reasons, scene type, competitor test)
+  - Error handling: network failures and mid-stream SSE errors shown inline
+  - All styled in warm palette (cream background, gold accents, Playfair Display section headings, gold left-border draft boxes)
+
+### Prompt for Next Session (Chunk 6)
 
 ```
-Read docs/plans/2026-02-22-feat-dashboard-ui-redesign-plan.md Chunk 5.
-Read public/dashboard.html (current state). Read public/index.html (SSE source).
-Port the Analyze tab from index.html into the dashboard: textarea, analyze
-button, 5-stage progress indicator, SSE stream reader, result display.
-Apply warm palette CSS. Commit when done.
+Read docs/plans/2026-02-22-feat-dashboard-ui-redesign-plan.md Chunk 6.
+Read public/dashboard.html (current state). Read src/server.ts.
+Chunk 6: Add Refresh button to top bar, keep old /leads routes working,
+clean up mockup files (keep mockup-hybrid as reference), update HANDOFF.
 ```
 
 ## Three Questions
 
-1. **Hardest implementation decision in this session?** Whether to use CSS `max-height` transitions for the accordion open/close or just re-render the table on toggle. CSS transitions require the DOM element to exist first, then toggle a class — but re-rendering destroys and recreates it. Chose the simpler re-render approach (instant show/hide, no animation) because it avoids managing DOM state separately from the render function. The `open` class is applied during render for the expanded row, keeping state and UI in sync without bugs.
+1. **Hardest implementation decision in this session?** Whether to rewrite the SSE parser or copy it verbatim from index.html. The index.html version uses `async/await` with `while(true)` + `reader.read()`, but the dashboard JS uses `var` and `.then()` chains (no async/await) for consistency with the rest of the file. Rewrote it as a recursive `.then()` chain (`readChunk` calls itself) to match the dashboard's coding style while preserving identical SSE parsing logic.
 
-2. **What did you consider changing but left alone, and why?** Considered adding a `raw_email` display section to the detail panel for debugging. Left it out because the plan explicitly excludes `raw_email` from the API response (too large for list view), and adding it would require either a separate API call or changing the existing endpoint. Can be added later as a "View Raw" button that fetches on demand.
+2. **What did you consider changing but left alone, and why?** Considered using the dashboard's existing `apiFetch()` helper for the analyze POST (which handles auth prompts on 401). Left it alone because `/api/analyze` is explicitly unprotected (plan decision #4) and needs raw `response.body` access for SSE streaming, which `apiFetch()` consumes with `.json()`. Different use case, different function.
 
-3. **Least confident about going into review?** The Edit Draft flow saves text directly to `full_draft` without regenerating the `compressed_draft`. After a manual edit, the full and compressed drafts will be out of sync — the compressed version still shows the AI-generated text. This is by design (Phase 1 = simple text save), but a user who edits the full draft and then approves will send the old compressed draft via SMS. Should either regenerate compressed on edit, or send full draft instead.
+3. **Least confident about going into review?** The `renderAnalyzeResults()` function accesses nested properties like `data.gate.gut_checks` without null guards. If the SSE `complete` event payload has a different shape than expected (e.g., a pipeline that fails verification and returns partial data), it could throw. The index.html version had the same assumption, but the dashboard version should be more resilient since it's the primary UI now.
