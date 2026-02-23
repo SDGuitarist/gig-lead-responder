@@ -33,6 +33,11 @@ app.use(dashboardRouter);
 // JSON API for new dashboard
 app.use(apiRouter);
 
+// Redirect root to new dashboard
+app.get("/", (_req, res) => {
+  res.redirect("/dashboard.html");
+});
+
 // Healthcheck for Railway
 app.get("/health", (_req, res) => {
   res.json({ status: "ok" });
