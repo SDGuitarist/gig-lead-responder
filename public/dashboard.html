@@ -578,6 +578,146 @@
   .gut-bar-fill.high { background: #5a8a5e; }
   .gut-bar-fill.medium { background: #cf9145; }
   .gut-bar-fill.low { background: #b54a3a; }
+
+  /* ── Analyze Tab ─────────────────────────────────────────── */
+  .analyze-container { max-width: 900px; }
+
+  .analyze-textarea {
+    width: 100%;
+    min-height: 140px;
+    padding: 12px 16px;
+    border: 1px solid #e8e2d9;
+    border-radius: 6px;
+    font-family: inherit;
+    font-size: 14px;
+    color: #2c2419;
+    line-height: 1.65;
+    resize: vertical;
+    background: #fff;
+    transition: border-color 0.2s ease;
+  }
+  .analyze-textarea:focus {
+    outline: none;
+    border-color: #cf9145;
+    box-shadow: 0 0 0 3px rgba(207,145,69,0.12);
+  }
+  .analyze-textarea::placeholder { color: #b5a994; }
+
+  .analyze-hint {
+    font-size: 12px;
+    color: #8a7e6d;
+    margin-top: 6px;
+  }
+
+  /* Stage progress */
+  .analyze-stages {
+    margin-top: 24px;
+    display: none;
+  }
+  .analyze-stage-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 0;
+    font-size: 14px;
+    color: #b5a994;
+    transition: color 0.2s ease;
+  }
+  .analyze-stage-row.running { color: #2c2419; font-weight: 600; }
+  .analyze-stage-row.done { color: #5a8a5e; }
+  .analyze-stage-row.error { color: #b54a3a; }
+
+  .stage-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: #e8e2d9;
+    flex-shrink: 0;
+    transition: background 0.2s ease;
+  }
+  .analyze-stage-row.running .stage-dot { background: #cf9145; animation: pulse 1s infinite alternate; }
+  .analyze-stage-row.done .stage-dot { background: #5a8a5e; }
+  .analyze-stage-row.error .stage-dot { background: #b54a3a; }
+
+  @keyframes pulse { from { opacity: 1; } to { opacity: 0.4; } }
+
+  .stage-time { margin-left: auto; font-size: 12px; color: #b5a994; font-weight: 400; }
+
+  /* Analyze error */
+  .analyze-error {
+    display: none;
+    margin-top: 20px;
+    padding: 14px 16px;
+    background: #fdf2f0;
+    border-left: 3px solid #b54a3a;
+    border-radius: 6px;
+    color: #b54a3a;
+    font-size: 14px;
+  }
+
+  /* Analyze results */
+  .analyze-results {
+    display: none;
+    margin-top: 32px;
+  }
+
+  .analyze-section {
+    margin-bottom: 28px;
+  }
+  .analyze-section h3 {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 18px;
+    font-weight: 600;
+    color: #2c2419;
+    border-bottom: 2px solid #cf9145;
+    padding-bottom: 6px;
+    margin-bottom: 14px;
+  }
+
+  .analyze-kv {
+    display: flex;
+    gap: 8px;
+    font-size: 14px;
+    padding: 5px 0;
+  }
+  .analyze-kv-label {
+    font-weight: 600;
+    min-width: 150px;
+    flex-shrink: 0;
+    color: #8a7e6d;
+  }
+  .analyze-kv-value { color: #2c2419; }
+
+  .analyze-drafts-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  @media (max-width: 700px) { .analyze-drafts-grid { grid-template-columns: 1fr; } }
+
+  .analyze-draft-box {
+    background: #fff;
+    border-radius: 8px;
+    border-left: 3px solid #cf9145;
+    padding: 16px 20px;
+    box-shadow: 0 1px 3px rgba(44,36,25,0.06);
+  }
+  .analyze-draft-box h4 {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: #8a7e6d;
+    font-weight: 600;
+    margin-bottom: 10px;
+  }
+  .analyze-draft-text {
+    font-size: 14px;
+    color: #2c2419;
+    line-height: 1.65;
+    white-space: pre-wrap;
+  }
+
+  .analyze-gate-pass { color: #5a8a5e; font-weight: 700; }
+  .analyze-gate-fail { color: #b54a3a; font-weight: 700; }
 </style>
 </head>
 <body>
@@ -678,9 +818,55 @@
 
   <!-- ══════════════════ ANALYZE TAB ═══════════════════════ -->
   <div class="tab-panel" id="panel-analyze">
-    <div class="placeholder-panel">
-      <h2 class="serif">Analyze</h2>
-      <p>Paste a lead and run it through the AI pipeline — coming in Chunk 5.</p>
+    <div class="analyze-container">
+
+      <div class="page-header">
+        <h1 class="serif">Analyze a Lead</h1>
+        <p>Paste a lead message and run it through the 5-stage AI pipeline</p>
+      </div>
+
+      <textarea class="analyze-textarea" id="analyzeInput" placeholder="Paste the lead text here..."></textarea>
+      <p class="analyze-hint">Ctrl+Enter to submit</p>
+      <button class="btn btn-primary" id="analyzeBtn" style="margin-top:10px;">Analyze</button>
+
+      <div class="analyze-stages" id="analyzeStages">
+        <div class="analyze-stage-row" data-stage="1"><span class="stage-dot"></span> 1. Classify Lead <span class="stage-time"></span></div>
+        <div class="analyze-stage-row" data-stage="2"><span class="stage-dot"></span> 2. Look Up Pricing <span class="stage-time"></span></div>
+        <div class="analyze-stage-row" data-stage="3"><span class="stage-dot"></span> 3. Assemble Context <span class="stage-time"></span></div>
+        <div class="analyze-stage-row" data-stage="4"><span class="stage-dot"></span> 4. Generate Drafts <span class="stage-time"></span></div>
+        <div class="analyze-stage-row" data-stage="5"><span class="stage-dot"></span> 5. Verify &amp; Gate <span class="stage-time"></span></div>
+      </div>
+
+      <div class="analyze-error" id="analyzeError"></div>
+
+      <div class="analyze-results" id="analyzeResults">
+        <div class="analyze-section">
+          <h3>Classification</h3>
+          <div id="analyzeClassification"></div>
+        </div>
+        <div class="analyze-section">
+          <h3>Pricing</h3>
+          <div id="analyzePricing"></div>
+        </div>
+        <div class="analyze-section">
+          <h3>Drafts</h3>
+          <div class="analyze-drafts-grid">
+            <div class="analyze-draft-box">
+              <h4>Full Draft</h4>
+              <div class="analyze-draft-text" id="analyzeFullDraft"></div>
+            </div>
+            <div class="analyze-draft-box">
+              <h4>Compressed Draft</h4>
+              <div class="analyze-draft-text" id="analyzeCompressedDraft"></div>
+            </div>
+          </div>
+        </div>
+        <div class="analyze-section">
+          <h3>Verification Gate</h3>
+          <div id="analyzeGate"></div>
+        </div>
+      </div>
+
     </div>
   </div>
 
@@ -1190,6 +1376,160 @@
   document.getElementById('sortSelect').addEventListener('change', function (e) {
     activeSort = e.target.value;
     loadLeads();
+  });
+
+  /* ── Analyze Tab ─────────────────────────────────────────── */
+
+  function resetAnalyze() {
+    document.getElementById('analyzeStages').style.display = 'block';
+    document.getElementById('analyzeResults').style.display = 'none';
+    document.getElementById('analyzeError').style.display = 'none';
+    var rows = document.querySelectorAll('.analyze-stage-row');
+    for (var i = 0; i < rows.length; i++) {
+      rows[i].className = 'analyze-stage-row';
+      rows[i].querySelector('.stage-time').textContent = '';
+    }
+  }
+
+  function setAnalyzeStage(num, status, ms) {
+    var row = document.querySelector('.analyze-stage-row[data-stage="' + num + '"]');
+    if (!row) return;
+    row.className = 'analyze-stage-row ' + status;
+    if (ms !== undefined) {
+      row.querySelector('.stage-time').textContent = (ms / 1000).toFixed(1) + 's';
+    }
+  }
+
+  function analyzeKvHTML(pairs) {
+    return pairs.map(function (p) {
+      return '<div class="analyze-kv">' +
+        '<span class="analyze-kv-label">' + p[0] + '</span>' +
+        '<span class="analyze-kv-value">' + p[1] + '</span>' +
+      '</div>';
+    }).join('');
+  }
+
+  function renderAnalyzeResults(data) {
+    var c = data.classification;
+    document.getElementById('analyzeClassification').innerHTML = analyzeKvHTML([
+      ['Mode', esc(c.mode)],
+      ['Competition', esc(c.competition_level) + ' (' + c.competition_quote_count + ' quotes)'],
+      ['Stealth Premium', c.stealth_premium ? 'YES — ' + esc(c.stealth_premium_signals.join(', ')) : 'No'],
+      ['Tier', esc(c.tier) + ' / ' + esc(c.rate_card_tier)],
+      ['Format', esc(c.format_requested) + ' → ' + esc(c.format_recommended)],
+      ['Duration', c.duration_hours + 'hr'],
+      ['Cultural', c.cultural_context_active ? esc(c.cultural_tradition) : 'N/A'],
+      ['Timeline', esc(c.timeline_band) + ' / ' + esc(c.close_type) + ' close']
+    ].concat(c.flagged_concerns && c.flagged_concerns.length
+      ? [['Concerns', esc(c.flagged_concerns.join(', '))]]
+      : []
+    ));
+
+    var p = data.pricing;
+    document.getElementById('analyzePricing').innerHTML = analyzeKvHTML([
+      ['Format', esc(p.format) + ' | ' + p.duration_hours + 'hr | ' + esc(p.tier_key)],
+      ['Anchor', '$' + p.anchor],
+      ['Floor', '$' + p.floor],
+      ['Quote', '$' + p.quote_price + ' (' + esc(p.competition_position) + ')']
+    ]);
+
+    document.getElementById('analyzeFullDraft').textContent = data.drafts.full_draft;
+    document.getElementById('analyzeCompressedDraft').textContent = data.drafts.compressed_draft;
+
+    var g = data.gate;
+    var passed = 0;
+    var total = 0;
+    if (g.gut_checks) {
+      var keys = Object.keys(g.gut_checks);
+      total = keys.length;
+      for (var i = 0; i < keys.length; i++) {
+        if (g.gut_checks[keys[i]]) passed++;
+      }
+    }
+
+    document.getElementById('analyzeGate').innerHTML = analyzeKvHTML([
+      ['Status', '<span class="' + (g.gate_status === 'pass' ? 'analyze-gate-pass' : 'analyze-gate-fail') + '">' +
+        g.gate_status.toUpperCase() + '</span>' +
+        (data.verified ? '' : ' (unverified — best attempt)')],
+      ['Validation', '"' + esc(g.validation_line) + '"'],
+      ['Best Line', '"' + esc(g.best_line) + '"'],
+      ['Scene', esc(g.scene_type) + ' — "' + esc(g.scene_quote) + '"'],
+      ['Competitor Test', g.competitor_test ? 'FAIL — could be any vendor' : 'PASS — unique'],
+      ['Gut Checks', passed + '/' + total + ' passed']
+    ].concat(g.fail_reasons && g.fail_reasons.length
+      ? [['Fail Reasons', esc(g.fail_reasons.join('; '))]]
+      : []
+    ));
+
+    document.getElementById('analyzeResults').style.display = 'block';
+  }
+
+  function runAnalyze() {
+    var text = document.getElementById('analyzeInput').value.trim();
+    if (!text) return;
+
+    var btn = document.getElementById('analyzeBtn');
+    btn.disabled = true;
+    btn.textContent = 'Analyzing\u2026';
+    resetAnalyze();
+
+    fetch('/api/analyze', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text: text })
+    }).then(function (response) {
+      var reader = response.body.getReader();
+      var decoder = new TextDecoder();
+      var buffer = '';
+
+      function readChunk() {
+        return reader.read().then(function (result) {
+          if (result.done) return;
+
+          buffer += decoder.decode(result.value, { stream: true });
+          var lines = buffer.split('\n');
+          buffer = lines.pop();
+
+          var currentEvent = null;
+          for (var i = 0; i < lines.length; i++) {
+            var line = lines[i];
+            if (line.indexOf('event: ') === 0) {
+              currentEvent = line.slice(7);
+            } else if (line.indexOf('data: ') === 0 && currentEvent) {
+              var payload = JSON.parse(line.slice(6));
+
+              if (currentEvent === 'stage') {
+                setAnalyzeStage(payload.stage, payload.status, payload.ms);
+              } else if (currentEvent === 'complete') {
+                renderAnalyzeResults(payload);
+              } else if (currentEvent === 'error') {
+                var errBox = document.getElementById('analyzeError');
+                errBox.textContent = 'Error: ' + payload.error;
+                errBox.style.display = 'block';
+              }
+              currentEvent = null;
+            }
+          }
+
+          return readChunk();
+        });
+      }
+
+      return readChunk();
+    }).catch(function (err) {
+      var errBox = document.getElementById('analyzeError');
+      errBox.textContent = 'Network error: ' + err.message;
+      errBox.style.display = 'block';
+    }).then(function () {
+      btn.disabled = false;
+      btn.textContent = 'Analyze';
+    });
+  }
+
+  document.getElementById('analyzeBtn').addEventListener('click', runAnalyze);
+
+  document.getElementById('analyzeInput').addEventListener('keydown', function (e) {
+    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) runAnalyze();
   });
 
   /* ── Initial load ────────────────────────────────────────── */
