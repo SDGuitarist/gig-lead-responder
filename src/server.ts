@@ -5,7 +5,6 @@ import { runPipeline } from "./run-pipeline.js";
 import { initDb } from "./leads.js";
 import webhookRouter from "./webhook.js";
 import twilioWebhookRouter from "./twilio-webhook.js";
-import dashboardRouter from "./dashboard.js";
 import apiRouter from "./api.js";
 
 if (!process.env.ANTHROPIC_API_KEY) {
@@ -26,9 +25,6 @@ app.use(webhookRouter);
 
 // Twilio inbound SMS webhook
 app.use(twilioWebhookRouter);
-
-// Dashboard (leads list + detail pages)
-app.use(dashboardRouter);
 
 // JSON API for new dashboard
 app.use(apiRouter);

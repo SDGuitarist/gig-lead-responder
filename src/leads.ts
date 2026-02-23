@@ -207,17 +207,6 @@ export function runTransaction<T>(fn: () => T): T {
   return initDb().transaction(fn)();
 }
 
-export function listLeads(): LeadRecord[] {
-  const rows = initDb()
-    .prepare("SELECT * FROM leads ORDER BY created_at DESC")
-    .all() as LeadRecord[];
-
-  return rows.map((r) => ({
-    ...r,
-    gate_passed: r.gate_passed === null ? null : Boolean(r.gate_passed),
-  }));
-}
-
 // --- Dashboard queries ---
 
 export interface ListLeadsFilteredOpts {
