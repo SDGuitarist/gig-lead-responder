@@ -1,8 +1,8 @@
 # Gig Lead Responder — Session Handoff
 
-**Last updated:** 2026-02-22 (v31)
-**Current phase:** Work — Dashboard UI Redesign (all 6 chunks done)
-**Next session:** Review — `/workflows:review` on dashboard changes
+**Last updated:** 2026-02-22 (v32)
+**Current phase:** Review complete — Dashboard UI Redesign
+**Next session:** Fix phase — `/fix-batched batch1` on review findings
 
 ### Deploy Progress (as of 2026-02-22)
 
@@ -1142,11 +1142,40 @@ The unified dashboard replaces the old two-surface design:
 
 All `/api/*` routes (except `/api/analyze`) require Basic Auth via `src/auth.ts`.
 
-### Prompt for Next Session (Review)
+### Review Phase Complete (2026-02-22)
+
+**Review summary:** `docs/reviews/dashboard-ui-redesign/REVIEW-SUMMARY.md`
+**Agents run:** 9 (3 batches of 3)
+**Findings:** 4 P1, 12 P2, 12 P3 (28 unique from 100 raw)
+
+#### P1s (must fix before next deploy)
+
+| # | Finding | File |
+|---|---------|------|
+| 1 | `/api/analyze` has no auth + client doesn't send auth header | `server.ts:51`, `dashboard.html:1491` |
+| 2 | Approve endpoint race condition → double SMS | `api.ts:106-136` |
+| 3 | Auth bypass when env vars unset | `auth.ts:8-11` |
+| 4 | Non-null assertion on `updateLead` return | `api.ts:136,165` |
+
+#### Top P2s
+
+- `shapeLead()` brittle 50-line mapping, unsafe `as` casts
+- Old `dashboard.ts` is dead code (185 lines)
+- Auth applied piecemeal — new routes unprotected by default
+- Timing-unsafe password comparison (`auth.ts:23`)
+- Basic Auth breaks on passwords with colons (`auth.ts:21`)
+- Edit doesn't update `compressed_draft` → stale SMS on approve
+
+#### What the review confirmed from work phase
+
+The "Least confident" flag from Chunk 5 — `renderAnalyzeResults()` accessing nested properties without null guards — was caught by the architecture-strategist agent (P2 #16).
+
+### Prompt for Next Session (Fix Phase)
 
 ```
-Read docs/HANDOFF.md "Dashboard UI Redesign — Work Phase" section.
-Run /workflows:review on the dashboard changes (commits ddb515d..d5b34fe).
+Read docs/reviews/dashboard-ui-redesign/REVIEW-SUMMARY.md.
+Run /fix-batched batch1 to fix the P1 findings.
+Relevant files: src/server.ts, src/api.ts, src/auth.ts, public/dashboard.html.
 ```
 
 ## Three Questions
