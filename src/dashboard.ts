@@ -1,38 +1,9 @@
-import { Router, type Request, type Response, type NextFunction } from "express";
+import { Router, type Request, type Response } from "express";
 import { listLeads, getLead } from "./leads.js";
 import type { LeadRecord } from "./types.js";
+import { basicAuth } from "./auth.js";
 
 const router = Router();
-
-// --- Inline Basic Auth middleware ---
-
-function basicAuth(req: Request, res: Response, next: NextFunction): void {
-  const user = process.env.DASHBOARD_USER;
-  const pass = process.env.DASHBOARD_PASS;
-
-  // If either env var is missing, skip auth (local dev convenience)
-  if (!user || !pass) {
-    next();
-    return;
-  }
-
-  const header = req.headers.authorization;
-  if (!header || !header.startsWith("Basic ")) {
-    res.setHeader("WWW-Authenticate", 'Basic realm="Gig Lead Dashboard"');
-    res.status(401).send("Authentication required");
-    return;
-  }
-
-  const decoded = Buffer.from(header.slice(6), "base64").toString();
-  const [u, p] = decoded.split(":");
-
-  if (u === user && p === pass) {
-    next();
-  } else {
-    res.setHeader("WWW-Authenticate", 'Basic realm="Gig Lead Dashboard"');
-    res.status(401).send("Invalid credentials");
-  }
-}
 
 router.use("/leads", basicAuth);
 
