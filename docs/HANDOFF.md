@@ -1,8 +1,8 @@
 # Gig Lead Responder — Session Handoff
 
-**Last updated:** 2026-02-22 (v27)
-**Current phase:** Work — Dashboard UI Redesign (Chunks 1-2 done)
-**Next session:** Chunk 3 — Dashboard HTML (layout + stats + table)
+**Last updated:** 2026-02-22 (v28)
+**Current phase:** Work — Dashboard UI Redesign (Chunks 1-3 done)
+**Next session:** Chunk 4 — Expandable row detail + approve action
 
 ### Deploy Progress (as of 2026-02-22)
 
@@ -1056,8 +1056,8 @@ requirement in the reusable pattern checklist.
 |-------|-------------|--------|--------|
 | 1 | Database layer — `listLeadsFiltered()` + `getLeadStats()` | Done | `ddb515d` |
 | 2 | API router — `GET /api/leads`, `GET /api/stats`, `POST /api/leads/:id/approve` | Done | `b918790` |
-| 3 | Dashboard HTML — layout + stats + table | Next | — |
-| 4 | Dashboard HTML — expanded row + approve action | — | — |
+| 3 | Dashboard HTML — layout + stats + table + filters + tabs | Done | `524f3e3` |
+| 4 | Dashboard HTML — expanded row + approve action | Next | — |
 | 5 | Dashboard HTML — Analyze tab (SSE migration) | — | — |
 
 ### Chunk 1: Database Layer (`ddb515d`)
@@ -1077,13 +1077,28 @@ Two new query functions in `src/leads.ts`:
 - **`src/dashboard.ts`** — Replaced inline auth with import from `src/auth.ts`.
 - **`src/server.ts`** — Mounted `apiRouter`.
 
-### Prompt for Next Session (Chunk 3)
+### Chunk 3: Dashboard HTML (`524f3e3`)
+
+- **`public/dashboard.html`** — 876 lines. All CSS from mockup-hybrid + dynamic JS rendering.
+  - Stats cards from `GET /api/stats`, dynamic greeting
+  - Filter pills re-fetch with `?status=` (Pending pill maps to API `received`)
+  - Sort dropdown re-fetches with `?sort=date|score|event`
+  - Tabs: Queue (defaults to Pending filter), All Leads (no filter), Analyze (placeholder)
+  - Desktop table + responsive mobile cards at 768px
+  - Auth-aware `apiFetch()`: prompts on 401, skips if no auth configured
+  - Detail panel + approve flash CSS included (ready for Chunk 4)
+- **`src/server.ts`** — Added `/` redirect to `/dashboard.html`
+
+### Prompt for Next Session (Chunk 4)
 
 ```
-Read docs/plans/2026-02-22-feat-dashboard-ui-redesign-plan.md Chunk 3.
-Read public/mockup-hybrid.html (template). Read src/api.ts (API shape).
-Implement: public/dashboard.html with top bar, stats cards, filter pills,
-sort dropdown, data table, fetchLeads(), tab switching. Mount in server.ts.
+Read docs/plans/2026-02-22-feat-dashboard-ui-redesign-plan.md Chunk 4.
+Read public/dashboard.html (current state). Read src/api.ts (API shape).
+Implement in dashboard.html: click-to-expand detail panel (accordion),
+draft display grid, gut check bar, classification grid, Approve & Send
+button wired to POST /api/leads/:id/approve, Edit Draft textarea,
+approve flash animation, error/mid-pipeline states.
+Add POST /api/leads/:id/edit endpoint to src/api.ts.
 Commit when done.
 ```
 
