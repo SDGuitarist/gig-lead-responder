@@ -77,6 +77,20 @@
     margin-top: 4px;
   }
 
+  .refresh-btn {
+    padding: 6px 14px;
+    border-radius: 6px;
+    border: 1px solid #e8e2d9;
+    background: #fff;
+    color: #8a7e6d;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: inherit;
+  }
+  .refresh-btn:hover { color: #2c2419; border-color: #cf9145; }
+
   /* ── Page Header ──────────────────────────────────────────── */
   .page-header { margin-bottom: 28px; }
   .page-header h1 {
@@ -737,6 +751,7 @@
       <button class="tab-btn" data-tab="all">All Leads</button>
       <button class="tab-btn" data-tab="analyze">Analyze</button>
     </nav>
+    <button class="refresh-btn" onclick="loadStats(); loadLeads();" title="Refresh leads and stats">&#x21bb; Refresh</button>
   </header>
 
   <!-- ══════════════════ LEADS PANEL ════════════════════════ -->
