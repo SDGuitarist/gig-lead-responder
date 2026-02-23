@@ -1,0 +1,1438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GigLead — Lead Queue</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* ── Reset & Base ─────────────────────────────────────────── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
+                 Ubuntu, Cantarell, 'Helvetica Neue', sans-serif;
+    background: #faf8f5;
+    color: #2c2419;
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── Typography ───────────────────────────────────────────── */
+  .serif { font-family: 'Playfair Display', Georgia, 'Times New Roman', serif; }
+
+  /* ── Layout Shell ─────────────────────────────────────────── */
+  .app-shell { max-width: 1200px; margin: 0 auto; padding: 0 24px 64px; }
+
+  /* ── Top Bar ──────────────────────────────────────────────── */
+  .top-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 0;
+    border-bottom: 1px solid #e8e2d9;
+    margin-bottom: 32px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .logo {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 24px;
+    font-weight: 700;
+    color: #2c2419;
+    letter-spacing: -0.5px;
+    user-select: none;
+  }
+  .logo span { color: #cf9145; }
+
+  .tab-nav { display: flex; gap: 4px; }
+
+  .tab-btn {
+    padding: 8px 20px;
+    border-radius: 6px;
+    border: 1px solid transparent;
+    background: transparent;
+    color: #8a7e6d;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: inherit;
+  }
+  .tab-btn:hover { color: #2c2419; background: rgba(207,145,69,0.08); }
+  .tab-btn.active {
+    color: #2c2419;
+    background: #fff;
+    border-color: #e8e2d9;
+    box-shadow: 0 1px 3px rgba(44,36,25,0.06);
+  }
+  .tab-btn.active::after {
+    content: '';
+    display: block;
+    height: 2px;
+    background: #cf9145;
+    border-radius: 1px;
+    margin-top: 4px;
+  }
+
+  /* ── Page Header ──────────────────────────────────────────── */
+  .page-header { margin-bottom: 28px; }
+  .page-header h1 {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 28px;
+    font-weight: 600;
+    color: #2c2419;
+    margin-bottom: 4px;
+  }
+  .page-header p { color: #8a7e6d; font-size: 14px; }
+
+  /* ── Stats Cards ──────────────────────────────────────────── */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+
+  .stat-card {
+    background: #fff;
+    border-radius: 8px;
+    padding: 20px;
+    border-left: 3px solid #e8e2d9;
+    box-shadow: 0 1px 3px rgba(44,36,25,0.08);
+    transition: box-shadow 0.2s ease;
+  }
+  .stat-card:hover { box-shadow: 0 2px 8px rgba(44,36,25,0.12); }
+  .stat-card.amber   { border-left-color: #c4873a; }
+  .stat-card.green   { border-left-color: #5a8a5e; }
+  .stat-card.gold    { border-left-color: #cf9145; }
+  .stat-card.grey    { border-left-color: #8a7e6d; }
+
+  .stat-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: #8a7e6d;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  .stat-number {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 32px;
+    font-weight: 700;
+    color: #2c2419;
+    line-height: 1.1;
+    margin-bottom: 4px;
+  }
+  .stat-sub { font-size: 12px; color: #8a7e6d; }
+  .stat-sub.positive { color: #5a8a5e; }
+
+  /* ── Filter + Sort Controls ───────────────────────────────── */
+  .controls-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .filter-pills { display: flex; gap: 6px; flex-wrap: wrap; }
+
+  .filter-pill {
+    padding: 6px 16px;
+    border-radius: 20px;
+    border: 1px solid #e8e2d9;
+    background: transparent;
+    color: #8a7e6d;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: inherit;
+  }
+  .filter-pill:hover { border-color: #cf9145; color: #cf9145; }
+  .filter-pill.active {
+    background: #cf9145;
+    color: #fff;
+    border-color: #cf9145;
+  }
+
+  .sort-select {
+    padding: 7px 32px 7px 12px;
+    border-radius: 6px;
+    border: 1px solid #e8e2d9;
+    background: #fff url("data:image/svg+xml,%3Csvg width='10' height='6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238a7e6d' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") right 12px center no-repeat;
+    color: #2c2419;
+    font-size: 13px;
+    font-family: inherit;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    transition: border-color 0.2s ease;
+  }
+  .sort-select:hover { border-color: #cf9145; }
+  .sort-select:focus { outline: none; border-color: #cf9145; box-shadow: 0 0 0 3px rgba(207,145,69,0.12); }
+
+  /* ── Data Table ───────────────────────────────────────────── */
+  .table-wrapper {
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(44,36,25,0.08);
+    overflow: hidden;
+  }
+
+  /* Desktop table */
+  .leads-table { width: 100%; border-collapse: collapse; }
+
+  .leads-table thead th {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: #8a7e6d;
+    font-weight: 600;
+    text-align: left;
+    padding: 14px 16px;
+    border-bottom: 1px solid #e8e2d9;
+    white-space: nowrap;
+  }
+  .leads-table thead th:last-child { text-align: right; }
+
+  .leads-table tbody tr {
+    cursor: pointer;
+    transition: background 0.15s ease;
+  }
+  .leads-table tbody tr:hover { background: #faf8f5; }
+  .leads-table tbody tr:not(:last-child) td { border-bottom: 1px solid #f0ece5; }
+
+  .leads-table td {
+    padding: 16px;
+    vertical-align: middle;
+  }
+  .leads-table td:last-child { text-align: right; }
+
+  .lead-event-name {
+    font-weight: 600;
+    color: #2c2419;
+    font-size: 14px;
+    margin-bottom: 2px;
+  }
+  .lead-event-sub {
+    font-size: 12px;
+    color: #8a7e6d;
+  }
+
+  .lead-date { white-space: nowrap; color: #2c2419; font-size: 14px; }
+  .lead-venue { color: #2c2419; font-size: 14px; }
+
+  /* Format pill */
+  .format-pill {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 4px;
+    background: #f5efe6;
+    color: #8a7e6d;
+    font-size: 12px;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  /* Score */
+  .score {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 20px;
+    font-weight: 700;
+  }
+  .score.high    { color: #cf9145; }
+  .score.medium  { color: #c4873a; }
+  .score.low     { color: #b54a3a; }
+
+  /* Status badge */
+  .status-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #fff;
+    white-space: nowrap;
+  }
+  .status-badge.pending { background: #c4873a; }
+  .status-badge.sent    { background: #5a8a5e; }
+  .status-badge.done    { background: #8a7e6d; }
+  .status-badge.failed  { background: #b54a3a; }
+
+  /* Action buttons */
+  .actions { display: flex; gap: 8px; justify-content: flex-end; }
+
+  .btn {
+    padding: 7px 16px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 1px solid transparent;
+    font-family: inherit;
+    white-space: nowrap;
+  }
+  .btn-primary {
+    background: #cf9145;
+    color: #fff;
+    border-color: #cf9145;
+  }
+  .btn-primary:hover { background: #b87e38; border-color: #b87e38; }
+  .btn-primary:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+  .btn-primary:disabled:hover { background: #cf9145; border-color: #cf9145; }
+
+  .btn-outline {
+    background: transparent;
+    color: #cf9145;
+    border-color: #cf9145;
+  }
+  .btn-outline:hover { background: rgba(207,145,69,0.08); }
+
+  .btn-ghost {
+    background: transparent;
+    color: #8a7e6d;
+    border-color: #e8e2d9;
+  }
+  .btn-ghost:hover { color: #2c2419; border-color: #cf9145; }
+
+  /* Sent row muted */
+  tr.row-sent td { opacity: 0.65; }
+  tr.row-sent:hover td { opacity: 0.8; }
+
+  /* ── Expandable Detail Panel ──────────────────────────────── */
+  .detail-row td { padding: 0 !important; border-bottom: 1px solid #e8e2d9 !important; }
+
+  .detail-panel {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.35s ease, opacity 0.25s ease;
+    opacity: 0;
+  }
+  .detail-panel.open {
+    max-height: 1200px;
+    opacity: 1;
+  }
+
+  .detail-inner {
+    padding: 24px 20px 28px;
+    background: #faf8f5;
+    border-top: 1px solid #e8e2d9;
+  }
+
+  .draft-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 24px;
+  }
+
+  .draft-box {
+    background: #fff;
+    border-radius: 8px;
+    border-left: 3px solid #cf9145;
+    padding: 16px 20px;
+    box-shadow: 0 1px 3px rgba(44,36,25,0.06);
+  }
+  .draft-box h4 {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: #8a7e6d;
+    font-weight: 600;
+    margin-bottom: 10px;
+  }
+  .draft-box p {
+    font-size: 14px;
+    color: #2c2419;
+    line-height: 1.65;
+  }
+
+  .classification-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+
+  .class-item {
+    display: flex;
+    flex-direction: column;
+    background: #fff;
+    border-radius: 6px;
+    padding: 12px 14px;
+    box-shadow: 0 1px 2px rgba(44,36,25,0.04);
+  }
+  .class-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: #8a7e6d;
+    font-weight: 600;
+    margin-bottom: 3px;
+  }
+  .class-value {
+    font-size: 14px;
+    color: #2c2419;
+    font-weight: 500;
+  }
+
+  /* Gut-check bar */
+  .gut-check-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  .gut-label { font-size: 13px; color: #2c2419; font-weight: 500; white-space: nowrap; }
+  .gut-bar-track {
+    flex: 1;
+    min-width: 120px;
+    max-width: 300px;
+    height: 8px;
+    background: #e8e2d9;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .gut-bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    background: #cf9145;
+    transition: width 0.4s ease;
+  }
+  .gut-fraction { font-size: 13px; color: #8a7e6d; font-weight: 500; white-space: nowrap; }
+
+  /* Detail actions */
+  .detail-actions {
+    display: flex;
+    gap: 10px;
+    padding-top: 4px;
+  }
+
+  /* ── Approve confirmation animation ───────────────────────── */
+  .approve-flash {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.5);
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: #5a8a5e;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    z-index: 1000;
+    transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .approve-flash.show {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  .approve-flash svg { width: 40px; height: 40px; }
+  .approve-flash svg polyline {
+    stroke: #fff;
+    stroke-width: 3;
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-dasharray: 40;
+    stroke-dashoffset: 40;
+    transition: stroke-dashoffset 0.3s ease 0.15s;
+  }
+  .approve-flash.show svg polyline { stroke-dashoffset: 0; }
+
+  /* ── Tab Panels ───────────────────────────────────────────── */
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  .placeholder-panel {
+    text-align: center;
+    padding: 80px 24px;
+    color: #8a7e6d;
+  }
+  .placeholder-panel h2 {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 22px;
+    color: #2c2419;
+    margin-bottom: 8px;
+  }
+
+  /* ── Mobile card view ─────────────────────────────────────── */
+  .mobile-cards { display: none; }
+
+  .mobile-card {
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(44,36,25,0.08);
+    padding: 16px;
+    margin-bottom: 12px;
+    cursor: pointer;
+    transition: box-shadow 0.2s ease;
+  }
+  .mobile-card:hover { box-shadow: 0 2px 8px rgba(44,36,25,0.12); }
+
+  .mobile-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 10px;
+  }
+  .mobile-card-header .lead-event-name { font-size: 15px; }
+
+  .mobile-card-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 16px;
+    font-size: 13px;
+    color: #8a7e6d;
+    margin-bottom: 12px;
+  }
+  .mobile-card-meta span { white-space: nowrap; }
+
+  .mobile-card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .mobile-card-score { display: flex; align-items: center; gap: 8px; }
+
+  .mobile-detail {
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    transition: max-height 0.35s ease, opacity 0.25s ease;
+  }
+  .mobile-detail.open {
+    max-height: 2000px;
+    opacity: 1;
+  }
+  .mobile-detail .detail-inner { border-top: 1px solid #e8e2d9; margin-top: 12px; padding: 16px 0 4px; background: transparent; }
+  .mobile-detail .draft-grid { grid-template-columns: 1fr; }
+
+  /* ── Responsive ───────────────────────────────────────────── */
+  @media (max-width: 900px) {
+    .stats-row { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  @media (max-width: 768px) {
+    .stats-row { grid-template-columns: 1fr 1fr; gap: 12px; }
+    .table-wrapper { display: none; }
+    .mobile-cards { display: block; }
+    .page-header h1 { font-size: 24px; }
+    .draft-grid { grid-template-columns: 1fr; }
+    .classification-grid { grid-template-columns: 1fr 1fr; }
+  }
+
+  @media (max-width: 480px) {
+    .stats-row { grid-template-columns: 1fr; }
+    .top-bar { flex-direction: column; align-items: flex-start; }
+    .classification-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Approve flash overlay -->
+<div class="approve-flash" id="approveFlash">
+  <svg viewBox="0 0 40 40"><polyline points="10,22 18,30 30,12"/></svg>
+</div>
+
+<div class="app-shell">
+
+  <!-- ── Top Bar ──────────────────────────────────────────── -->
+  <header class="top-bar">
+    <div class="logo serif">Gig<span>Lead</span></div>
+    <nav class="tab-nav">
+      <button class="tab-btn active" data-tab="queue">Queue</button>
+      <button class="tab-btn" data-tab="all">All Leads</button>
+      <button class="tab-btn" data-tab="analyze">Analyze</button>
+    </nav>
+  </header>
+
+  <!-- ══════════════════ QUEUE TAB ══════════════════════════ -->
+  <div class="tab-panel active" id="panel-queue">
+
+    <!-- Page Header -->
+    <div class="page-header">
+      <h1 class="serif">3 gigs waiting for you</h1>
+      <p>Review AI-generated drafts before sending</p>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="stats-row">
+      <div class="stat-card amber">
+        <div class="stat-label">Pending</div>
+        <div class="stat-number serif">3</div>
+        <div class="stat-sub">Awaiting review</div>
+      </div>
+      <div class="stat-card green">
+        <div class="stat-label">Sent</div>
+        <div class="stat-number serif">12</div>
+        <div class="stat-sub positive">+4 this week</div>
+      </div>
+      <div class="stat-card gold">
+        <div class="stat-label">Avg Score</div>
+        <div class="stat-number serif">92</div>
+        <div class="stat-sub">Across all drafts</div>
+      </div>
+      <div class="stat-card grey">
+        <div class="stat-label">This Month</div>
+        <div class="stat-number serif">28</div>
+        <div class="stat-sub">Total inquiries</div>
+      </div>
+    </div>
+
+    <!-- Filter + Sort -->
+    <div class="controls-bar">
+      <div class="filter-pills">
+        <button class="filter-pill active" data-filter="all">All</button>
+        <button class="filter-pill" data-filter="pending">Pending</button>
+        <button class="filter-pill" data-filter="sent">Sent</button>
+        <button class="filter-pill" data-filter="done">Done</button>
+        <button class="filter-pill" data-filter="failed">Failed</button>
+      </div>
+      <select class="sort-select" id="sortSelect">
+        <option value="date">Sort by Date</option>
+        <option value="score-desc">Score: High to Low</option>
+        <option value="score-asc">Score: Low to High</option>
+        <option value="event">Event Name</option>
+      </select>
+    </div>
+
+    <!-- ── Desktop Table ──────────────────────────────────── -->
+    <div class="table-wrapper">
+      <table class="leads-table">
+        <thead>
+          <tr>
+            <th>Event</th>
+            <th>Date</th>
+            <th>Venue</th>
+            <th>Format</th>
+            <th>Score</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody">
+
+          <!-- Row 1: Wedding Reception -->
+          <tr class="lead-row" data-status="pending" data-date="2026-03-15" data-score="92" data-event="Wedding Reception" data-id="1">
+            <td>
+              <div class="lead-event-name">Wedding Reception</div>
+              <div class="lead-event-sub">Sarah &amp; Michael — cocktail hour + dinner</div>
+            </td>
+            <td class="lead-date">Mar 15, 2026</td>
+            <td class="lead-venue">Hilton La Jolla</td>
+            <td><span class="format-pill">Flamenco Duo</span></td>
+            <td><span class="score high">92</span></td>
+            <td><span class="status-badge pending">Pending</span></td>
+            <td>
+              <div class="actions">
+                <button class="btn btn-primary btn-approve" data-id="1">Approve</button>
+                <button class="btn btn-outline btn-view" data-id="1">View</button>
+              </div>
+            </td>
+          </tr>
+          <!-- Detail 1 -->
+          <tr class="detail-row" data-detail="1">
+            <td colspan="7">
+              <div class="detail-panel" id="detail-1">
+                <div class="detail-inner">
+                  <div class="draft-grid">
+                    <div class="draft-box">
+                      <h4>Full Draft</h4>
+                      <p>Congratulations on your upcoming wedding at the Hilton! I'd love to bring the warmth of live flamenco to your celebration — imagine your guests arriving to the rich sounds of Spanish guitar as the sun sets over La Jolla. For your cocktail hour and dinner, I'd recommend our Flamenco Duo: guitar and cajón creating an intimate, elegant atmosphere. We'd perform a curated mix of traditional flamenco, modern Spanish guitar, and a few romantic favorites. The package includes 2 hours of live music, professional sound setup, and a personalized setlist consultation. Investment: $450</p>
+                    </div>
+                    <div class="draft-box">
+                      <h4>Compressed Draft</h4>
+                      <p>Congratulations! I'd love to bring live flamenco to your Hilton wedding. Our duo (guitar + cajón) creates the perfect cocktail hour atmosphere. 2 hours, full setup included — $450.</p>
+                    </div>
+                  </div>
+                  <div class="classification-grid">
+                    <div class="class-item">
+                      <span class="class-label">Format</span>
+                      <span class="class-value">Flamenco Duo</span>
+                    </div>
+                    <div class="class-item">
+                      <span class="class-label">Duration</span>
+                      <span class="class-value">2 hours</span>
+                    </div>
+                    <div class="class-item">
+                      <span class="class-label">Quoted</span>
+                      <span class="class-value">$450</span>
+                    </div>
+                    <div class="class-item">
+                      <span class="class-label">Floor</span>
+                      <span class="class-value">$350</span>
+                    </div>
+                    <div class="class-item">
+                      <span class="class-label">Anchor</span>
+                      <span class="class-value">$500</span>
+                    </div>
+                  </div>
+                  <div class="gut-check-row">
+                    <span class="gut-label">Gut check:</span>
+                    <div class="gut-bar-track">
+                      <div class="gut-bar-fill" style="width: 92.8%"></div>
+                    </div>
+                    <span class="gut-fraction">13 of 14 passed</span>
+                  </div>
+                  <div class="detail-actions">
+                    <button class="btn btn-primary btn-approve" data-id="1">Approve &amp; Send</button>
+                    <button class="btn btn-outline">Edit Draft</button>
+                  </div>
+                </div>
+              </div>
+            </td>
+          </tr>
+
+          <!-- Row 2: Birthday Party -->
+          <tr class="lead-row" data-status="pending" data-date="2026-03-22" data-score="78" data-event="Birthday Party" data-id="2">
+            <td>
+              <div class="lead-event-name">Birthday Party</div>
+              <div class="lead-event-sub">Turning 30 — "not sure on details yet"</div>
+            </td>
+            <td class="lead-date">Mar 22, 2026</td>
+            <td class="lead-venue">TBD</td>
+            <td><span class="format-pill">Solo Guitar</span></td>
+            <td><span class="score medium">78</span></td>
+            <td><span class="status-badge pending">Pending</span></td>
+            <td>
+              <div class="actions">
+                <button class="btn btn-primary btn-approve" data-id="2">Approve</button>
+                <button class="btn btn-outline btn-view" data-id="2">View</button>
+              </div>
+            </td>
+          </tr>
+          <!-- Detail 2 -->
+          <tr class="detail-row" data-detail="2">
+            <td colspan="7">
+              <div class="detail-panel" id="detail-2">
+                <div class="detail-inner">
+                  <div class="draft-grid">
+                    <div class="draft-box">
+                      <h4>Full Draft</h4>
+                      <p>Happy birthday planning! Even though you're still figuring out the details, I can already tell you this — live guitar transforms a birthday from a party into a memory. Whether it's an intimate dinner or a bigger celebration, I'll tailor the music to fit perfectly. Solo guitar covers everything from jazz standards to acoustic pop, and I handle all the setup. Starting at $300 for 2 hours — want to chat about what you're envisioning?</p>
+                    </div>
+                    <div class="draft-box">
+                      <h4>Compressed Draft</h4>
+                      <p>Happy birthday planning! Live guitar transforms any celebration. I'll tailor the set to your vibe — jazz, acoustic pop, or a mix. Starting at $300/2hrs. What are you envisioning?</p>
+                    </div>
+                  </div>
+                  <div class="classification-grid">
+                    <div class="class-item">
+                      <span class="class-label">Format</span>
+                      <span class="class-value">Solo Guitar</span>
+                    </div>
+                    <div class="class-item">
+                      <span class="class-label">Duration</span>
+                      <span class="class-value">2 hours</span>
+                    </div>
+                    <div class="class-item">
+                      <span class="class-label">Quoted</span>
+                      <span class="class-value">$300</span>
+                    </div>
+                    <div class="class-item">
+                      <span class="class-label">Floor</span>
+                      <span class="class-value">$250</span>
+                    </div>
+                    <div class="class-item">
+                      <span class="class-label">Anchor</span>
+                      <span class="class-value">$350</span>
+                    </div>
+                  </div>
+                  <div class="gut-check-row">
+                    <span class="gut-label">Gut check:</span>
+                    <div class="gut-bar-track">
+                      <div class="gut-bar-fill" style="width: 78.5%"></div>
+                    </div>
+                    <span class="gut-fraction">11 of 14 passed</span>
+                  </div>
+                  <div class="detail-actions">
+                    <button class="btn btn-primary btn-approve" data-id="2">Approve &amp; Send</button>
+                    <button class="btn btn-outline">Edit Draft</button>
+                  </div>
+                </div>
+              </div>
+            </td>
+          </tr>
+
+          <!-- Row 3: Corporate Event (Sent) -->
+          <tr class="lead-row row-sent" data-status="sent" data-date="2026-03-14" data-score="88" data-event="Corporate Event" data-id="3">
+            <td>
+              <div class="lead-event-name">Corporate Event</div>
+              <div class="lead-event-sub">Annual mixer — background music</div>
+            </td>
+            <td class="lead-date">Mar 14, 2026</td>
+            <td class="lead-venue">Downtown SD</td>
+            <td><span class="format-pill">Solo Guitar</span></td>
+            <td><span class="score high">88</span></td>
+            <td><span class="status-badge sent">Sent</span></td>
+            <td>
+              <div class="actions">
+                <button class="btn btn-ghost" disabled>Sent Feb 20</button>
+                <button class="btn btn-outline btn-view" data-id="3">View</button>
+              </div>
+            </td>
+          </tr>
+          <!-- Detail 3 -->
+          <tr class="detail-row" data-detail="3">
+            <td colspan="7">
+              <div class="detail-panel" id="detail-3">
+                <div class="detail-inner">
+                  <div class="draft-grid">
+                    <div class="draft-box">
+                      <h4>Full Draft</h4>
+                      <p>Thanks for reaching out about your annual mixer! Background music is exactly what I specialize in — elegant guitar that fills the room without competing with conversation. I'll curate a mix of fingerstyle jazz and acoustic pop that keeps the energy flowing. Professional sound setup included so levels stay perfect all evening. 2 hours of live music: $350. Happy to jump on a quick call to discuss the vibe you're going for.</p>
+                    </div>
+                    <div class="draft-box">
+                      <h4>Compressed Draft</h4>
+                      <p>Thanks for reaching out! I specialize in background music for corporate events — fingerstyle jazz and acoustic pop that complement conversation perfectly. 2 hours, full setup: $350.</p>
+                    </div>
+                  </div>
+                  <div class="classification-grid">
+                    <div class="class-item">
+                      <span class="class-label">Format</span>
+                      <span class="class-value">Solo Guitar</span>
+                    </div>
+                    <div class="class-item">
+                      <span class="class-label">Duration</span>
+                      <span class="class-value">2 hours</span>
+                    </div>
+                    <div class="class-item">
+                      <span class="class-label">Quoted</span>
+                      <span class="class-value">$350</span>
+                    </div>
+                    <div class="class-item">
+                      <span class="class-label">Floor</span>
+                      <span class="class-value">$300</span>
+                    </div>
+                    <div class="class-item">
+                      <span class="class-label">Anchor</span>
+                      <span class="class-value">$400</span>
+                    </div>
+                  </div>
+                  <div class="gut-check-row">
+                    <span class="gut-label">Gut check:</span>
+                    <div class="gut-bar-track">
+                      <div class="gut-bar-fill" style="width: 85.7%"></div>
+                    </div>
+                    <span class="gut-fraction">12 of 14 passed</span>
+                  </div>
+                  <div class="detail-actions">
+                    <button class="btn btn-ghost" disabled>Already sent — Feb 20, 2026</button>
+                  </div>
+                </div>
+              </div>
+            </td>
+          </tr>
+
+          <!-- Row 4: Quinceañera -->
+          <tr class="lead-row" data-status="pending" data-date="2026-04-05" data-score="95" data-event="Quinceañera" data-id="4">
+            <td>
+              <div class="lead-event-name">Quinceañera</div>
+              <div class="lead-event-sub">Isabella's celebration — traditional + modern</div>
+            </td>
+            <td class="lead-date">Apr 5, 2026</td>
+            <td class="lead-venue">Casa de Bandini</td>
+            <td><span class="format-pill">Flamenco Trio</span></td>
+            <td><span class="score high">95</span></td>
+            <td><span class="status-badge pending">Pending</span></td>
+            <td>
+              <div class="actions">
+                <button class="btn btn-primary btn-approve" data-id="4">Approve</button>
+                <button class="btn btn-outline btn-view" data-id="4">View</button>
+              </div>
+            </td>
+          </tr>
+          <!-- Detail 4 -->
+          <tr class="detail-row" data-detail="4">
+            <td colspan="7">
+              <div class="detail-panel" id="detail-4">
+                <div class="detail-inner">
+                  <div class="draft-grid">
+                    <div class="draft-box">
+                      <h4>Full Draft</h4>
+                      <p>¡Felicidades! What an honor to be considered for Isabella's quinceañera. Casa de Bandini is one of my favorite venues — the courtyard was made for live flamenco. Our trio (guitar, cajón, and palmas) will create an unforgettable atmosphere, blending traditional flamenco with modern arrangements that get the whole family on their feet. We'll coordinate with your DJ for seamless transitions. 3 hours of live music, full sound setup, and a planning call included. Investment: $750</p>
+                    </div>
+                    <div class="draft-box">
+                      <h4>Compressed Draft</h4>
+                      <p>¡Felicidades! Our flamenco trio would be perfect for Isabella's quinceañera at Casa de Bandini. Traditional + modern flamenco, 3 hours, full setup, DJ coordination included — $750.</p>
+                    </div>
+                  </div>
+                  <div class="classification-grid">
+                    <div class="class-item">
+                      <span class="class-label">Format</span>
+                      <span class="class-value">Flamenco Trio</span>
+                    </div>
+                    <div class="class-item">
+                      <span class="class-label">Duration</span>
+                      <span class="class-value">3 hours</span>
+                    </div>
+                    <div class="class-item">
+                      <span class="class-label">Quoted</span>
+                      <span class="class-value">$750</span>
+                    </div>
+                    <div class="class-item">
+                      <span class="class-label">Floor</span>
+                      <span class="class-value">$600</span>
+                    </div>
+                    <div class="class-item">
+                      <span class="class-label">Anchor</span>
+                      <span class="class-value">$850</span>
+                    </div>
+                  </div>
+                  <div class="gut-check-row">
+                    <span class="gut-label">Gut check:</span>
+                    <div class="gut-bar-track">
+                      <div class="gut-bar-fill" style="width: 100%"></div>
+                    </div>
+                    <span class="gut-fraction">14 of 14 passed</span>
+                  </div>
+                  <div class="detail-actions">
+                    <button class="btn btn-primary btn-approve" data-id="4">Approve &amp; Send</button>
+                    <button class="btn btn-outline">Edit Draft</button>
+                  </div>
+                </div>
+              </div>
+            </td>
+          </tr>
+
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ── Mobile Cards ───────────────────────────────────── -->
+    <div class="mobile-cards" id="mobileCards">
+
+      <!-- Mobile Card 1 -->
+      <div class="mobile-card" data-status="pending" data-date="2026-03-15" data-score="92" data-event="Wedding Reception" data-mobile-id="1">
+        <div class="mobile-card-header">
+          <div>
+            <div class="lead-event-name">Wedding Reception</div>
+            <div class="lead-event-sub">Sarah &amp; Michael — cocktail hour + dinner</div>
+          </div>
+          <span class="status-badge pending">Pending</span>
+        </div>
+        <div class="mobile-card-meta">
+          <span>Mar 15, 2026</span>
+          <span>Hilton La Jolla</span>
+          <span class="format-pill">Flamenco Duo</span>
+        </div>
+        <div class="mobile-card-footer">
+          <div class="mobile-card-score">
+            <span class="score high">92</span>
+            <span class="gut-fraction">13/14</span>
+          </div>
+          <div class="actions">
+            <button class="btn btn-primary btn-approve" data-id="m1">Approve</button>
+            <button class="btn btn-outline btn-mobile-view" data-id="m1">View</button>
+          </div>
+        </div>
+        <div class="mobile-detail" id="mobile-detail-m1">
+          <div class="detail-inner">
+            <div class="draft-grid">
+              <div class="draft-box">
+                <h4>Full Draft</h4>
+                <p>Congratulations on your upcoming wedding at the Hilton! I'd love to bring the warmth of live flamenco to your celebration — imagine your guests arriving to the rich sounds of Spanish guitar as the sun sets over La Jolla. For your cocktail hour and dinner, I'd recommend our Flamenco Duo: guitar and cajón creating an intimate, elegant atmosphere. We'd perform a curated mix of traditional flamenco, modern Spanish guitar, and a few romantic favorites. The package includes 2 hours of live music, professional sound setup, and a personalized setlist consultation. Investment: $450</p>
+              </div>
+              <div class="draft-box">
+                <h4>Compressed Draft</h4>
+                <p>Congratulations! I'd love to bring live flamenco to your Hilton wedding. Our duo (guitar + cajón) creates the perfect cocktail hour atmosphere. 2 hours, full setup included — $450.</p>
+              </div>
+            </div>
+            <div class="gut-check-row">
+              <span class="gut-label">Gut check:</span>
+              <div class="gut-bar-track">
+                <div class="gut-bar-fill" style="width: 92.8%"></div>
+              </div>
+              <span class="gut-fraction">13 of 14 passed</span>
+            </div>
+            <div class="classification-grid">
+              <div class="class-item"><span class="class-label">Format</span><span class="class-value">Flamenco Duo</span></div>
+              <div class="class-item"><span class="class-label">Duration</span><span class="class-value">2 hours</span></div>
+              <div class="class-item"><span class="class-label">Quoted</span><span class="class-value">$450</span></div>
+            </div>
+            <div class="detail-actions">
+              <button class="btn btn-primary btn-approve" data-id="m1">Approve &amp; Send</button>
+              <button class="btn btn-outline">Edit Draft</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mobile Card 2 -->
+      <div class="mobile-card" data-status="pending" data-date="2026-03-22" data-score="78" data-event="Birthday Party" data-mobile-id="2">
+        <div class="mobile-card-header">
+          <div>
+            <div class="lead-event-name">Birthday Party</div>
+            <div class="lead-event-sub">Turning 30 — "not sure on details yet"</div>
+          </div>
+          <span class="status-badge pending">Pending</span>
+        </div>
+        <div class="mobile-card-meta">
+          <span>Mar 22, 2026</span>
+          <span>TBD</span>
+          <span class="format-pill">Solo Guitar</span>
+        </div>
+        <div class="mobile-card-footer">
+          <div class="mobile-card-score">
+            <span class="score medium">78</span>
+            <span class="gut-fraction">11/14</span>
+          </div>
+          <div class="actions">
+            <button class="btn btn-primary btn-approve" data-id="m2">Approve</button>
+            <button class="btn btn-outline btn-mobile-view" data-id="m2">View</button>
+          </div>
+        </div>
+        <div class="mobile-detail" id="mobile-detail-m2">
+          <div class="detail-inner">
+            <div class="draft-grid">
+              <div class="draft-box">
+                <h4>Full Draft</h4>
+                <p>Happy birthday planning! Even though you're still figuring out the details, I can already tell you this — live guitar transforms a birthday from a party into a memory. Whether it's an intimate dinner or a bigger celebration, I'll tailor the music to fit perfectly. Solo guitar covers everything from jazz standards to acoustic pop, and I handle all the setup. Starting at $300 for 2 hours — want to chat about what you're envisioning?</p>
+              </div>
+              <div class="draft-box">
+                <h4>Compressed Draft</h4>
+                <p>Happy birthday planning! Live guitar transforms any celebration. I'll tailor the set to your vibe — jazz, acoustic pop, or a mix. Starting at $300/2hrs. What are you envisioning?</p>
+              </div>
+            </div>
+            <div class="gut-check-row">
+              <span class="gut-label">Gut check:</span>
+              <div class="gut-bar-track">
+                <div class="gut-bar-fill" style="width: 78.5%"></div>
+              </div>
+              <span class="gut-fraction">11 of 14 passed</span>
+            </div>
+            <div class="classification-grid">
+              <div class="class-item"><span class="class-label">Format</span><span class="class-value">Solo Guitar</span></div>
+              <div class="class-item"><span class="class-label">Duration</span><span class="class-value">2 hours</span></div>
+              <div class="class-item"><span class="class-label">Quoted</span><span class="class-value">$300</span></div>
+            </div>
+            <div class="detail-actions">
+              <button class="btn btn-primary btn-approve" data-id="m2">Approve &amp; Send</button>
+              <button class="btn btn-outline">Edit Draft</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mobile Card 3 -->
+      <div class="mobile-card" data-status="sent" data-date="2026-03-14" data-score="88" data-event="Corporate Event" data-mobile-id="3" style="opacity: 0.7;">
+        <div class="mobile-card-header">
+          <div>
+            <div class="lead-event-name">Corporate Event</div>
+            <div class="lead-event-sub">Annual mixer — background music</div>
+          </div>
+          <span class="status-badge sent">Sent</span>
+        </div>
+        <div class="mobile-card-meta">
+          <span>Mar 14, 2026</span>
+          <span>Downtown SD</span>
+          <span class="format-pill">Solo Guitar</span>
+        </div>
+        <div class="mobile-card-footer">
+          <div class="mobile-card-score">
+            <span class="score high">88</span>
+            <span class="gut-fraction">12/14</span>
+          </div>
+          <div class="actions">
+            <button class="btn btn-ghost" disabled>Sent Feb 20</button>
+            <button class="btn btn-outline btn-mobile-view" data-id="m3">View</button>
+          </div>
+        </div>
+        <div class="mobile-detail" id="mobile-detail-m3">
+          <div class="detail-inner">
+            <div class="draft-grid">
+              <div class="draft-box">
+                <h4>Full Draft</h4>
+                <p>Thanks for reaching out about your annual mixer! Background music is exactly what I specialize in — elegant guitar that fills the room without competing with conversation. I'll curate a mix of fingerstyle jazz and acoustic pop that keeps the energy flowing. Professional sound setup included so levels stay perfect all evening. 2 hours of live music: $350. Happy to jump on a quick call to discuss the vibe you're going for.</p>
+              </div>
+              <div class="draft-box">
+                <h4>Compressed Draft</h4>
+                <p>Thanks for reaching out! I specialize in background music for corporate events — fingerstyle jazz and acoustic pop that complement conversation perfectly. 2 hours, full setup: $350.</p>
+              </div>
+            </div>
+            <div class="gut-check-row">
+              <span class="gut-label">Gut check:</span>
+              <div class="gut-bar-track">
+                <div class="gut-bar-fill" style="width: 85.7%"></div>
+              </div>
+              <span class="gut-fraction">12 of 14 passed</span>
+            </div>
+            <div class="detail-actions">
+              <button class="btn btn-ghost" disabled>Already sent — Feb 20, 2026</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mobile Card 4 -->
+      <div class="mobile-card" data-status="pending" data-date="2026-04-05" data-score="95" data-event="Quinceañera" data-mobile-id="4">
+        <div class="mobile-card-header">
+          <div>
+            <div class="lead-event-name">Quinceañera</div>
+            <div class="lead-event-sub">Isabella's celebration — traditional + modern</div>
+          </div>
+          <span class="status-badge pending">Pending</span>
+        </div>
+        <div class="mobile-card-meta">
+          <span>Apr 5, 2026</span>
+          <span>Casa de Bandini</span>
+          <span class="format-pill">Flamenco Trio</span>
+        </div>
+        <div class="mobile-card-footer">
+          <div class="mobile-card-score">
+            <span class="score high">95</span>
+            <span class="gut-fraction">14/14</span>
+          </div>
+          <div class="actions">
+            <button class="btn btn-primary btn-approve" data-id="m4">Approve</button>
+            <button class="btn btn-outline btn-mobile-view" data-id="m4">View</button>
+          </div>
+        </div>
+        <div class="mobile-detail" id="mobile-detail-m4">
+          <div class="detail-inner">
+            <div class="draft-grid">
+              <div class="draft-box">
+                <h4>Full Draft</h4>
+                <p>¡Felicidades! What an honor to be considered for Isabella's quinceañera. Casa de Bandini is one of my favorite venues — the courtyard was made for live flamenco. Our trio (guitar, cajón, and palmas) will create an unforgettable atmosphere, blending traditional flamenco with modern arrangements that get the whole family on their feet. We'll coordinate with your DJ for seamless transitions. 3 hours of live music, full sound setup, and a planning call included. Investment: $750</p>
+              </div>
+              <div class="draft-box">
+                <h4>Compressed Draft</h4>
+                <p>¡Felicidades! Our flamenco trio would be perfect for Isabella's quinceañera at Casa de Bandini. Traditional + modern flamenco, 3 hours, full setup, DJ coordination included — $750.</p>
+              </div>
+            </div>
+            <div class="gut-check-row">
+              <span class="gut-label">Gut check:</span>
+              <div class="gut-bar-track">
+                <div class="gut-bar-fill" style="width: 100%"></div>
+              </div>
+              <span class="gut-fraction">14 of 14 passed</span>
+            </div>
+            <div class="classification-grid">
+              <div class="class-item"><span class="class-label">Format</span><span class="class-value">Flamenco Trio</span></div>
+              <div class="class-item"><span class="class-label">Duration</span><span class="class-value">3 hours</span></div>
+              <div class="class-item"><span class="class-label">Quoted</span><span class="class-value">$750</span></div>
+            </div>
+            <div class="detail-actions">
+              <button class="btn btn-primary btn-approve" data-id="m4">Approve &amp; Send</button>
+              <button class="btn btn-outline">Edit Draft</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /mobile-cards -->
+
+  </div><!-- /panel-queue -->
+
+  <!-- ══════════════════ ALL LEADS TAB ══════════════════════ -->
+  <div class="tab-panel" id="panel-all">
+    <div class="placeholder-panel">
+      <h2 class="serif">All Leads</h2>
+      <p>Full searchable history of every inquiry — coming soon.</p>
+    </div>
+  </div>
+
+  <!-- ══════════════════ ANALYZE TAB ═══════════════════════ -->
+  <div class="tab-panel" id="panel-analyze">
+    <div class="placeholder-panel">
+      <h2 class="serif">Analyze</h2>
+      <p>Trends, conversion rates, and revenue forecasts — coming soon.</p>
+    </div>
+  </div>
+
+</div><!-- /app-shell -->
+
+<script>
+(function () {
+  'use strict';
+
+  /* ── Tab switching ──────────────────────────────────────── */
+  const tabBtns  = document.querySelectorAll('.tab-btn');
+  const panels   = document.querySelectorAll('.tab-panel');
+
+  tabBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      tabBtns.forEach(b => b.classList.remove('active'));
+      panels.forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('panel-' + btn.dataset.tab).classList.add('active');
+    });
+  });
+
+  /* ── Filter pills ───────────────────────────────────────── */
+  const filterPills  = document.querySelectorAll('.filter-pill');
+  const leadRows     = document.querySelectorAll('.lead-row');
+  const detailRows   = document.querySelectorAll('.detail-row');
+  const mobileCards  = document.querySelectorAll('.mobile-card');
+
+  function applyFilter(status) {
+    // Desktop rows
+    leadRows.forEach(row => {
+      const matchRow = row.closest('tr');
+      const id = row.dataset.id;
+      const detailTr = document.querySelector('tr.detail-row[data-detail="' + id + '"]');
+      if (status === 'all' || row.dataset.status === status) {
+        matchRow.style.display = '';
+        if (detailTr) detailTr.style.display = '';
+      } else {
+        matchRow.style.display = 'none';
+        if (detailTr) detailTr.style.display = 'none';
+      }
+    });
+    // Mobile cards
+    mobileCards.forEach(card => {
+      if (status === 'all' || card.dataset.status === status) {
+        card.style.display = '';
+      } else {
+        card.style.display = 'none';
+      }
+    });
+  }
+
+  filterPills.forEach(pill => {
+    pill.addEventListener('click', () => {
+      filterPills.forEach(p => p.classList.remove('active'));
+      pill.classList.add('active');
+      applyFilter(pill.dataset.filter);
+    });
+  });
+
+  /* ── Sort dropdown ──────────────────────────────────────── */
+  const sortSelect = document.getElementById('sortSelect');
+  const tableBody  = document.getElementById('tableBody');
+
+  sortSelect.addEventListener('change', () => {
+    const val = sortSelect.value;
+    // Gather lead-row + detail-row pairs
+    const pairs = [];
+    leadRows.forEach(row => {
+      const id = row.dataset.id;
+      const detail = document.querySelector('tr.detail-row[data-detail="' + id + '"]');
+      pairs.push({ lead: row, detail: detail });
+    });
+
+    pairs.sort((a, b) => {
+      switch (val) {
+        case 'date':
+          return new Date(a.lead.dataset.date) - new Date(b.lead.dataset.date);
+        case 'score-desc':
+          return parseInt(b.lead.dataset.score) - parseInt(a.lead.dataset.score);
+        case 'score-asc':
+          return parseInt(a.lead.dataset.score) - parseInt(b.lead.dataset.score);
+        case 'event':
+          return a.lead.dataset.event.localeCompare(b.lead.dataset.event);
+        default:
+          return 0;
+      }
+    });
+
+    pairs.forEach(pair => {
+      tableBody.appendChild(pair.lead);
+      if (pair.detail) tableBody.appendChild(pair.detail);
+    });
+
+    // Also sort mobile cards
+    const mobileContainer = document.getElementById('mobileCards');
+    const cardArr = Array.from(mobileCards);
+    cardArr.sort((a, b) => {
+      switch (val) {
+        case 'date':
+          return new Date(a.dataset.date) - new Date(b.dataset.date);
+        case 'score-desc':
+          return parseInt(b.dataset.score) - parseInt(a.dataset.score);
+        case 'score-asc':
+          return parseInt(a.dataset.score) - parseInt(b.dataset.score);
+        case 'event':
+          return a.dataset.event.localeCompare(b.dataset.event);
+        default:
+          return 0;
+      }
+    });
+    cardArr.forEach(c => mobileContainer.appendChild(c));
+  });
+
+  /* ── Expandable detail panels (desktop) ─────────────────── */
+  let openDetailId = null;
+
+  function toggleDetail(id) {
+    // Close the currently open one
+    if (openDetailId && openDetailId !== id) {
+      const prev = document.getElementById('detail-' + openDetailId);
+      if (prev) prev.classList.remove('open');
+    }
+    const panel = document.getElementById('detail-' + id);
+    if (!panel) return;
+    if (panel.classList.contains('open')) {
+      panel.classList.remove('open');
+      openDetailId = null;
+    } else {
+      panel.classList.add('open');
+      openDetailId = id;
+    }
+  }
+
+  // Click anywhere on a lead row to toggle detail
+  leadRows.forEach(row => {
+    row.addEventListener('click', (e) => {
+      // Don't toggle if clicking a button
+      if (e.target.closest('button')) return;
+      toggleDetail(row.dataset.id);
+    });
+  });
+
+  // View buttons
+  document.querySelectorAll('.btn-view').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleDetail(btn.dataset.id);
+    });
+  });
+
+  /* ── Expandable detail panels (mobile) ──────────────────── */
+  let openMobileId = null;
+
+  function toggleMobileDetail(id) {
+    if (openMobileId && openMobileId !== id) {
+      const prev = document.getElementById('mobile-detail-' + openMobileId);
+      if (prev) prev.classList.remove('open');
+    }
+    const panel = document.getElementById('mobile-detail-' + id);
+    if (!panel) return;
+    if (panel.classList.contains('open')) {
+      panel.classList.remove('open');
+      openMobileId = null;
+    } else {
+      panel.classList.add('open');
+      openMobileId = id;
+    }
+  }
+
+  document.querySelectorAll('.btn-mobile-view').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleMobileDetail(btn.dataset.id);
+    });
+  });
+
+  // Click card header area to toggle
+  mobileCards.forEach(card => {
+    card.addEventListener('click', (e) => {
+      if (e.target.closest('button')) return;
+      toggleMobileDetail('m' + card.dataset.mobileId);
+    });
+  });
+
+  /* ── Approve flash animation ────────────────────────────── */
+  const flash = document.getElementById('approveFlash');
+
+  function showApproveFlash(btnEl) {
+    flash.classList.add('show');
+    setTimeout(() => {
+      flash.classList.remove('show');
+    }, 800);
+
+    // Update the row status visually
+    const id = btnEl.dataset.id;
+
+    // Desktop: find the lead row
+    const row = document.querySelector('.lead-row[data-id="' + id + '"]');
+    if (row) {
+      row.dataset.status = 'sent';
+      row.classList.add('row-sent');
+      const badge = row.querySelector('.status-badge');
+      if (badge) {
+        badge.className = 'status-badge sent';
+        badge.textContent = 'Sent';
+      }
+      // Disable approve buttons in that row
+      row.querySelectorAll('.btn-approve').forEach(b => {
+        b.disabled = true;
+        b.textContent = 'Sent';
+        b.classList.remove('btn-primary');
+        b.classList.add('btn-ghost');
+      });
+    }
+
+    // Also update detail panel approve button
+    const detailPanel = document.getElementById('detail-' + id);
+    if (detailPanel) {
+      detailPanel.querySelectorAll('.btn-approve').forEach(b => {
+        b.disabled = true;
+        b.textContent = 'Sent';
+        b.classList.remove('btn-primary');
+        b.classList.add('btn-ghost');
+      });
+    }
+
+    // Mobile: same id pattern with "m" prefix removed
+    const mobileId = id.startsWith('m') ? id : 'm' + id;
+    const mCard = document.querySelector('.mobile-card[data-mobile-id="' + id.replace('m', '') + '"]');
+    if (mCard) {
+      mCard.dataset.status = 'sent';
+      mCard.style.opacity = '0.7';
+      const mbadge = mCard.querySelector('.status-badge');
+      if (mbadge) {
+        mbadge.className = 'status-badge sent';
+        mbadge.textContent = 'Sent';
+      }
+      mCard.querySelectorAll('.btn-approve').forEach(b => {
+        b.disabled = true;
+        b.textContent = 'Sent';
+        b.classList.remove('btn-primary');
+        b.classList.add('btn-ghost');
+      });
+    }
+
+    // Update pending stat
+    updateStats();
+  }
+
+  document.addEventListener('click', (e) => {
+    const approveBtn = e.target.closest('.btn-approve');
+    if (approveBtn && !approveBtn.disabled) {
+      e.stopPropagation();
+      showApproveFlash(approveBtn);
+    }
+  });
+
+  /* ── Update stats after approve ─────────────────────────── */
+  function updateStats() {
+    const allLeadRows = document.querySelectorAll('.lead-row');
+    let pending = 0, sent = 0;
+    allLeadRows.forEach(r => {
+      if (r.dataset.status === 'pending') pending++;
+      if (r.dataset.status === 'sent') sent++;
+    });
+    const statNumbers = document.querySelectorAll('.stat-number');
+    if (statNumbers[0]) statNumbers[0].textContent = pending;
+    if (statNumbers[1]) statNumbers[1].textContent = sent > 12 ? sent : 12 + (sent - 1);
+    // Update page title
+    const h1 = document.querySelector('.page-header h1');
+    if (h1) {
+      if (pending === 0) {
+        h1.textContent = 'All caught up!';
+      } else {
+        h1.textContent = pending + ' gig' + (pending !== 1 ? 's' : '') + ' waiting for you';
+      }
+    }
+  }
+
+})();
+</script>
+</body>
+</html>
