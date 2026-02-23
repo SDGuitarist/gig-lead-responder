@@ -1,8 +1,8 @@
 # Gig Lead Responder — Session Handoff
 
-**Last updated:** 2026-02-22 (v30)
-**Current phase:** Work — Dashboard UI Redesign (Chunks 1-5 done)
-**Next session:** Chunk 6 — Route cleanup + polish
+**Last updated:** 2026-02-22 (v31)
+**Current phase:** Work — Dashboard UI Redesign (all 6 chunks done)
+**Next session:** Review — `/workflows:review` on dashboard changes
 
 ### Deploy Progress (as of 2026-02-22)
 
@@ -1059,7 +1059,7 @@ requirement in the reusable pattern checklist.
 | 3 | Dashboard HTML — layout + stats + table + filters + tabs | Done | `524f3e3` |
 | 4 | Dashboard HTML — expanded row + approve action | Done | `449b32e` |
 | 5 | Dashboard HTML — Analyze tab (SSE migration) | Done | `af60ac2` |
-| 6 | Route cleanup + polish | Next | — |
+| 6 | Route cleanup + polish (Refresh button, mockup cleanup) | Done | `d5b34fe` |
 
 ### Chunk 1: Database Layer (`ddb515d`)
 
@@ -1117,19 +1117,42 @@ Two new query functions in `src/leads.ts`:
   - Error handling: network failures and mid-stream SSE errors shown inline
   - All styled in warm palette (cream background, gold accents, Playfair Display section headings, gold left-border draft boxes)
 
-### Prompt for Next Session (Chunk 6)
+### Chunk 6: Route Cleanup + Polish (`d5b34fe`)
+
+- **`public/dashboard.html`** — Added Refresh button to top bar with `.refresh-btn` CSS. Calls `loadStats()` + `loadLeads()` on click.
+- **Mockup cleanup** — Deleted `mockup-clean.html`, `mockup-dark.html`, `mockup-warm.html` (untracked, never committed). Kept `mockup-hybrid.html` as design reference.
+- **`/` redirect** — Already done in Chunk 3 (server.ts line 37-39).
+- **Old `/leads` routes** — Still working via `dashboardRouter` in `src/dashboard.ts`.
+
+### Dashboard Architecture (New)
+
+The unified dashboard replaces the old two-surface design:
+
+| Route | Source | Purpose |
+|-------|--------|---------|
+| `/` | `src/server.ts` redirect | → `/dashboard.html` |
+| `/dashboard.html` | `public/dashboard.html` (static) | Unified dashboard: Queue + All Leads + Analyze tabs |
+| `/api/leads` | `src/api.ts` | JSON API: filtered lead list with parsed sub-fields |
+| `/api/stats` | `src/api.ts` | JSON API: pending, sent, avg_score, this_month |
+| `/api/leads/:id/approve` | `src/api.ts` | Approve lead → SMS to `ALEX_PHONE` → status `done` |
+| `/api/leads/:id/edit` | `src/api.ts` | Manual text edit → save to DB, increment `edit_round` |
+| `/api/analyze` | `src/server.ts` | SSE streaming pipeline (unprotected, matches old behavior) |
+| `/leads` | `src/dashboard.ts` (old) | Legacy HTML table — still works, superseded |
+| `/leads/:id` | `src/dashboard.ts` (old) | Legacy detail page — still works, superseded |
+
+All `/api/*` routes (except `/api/analyze`) require Basic Auth via `src/auth.ts`.
+
+### Prompt for Next Session (Review)
 
 ```
-Read docs/plans/2026-02-22-feat-dashboard-ui-redesign-plan.md Chunk 6.
-Read public/dashboard.html (current state). Read src/server.ts.
-Chunk 6: Add Refresh button to top bar, keep old /leads routes working,
-clean up mockup files (keep mockup-hybrid as reference), update HANDOFF.
+Read docs/HANDOFF.md "Dashboard UI Redesign — Work Phase" section.
+Run /workflows:review on the dashboard changes (commits ddb515d..d5b34fe).
 ```
 
 ## Three Questions
 
-1. **Hardest implementation decision in this session?** Whether to rewrite the SSE parser or copy it verbatim from index.html. The index.html version uses `async/await` with `while(true)` + `reader.read()`, but the dashboard JS uses `var` and `.then()` chains (no async/await) for consistency with the rest of the file. Rewrote it as a recursive `.then()` chain (`readChunk` calls itself) to match the dashboard's coding style while preserving identical SSE parsing logic.
+1. **Hardest implementation decision in this session?** Nothing hard — Chunk 6 was the cleanup chunk. The only decision was where to place the Refresh button (top bar vs. page header). Top bar keeps it visible across all tabs and avoids it disappearing when switching to Analyze.
 
-2. **What did you consider changing but left alone, and why?** Considered using the dashboard's existing `apiFetch()` helper for the analyze POST (which handles auth prompts on 401). Left it alone because `/api/analyze` is explicitly unprotected (plan decision #4) and needs raw `response.body` access for SSE streaming, which `apiFetch()` consumes with `.json()`. Different use case, different function.
+2. **What did you consider changing but left alone, and why?** Considered removing the old `/leads` routes entirely since the new dashboard supersedes them. Left them alone because (a) the plan explicitly says "keep old routes working" for backwards compatibility, and (b) they cost nothing — `dashboard.ts` is already mounted and tested.
 
-3. **Least confident about going into review?** The `renderAnalyzeResults()` function accesses nested properties like `data.gate.gut_checks` without null guards. If the SSE `complete` event payload has a different shape than expected (e.g., a pipeline that fails verification and returns partial data), it could throw. The index.html version had the same assumption, but the dashboard version should be more resilient since it's the primary UI now.
+3. **Least confident about going into review?** Same as Chunk 5's flag: `renderAnalyzeResults()` accesses nested properties like `data.gate.gut_checks` without null guards. If the SSE `complete` event has a different shape than expected (partial pipeline failure), it could throw. The review should flag this.
