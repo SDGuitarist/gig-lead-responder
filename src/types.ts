@@ -174,7 +174,7 @@ export type ParseResult =
 
 // --- Lead persistence types (Phase 1) ---
 
-export type LeadStatus = "received" | "sent" | "done" | "failed";
+export type LeadStatus = "received" | "sending" | "sent" | "done" | "failed";
 
 export interface LeadRecord {
   id: number;

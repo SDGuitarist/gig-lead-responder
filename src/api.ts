@@ -1,12 +1,12 @@
 import { Router, type Request, type Response } from "express";
-import { listLeadsFiltered, getLeadStats, getLead, updateLead } from "./leads.js";
+import { listLeadsFiltered, getLeadStats, getLead, updateLead, claimLeadForSending } from "./leads.js";
 import type { LeadStatus } from "./types.js";
 import { basicAuth } from "./auth.js";
 import { sendSms } from "./sms.js";
+import { runPipeline } from "./run-pipeline.js";
 
 const router = Router();
-router.use("/api/leads", basicAuth);
-router.use("/api/stats", basicAuth);
+router.use(basicAuth);
 
 // --- Helpers ---
 
@@ -71,6 +71,10 @@ function shapeLead(lead: ReturnType<typeof getLead>) {
   };
 }
 
+function sendSSE(res: Response, event: string, data: unknown) {
+  res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
+}
+
 // --- GET /api/leads ---
 
 const VALID_STATUSES = new Set(["received", "sent", "done", "failed"]);
@@ -109,19 +113,22 @@ router.post("/api/leads/:id/approve", async (req: Request, res: Response) => {
     return;
   }
 
-  if (lead.status !== "received" && lead.status !== "sent") {
-    res.status(400).json({ error: `Cannot approve lead with status "${lead.status}"` });
+  if (!lead.compressed_draft) {
+    res.status(400).json({ error: "Lead has no draft to send" });
     return;
   }
 
-  if (!lead.compressed_draft) {
-    res.status(400).json({ error: "Lead has no draft to send" });
+  // Atomically claim — prevents double SMS from concurrent requests
+  if (!claimLeadForSending(id)) {
+    res.status(409).json({ error: "Lead is already being sent or is no longer approvable" });
     return;
   }
 
   try {
     await sendSms(lead.compressed_draft);
   } catch (err) {
+    // Revert to previous status on SMS failure
+    updateLead(id, { status: lead.status });
     const message = err instanceof Error ? err.message : String(err);
     res.status(500).json({ error: `SMS failed: ${message}` });
     return;
@@ -133,7 +140,11 @@ router.post("/api/leads/:id/approve", async (req: Request, res: Response) => {
     sms_sent_at: new Date().toISOString(),
   });
 
-  res.json(shapeLead(updated!));
+  if (!updated) {
+    res.status(500).json({ error: "Failed to update lead after sending" });
+    return;
+  }
+  res.json(shapeLead(updated));
 });
 
 // --- POST /api/leads/:id/edit ---
@@ -157,12 +168,45 @@ router.post("/api/leads/:id/edit", async (req: Request, res: Response) => {
     return;
   }
 
+  // Null out compressed_draft so approve is blocked until re-analyze
   const updated = updateLead(id, {
     full_draft: full_draft.trim(),
+    compressed_draft: null as unknown as string,
     edit_round: lead.edit_round + 1,
   });
 
-  res.json(shapeLead(updated!));
+  if (!updated) {
+    res.status(500).json({ error: "Failed to update lead" });
+    return;
+  }
+  res.json(shapeLead(updated));
+});
+
+// --- POST /api/analyze ---
+
+router.post("/api/analyze", async (req: Request, res: Response) => {
+  const { text } = req.body;
+  if (!text || typeof text !== "string" || !text.trim()) {
+    res.status(400).json({ error: "Missing 'text' field in request body" });
+    return;
+  }
+
+  res.setHeader("Content-Type", "text/event-stream");
+  res.setHeader("Cache-Control", "no-cache");
+  res.setHeader("Connection", "keep-alive");
+  res.flushHeaders();
+
+  try {
+    const output = await runPipeline(text.trim(), (event) => {
+      sendSSE(res, "stage", event);
+    });
+    sendSSE(res, "complete", output);
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    sendSSE(res, "error", { error: message });
+  } finally {
+    res.end();
+  }
 });
 
 export default router;

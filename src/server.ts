@@ -1,7 +1,6 @@
 import "dotenv/config";
 import express from "express";
 import { join } from "node:path";
-import { runPipeline } from "./run-pipeline.js";
 import { initDb } from "./leads.js";
 import webhookRouter from "./webhook.js";
 import twilioWebhookRouter from "./twilio-webhook.js";
@@ -26,7 +25,7 @@ app.use(webhookRouter);
 // Twilio inbound SMS webhook
 app.use(twilioWebhookRouter);
 
-// JSON API for new dashboard
+// JSON API for new dashboard (includes /api/analyze)
 app.use(apiRouter);
 
 // Redirect root to new dashboard
@@ -37,37 +36,6 @@ app.get("/", (_req, res) => {
 // Healthcheck for Railway
 app.get("/health", (_req, res) => {
   res.json({ status: "ok" });
-});
-
-// SSE helper — sends a named event to the client
-function sendSSE(res: express.Response, event: string, data: unknown) {
-  res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
-}
-
-app.post("/api/analyze", async (req, res) => {
-  const { text } = req.body;
-  if (!text || typeof text !== "string" || !text.trim()) {
-    res.status(400).json({ error: "Missing 'text' field in request body" });
-    return;
-  }
-
-  // Set up SSE stream
-  res.setHeader("Content-Type", "text/event-stream");
-  res.setHeader("Cache-Control", "no-cache");
-  res.setHeader("Connection", "keep-alive");
-  res.flushHeaders();
-
-  try {
-    const output = await runPipeline(text.trim(), (event) => {
-      sendSSE(res, "stage", event);
-    });
-    sendSSE(res, "complete", output);
-  } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : String(err);
-    sendSSE(res, "error", { error: message });
-  } finally {
-    res.end();
-  }
 });
 
 const PORT = parseInt(process.env.PORT || "3000", 10);

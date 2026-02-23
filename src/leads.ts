@@ -187,6 +187,16 @@ export function updateLead(
   return getLead(id);
 }
 
+/** Atomically set status to 'sending' if currently approvable. Returns true if claimed. */
+export function claimLeadForSending(id: number): boolean {
+  const result = initDb()
+    .prepare(
+      "UPDATE leads SET status = 'sending', updated_at = @updated_at WHERE id = @id AND status IN ('received', 'sent')",
+    )
+    .run({ id, updated_at: new Date().toISOString() });
+  return result.changes > 0;
+}
+
 // --- Idempotency (processed_emails) ---
 
 export function isEmailProcessed(externalId: string): boolean {

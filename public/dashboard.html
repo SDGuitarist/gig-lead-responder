@@ -904,10 +904,11 @@
   };
 
   var STATUS_DISPLAY = {
-    received: { label: 'Pending', css: 'pending' },
-    sent:     { label: 'Sent',    css: 'sent' },
-    done:     { label: 'Done',    css: 'done' },
-    failed:   { label: 'Failed',  css: 'failed' }
+    received: { label: 'Pending',  css: 'pending' },
+    sending:  { label: 'Sending',  css: 'sent' },
+    sent:     { label: 'Sent',     css: 'sent' },
+    done:     { label: 'Done',     css: 'done' },
+    failed:   { label: 'Failed',   css: 'failed' }
   };
 
   var CHECK_NAMES = {
@@ -1130,8 +1131,8 @@
     html += '</div>';
 
     // Action buttons
-    var canApprove = l.full_draft && (l.status === 'received' || l.status === 'sent');
-    var isDone = l.status === 'done';
+    var canApprove = l.full_draft && l.compressed_draft && (l.status === 'received' || l.status === 'sent');
+    var isDone = l.status === 'done' || l.status === 'sending';
 
     html += '<div class="detail-actions">';
     if (isDone) {
@@ -1488,9 +1489,12 @@
     btn.textContent = 'Analyzing\u2026';
     resetAnalyze();
 
+    var analyzeHeaders = { 'Content-Type': 'application/json' };
+    if (authHeader) analyzeHeaders.Authorization = authHeader;
+
     fetch('/api/analyze', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: analyzeHeaders,
       body: JSON.stringify({ text: text })
     }).then(function (response) {
       var reader = response.body.getReader();
