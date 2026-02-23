@@ -1,8 +1,8 @@
 # Gig Lead Responder — Session Handoff
 
-**Last updated:** 2026-02-22 (v28)
-**Current phase:** Work — Dashboard UI Redesign (Chunks 1-3 done)
-**Next session:** Chunk 4 — Expandable row detail + approve action
+**Last updated:** 2026-02-22 (v29)
+**Current phase:** Work — Dashboard UI Redesign (Chunks 1-4 done)
+**Next session:** Chunk 5 — Analyze tab (SSE migration)
 
 ### Deploy Progress (as of 2026-02-22)
 
@@ -1057,8 +1057,8 @@ requirement in the reusable pattern checklist.
 | 1 | Database layer — `listLeadsFiltered()` + `getLeadStats()` | Done | `ddb515d` |
 | 2 | API router — `GET /api/leads`, `GET /api/stats`, `POST /api/leads/:id/approve` | Done | `b918790` |
 | 3 | Dashboard HTML — layout + stats + table + filters + tabs | Done | `524f3e3` |
-| 4 | Dashboard HTML — expanded row + approve action | Next | — |
-| 5 | Dashboard HTML — Analyze tab (SSE migration) | — | — |
+| 4 | Dashboard HTML — expanded row + approve action | Done | `449b32e` |
+| 5 | Dashboard HTML — Analyze tab (SSE migration) | Next | — |
 
 ### Chunk 1: Database Layer (`ddb515d`)
 
@@ -1089,23 +1089,36 @@ Two new query functions in `src/leads.ts`:
   - Detail panel + approve flash CSS included (ready for Chunk 4)
 - **`src/server.ts`** — Added `/` redirect to `/dashboard.html`
 
-### Prompt for Next Session (Chunk 4)
+### Chunk 4: Expandable Row Detail + Approve Action (`449b32e`)
+
+- **`public/dashboard.html`** — 1203 lines (+331). Click-to-expand accordion detail panel:
+  - Gut check progress bar (green/amber/red) + failed check names listed
+  - Full draft + compressed draft in two-column grid, edit round indicator
+  - Classification + pricing breakdown grid (format, duration, tier, competition, quote/anchor/floor)
+  - "Approve & Send" button → `POST /api/leads/:id/approve` → flash animation → row updates to Done
+  - "Edit Draft" button → inline textarea → "Save" calls `POST /api/leads/:id/edit` → `edit_round` incremented
+  - Error state: red banner with `error_message` for failed leads
+  - Mid-pipeline state: spinner + "Pipeline running..." for received leads with no draft
+  - Accordion behavior: only one row expanded at a time
+  - Mobile cards also expand with same detail panel
+- **`src/api.ts`** — Two additions:
+  - `failed_checks: string[]` added to `shapeLead` response (names of gut checks that failed)
+  - `POST /api/leads/:id/edit` — validates `full_draft` string, updates DB, increments `edit_round`, returns shaped lead
+
+### Prompt for Next Session (Chunk 5)
 
 ```
-Read docs/plans/2026-02-22-feat-dashboard-ui-redesign-plan.md Chunk 4.
-Read public/dashboard.html (current state). Read src/api.ts (API shape).
-Implement in dashboard.html: click-to-expand detail panel (accordion),
-draft display grid, gut check bar, classification grid, Approve & Send
-button wired to POST /api/leads/:id/approve, Edit Draft textarea,
-approve flash animation, error/mid-pipeline states.
-Add POST /api/leads/:id/edit endpoint to src/api.ts.
-Commit when done.
+Read docs/plans/2026-02-22-feat-dashboard-ui-redesign-plan.md Chunk 5.
+Read public/dashboard.html (current state). Read public/index.html (SSE source).
+Port the Analyze tab from index.html into the dashboard: textarea, analyze
+button, 5-stage progress indicator, SSE stream reader, result display.
+Apply warm palette CSS. Commit when done.
 ```
 
 ## Three Questions
 
-1. **Hardest implementation decision in this session?** Whether to put the `shapeLead()` JSON parsing logic in the API router or in the database layer. Chose API router — the DB layer returns raw `LeadRecord`, and the API is responsible for presentation concerns (parsing JSON columns, computing gut check counts, excluding `raw_email`). Keeps the DB layer simple and reusable.
+1. **Hardest implementation decision in this session?** Whether to use CSS `max-height` transitions for the accordion open/close or just re-render the table on toggle. CSS transitions require the DOM element to exist first, then toggle a class — but re-rendering destroys and recreates it. Chose the simpler re-render approach (instant show/hide, no animation) because it avoids managing DOM state separately from the render function. The `open` class is applied during render for the expanded row, keeping state and UI in sync without bugs.
 
-2. **What did you consider changing but left alone, and why?** Considered replacing the existing `listLeads()` function with `listLeadsFiltered()` (since no-arg call returns the same result). Left it alone because `dashboard.ts` still imports `listLeads()` for the server-rendered HTML pages, and changing it would touch a file that wasn't in scope for this chunk. The old function can be deprecated later when the new dashboard fully replaces the old one.
+2. **What did you consider changing but left alone, and why?** Considered adding a `raw_email` display section to the detail panel for debugging. Left it out because the plan explicitly excludes `raw_email` from the API response (too large for list view), and adding it would require either a separate API call or changing the existing endpoint. Can be added later as a "View Raw" button that fetches on demand.
 
-3. **Least confident about going into review?** The `shapeLead()` function parses three JSON columns (`classification_json`, `pricing_json`, `gate_json`) with try/catch and returns nulls on failure. If the stored JSON shape ever drifts from what the API expects (e.g., a field gets renamed in `Classification` but old leads have the old key), the API will silently return nulls for those fields. No validation or versioning on the stored JSON shape.
+3. **Least confident about going into review?** The Edit Draft flow saves text directly to `full_draft` without regenerating the `compressed_draft`. After a manual edit, the full and compressed drafts will be out of sync — the compressed version still shows the AI-generated text. This is by design (Phase 1 = simple text save), but a user who edits the full draft and then approves will send the old compressed draft via SMS. Should either regenerate compressed on edit, or send full draft instead.
