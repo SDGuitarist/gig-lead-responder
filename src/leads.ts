@@ -217,3 +217,76 @@ export function listLeads(): LeadRecord[] {
     gate_passed: r.gate_passed === null ? null : Boolean(r.gate_passed),
   }));
 }
+
+// --- Dashboard queries ---
+
+export interface ListLeadsFilteredOpts {
+  status?: LeadStatus;
+  sort?: "date" | "score" | "event";
+}
+
+export function listLeadsFiltered(opts: ListLeadsFilteredOpts = {}): LeadRecord[] {
+  let sql = "SELECT * FROM leads";
+  const params: Record<string, unknown> = {};
+
+  if (opts.status) {
+    sql += " WHERE status = @status";
+    params.status = opts.status;
+  }
+
+  switch (opts.sort) {
+    case "date":
+      sql += " ORDER BY event_date IS NULL, event_date ASC, created_at DESC";
+      break;
+    case "score":
+      sql += " ORDER BY confidence_score IS NULL, confidence_score DESC";
+      break;
+    case "event":
+      sql += " ORDER BY event_type IS NULL, event_type ASC";
+      break;
+    default:
+      sql += " ORDER BY created_at DESC";
+  }
+
+  const rows = initDb().prepare(sql).all(params) as LeadRecord[];
+
+  return rows.map((r) => ({
+    ...r,
+    gate_passed: r.gate_passed === null ? null : Boolean(r.gate_passed),
+  }));
+}
+
+export interface LeadStats {
+  pending: number;
+  sent: number;
+  avg_score: number | null;
+  this_month: number;
+}
+
+export function getLeadStats(): LeadStats {
+  const now = new Date();
+  const firstOfMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-01`;
+
+  const row = initDb()
+    .prepare(
+      `SELECT
+        SUM(CASE WHEN status = 'received' THEN 1 ELSE 0 END) AS pending,
+        SUM(CASE WHEN status = 'sent' THEN 1 ELSE 0 END) AS sent,
+        AVG(CASE WHEN confidence_score IS NOT NULL THEN confidence_score END) AS avg_score,
+        SUM(CASE WHEN created_at >= @firstOfMonth THEN 1 ELSE 0 END) AS this_month
+      FROM leads`,
+    )
+    .get({ firstOfMonth }) as {
+    pending: number;
+    sent: number;
+    avg_score: number | null;
+    this_month: number;
+  };
+
+  return {
+    pending: row.pending ?? 0,
+    sent: row.sent ?? 0,
+    avg_score: row.avg_score !== null ? Math.round(row.avg_score) : null,
+    this_month: row.this_month ?? 0,
+  };
+}
