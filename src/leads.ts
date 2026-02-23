@@ -27,7 +27,7 @@ export function initDb(): Database.Database {
       venue TEXT,
       guest_count INTEGER,
       budget_note TEXT,
-      status TEXT NOT NULL DEFAULT 'received',
+      status TEXT NOT NULL DEFAULT 'received' CHECK(status IN ('received','sending','sent','done','failed')),
       classification_json TEXT,
       pricing_json TEXT,
       full_draft TEXT,
@@ -42,6 +42,8 @@ export function initDb(): Database.Database {
     );
 
     CREATE INDEX IF NOT EXISTS idx_leads_status ON leads(status);
+    CREATE INDEX IF NOT EXISTS idx_leads_event_date ON leads(event_date);
+    CREATE INDEX IF NOT EXISTS idx_leads_confidence ON leads(confidence_score);
 
     CREATE TABLE IF NOT EXISTS processed_emails (
       external_id TEXT PRIMARY KEY,
@@ -67,6 +69,13 @@ export function initDb(): Database.Database {
   }
 
   return db;
+}
+
+// --- Helpers ---
+
+/** SQLite stores booleans as 0/1; normalize gate_passed back to boolean. */
+function normalizeRow(row: LeadRecord): LeadRecord {
+  return { ...row, gate_passed: row.gate_passed === null ? null : Boolean(row.gate_passed) };
 }
 
 // --- CRUD ---
@@ -119,8 +128,7 @@ export function getLead(id: number): LeadRecord | undefined {
     .get(id) as LeadRecord | undefined;
 
   if (!row) return undefined;
-  // SQLite stores booleans as 0/1; convert gate_passed
-  return { ...row, gate_passed: row.gate_passed === null ? null : Boolean(row.gate_passed) };
+  return normalizeRow(row);
 }
 
 export function getLeadsByStatus(status: LeadStatus): LeadRecord[] {
@@ -128,10 +136,7 @@ export function getLeadsByStatus(status: LeadStatus): LeadRecord[] {
     .prepare("SELECT * FROM leads WHERE status = ? ORDER BY created_at DESC")
     .all(status) as LeadRecord[];
 
-  return rows.map((r) => ({
-    ...r,
-    gate_passed: r.gate_passed === null ? null : Boolean(r.gate_passed),
-  }));
+  return rows.map(normalizeRow);
 }
 
 // Whitelist of columns allowed in updateLead() — must match LeadRecord fields exactly.
@@ -249,10 +254,7 @@ export function listLeadsFiltered(opts: ListLeadsFilteredOpts = {}): LeadRecord[
 
   const rows = initDb().prepare(sql).all(params) as LeadRecord[];
 
-  return rows.map((r) => ({
-    ...r,
-    gate_passed: r.gate_passed === null ? null : Boolean(r.gate_passed),
-  }));
+  return rows.map(normalizeRow);
 }
 
 export interface LeadStats {

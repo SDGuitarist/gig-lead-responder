@@ -4,3 +4,4 @@ dist/
 *.js
 !src/**
 /data/
+*.db

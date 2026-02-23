@@ -1,6 +1,6 @@
 import { Router, type Request, type Response } from "express";
 import { listLeadsFiltered, getLeadStats, getLead, updateLead, claimLeadForSending } from "./leads.js";
-import type { LeadStatus } from "./types.js";
+import type { LeadStatus, LeadApiResponse } from "./types.js";
 import { basicAuth } from "./auth.js";
 import { sendSms } from "./sms.js";
 import { runPipeline } from "./run-pipeline.js";
@@ -19,7 +19,7 @@ function safeJsonParse(raw: string | null): Record<string, unknown> | null {
   }
 }
 
-function shapeLead(lead: ReturnType<typeof getLead>) {
+function shapeLead(lead: ReturnType<typeof getLead>): LeadApiResponse | null {
   if (!lead) return null;
 
   const cl = safeJsonParse(lead.classification_json);
@@ -53,15 +53,15 @@ function shapeLead(lead: ReturnType<typeof getLead>) {
     full_draft: lead.full_draft,
     compressed_draft: lead.compressed_draft,
     error_message: lead.error_message,
-    // classification
-    format_recommended: cl?.format_recommended ?? null,
-    duration_hours: cl?.duration_hours ?? null,
-    tier: cl?.tier ?? null,
-    competition_level: cl?.competition_level ?? null,
-    // pricing
-    quote_price: pr?.quote_price ?? null,
-    anchor: pr?.anchor ?? null,
-    floor: pr?.floor ?? null,
+    // classification (parsed from JSON — cast to match LeadApiResponse)
+    format_recommended: (cl?.format_recommended as string) ?? null,
+    duration_hours: (cl?.duration_hours as number) ?? null,
+    tier: (cl?.tier as string) ?? null,
+    competition_level: (cl?.competition_level as string) ?? null,
+    // pricing (parsed from JSON)
+    quote_price: (pr?.quote_price as number) ?? null,
+    anchor: (pr?.anchor as number) ?? null,
+    floor: (pr?.floor as number) ?? null,
     // gate
     gate_passed: lead.gate_passed,
     gut_check_passed: gutCheckPassed,
@@ -116,6 +116,11 @@ router.post("/api/leads/:id/approve", async (req: Request, res: Response) => {
   if (!lead.compressed_draft) {
     res.status(400).json({ error: "Lead has no draft to send" });
     return;
+  }
+
+  // SMS concatenation limit is ~1600 chars; warn but don't block
+  if (lead.compressed_draft.length > 1600) {
+    console.warn(`Lead ${id}: compressed_draft is ${lead.compressed_draft.length} chars (SMS limit ~1600)`);
   }
 
   // Atomically claim — prevents double SMS from concurrent requests

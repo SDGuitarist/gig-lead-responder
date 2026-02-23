@@ -892,6 +892,10 @@
   'use strict';
 
   /* ── Constants ───────────────────────────────────────────── */
+  // SYNC: FORMAT_NAMES keys must match Format type in src/types.ts
+  // SYNC: CHECK_NAMES keys must match GUT_CHECK_KEYS in src/types.ts
+  // SYNC: STATUS_DISPLAY keys must match LeadStatus in src/types.ts
+  // See LeadApiResponse in src/types.ts for the API contract.
 
   var FORMAT_NAMES = {
     solo: 'Solo Guitar',
@@ -1001,6 +1005,17 @@
       method: 'POST',
       headers: headers,
       body: JSON.stringify(body)
+    }).then(function (res) {
+      if (res.status === 401) {
+        authHeader = null;
+        var user = prompt('Dashboard username:');
+        var pass = prompt('Dashboard password:');
+        if (!user) return Promise.reject(new Error('Auth cancelled'));
+        authHeader = 'Basic ' + btoa(user + ':' + pass);
+        headers.Authorization = authHeader;
+        return fetch(url, { method: 'POST', headers: headers, body: JSON.stringify(body) });
+      }
+      return res;
     }).then(function (res) {
       if (!res.ok) {
         return res.json().then(function (err) {
@@ -1183,7 +1198,7 @@
       '</tr>';
 
       row += '<tr class="detail-row" data-detail="' + l.id + '">' +
-        '<td colspan="7"><div class="detail-panel' + (isOpen ? ' open' : '') + '">' +
+        '<td colspan="7"><div class="detail-panel' + (isOpen ? ' open' : '') + '" data-detail="' + l.id + '">' +
         (isOpen ? renderDetailPanel(l) : '') +
         '</div></td></tr>';
 
@@ -1229,7 +1244,7 @@
               : '<span style="color:#8a7e6d">\u2014</span>') +
           '</div>' +
         '</div>' +
-        '<div class="detail-panel' + (isOpen ? ' open' : '') + '">' +
+        '<div class="detail-panel' + (isOpen ? ' open' : '') + '" data-detail="' + l.id + '">' +
           (isOpen ? renderDetailPanel(l) : '') +
         '</div>' +
       '</div>';
@@ -1239,13 +1254,32 @@
   /* ── Row click → expand/collapse (accordion) ────────────── */
 
   function toggleDetail(id) {
-    if (expandedId === id) {
-      expandedId = null;
-    } else {
-      expandedId = id;
+    var prevId = expandedId;
+    expandedId = (expandedId === id) ? null : id;
+
+    // Collapse previous detail panel
+    if (prevId !== null) {
+      var prevPanels = document.querySelectorAll('[data-detail="' + prevId + '"]');
+      for (var i = 0; i < prevPanels.length; i++) {
+        prevPanels[i].classList.remove('open');
+        prevPanels[i].innerHTML = '';
+      }
     }
-    renderTable(currentLeads);
-    renderMobile(currentLeads);
+
+    // Expand new detail panel
+    if (expandedId !== null) {
+      var lead = null;
+      for (var j = 0; j < currentLeads.length; j++) {
+        if (currentLeads[j].id === expandedId) { lead = currentLeads[j]; break; }
+      }
+      if (lead) {
+        var panels = document.querySelectorAll('[data-detail="' + expandedId + '"]');
+        for (var k = 0; k < panels.length; k++) {
+          panels[k].classList.add('open');
+          panels[k].innerHTML = renderDetailPanel(lead);
+        }
+      }
+    }
   }
 
   document.getElementById('tableBody').addEventListener('click', function (e) {
@@ -1426,11 +1460,16 @@
   }
 
   function renderAnalyzeResults(data) {
+    if (!data || !data.classification || !data.pricing || !data.drafts || !data.gate) {
+      document.getElementById('analyzeResults').style.display = 'block';
+      document.getElementById('analyzeClassification').innerHTML = '<em>Incomplete pipeline output</em>';
+      return;
+    }
     var c = data.classification;
     document.getElementById('analyzeClassification').innerHTML = analyzeKvHTML([
       ['Mode', esc(c.mode)],
       ['Competition', esc(c.competition_level) + ' (' + c.competition_quote_count + ' quotes)'],
-      ['Stealth Premium', c.stealth_premium ? 'YES — ' + esc(c.stealth_premium_signals.join(', ')) : 'No'],
+      ['Stealth Premium', c.stealth_premium ? 'YES — ' + esc((c.stealth_premium_signals || []).join(', ')) : 'No'],
       ['Tier', esc(c.tier) + ' / ' + esc(c.rate_card_tier)],
       ['Format', esc(c.format_requested) + ' → ' + esc(c.format_recommended)],
       ['Duration', c.duration_hours + 'hr'],

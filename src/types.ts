@@ -156,6 +156,41 @@ export interface PipelineOutput {
   confidence_score: number; // 0-100, how much pipeline intelligence was activated and verified
 }
 
+// --- Dashboard API response type ---
+// Single source of truth for the shape returned by shapeLead() in api.ts.
+// Client-side FORMAT_NAMES/CHECK_NAMES in dashboard.html must stay in sync.
+
+export interface LeadApiResponse {
+  id: number;
+  status: LeadStatus;
+  event_type: string | null;
+  event_date: string | null;
+  venue: string | null;
+  client_name: string | null;
+  confidence_score: number | null;
+  edit_round: number;
+  created_at: string;
+  updated_at: string;
+  full_draft: string | null;
+  compressed_draft: string | null;
+  error_message: string | null;
+  // classification (parsed from classification_json)
+  format_recommended: string | null;
+  duration_hours: number | null;
+  tier: string | null;
+  competition_level: string | null;
+  // pricing (parsed from pricing_json)
+  quote_price: number | null;
+  anchor: number | null;
+  floor: number | null;
+  // gate
+  gate_passed: boolean | null;
+  gut_check_passed: number | null;
+  gut_check_total: number | null;
+  fail_reasons: string[] | null;
+  failed_checks: string[];
+}
+
 // --- Email parser types (Chunk 2) ---
 
 export interface ParsedLead {
