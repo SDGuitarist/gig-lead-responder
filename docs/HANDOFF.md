@@ -1,8 +1,8 @@
 # Gig Lead Responder — Session Handoff
 
-**Last updated:** 2026-02-22 (v33)
-**Current phase:** Fix phase complete — Dashboard UI Redesign
-**Next session:** Compound phase — document learnings from fix batches
+**Last updated:** 2026-02-22 (v34)
+**Current phase:** Compound phase complete — Dashboard UI Redesign
+**Next session:** Deploy to Railway with fix batches, or start next feature
 
 ### Fix Phase — Dashboard UI Redesign (2026-02-22)
 
@@ -16,6 +16,16 @@
 | D | Deferred | 0 (9 deferred) | — |
 
 **Total:** 18 fixed, 10 deferred. All 4 P1s resolved (unauthenticated analyze endpoint, approve race condition, auth bypass on missing env vars, non-null assertion crash). 3 patterns flagged for compound phase.
+
+### Compound Phase — Dashboard UI Redesign (2026-02-22)
+
+3 new solutions documented from fix batches. Total: 18 solutions in `docs/solutions/`.
+
+| # | Solution | Category | Source |
+|---|----------|----------|--------|
+| 16 | `atomic-claim-for-concurrent-state-transitions.md` | architecture | Batch B — approve race condition fix |
+| 17 | `environment-aware-fatal-guards.md` | architecture | Batch B — auth bypass fix |
+| 18 | `targeted-dom-toggle-data-attributes.md` | ui-bugs | Batch C — DOM rebuild fix |
 
 ### Deploy Progress (as of 2026-02-22)
 
