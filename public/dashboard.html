@@ -515,6 +515,69 @@
     .top-bar { flex-direction: column; align-items: flex-start; }
     .classification-grid { grid-template-columns: 1fr; }
   }
+
+  /* ── Edit textarea ───────────────────────────────────────── */
+  .edit-textarea {
+    width: 100%;
+    min-height: 200px;
+    padding: 12px 16px;
+    border: 1px solid #e8e2d9;
+    border-radius: 6px;
+    font-family: inherit;
+    font-size: 14px;
+    color: #2c2419;
+    line-height: 1.65;
+    resize: vertical;
+    background: #fff;
+    transition: border-color 0.2s ease;
+  }
+  .edit-textarea:focus {
+    outline: none;
+    border-color: #cf9145;
+    box-shadow: 0 0 0 3px rgba(207,145,69,0.12);
+  }
+
+  /* ── Error & pipeline states ─────────────────────────────── */
+  .error-banner {
+    background: #fdf2f0;
+    border-left: 3px solid #b54a3a;
+    padding: 12px 16px;
+    border-radius: 6px;
+    color: #b54a3a;
+    font-size: 14px;
+    margin-bottom: 20px;
+  }
+
+  .pipeline-notice {
+    text-align: center;
+    padding: 40px 20px;
+    color: #8a7e6d;
+    font-size: 15px;
+  }
+  .pipeline-notice::before {
+    content: '';
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid #cf9145;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin-right: 10px;
+    vertical-align: middle;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .failed-checks-list {
+    font-size: 12px;
+    color: #b54a3a;
+    margin-bottom: 16px;
+  }
+
+  /* Gut check bar color variants */
+  .gut-bar-fill.high { background: #5a8a5e; }
+  .gut-bar-fill.medium { background: #cf9145; }
+  .gut-bar-fill.low { background: #b54a3a; }
 </style>
 </head>
 <body>
@@ -646,14 +709,32 @@
     failed:   { label: 'Failed',  css: 'failed' }
   };
 
-  // Filter pill values → API status param
+  var CHECK_NAMES = {
+    can_see_it: 'Can See It',
+    validated_them: 'Validated Them',
+    named_fear: 'Named Fear',
+    differentiated: 'Differentiated',
+    preempted_questions: 'Preempted Questions',
+    creates_relief: 'Creates Relief',
+    best_line_present: 'Best Line Present',
+    prose_flows: 'Prose Flows',
+    competitor_test: 'Competitor Test',
+    lead_specific_opening: 'Lead-Specific Opening',
+    budget_acknowledged: 'Budget Acknowledged',
+    past_date_acknowledged: 'Past Date Acknowledged',
+    mariachi_pricing_format: 'Mariachi Pricing Format',
+    cultural_vocabulary_used: 'Cultural Vocabulary Used'
+  };
+
   var FILTER_TO_API = { pending: 'received', sent: 'sent', done: 'done', failed: 'failed' };
 
   /* ── State ───────────────────────────────────────────────── */
 
-  var activeFilter = 'pending'; // 'all' | 'pending' | 'sent' | 'done' | 'failed'
+  var activeFilter = 'pending';
   var activeSort = '';
   var authHeader = null;
+  var currentLeads = [];
+  var expandedId = null;
 
   /* ── Helpers ─────────────────────────────────────────────── */
 
@@ -677,6 +758,18 @@
     return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
   }
 
+  function fmtPrice(n) {
+    if (n == null) return '\u2014';
+    return '$' + Number(n).toLocaleString();
+  }
+
+  function findLead(id) {
+    for (var i = 0; i < currentLeads.length; i++) {
+      if (currentLeads[i].id === id) return currentLeads[i];
+    }
+    return null;
+  }
+
   /* ── Auth-aware fetch ────────────────────────────────────── */
 
   function apiFetch(url) {
@@ -694,6 +787,24 @@
       return res;
     }).then(function (res) {
       if (!res.ok) return Promise.reject(new Error('API error ' + res.status));
+      return res.json();
+    });
+  }
+
+  function apiPost(url, body) {
+    var headers = { 'Content-Type': 'application/json' };
+    if (authHeader) headers.Authorization = authHeader;
+
+    return fetch(url, {
+      method: 'POST',
+      headers: headers,
+      body: JSON.stringify(body)
+    }).then(function (res) {
+      if (!res.ok) {
+        return res.json().then(function (err) {
+          return Promise.reject(new Error(err.error || 'API error ' + res.status));
+        });
+      }
       return res.json();
     });
   }
@@ -731,6 +842,8 @@
     var qs = params.length ? '?' + params.join('&') : '';
 
     apiFetch('/api/leads' + qs).then(function (leads) {
+      currentLeads = leads;
+      expandedId = null;
       renderTable(leads);
       renderMobile(leads);
     }).catch(function (e) {
@@ -741,6 +854,100 @@
         '<div style="text-align:center;padding:48px;color:#b54a3a;">Failed to load leads</div>';
     });
   }
+
+  /* ── Detail panel HTML ──────────────────────────────────── */
+
+  function renderDetailPanel(l) {
+    // Error state
+    if (l.error_message) {
+      return '<div class="detail-inner">' +
+        '<div class="error-banner"><strong>Error:</strong> ' + esc(l.error_message) + '</div>' +
+      '</div>';
+    }
+
+    // Mid-pipeline state
+    if (l.status === 'received' && !l.full_draft) {
+      return '<div class="detail-inner">' +
+        '<div class="pipeline-notice">Pipeline running\u2026 check back soon.</div>' +
+      '</div>';
+    }
+
+    var html = '<div class="detail-inner">';
+
+    // Gut check bar
+    if (l.gut_check_total != null) {
+      var pct = Math.round((l.gut_check_passed / l.gut_check_total) * 100);
+      var barClass = pct >= 85 ? 'high' : (pct >= 70 ? 'medium' : 'low');
+
+      html += '<div class="gut-check-row">' +
+        '<span class="gut-label">Gut Checks</span>' +
+        '<div class="gut-bar-track"><div class="gut-bar-fill ' + barClass + '" style="width:' + pct + '%"></div></div>' +
+        '<span class="gut-fraction">' + l.gut_check_passed + '/' + l.gut_check_total + '</span>' +
+      '</div>';
+
+      if (l.failed_checks && l.failed_checks.length > 0) {
+        var names = l.failed_checks.map(function (c) {
+          return CHECK_NAMES[c] || c.replace(/_/g, ' ');
+        });
+        html += '<div class="failed-checks-list">Failed: ' + esc(names.join(', ')) + '</div>';
+      }
+    }
+
+    // Draft grid
+    if (l.full_draft || l.compressed_draft) {
+      html += '<div class="draft-grid">';
+      html += '<div class="draft-box" id="draft-full-' + l.id + '">' +
+        '<h4>Full Draft' + (l.edit_round > 0 ? ' (edit ' + l.edit_round + ')' : '') + '</h4>' +
+        '<p>' + (esc(l.full_draft) || '\u2014').replace(/\n/g, '<br>') + '</p>' +
+      '</div>';
+      html += '<div class="draft-box">' +
+        '<h4>Compressed Draft</h4>' +
+        '<p>' + (esc(l.compressed_draft) || '\u2014').replace(/\n/g, '<br>') + '</p>' +
+      '</div>';
+      html += '</div>';
+    }
+
+    // Classification + pricing grid
+    var items = [
+      ['Format', FORMAT_NAMES[l.format_recommended] || l.format_recommended],
+      ['Duration', l.duration_hours != null ? l.duration_hours + 'hr' : null],
+      ['Tier', l.tier],
+      ['Competition', l.competition_level],
+      ['Quote', fmtPrice(l.quote_price)],
+      ['Anchor', fmtPrice(l.anchor)],
+      ['Floor', fmtPrice(l.floor)]
+    ];
+
+    html += '<div class="classification-grid">';
+    items.forEach(function (item) {
+      var val = item[1] || '\u2014';
+      html += '<div class="class-item">' +
+        '<span class="class-label">' + item[0] + '</span>' +
+        '<span class="class-value">' + esc(String(val)) + '</span>' +
+      '</div>';
+    });
+    html += '</div>';
+
+    // Action buttons
+    var canApprove = l.full_draft && (l.status === 'received' || l.status === 'sent');
+    var isDone = l.status === 'done';
+
+    html += '<div class="detail-actions">';
+    if (isDone) {
+      html += '<button class="btn btn-primary" disabled>Approved</button>';
+    } else if (canApprove) {
+      html += '<button class="btn btn-primary" data-approve="' + l.id + '">Approve &amp; Send</button>';
+    }
+    if (l.full_draft && !isDone) {
+      html += '<button class="btn btn-outline" data-edit="' + l.id + '">Edit Draft</button>';
+    }
+    html += '</div>';
+
+    html += '</div>';
+    return html;
+  }
+
+  /* ── Render table ───────────────────────────────────────── */
 
   function renderTable(leads) {
     var tbody = document.getElementById('tableBody');
@@ -756,8 +963,9 @@
       var sc = l.confidence_score;
       var fmt = FORMAT_NAMES[l.format_recommended] || l.format_recommended || '\u2014';
       var muted = (l.status === 'sent' || l.status === 'done') ? ' row-muted' : '';
+      var isOpen = expandedId === l.id;
 
-      return '<tr class="lead-row' + muted + '" data-id="' + l.id + '">' +
+      var row = '<tr class="lead-row' + muted + '" data-id="' + l.id + '">' +
         '<td>' +
           '<div class="lead-event-name">' + (esc(l.event_type) || 'Unknown') + '</div>' +
           '<div class="lead-event-sub">' + esc(l.client_name) + '</div>' +
@@ -771,8 +979,17 @@
         '<td><span class="status-badge ' + st.css + '">' + st.label + '</span></td>' +
         '<td></td>' +
       '</tr>';
+
+      row += '<tr class="detail-row" data-detail="' + l.id + '">' +
+        '<td colspan="7"><div class="detail-panel' + (isOpen ? ' open' : '') + '">' +
+        (isOpen ? renderDetailPanel(l) : '') +
+        '</div></td></tr>';
+
+      return row;
     }).join('');
   }
+
+  /* ── Render mobile cards ────────────────────────────────── */
 
   function renderMobile(leads) {
     var container = document.getElementById('mobileCards');
@@ -788,6 +1005,7 @@
       var sc = l.confidence_score;
       var fmt = FORMAT_NAMES[l.format_recommended] || l.format_recommended || '\u2014';
       var muted = (l.status === 'sent' || l.status === 'done') ? ' style="opacity:0.7"' : '';
+      var isOpen = expandedId === l.id;
 
       return '<div class="mobile-card"' + muted + ' data-id="' + l.id + '">' +
         '<div class="mobile-card-header">' +
@@ -809,9 +1027,123 @@
               : '<span style="color:#8a7e6d">\u2014</span>') +
           '</div>' +
         '</div>' +
+        '<div class="detail-panel' + (isOpen ? ' open' : '') + '">' +
+          (isOpen ? renderDetailPanel(l) : '') +
+        '</div>' +
       '</div>';
     }).join('');
   }
+
+  /* ── Row click → expand/collapse (accordion) ────────────── */
+
+  function toggleDetail(id) {
+    if (expandedId === id) {
+      expandedId = null;
+    } else {
+      expandedId = id;
+    }
+    renderTable(currentLeads);
+    renderMobile(currentLeads);
+  }
+
+  document.getElementById('tableBody').addEventListener('click', function (e) {
+    if (e.target.closest('button') || e.target.closest('textarea')) return;
+    var row = e.target.closest('.lead-row');
+    if (row) toggleDetail(parseInt(row.dataset.id, 10));
+  });
+
+  document.getElementById('mobileCards').addEventListener('click', function (e) {
+    if (e.target.closest('button') || e.target.closest('textarea')) return;
+    var card = e.target.closest('.mobile-card');
+    if (card) toggleDetail(parseInt(card.dataset.id, 10));
+  });
+
+  /* ── Approve & Send ─────────────────────────────────────── */
+
+  function showFlash() {
+    var flash = document.getElementById('approveFlash');
+    flash.classList.add('show');
+    setTimeout(function () { flash.classList.remove('show'); }, 1200);
+  }
+
+  document.addEventListener('click', function (e) {
+    var btn = e.target.closest('[data-approve]');
+    if (!btn) return;
+
+    var id = parseInt(btn.dataset.approve, 10);
+    btn.disabled = true;
+    btn.textContent = 'Sending\u2026';
+
+    apiPost('/api/leads/' + id + '/approve', {}).then(function (updated) {
+      showFlash();
+      for (var i = 0; i < currentLeads.length; i++) {
+        if (currentLeads[i].id === id) { currentLeads[i] = updated; break; }
+      }
+      loadStats();
+      renderTable(currentLeads);
+      renderMobile(currentLeads);
+    }).catch(function (err) {
+      btn.disabled = false;
+      btn.textContent = 'Approve & Send';
+      alert('Approve failed: ' + err.message);
+    });
+  });
+
+  /* ── Edit Draft ─────────────────────────────────────────── */
+
+  document.addEventListener('click', function (e) {
+    // Edit button → swap draft box for textarea
+    var editBtn = e.target.closest('[data-edit]');
+    if (editBtn) {
+      var id = parseInt(editBtn.dataset.edit, 10);
+      var lead = findLead(id);
+      if (!lead) return;
+
+      var box = document.getElementById('draft-full-' + id);
+      if (!box) return;
+
+      box.innerHTML = '<h4>Full Draft (editing)</h4>' +
+        '<textarea class="edit-textarea" id="edit-textarea-' + id + '">' + esc(lead.full_draft || '') + '</textarea>' +
+        '<div style="margin-top:10px;display:flex;gap:8px;">' +
+          '<button class="btn btn-primary" data-save="' + id + '">Save</button>' +
+          '<button class="btn btn-ghost" data-cancel-edit="' + id + '">Cancel</button>' +
+        '</div>';
+      return;
+    }
+
+    // Save button → POST edit
+    var saveBtn = e.target.closest('[data-save]');
+    if (saveBtn) {
+      var saveId = parseInt(saveBtn.dataset.save, 10);
+      var textarea = document.getElementById('edit-textarea-' + saveId);
+      if (!textarea) return;
+
+      var newDraft = textarea.value;
+      saveBtn.disabled = true;
+      saveBtn.textContent = 'Saving\u2026';
+
+      apiPost('/api/leads/' + saveId + '/edit', { full_draft: newDraft }).then(function (updated) {
+        for (var i = 0; i < currentLeads.length; i++) {
+          if (currentLeads[i].id === saveId) { currentLeads[i] = updated; break; }
+        }
+        renderTable(currentLeads);
+        renderMobile(currentLeads);
+      }).catch(function (err) {
+        saveBtn.disabled = false;
+        saveBtn.textContent = 'Save';
+        alert('Save failed: ' + err.message);
+      });
+      return;
+    }
+
+    // Cancel edit → re-render
+    var cancelBtn = e.target.closest('[data-cancel-edit]');
+    if (cancelBtn) {
+      renderTable(currentLeads);
+      renderMobile(currentLeads);
+      return;
+    }
+  });
 
   /* ── Tab switching ───────────────────────────────────────── */
 

@@ -29,10 +29,14 @@ function shapeLead(lead: ReturnType<typeof getLead>) {
   const gutChecks = gt?.gut_checks as Record<string, boolean> | undefined;
   let gutCheckPassed: number | null = null;
   let gutCheckTotal: number | null = null;
+  const failedChecks: string[] = [];
   if (gutChecks) {
-    const values = Object.values(gutChecks);
-    gutCheckTotal = values.length;
-    gutCheckPassed = values.filter(Boolean).length;
+    const entries = Object.entries(gutChecks);
+    gutCheckTotal = entries.length;
+    gutCheckPassed = entries.filter(([, v]) => v).length;
+    for (const [name, passed] of entries) {
+      if (!passed) failedChecks.push(name);
+    }
   }
 
   return {
@@ -63,6 +67,7 @@ function shapeLead(lead: ReturnType<typeof getLead>) {
     gut_check_passed: gutCheckPassed,
     gut_check_total: gutCheckTotal,
     fail_reasons: (gt?.fail_reasons as string[]) ?? null,
+    failed_checks: failedChecks,
   };
 }
 
@@ -126,6 +131,35 @@ router.post("/api/leads/:id/approve", async (req: Request, res: Response) => {
     status: "done",
     done_reason: "approved_dashboard",
     sms_sent_at: new Date().toISOString(),
+  });
+
+  res.json(shapeLead(updated!));
+});
+
+// --- POST /api/leads/:id/edit ---
+
+router.post("/api/leads/:id/edit", async (req: Request, res: Response) => {
+  const id = parseInt(req.params.id as string, 10);
+  if (isNaN(id)) {
+    res.status(400).json({ error: "Invalid lead ID" });
+    return;
+  }
+
+  const { full_draft } = req.body;
+  if (typeof full_draft !== "string" || !full_draft.trim()) {
+    res.status(400).json({ error: "full_draft is required" });
+    return;
+  }
+
+  const lead = getLead(id);
+  if (!lead) {
+    res.status(404).json({ error: "Lead not found" });
+    return;
+  }
+
+  const updated = updateLead(id, {
+    full_draft: full_draft.trim(),
+    edit_round: lead.edit_round + 1,
   });
 
   res.json(shapeLead(updated!));
