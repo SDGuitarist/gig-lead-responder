@@ -284,6 +284,15 @@ export function setLeadOutcome(
   outcome: LeadOutcome | null,
   options?: { outcome_reason?: LossReason; actual_price?: number },
 ): LeadRecord | undefined {
+  // Guard: only done leads can have outcomes (matches API check + DB intent)
+  const lead = getLead(id);
+  if (!lead || lead.status !== "done") return undefined;
+
+  // Runtime guard matching DB CHECK constraint: actual_price > 0
+  if (options?.actual_price != null && (!Number.isFinite(options.actual_price) || options.actual_price <= 0)) {
+    return undefined;
+  }
+
   const fields: Partial<Omit<LeadRecord, "id" | "created_at">> = {
     outcome,
     outcome_at: outcome !== null ? new Date().toISOString() : null,
@@ -319,7 +328,7 @@ export function getAnalytics(): AnalyticsResponse {
         AVG(CASE WHEN outcome IS NOT NULL AND pricing_json IS NOT NULL
             THEN json_extract(pricing_json, '$.quote_price') END) AS avg_quote_price
       FROM leads
-      WHERE status IN ('sent', 'done')
+      WHERE status = 'done'
     `).get() as {
       total_leads: number;
       total_with_outcome: number;
@@ -335,7 +344,7 @@ export function getAnalytics(): AnalyticsResponse {
     const byPlatform = database.prepare(`
       SELECT source_platform AS label, COUNT(*) AS total,
         SUM(CASE WHEN outcome = 'booked' THEN 1 ELSE 0 END) AS booked
-      FROM leads WHERE outcome IS NOT NULL
+      FROM leads WHERE status = 'done' AND outcome IS NOT NULL
       GROUP BY source_platform
     `).all() as Array<{ label: string; total: number; booked: number }>;
 
@@ -344,7 +353,7 @@ export function getAnalytics(): AnalyticsResponse {
       SELECT json_extract(classification_json, '$.format_recommended') AS label,
         COUNT(*) AS total,
         SUM(CASE WHEN outcome = 'booked' THEN 1 ELSE 0 END) AS booked
-      FROM leads WHERE outcome IS NOT NULL AND classification_json IS NOT NULL
+      FROM leads WHERE status = 'done' AND outcome IS NOT NULL AND classification_json IS NOT NULL
       GROUP BY label
     `).all() as Array<{ label: string; total: number; booked: number }>;
 

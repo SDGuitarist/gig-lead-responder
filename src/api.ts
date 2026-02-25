@@ -215,6 +215,11 @@ router.post("/api/leads/:id/outcome", (req: Request, res: Response) => {
     return;
   }
 
+  if (!req.body || typeof req.body !== "object") {
+    res.status(400).json({ error: "Request body must be JSON" });
+    return;
+  }
+
   const { outcome, actual_price, outcome_reason } = req.body;
 
   // outcome can be null (clearing) or a valid outcome string
@@ -237,6 +242,16 @@ router.post("/api/leads/:id/outcome", (req: Request, res: Response) => {
       res.status(400).json({ error: "Invalid outcome_reason. Must be price, competitor, cancelled, or other" });
       return;
     }
+  }
+
+  // Reject inapplicable sub-fields
+  if (actual_price != null && outcome !== "booked") {
+    res.status(400).json({ error: "actual_price is only applicable when outcome is booked" });
+    return;
+  }
+  if (outcome_reason != null && outcome !== "lost") {
+    res.status(400).json({ error: "outcome_reason is only applicable when outcome is lost" });
+    return;
   }
 
   const updated = setLeadOutcome(id, outcome as LeadOutcome | null, {

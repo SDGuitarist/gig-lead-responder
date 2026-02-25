@@ -1722,18 +1722,13 @@
     var lead = findLead(id);
     if (!lead) return;
     // Re-render detail to show/hide sub-fields for new selection
-    lead._pendingOutcome = sel.value || null;
+    var preview = Object.assign({}, lead, { outcome: sel.value || null });
     var panels = document.querySelectorAll('[data-detail="' + id + '"]');
-    // Temporarily override outcome for rendering sub-fields
-    var orig = lead.outcome;
-    lead.outcome = lead._pendingOutcome;
     for (var k = 0; k < panels.length; k++) {
       if (panels[k].classList.contains('open')) {
-        panels[k].innerHTML = renderDetailPanel(lead);
+        panels[k].innerHTML = renderDetailPanel(preview);
       }
     }
-    lead.outcome = orig;
-    delete lead._pendingOutcome;
   });
 
   document.addEventListener('click', function (e) {
@@ -1994,7 +1989,7 @@
 
     document.getElementById('analyzeGate').innerHTML = analyzeKvHTML([
       ['Status', '<span class="' + (g.gate_status === 'pass' ? 'analyze-gate-pass' : 'analyze-gate-fail') + '">' +
-        g.gate_status.toUpperCase() + '</span>' +
+        esc(g.gate_status.toUpperCase()) + '</span>' +
         (data.verified ? '' : ' (unverified — best attempt)')],
       ['Validation', '"' + esc(g.validation_line) + '"'],
       ['Best Line', '"' + esc(g.best_line) + '"'],
