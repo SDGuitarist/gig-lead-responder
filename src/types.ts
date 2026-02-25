@@ -156,6 +156,39 @@ export interface PipelineOutput {
   confidence_score: number; // 0-100, how much pipeline intelligence was activated and verified
 }
 
+// --- Outcome tracking types ---
+
+export type LeadOutcome = "booked" | "lost" | "no_reply";
+export type LossReason = "price" | "competitor" | "cancelled" | "other";
+
+export interface OutcomeUpdateBody {
+  outcome: LeadOutcome | null;
+  actual_price?: number;
+  outcome_reason?: LossReason;
+}
+
+export interface AnalyticsBreakdown {
+  label: string;
+  total: number;
+  booked: number;
+  rate: number;
+}
+
+export interface AnalyticsResponse {
+  total_leads: number;
+  total_with_outcome: number;
+  total_untracked: number;
+  booked: number;
+  lost: number;
+  no_reply: number;
+  conversion_rate: number;
+  revenue: number;
+  avg_quote_price: number | null;
+  avg_actual_price: number | null;
+  by_platform: AnalyticsBreakdown[];
+  by_format: AnalyticsBreakdown[];
+}
+
 // --- Dashboard API response type ---
 // Single source of truth for the shape returned by shapeLead() in api.ts.
 // Client-side FORMAT_NAMES/CHECK_NAMES in dashboard.html must stay in sync.
@@ -189,6 +222,11 @@ export interface LeadApiResponse {
   gut_check_total: number | null;
   fail_reasons: string[] | null;
   failed_checks: string[];
+  // outcome tracking
+  outcome: LeadOutcome | null;
+  outcome_reason: LossReason | null;
+  actual_price: number | null;
+  outcome_at: string | null;
 }
 
 // --- Email parser types (Chunk 2) ---
@@ -236,6 +274,10 @@ export interface LeadRecord {
   edit_round: number;
   edit_instructions: string | null;
   done_reason: string | null;
+  outcome: LeadOutcome | null;
+  outcome_reason: LossReason | null;
+  actual_price: number | null;
+  outcome_at: string | null;
   created_at: string;
   updated_at: string;
 }
