@@ -1,6 +1,6 @@
 import { Router, type Request, type Response } from "express";
-import { listLeadsFiltered, getLeadStats, getLead, updateLead, claimLeadForSending } from "./leads.js";
-import type { LeadStatus, LeadApiResponse } from "./types.js";
+import { listLeadsFiltered, getLeadStats, getLead, updateLead, claimLeadForSending, setLeadOutcome, getAnalytics } from "./leads.js";
+import type { LeadStatus, LeadOutcome, LossReason, LeadApiResponse } from "./types.js";
 import { basicAuth } from "./auth.js";
 import { sendSms } from "./sms.js";
 import { runPipeline } from "./run-pipeline.js";
@@ -68,6 +68,11 @@ function shapeLead(lead: ReturnType<typeof getLead>): LeadApiResponse | null {
     gut_check_total: gutCheckTotal,
     fail_reasons: (gt?.fail_reasons as string[]) ?? null,
     failed_checks: failedChecks,
+    // outcome tracking
+    outcome: lead.outcome,
+    outcome_reason: lead.outcome_reason,
+    actual_price: lead.actual_price,
+    outcome_at: lead.outcome_at,
   };
 }
 
@@ -185,6 +190,72 @@ router.post("/api/leads/:id/edit", async (req: Request, res: Response) => {
     return;
   }
   res.json(shapeLead(updated));
+});
+
+// --- POST /api/leads/:id/outcome ---
+
+const VALID_OUTCOMES = new Set<string>(["booked", "lost", "no_reply"]);
+const VALID_LOSS_REASONS = new Set<string>(["price", "competitor", "cancelled", "other"]);
+
+router.post("/api/leads/:id/outcome", (req: Request, res: Response) => {
+  const id = parseInt(req.params.id as string, 10);
+  if (isNaN(id)) {
+    res.status(400).json({ error: "Invalid lead ID" });
+    return;
+  }
+
+  const lead = getLead(id);
+  if (!lead) {
+    res.status(404).json({ error: "Lead not found" });
+    return;
+  }
+
+  if (lead.status !== "done") {
+    res.status(400).json({ error: "Lead must be in done status to set outcome" });
+    return;
+  }
+
+  const { outcome, actual_price, outcome_reason } = req.body;
+
+  // outcome can be null (clearing) or a valid outcome string
+  if (outcome !== null && (typeof outcome !== "string" || !VALID_OUTCOMES.has(outcome))) {
+    res.status(400).json({ error: "Invalid outcome. Must be booked, lost, no_reply, or null" });
+    return;
+  }
+
+  // Validate actual_price if provided
+  if (actual_price !== undefined && actual_price !== null) {
+    if (typeof actual_price !== "number" || !Number.isFinite(actual_price) || actual_price <= 0 || actual_price >= 100000) {
+      res.status(400).json({ error: "actual_price must be a positive number under 100000" });
+      return;
+    }
+  }
+
+  // Validate outcome_reason if provided
+  if (outcome_reason !== undefined && outcome_reason !== null) {
+    if (typeof outcome_reason !== "string" || !VALID_LOSS_REASONS.has(outcome_reason)) {
+      res.status(400).json({ error: "Invalid outcome_reason. Must be price, competitor, cancelled, or other" });
+      return;
+    }
+  }
+
+  const updated = setLeadOutcome(id, outcome as LeadOutcome | null, {
+    actual_price: actual_price ?? undefined,
+    outcome_reason: outcome_reason as LossReason | undefined,
+  });
+
+  if (!updated) {
+    res.status(500).json({ error: "Failed to update outcome" });
+    return;
+  }
+
+  res.json(shapeLead(updated));
+});
+
+// --- GET /api/analytics ---
+
+router.get("/api/analytics", (_req: Request, res: Response) => {
+  res.json(getAnalytics());
 });
 
 // --- POST /api/analyze ---
