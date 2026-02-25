@@ -161,12 +161,6 @@ export interface PipelineOutput {
 export type LeadOutcome = "booked" | "lost" | "no_reply";
 export type LossReason = "price" | "competitor" | "cancelled" | "other";
 
-export interface OutcomeUpdateBody {
-  outcome: LeadOutcome | null;
-  actual_price?: number;
-  outcome_reason?: LossReason;
-}
-
 export interface AnalyticsBreakdown {
   label: string;
   total: number;

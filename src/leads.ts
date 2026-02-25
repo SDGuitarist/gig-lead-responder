@@ -1,7 +1,7 @@
 import { mkdirSync } from "node:fs";
 import { dirname } from "node:path";
 import Database from "better-sqlite3";
-import type { LeadRecord, LeadStatus, LeadOutcome, LossReason, AnalyticsResponse, AnalyticsBreakdown } from "./types.js";
+import type { LeadRecord, LeadStatus, LeadOutcome, LossReason, AnalyticsResponse } from "./types.js";
 
 const DB_PATH = process.env.DATABASE_PATH || "./data/leads.db";
 

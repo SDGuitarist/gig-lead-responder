@@ -1770,7 +1770,6 @@
         for (var i = 0; i < currentLeads.length; i++) {
           if (currentLeads[i].id === id) { currentLeads[i] = updated; break; }
         }
-        renderDetailPanel(updated);
         // Re-render full panel to update sub-fields
         var panels = document.querySelectorAll('[data-detail="' + id + '"]');
         for (var k = 0; k < panels.length; k++) {
