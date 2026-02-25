@@ -1,8 +1,36 @@
 # Gig Lead Responder — Session Handoff
 
-**Last updated:** 2026-02-22 (v34)
-**Current phase:** Compound phase complete — Dashboard UI Redesign
-**Next session:** Deploy to Railway with fix batches, or start next feature
+**Last updated:** 2026-02-25 (v37)
+**Current phase:** Plan deepened — Lead Conversion Tracking
+**Next session:** Work phase (Session 1: Schema + Types + API)
+
+### Plan Phase (Deepened) — Lead Conversion Tracking (2026-02-25)
+
+**Document:** `docs/plans/2026-02-25-feat-lead-conversion-tracking-plan.md`
+
+**What was planned (4 phases, 2 work sessions):**
+- Phase 1: Schema + types — 4 new columns with CHECK constraints, typed as `LeadOutcome | null`, `setLeadOutcome()` function
+- Phase 2: API — `POST /api/leads/:id/outcome` + `GET /api/analytics` (3 queries in read transaction)
+- Phase 3: Dashboard outcome controls — dropdown in detail panel, badge on summary, stale-lead nudge, in-flight gate
+- Phase 4: Dashboard Insights tab — new 4th tab, generic tab-switching, 2-tier threshold, CSS-only bars
+
+**Key changes from deepening (10 review agents):**
+- POST not PATCH (consistency with existing API)
+- CHECK constraints at DB level (SQLite 3.51.2 supports it)
+- `setLeadOutcome()` encapsulates sub-field cleanup invariant
+- Tab-switching rewritten to generic "hide all, show one" (fixes bug)
+- In-flight gate prevents rapid-fire save race conditions
+- Re-render pattern (not surgical DOM) for consistency
+- Simplified: 3 SQL queries (not 5), 2-tier thresholds (not per-metric matrix), no cache, cut `by_competition` + `speed_vs_conversion` from v1
+- Pre-existing bug found: phantom index on confidence_score — fix in Phase 1
+
+**Feed-Forward risk:** CHECK constraint on ALTER TABLE ADD COLUMN. Verified SQLite 3.51.2 supports it, but test in Session 1 before building on it. Fallback: remove CHECK, keep app-level validation.
+
+### Prompt for Next Session
+
+```
+Read docs/plans/2026-02-25-feat-lead-conversion-tracking-plan.md (Phase 1 + Phase 2). Implement schema, types, and API endpoints. Relevant files: src/types.ts, src/leads.ts, src/api.ts.
+```
 
 ### Fix Phase — Dashboard UI Redesign (2026-02-22)
 
