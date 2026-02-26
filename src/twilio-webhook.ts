@@ -1,7 +1,7 @@
 import twilio from "twilio";
 import { Router } from "express";
 import type { Request, Response } from "express";
-import { getLead, getLeadsByStatus, updateLead, completeApproval, computeFollowUpDelay, runTransaction, initDb } from "./leads.js";
+import { getLead, getLeadsByStatus, updateLead, completeApproval, computeFollowUpDelay, MAX_FOLLOW_UPS, getLeadAwaitingFollowUp, getLeadWithActiveFollowUp } from "./leads.js";
 import { sendSms } from "./sms.js";
 import { runEditPipeline } from "./run-pipeline.js";
 import type { Classification, LeadRecord, PricingResult } from "./types.js";
@@ -166,9 +166,7 @@ async function handleEdit(leadId: number | null, instructions: string): Promise<
 /** Handle SEND reply: approve pending follow-up draft, increment count, schedule next or exhaust. */
 async function handleFollowUpSend(): Promise<void> {
   // Find most recent lead with follow_up_status = 'sent' (awaiting Alex's SEND/SKIP)
-  const lead = initDb()
-    .prepare("SELECT * FROM leads WHERE follow_up_status = 'sent' ORDER BY updated_at DESC LIMIT 1")
-    .get() as LeadRecord | undefined;
+  const lead = getLeadAwaitingFollowUp();
 
   if (!lead) {
     await sendSms("No follow-up awaiting approval.");
@@ -177,24 +175,22 @@ async function handleFollowUpSend(): Promise<void> {
 
   const newCount = lead.follow_up_count + 1;
 
-  if (newCount >= 3) {
-    // Terminal — all 3 follow-ups done
+  if (newCount >= MAX_FOLLOW_UPS) {
+    // Terminal — all follow-ups done
     updateLead(lead.id, {
       follow_up_status: "exhausted",
       follow_up_count: newCount,
       follow_up_due_at: null,
     });
-    await sendSms(`Follow-up #${newCount} for Lead #${lead.id} marked as sent. All 3 follow-ups complete.`);
+    await sendSms(`Follow-up #${newCount} for Lead #${lead.id} marked as sent. All ${MAX_FOLLOW_UPS} follow-ups complete.`);
   } else {
     // Schedule next follow-up
     const delay = computeFollowUpDelay(newCount);
     const dueAt = new Date(Date.now() + delay).toISOString();
-    runTransaction(() => {
-      updateLead(lead.id, {
-        follow_up_status: "pending",
-        follow_up_count: newCount,
-        follow_up_due_at: dueAt,
-      });
+    updateLead(lead.id, {
+      follow_up_status: "pending",
+      follow_up_count: newCount,
+      follow_up_due_at: dueAt,
     });
     await sendSms(`Follow-up #${newCount} for Lead #${lead.id} marked as sent. Next follow-up scheduled.`);
   }
@@ -205,9 +201,7 @@ async function handleFollowUpSend(): Promise<void> {
 /** Handle SKIP reply: cancel all remaining follow-ups for most recent active lead. */
 async function handleFollowUpSkip(): Promise<void> {
   // Find most recent lead with active follow-up (pending or sent)
-  const lead = initDb()
-    .prepare("SELECT * FROM leads WHERE follow_up_status IN ('pending', 'sent') ORDER BY updated_at DESC LIMIT 1")
-    .get() as LeadRecord | undefined;
+  const lead = getLeadWithActiveFollowUp();
 
   if (!lead) {
     await sendSms("No active follow-up to skip.");
@@ -252,7 +246,7 @@ router.post("/webhook/twilio", (req: Request, res: Response) => {
     emptyTwiml(res);
     handleApproval(leadId).catch((err) => {
       console.error("Approval handler error:", err);
-      sendSms(`Error approving: ${err instanceof Error ? err.message : String(err)}`).catch(console.error);
+      sendSms("Error approving lead. Check server logs.").catch(console.error);
     });
     return;
   }
@@ -265,7 +259,7 @@ router.post("/webhook/twilio", (req: Request, res: Response) => {
     emptyTwiml(res);
     handleEdit(leadId, instructions).catch((err) => {
       console.error("Edit handler error:", err);
-      sendSms(`Error editing lead #${leadId}: ${err instanceof Error ? err.message : String(err)}`).catch(console.error);
+      sendSms(`Error editing lead #${leadId}. Check server logs.`).catch(console.error);
     });
     return;
   }
@@ -275,7 +269,7 @@ router.post("/webhook/twilio", (req: Request, res: Response) => {
     emptyTwiml(res);
     handleFollowUpSkip().catch((err) => {
       console.error("Follow-up skip handler error:", err);
-      sendSms(`Error skipping follow-up: ${err instanceof Error ? err.message : String(err)}`).catch(console.error);
+      sendSms("Error skipping follow-up. Check server logs.").catch(console.error);
     });
     return;
   }
@@ -285,7 +279,7 @@ router.post("/webhook/twilio", (req: Request, res: Response) => {
     emptyTwiml(res);
     handleFollowUpSend().catch((err) => {
       console.error("Follow-up send handler error:", err);
-      sendSms(`Error sending follow-up: ${err instanceof Error ? err.message : String(err)}`).catch(console.error);
+      sendSms("Error sending follow-up. Check server logs.").catch(console.error);
     });
     return;
   }
@@ -294,7 +288,7 @@ router.post("/webhook/twilio", (req: Request, res: Response) => {
   emptyTwiml(res);
   handleEdit(null, smsBody).catch((err) => {
     console.error("Edit handler error:", err);
-    sendSms(`Error processing edit: ${err instanceof Error ? err.message : String(err)}`).catch(console.error);
+    sendSms("Error processing edit. Check server logs.").catch(console.error);
   });
 });
 

@@ -259,6 +259,8 @@ export function runTransaction<T>(fn: () => T): T {
  *   sent ──SKIP──▶ skipped             (cancel all follow-ups)
  */
 
+export const MAX_FOLLOW_UPS = 3;
+
 const FOLLOW_UP_DELAYS_MS = [
   24 * 60 * 60 * 1_000,     // 1st: 24 hours
   3 * 24 * 60 * 60 * 1_000, // 2nd: 3 days
@@ -278,6 +280,22 @@ export function getLeadsDueForFollowUp(): LeadRecord[] {
     )
     .all() as LeadRecord[];
   return rows.map(normalizeRow);
+}
+
+/** Get the most recent lead awaiting follow-up approval (status = 'sent'). */
+export function getLeadAwaitingFollowUp(): LeadRecord | undefined {
+  const row = initDb()
+    .prepare("SELECT * FROM leads WHERE follow_up_status = 'sent' ORDER BY updated_at DESC LIMIT 1")
+    .get() as LeadRecord | undefined;
+  return row ? normalizeRow(row) : undefined;
+}
+
+/** Get the most recent lead with an active follow-up (pending or sent). */
+export function getLeadWithActiveFollowUp(): LeadRecord | undefined {
+  const row = initDb()
+    .prepare("SELECT * FROM leads WHERE follow_up_status IN ('pending', 'sent') ORDER BY updated_at DESC LIMIT 1")
+    .get() as LeadRecord | undefined;
+  return row ? normalizeRow(row) : undefined;
 }
 
 /** Set a lead's follow-up to pending with a due date. */

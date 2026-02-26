@@ -52,12 +52,15 @@ app.get("/health", (_req, res) => {
 });
 
 const PORT = parseInt(process.env.PORT || "3000", 10);
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`Gig Lead Responder running at http://localhost:${PORT}`);
   startFollowUpScheduler();
 });
 
 process.on("SIGTERM", () => {
-  console.log("SIGTERM received, stopping scheduler...");
+  console.log("SIGTERM received, shutting down...");
   stopFollowUpScheduler();
+  server.close(() => {
+    console.log("HTTP server closed");
+  });
 });

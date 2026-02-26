@@ -4,7 +4,9 @@ import { sendSms } from "./sms.js";
 import type { LeadRecord } from "./types.js";
 
 const INTERVAL_MS = 15 * 60 * 1_000; // 15 minutes
+const MAX_SCHEDULER_RETRIES = 3;
 let schedulerHandle: ReturnType<typeof setTimeout> | null = null;
+const retryFailures = new Map<number, number>(); // leadId → consecutive failure count
 
 /**
  * Format the follow-up SMS sent to Alex for approval.
@@ -41,18 +43,26 @@ async function checkDueFollowUps(): Promise<void> {
 
   for (const lead of leads) {
     try {
-      // 1. Generate follow-up draft via Claude API
-      const draft = await generateFollowUpDraft(lead);
+      // 1. Reuse existing draft if available (SMS failed on prior attempt), else generate new one
+      const draft = lead.follow_up_draft || await generateFollowUpDraft(lead);
       // 2. Store draft in DB (survives restarts)
-      updateLead(lead.id, { follow_up_draft: draft });
+      if (!lead.follow_up_draft) updateLead(lead.id, { follow_up_draft: draft });
       // 3. Send SMS to Alex for approval
       await sendSms(formatFollowUpSms(lead, draft));
       // 4. Mark as sent (waiting for SEND/SKIP from Alex)
       updateLead(lead.id, { follow_up_status: "sent" });
+      retryFailures.delete(lead.id);
       console.log(`[scheduler] follow-up draft sent for lead #${lead.id}`);
     } catch (err) {
-      // Leave as 'pending' — retry next cycle
-      console.error(`[scheduler] follow-up failed for lead #${lead.id}:`, err);
+      const failures = (retryFailures.get(lead.id) || 0) + 1;
+      retryFailures.set(lead.id, failures);
+      console.error(`[scheduler] follow-up failed for lead #${lead.id} (attempt ${failures}/${MAX_SCHEDULER_RETRIES}):`, err);
+
+      if (failures >= MAX_SCHEDULER_RETRIES) {
+        updateLead(lead.id, { follow_up_status: "skipped", follow_up_due_at: null });
+        retryFailures.delete(lead.id);
+        await sendSms(`Follow-up for Lead #${lead.id} failed ${MAX_SCHEDULER_RETRIES} times — skipped. Check logs.`).catch(console.error);
+      }
     }
   }
 }
@@ -74,7 +84,7 @@ async function schedulerLoop(): Promise<void> {
     await checkDueFollowUps();
   } catch (err) {
     console.error("[scheduler] error:", err);
-    await sendSms(`Follow-up scheduler error: ${(err as Error).message}`).catch(
+    await sendSms("Follow-up scheduler error. Check server logs.").catch(
       console.error,
     );
   }
