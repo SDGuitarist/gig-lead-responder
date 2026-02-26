@@ -1,13 +1,26 @@
 # Gig Lead Responder — Session Handoff
 
-**Last updated:** 2026-02-26 (v53)
-**Current phase:** Fix-batched — P2 review fixes complete, P3 remaining
+**Last updated:** 2026-02-26 (v54)
+**Current phase:** Fix-batched — All P2 + P3 review fixes complete
 **Branch:** `feat/follow-up-pipeline`
-**Next session:** Compound phase (or P3 fixes if desired)
+**Next session:** Compound phase
 
-### Fix Session: P2 Review Findings 012-018 (2026-02-26)
+### Fix Session: P3 Review Findings 019-022 (2026-02-26)
 
 **Review doc:** `docs/reviews/feat-follow-up-pipeline/REVIEW-SUMMARY.md`
+
+**What was done:**
+
+- Commit `142c124`: All 4 P3 findings fixed in one commit (+13/-6, 5 files)
+  - 019: Typed `JSON.parse` of `classification_json` as `Classification` in follow-up prompt
+  - 020: Narrowed `computeFollowUpDelay` param from `number` to `0 | 1 | 2`
+  - 021: Added exhaustive `default: never` case in `getValueAddInstructions` — compile-time guard against adding a 4th type without handling it
+  - 022: Added optional `maxTokens` param to `callClaudeText` (default 4096 preserved), set 256 for follow-up generation
+
+- Pre-commit check confirmed all changes safe, no regressions
+- TypeScript build clean
+
+### Fix Session: P2 Review Findings 012-018 (2026-02-26)
 
 **What was done:**
 
@@ -21,14 +34,12 @@
   - 018: Scheduler reuses existing `follow_up_draft` on retry instead of regenerating (saves API $)
 
 - Pre-commit check caught `MAX_RETRIES` naming collision with `MAX_FOLLOW_UPS` — renamed to `MAX_SCHEDULER_RETRIES`
-- TypeScript build clean, no regressions
 
 **Decisions made:**
 - Used in-memory Map for retry tracking (not a DB column) — resets on restart, which is fine (lead gets fresh chances)
 - Poison leads marked as "skipped" (not a new status) since the existing status set covers the need
 - Error SMS says "Check server logs" — Alex is the only user, so this is actionable without exposing internals
-
-**P3 findings remaining (019-022):** Type narrowing, exhaustive switch default, max_tokens optimization. All small effort, none blocking deploy.
+- `as 0 | 1 | 2` cast in SEND handler is safe — only reached when `newCount < MAX_FOLLOW_UPS` (3)
 
 ## Three Questions
 
@@ -41,5 +52,5 @@
 ### Prompt for Next Session
 
 ```
-Read docs/HANDOFF.md. P2 fixes are complete and pushed. Options: (1) Fix P3 todos 019-022 from docs/reviews/feat-follow-up-pipeline/REVIEW-SUMMARY.md — all small type safety improvements. (2) Skip to compound phase — document learnings in docs/solutions/. Relevant files: src/twilio-webhook.ts, src/leads.ts, src/follow-up-scheduler.ts, src/server.ts, src/prompts/follow-up.ts.
+Read docs/HANDOFF.md. All review findings (P2 012-018 + P3 019-022) are fixed and pushed on feat/follow-up-pipeline. Run /workflows:compound to document learnings in docs/solutions/. Key risk to document: "skipped" status conflates user-initiated and system-initiated skips (Three Questions #3).
 ```
