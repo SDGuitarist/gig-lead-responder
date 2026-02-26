@@ -1,5 +1,5 @@
 import { Router, type Request, type Response } from "express";
-import { listLeadsFiltered, getLeadStats, getLead, updateLead, claimLeadForSending, setLeadOutcome, getAnalytics } from "./leads.js";
+import { listLeadsFiltered, getLeadStats, getLead, updateLead, claimLeadForSending, setLeadOutcome, getAnalytics, completeApproval } from "./leads.js";
 import type { LeadStatus, LeadOutcome, LossReason, LeadApiResponse } from "./types.js";
 import { LEAD_OUTCOMES, LOSS_REASONS } from "./types.js";
 import { basicAuth } from "./auth.js";
@@ -75,6 +75,11 @@ function shapeLead(lead: ReturnType<typeof getLead>): LeadApiResponse | null {
     outcome_reason: lead.outcome_reason,
     actual_price: lead.actual_price,
     outcome_at: lead.outcome_at,
+    // follow-up
+    follow_up_status: lead.follow_up_status,
+    follow_up_count: lead.follow_up_count,
+    follow_up_due_at: lead.follow_up_due_at,
+    follow_up_draft: lead.follow_up_draft,
   };
 }
 
@@ -146,11 +151,9 @@ router.post("/api/leads/:id/approve", approveLimiter, async (req: Request, res: 
     return;
   }
 
-  const updated = updateLead(id, {
-    status: "done",
-    done_reason: "approved_dashboard",
-    sms_sent_at: new Date().toISOString(),
-  });
+  // Mark done + schedule first follow-up atomically
+  updateLead(id, { sms_sent_at: new Date().toISOString() });
+  const updated = completeApproval(id, "approved_dashboard");
 
   if (!updated) {
     res.status(500).json({ error: "Failed to update lead after sending" });

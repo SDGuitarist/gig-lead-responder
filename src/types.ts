@@ -158,6 +158,13 @@ export interface PipelineOutput {
 
 // --- Outcome tracking types ---
 
+// --- Follow-up status types ---
+
+export const FOLLOW_UP_STATUSES = ["pending", "sent", "skipped", "exhausted"] as const;
+export type FollowUpStatus = (typeof FOLLOW_UP_STATUSES)[number];
+
+// --- Outcome tracking types ---
+
 export const LEAD_OUTCOMES = ["booked", "lost", "no_reply"] as const;
 export type LeadOutcome = (typeof LEAD_OUTCOMES)[number];
 
@@ -224,6 +231,11 @@ export interface LeadApiResponse {
   outcome_reason: LossReason | null;
   actual_price: number | null;
   outcome_at: string | null;
+  // follow-up
+  follow_up_status: FollowUpStatus | null;
+  follow_up_count: number;
+  follow_up_due_at: string | null;
+  follow_up_draft: string | null;
 }
 
 // --- Email parser types (Chunk 2) ---
@@ -275,6 +287,11 @@ export interface LeadRecord {
   outcome_reason: LossReason | null;
   actual_price: number | null;
   outcome_at: string | null;
+  // Follow-up fields
+  follow_up_status: FollowUpStatus | null;
+  follow_up_count: number;
+  follow_up_due_at: string | null;
+  follow_up_draft: string | null;
   created_at: string;
   updated_at: string;
 }

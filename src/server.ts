@@ -5,6 +5,7 @@ import { initDb } from "./leads.js";
 import webhookRouter from "./webhook.js";
 import twilioWebhookRouter from "./twilio-webhook.js";
 import apiRouter from "./api.js";
+import { startFollowUpScheduler, stopFollowUpScheduler } from "./follow-up-scheduler.js";
 
 if (!process.env.ANTHROPIC_API_KEY) {
   console.error("Error: ANTHROPIC_API_KEY not set in .env file");
@@ -51,6 +52,15 @@ app.get("/health", (_req, res) => {
 });
 
 const PORT = parseInt(process.env.PORT || "3000", 10);
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`Gig Lead Responder running at http://localhost:${PORT}`);
+  startFollowUpScheduler();
+});
+
+process.on("SIGTERM", () => {
+  console.log("SIGTERM received, shutting down...");
+  stopFollowUpScheduler();
+  server.close(() => {
+    console.log("HTTP server closed");
+  });
 });

@@ -1,49 +1,56 @@
 # Gig Lead Responder — Session Handoff
 
-**Last updated:** 2026-02-26 (v50)
-**Current phase:** Plan — deepened + reviewed
-**Branch:** `main`
-**Next session:** Work phase for Follow-Up Pipeline
+**Last updated:** 2026-02-26 (v54)
+**Current phase:** Fix-batched — All P2 + P3 review fixes complete
+**Branch:** `feat/follow-up-pipeline`
+**Next session:** Compound phase
 
-### Deepen + Review Session (2026-02-26)
+### Fix Session: P3 Review Findings 019-022 (2026-02-26)
 
-Deepened and reviewed the Follow-Up Pipeline plan.
-
-**Plan doc:** `docs/plans/2026-02-26-feat-follow-up-pipeline-plan.md`
+**Review doc:** `docs/reviews/feat-follow-up-pipeline/REVIEW-SUMMARY.md`
 
 **What was done:**
-- Deepened plan with 14 parallel research/review agents (learnings, best practices, repo research, framework docs, TypeScript, performance, security, architecture, pattern recognition, data integrity, simplicity, deployment, race conditions, spec flow)
-- Ran technical review with 4 focused agents (TypeScript reviewer, simplicity reviewer, architecture strategist, spec flow analyzer)
-- Applied all P0 review findings to the plan:
-  1. Removed `sending` state (human-gated, no race to guard against)
-  2. Added `follow_up_draft` column for draft storage between generation and SEND
-  3. Defined explicit SEND handler action sequence
-  4. Created shared `completeApproval()` function for both approval paths
-  5. Merged Phases 3+4 deploy (can't send drafts without SEND/SKIP commands)
-  6. Removed business-hours gate from V1 (scope creep)
-  7. Simplified to 2 DB helpers instead of 5
-  8. Defined follow-up SMS format (distinct from initial drafts)
-  9. Specified regex routing order for new SMS commands
-  10. Updated all acceptance criteria
 
-**Key changes from original plan:**
-- States: 5 → 4 (`pending`, `sent`, `skipped`, `exhausted`) — removed `sending`
-- Columns: 4 changed (`follow_up_sent_at` → `follow_up_draft`)
-- DB helpers: 5 → 2 (`getLeadsDueForFollowUp`, `scheduleFollowUp`)
-- New: `completeApproval()` shared function (atomic: status=done + scheduleFollowUp)
-- Deploy: 4 deploys → 3 (Phases 3+4 together)
-- Commands: SEND/SKIP with no ID suffix (V1)
+- Commit `142c124`: All 4 P3 findings fixed in one commit (+13/-6, 5 files)
+  - 019: Typed `JSON.parse` of `classification_json` as `Classification` in follow-up prompt
+  - 020: Narrowed `computeFollowUpDelay` param from `number` to `0 | 1 | 2`
+  - 021: Added exhaustive `default: never` case in `getValueAddInstructions` — compile-time guard against adding a 4th type without handling it
+  - 022: Added optional `maxTokens` param to `callClaudeText` (default 4096 preserved), set 256 for follow-up generation
+
+- Pre-commit check confirmed all changes safe, no regressions
+- TypeScript build clean
+
+### Fix Session: P2 Review Findings 012-018 (2026-02-26)
+
+**What was done:**
+
+- Commit `08f289b`: All 7 P2 findings fixed in one commit (+54/-29, 4 files)
+  - 012: Extracted `getLeadAwaitingFollowUp()` and `getLeadWithActiveFollowUp()` into leads.ts — SEND/SKIP handlers now use `normalizeRow()` like all other queries
+  - 013: Removed unnecessary `runTransaction()` wrapper around single `updateLead` call
+  - 014: Added `server.close()` on SIGTERM so in-flight HTTP requests complete
+  - 015: Added in-memory retry tracking (`retryFailures` Map) — poison leads auto-skip after 3 failures, Alex notified via SMS
+  - 016: Exported `MAX_FOLLOW_UPS = 3` from leads.ts, replaced magic number in SEND handler
+  - 017: Redacted `err.message` from all SMS error notifications — errors still logged to console
+  - 018: Scheduler reuses existing `follow_up_draft` on retry instead of regenerating (saves API $)
+
+- Pre-commit check caught `MAX_RETRIES` naming collision with `MAX_FOLLOW_UPS` — renamed to `MAX_SCHEDULER_RETRIES`
+
+**Decisions made:**
+- Used in-memory Map for retry tracking (not a DB column) — resets on restart, which is fine (lead gets fresh chances)
+- Poison leads marked as "skipped" (not a new status) since the existing status set covers the need
+- Error SMS says "Check server logs" — Alex is the only user, so this is actionable without exposing internals
+- `as 0 | 1 | 2` cast in SEND handler is safe — only reached when `newCount < MAX_FOLLOW_UPS` (3)
 
 ## Three Questions
 
-1. **Hardest decision in this session?** Whether to keep the `sending` state and atomic claim pattern, or remove them based on the simplicity reviewer's insight that human-in-the-loop eliminates the race condition. Removed `sending` — cut 5→4 states, 8→6 transitions, eliminated stale recovery and 3 unnecessary helper functions.
+1. **Hardest fix in this batch?** 015 (poison lead retry limit). Had to choose between in-memory tracking vs. a DB column. In-memory is simpler and doesn't require a schema migration, but resets on restart. Accepted this tradeoff because a restart gives the lead fresh chances, which is actually desirable — the failure may have been transient (e.g., Claude API outage).
 
-2. **What did you reject, and why?** Rejected removing `exhausted` state (simplicity reviewer suggested using `follow_up_count >= 3` instead). For a beginner developer, multi-column terminal checks are harder than a single state. Also rejected the simplicity reviewer's suggestion to drop `follow_up_draft` column — architecture and spec flow reviewers both identified draft storage as critical.
+2. **What did you consider fixing differently, and why didn't you?** Considered adding a dedicated `follow_up_error_count` column for 015 so retry state survives restarts. Rejected because it adds migration complexity for a V1 edge case — if a lead consistently fails across restarts, the in-memory limit will still catch it within 3 cycles (45 minutes). Not worth a schema change.
 
-3. **Least confident about going into the next phase?** Follow-up prompt quality. The V1 model (all-SMS-approval) is the safety net, but if drafts consistently need heavy editing, the feature delivers friction instead of value. Work phase should test the prompt against 4 test leads early in Phase 3.
+3. **Least confident about going into the next batch or compound phase?** Whether "skipped" is the right status for poison leads that hit the retry limit. It conflates user-initiated skips (Alex texted SKIP) with system-initiated skips (3 failures). In V1 this is fine since Alex gets an SMS explaining the reason, but if V2 adds analytics on skip reasons, we'd need to distinguish them.
 
 ### Prompt for Next Session
 
 ```
-Read docs/plans/2026-02-26-feat-follow-up-pipeline-plan.md. Run /workflows:work. Start with Phase 1 (Schema + Types). Relevant files: src/types.ts, src/leads.ts, src/twilio-webhook.ts, src/api.ts. Key decisions: 4 states (pending/sent/skipped/exhausted), 4 columns, completeApproval() shared function, no sending state. The plan's "least confident" area is follow-up prompt quality — test against existing 4 test leads early in Phase 3.
+Read docs/HANDOFF.md. All review findings (P2 012-018 + P3 019-022) are fixed and pushed on feat/follow-up-pipeline. Run /workflows:compound to document learnings in docs/solutions/. Key risk to document: "skipped" status conflates user-initiated and system-initiated skips (Three Questions #3).
 ```
