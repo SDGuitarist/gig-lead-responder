@@ -18,7 +18,6 @@ initDb();
 const app = express();
 app.use(express.json({ limit: "100kb" }));
 app.use(express.urlencoded({ extended: false }));
-app.use(express.static(join(import.meta.dirname, "..", "public")));
 app.use(
   helmet({
     contentSecurityPolicy: {
@@ -28,6 +27,7 @@ app.use(
     },
   })
 );
+app.use(express.static(join(import.meta.dirname, "..", "public")));
 
 // Mailgun inbound webhook
 app.use(webhookRouter);
