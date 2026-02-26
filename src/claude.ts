@@ -75,11 +75,12 @@ export async function callClaude<T>(
 export async function callClaudeText(
   systemPrompt: string,
   userMessage: string,
-  model: string = "claude-sonnet-4-6"
+  model: string = "claude-sonnet-4-6",
+  maxTokens: number = 4096,
 ): Promise<string> {
   const response = await client.messages.create({
     model,
-    max_tokens: 4096,
+    max_tokens: maxTokens,
     system: systemPrompt,
     messages: [{ role: "user", content: userMessage }],
   });

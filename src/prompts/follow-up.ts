@@ -1,4 +1,4 @@
-import type { LeadRecord } from "../types.js";
+import type { Classification, LeadRecord } from "../types.js";
 
 /**
  * Value-add type per follow-up number.
@@ -23,7 +23,7 @@ export function buildFollowUpPrompt(lead: LeadRecord, followUpNumber: number): s
   let eventContext = "";
   if (lead.classification_json) {
     try {
-      const c = JSON.parse(lead.classification_json);
+      const c: Classification = JSON.parse(lead.classification_json);
       const parts: string[] = [];
       if (c.event_energy) parts.push(`Event energy: ${c.event_energy}`);
       if (c.cultural_context_active) parts.push(`Cultural context: ${c.cultural_tradition || "active"}`);
@@ -73,5 +73,10 @@ function getValueAddInstructions(
 
     case "urgency":
       return `Write a message that gently notes availability. Example tone: "Wanted to make sure you saw my message. I'm holding ${lead.event_date || "your date"} open but have another inquiry coming in for that weekend."`;
+
+    default: {
+      const _exhaustive: never = type;
+      throw new Error(`Unknown value-add type: ${_exhaustive}`);
+    }
   }
 }

@@ -185,7 +185,7 @@ async function handleFollowUpSend(): Promise<void> {
     await sendSms(`Follow-up #${newCount} for Lead #${lead.id} marked as sent. All ${MAX_FOLLOW_UPS} follow-ups complete.`);
   } else {
     // Schedule next follow-up
-    const delay = computeFollowUpDelay(newCount);
+    const delay = computeFollowUpDelay(newCount as 0 | 1 | 2);
     const dueAt = new Date(Date.now() + delay).toISOString();
     updateLead(lead.id, {
       follow_up_status: "pending",

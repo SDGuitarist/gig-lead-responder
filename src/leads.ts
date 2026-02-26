@@ -268,7 +268,7 @@ const FOLLOW_UP_DELAYS_MS = [
 ];
 
 /** Returns delay in ms before the next follow-up. */
-export function computeFollowUpDelay(followUpCount: number): number {
+export function computeFollowUpDelay(followUpCount: 0 | 1 | 2): number {
   return FOLLOW_UP_DELAYS_MS[followUpCount] ?? FOLLOW_UP_DELAYS_MS[2];
 }
 

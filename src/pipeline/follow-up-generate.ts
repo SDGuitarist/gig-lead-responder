@@ -15,6 +15,7 @@ export async function generateFollowUpDraft(lead: LeadRecord): Promise<string> {
     systemPrompt,
     "Write the follow-up message now.",
     "claude-haiku-4-5-20251001",
+    256, // follow-ups are ~80 tokens; 256 gives safe headroom
   );
 
   return draft.trim();
