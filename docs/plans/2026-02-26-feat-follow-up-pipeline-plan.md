@@ -444,20 +444,20 @@ export type ParseResult =
 ## Acceptance Criteria
 
 ### Phase 1: Schema + Types
-- [ ] 4 new columns added via existing migration pattern in `initDb()`: `follow_up_status`, `follow_up_count`, `follow_up_due_at`, `follow_up_draft`
-- [ ] CHECK constraint: `follow_up_status IN ('pending','sent','skipped','exhausted')`
-- [ ] `FOLLOW_UP_STATUSES` const array + `FollowUpStatus` union type in `src/types.ts`
-- [ ] `LeadRecord` extended with new fields using `T | null` (not `?:`)
-- [ ] `LeadApiResponse` extended and `shapeLead()` updated to include follow-up fields
-- [ ] ALL new columns in `UPDATE_ALLOWED_COLUMNS` whitelist
-- [ ] `getLeadsDueForFollowUp(): LeadRecord[]` helper in `src/leads.ts`
-- [ ] `scheduleFollowUp(leadId: number, dueAt: string): void` helper in `src/leads.ts`
-- [ ] `completeApproval(leadId, doneReason)` shared function wrapping `updateLead(status: "done")` + `scheduleFollowUp()` in a transaction
-- [ ] `handleApproval()` in `twilio-webhook.ts` refactored to use `completeApproval()`
-- [ ] `POST /api/leads/:id/approve` in `api.ts` refactored to use `completeApproval()`
-- [ ] `computeFollowUpDelay(followUpCount: number): number` pure function returning milliseconds
-- [ ] Follow-up timing starts from the moment of approval, regardless of approval channel
-- [ ] State transition table documented as code comment in `src/leads.ts`
+- [x] 4 new columns added via existing migration pattern in `initDb()`: `follow_up_status`, `follow_up_count`, `follow_up_due_at`, `follow_up_draft`
+- [x] CHECK constraint: `follow_up_status IN ('pending','sent','skipped','exhausted')`
+- [x] `FOLLOW_UP_STATUSES` const array + `FollowUpStatus` union type in `src/types.ts`
+- [x] `LeadRecord` extended with new fields using `T | null` (not `?:`)
+- [x] `LeadApiResponse` extended and `shapeLead()` updated to include follow-up fields
+- [x] ALL new columns in `UPDATE_ALLOWED_COLUMNS` whitelist
+- [x] `getLeadsDueForFollowUp(): LeadRecord[]` helper in `src/leads.ts`
+- [x] `scheduleFollowUp(leadId: number, dueAt: string): void` helper in `src/leads.ts`
+- [x] `completeApproval(leadId, doneReason)` shared function wrapping `updateLead(status: "done")` + `scheduleFollowUp()` in a transaction
+- [x] `handleApproval()` in `twilio-webhook.ts` refactored to use `completeApproval()`
+- [x] `POST /api/leads/:id/approve` in `api.ts` refactored to use `completeApproval()`
+- [x] `computeFollowUpDelay(followUpCount: number): number` pure function returning milliseconds
+- [x] Follow-up timing starts from the moment of approval, regardless of approval channel
+- [x] State transition table documented as code comment in `src/leads.ts`
 
 ### Phase 2: Scheduler
 - [ ] `setTimeout` chaining (NOT `setInterval`) runs every 15 minutes
