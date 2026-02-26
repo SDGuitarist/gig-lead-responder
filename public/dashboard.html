@@ -593,6 +593,192 @@
   .gut-bar-fill.medium { background: #cf9145; }
   .gut-bar-fill.low { background: #b54a3a; }
 
+  /* ── Outcome badges ─────────────────────────────────────── */
+  .outcome-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+    margin-left: 6px;
+  }
+  .badge-success { background: #e8f5e9; color: #2e7d32; }
+  .badge-danger  { background: #fdf2f0; color: #b54a3a; }
+  .badge-muted   { background: #f0ece5; color: #8a7e6d; }
+
+  .nudge-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 10px;
+    font-weight: 600;
+    background: #fff3e0;
+    color: #e65100;
+    margin-left: 6px;
+    white-space: nowrap;
+  }
+
+  /* ── Outcome controls in detail panel ──────────────────── */
+  .outcome-section {
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid #e8e2d9;
+  }
+  .outcome-section h4 {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: #8a7e6d;
+    font-weight: 600;
+    margin-bottom: 10px;
+  }
+  .outcome-controls {
+    display: flex;
+    align-items: flex-end;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .outcome-field label {
+    display: block;
+    font-size: 11px;
+    color: #8a7e6d;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .outcome-select, .outcome-input {
+    padding: 7px 12px;
+    border: 1px solid #e8e2d9;
+    border-radius: 6px;
+    font-size: 13px;
+    font-family: inherit;
+    color: #2c2419;
+    background: #fff;
+    transition: border-color 0.2s ease;
+  }
+  .outcome-select:focus, .outcome-input:focus {
+    outline: none;
+    border-color: #cf9145;
+    box-shadow: 0 0 0 3px rgba(207,145,69,0.12);
+  }
+  .outcome-select:disabled, .outcome-input:disabled { opacity: 0.5; }
+  .outcome-input { width: 120px; }
+
+  /* ── Insights Tab ──────────────────────────────────────── */
+  .insights-container { max-width: 900px; }
+
+  .insights-cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+  @media (max-width: 700px) { .insights-cards { grid-template-columns: 1fr; } }
+
+  .insight-card {
+    background: #fff;
+    border-radius: 8px;
+    padding: 20px;
+    border-left: 3px solid #e8e2d9;
+    box-shadow: 0 1px 3px rgba(44,36,25,0.08);
+  }
+  .insight-card.gold { border-left-color: #cf9145; }
+  .insight-card.green { border-left-color: #5a8a5e; }
+  .insight-card.grey { border-left-color: #8a7e6d; }
+
+  .insight-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: #8a7e6d;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  .insight-number {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 32px;
+    font-weight: 700;
+    color: #2c2419;
+    line-height: 1.1;
+    margin-bottom: 4px;
+  }
+  .insight-sub { font-size: 12px; color: #8a7e6d; }
+
+  .insights-section {
+    margin-bottom: 28px;
+  }
+  .insights-prices {
+    display: flex;
+    gap: 24px;
+    font-size: 14px;
+    color: #2c2419;
+  }
+  .insights-section h3 {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 18px;
+    font-weight: 600;
+    color: #2c2419;
+    border-bottom: 2px solid #cf9145;
+    padding-bottom: 6px;
+    margin-bottom: 14px;
+  }
+
+  .breakdown-table { width: 100%; border-collapse: collapse; }
+  .breakdown-table th {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: #8a7e6d;
+    font-weight: 600;
+    text-align: left;
+    padding: 8px 12px;
+    border-bottom: 1px solid #e8e2d9;
+  }
+  .breakdown-table td {
+    padding: 10px 12px;
+    font-size: 14px;
+    color: #2c2419;
+    border-bottom: 1px solid #f0ece5;
+  }
+  .breakdown-table tr.thin-data { opacity: 0.7; }
+
+  .bar-cell { width: 40%; }
+  .bar {
+    height: 20px;
+    background: linear-gradient(90deg, #cf9145, #e0b374);
+    border-radius: 3px;
+    min-width: 4px;
+    transition: width 0.4s ease-out;
+  }
+
+  .insights-empty {
+    text-align: center;
+    padding: 60px 24px;
+    color: #8a7e6d;
+  }
+  .insights-empty h2 {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 22px;
+    color: #2c2419;
+    margin-bottom: 8px;
+  }
+
+  .insights-note {
+    font-size: 12px;
+    color: #8a7e6d;
+    font-style: italic;
+    margin-bottom: 20px;
+  }
+
+  .shimmer {
+    background: linear-gradient(90deg, #f0ece5 25%, #faf8f5 50%, #f0ece5 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: 6px;
+    height: 120px;
+  }
+  @keyframes shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+
   /* ── Analyze Tab ─────────────────────────────────────────── */
   .analyze-container { max-width: 900px; }
 
@@ -750,6 +936,7 @@
       <button class="tab-btn active" data-tab="queue">Queue</button>
       <button class="tab-btn" data-tab="all">All Leads</button>
       <button class="tab-btn" data-tab="analyze">Analyze</button>
+      <button class="tab-btn" data-tab="insights">Insights</button>
     </nav>
     <button class="refresh-btn" onclick="loadStats(); loadLeads();" title="Refresh leads and stats">&#x21bb; Refresh</button>
   </header>
@@ -885,6 +1072,19 @@
     </div>
   </div>
 
+  <!-- ══════════════════ INSIGHTS TAB ═══════════════════════ -->
+  <div class="tab-panel" id="panel-insights">
+    <div class="insights-container">
+      <div class="page-header">
+        <h1 class="serif">Insights</h1>
+        <p>Conversion analytics across all tracked leads</p>
+      </div>
+      <div id="insightsContent">
+        <div class="shimmer"></div>
+      </div>
+    </div>
+  </div>
+
 </div><!-- /app-shell -->
 
 <script>
@@ -932,6 +1132,23 @@
     cultural_vocabulary_used: 'Cultural Vocabulary Used'
   };
 
+  // SYNC: OUTCOME_DISPLAY must match LeadOutcome type in src/types.ts
+  var OUTCOME_DISPLAY = {
+    booked:   { cls: 'badge-success', label: 'Booked' },
+    lost:     { cls: 'badge-danger',  label: 'Lost' },
+    no_reply: { cls: 'badge-muted',   label: 'No Reply' }
+  };
+
+  // SYNC: LOSS_REASONS keys must match LossReason type in src/types.ts
+  var LOSS_REASONS = {
+    price:      'Price too high',
+    competitor: 'Went with competitor',
+    cancelled:  'Event cancelled',
+    other:      'Other'
+  };
+
+  var NUDGE_DAYS = 7;
+
   var FILTER_TO_API = { pending: 'received', sent: 'sent', done: 'done', failed: 'failed' };
 
   /* ── State ───────────────────────────────────────────────── */
@@ -967,6 +1184,26 @@
   function fmtPrice(n) {
     if (n == null) return '\u2014';
     return '$' + Number(n).toLocaleString();
+  }
+
+  function isStale(l) {
+    if (l.status !== 'done' || l.outcome !== null) return false;
+    var ref = l.sms_sent_at || l.updated_at;
+    if (!ref) return false;
+    var diff = Date.now() - new Date(ref).getTime();
+    return diff >= NUDGE_DAYS * 24 * 60 * 60 * 1000;
+  }
+
+  function outcomeBadgeHTML(l) {
+    var html = '';
+    if (l.outcome && OUTCOME_DISPLAY[l.outcome]) {
+      var o = OUTCOME_DISPLAY[l.outcome];
+      html += '<span class="outcome-badge ' + o.cls + '">' + o.label + '</span>';
+    }
+    if (isStale(l)) {
+      html += '<span class="nudge-badge">Needs outcome</span>';
+    }
+    return html;
   }
 
   function findLead(id) {
@@ -1160,6 +1397,48 @@
     }
     html += '</div>';
 
+    // Outcome controls (only for done leads)
+    if (l.status === 'done') {
+      html += '<div class="outcome-section">';
+      html += '<h4>Outcome</h4>';
+      html += '<div class="outcome-controls">';
+
+      // Outcome dropdown
+      html += '<div class="outcome-field">';
+      html += '<label>Result</label>';
+      html += '<select class="outcome-select" data-outcome-select="' + l.id + '">';
+      html += '<option value=""' + (!l.outcome ? ' selected' : '') + '>-- No Outcome --</option>';
+      html += '<option value="booked"' + (l.outcome === 'booked' ? ' selected' : '') + '>Booked</option>';
+      html += '<option value="lost"' + (l.outcome === 'lost' ? ' selected' : '') + '>Lost</option>';
+      html += '<option value="no_reply"' + (l.outcome === 'no_reply' ? ' selected' : '') + '>No Reply</option>';
+      html += '</select></div>';
+
+      // Conditional sub-fields
+      if (l.outcome === 'booked') {
+        var placeholder = l.quote_price ? 'Quoted: $' + l.quote_price : 'Amount';
+        html += '<div class="outcome-field">';
+        html += '<label>Actual Price</label>';
+        html += '<input type="number" class="outcome-input" data-outcome-price="' + l.id + '" placeholder="' + placeholder + '"' +
+          (l.actual_price ? ' value="' + l.actual_price + '"' : '') + ' min="1" step="1">';
+        html += '</div>';
+      }
+
+      if (l.outcome === 'lost') {
+        html += '<div class="outcome-field">';
+        html += '<label>Reason</label>';
+        html += '<select class="outcome-select" data-outcome-reason="' + l.id + '">';
+        html += '<option value="">-- Optional --</option>';
+        Object.keys(LOSS_REASONS).forEach(function (key) {
+          html += '<option value="' + key + '"' + (l.outcome_reason === key ? ' selected' : '') + '>' + LOSS_REASONS[key] + '</option>';
+        });
+        html += '</select></div>';
+      }
+
+      // Save button
+      html += '<button class="btn btn-primary" data-outcome-save="' + l.id + '">Save</button>';
+      html += '</div></div>';
+    }
+
     html += '</div>';
     return html;
   }
@@ -1193,7 +1472,7 @@
         '<td>' + (sc != null
           ? '<span class="score ' + scoreClass(sc) + '">' + sc + '</span>'
           : '<span style="color:#8a7e6d">\u2014</span>') + '</td>' +
-        '<td><span class="status-badge ' + st.css + '">' + st.label + '</span></td>' +
+        '<td><span class="status-badge ' + st.css + '">' + st.label + '</span>' + outcomeBadgeHTML(l) + '</td>' +
         '<td></td>' +
       '</tr>';
 
@@ -1230,7 +1509,7 @@
             '<div class="lead-event-name">' + (esc(l.event_type) || 'Unknown') + '</div>' +
             '<div class="lead-event-sub">' + esc(l.client_name) + '</div>' +
           '</div>' +
-          '<span class="status-badge ' + st.css + '">' + st.label + '</span>' +
+          '<span class="status-badge ' + st.css + '">' + st.label + '</span>' + outcomeBadgeHTML(l) +
         '</div>' +
         '<div class="mobile-card-meta">' +
           '<span>' + fmtDate(l.event_date) + '</span>' +
@@ -1381,25 +1660,35 @@
     }
   });
 
-  /* ── Tab switching ───────────────────────────────────────── */
+  /* ── Tab switching (generic: hide all, show one) ─────────── */
 
+  var ALL_PANELS = ['panel-leads', 'panel-analyze', 'panel-insights'];
   var tabBtns = document.querySelectorAll('.tab-btn');
+
+  function showTab(tab) {
+    ALL_PANELS.forEach(function (id) {
+      document.getElementById(id).classList.remove('active');
+    });
+
+    if (tab === 'analyze') {
+      document.getElementById('panel-analyze').classList.add('active');
+    } else if (tab === 'insights') {
+      document.getElementById('panel-insights').classList.add('active');
+      loadInsights();
+    } else {
+      document.getElementById('panel-leads').classList.add('active');
+      if (tab === 'queue') setFilter('pending');
+      else if (tab === 'all') setFilter('all');
+    }
+
+    tabBtns.forEach(function (b) {
+      b.classList.toggle('active', b.getAttribute('data-tab') === tab);
+    });
+  }
 
   tabBtns.forEach(function (btn) {
     btn.addEventListener('click', function () {
-      var tab = btn.dataset.tab;
-
-      tabBtns.forEach(function (b) { b.classList.remove('active'); });
-      btn.classList.add('active');
-
-      document.getElementById('panel-leads').classList.toggle('active', tab !== 'analyze');
-      document.getElementById('panel-analyze').classList.toggle('active', tab === 'analyze');
-
-      if (tab === 'queue') {
-        setFilter('pending');
-      } else if (tab === 'all') {
-        setFilter('all');
-      }
+      showTab(btn.dataset.tab);
     });
   });
 
@@ -1428,6 +1717,208 @@
     loadLeads();
   });
 
+  /* ── Outcome save (with in-flight gate) ─────────────────── */
+
+  var savingOutcome = null;
+
+  document.addEventListener('change', function (e) {
+    var sel = e.target.closest('[data-outcome-select]');
+    if (!sel) return;
+    var id = parseInt(sel.dataset.outcomeSelect, 10);
+    var lead = findLead(id);
+    if (!lead) return;
+    // Re-render detail to show/hide sub-fields for new selection
+    var preview = Object.assign({}, lead, { outcome: sel.value || null });
+    var panels = document.querySelectorAll('[data-detail="' + id + '"]');
+    for (var k = 0; k < panels.length; k++) {
+      if (panels[k].classList.contains('open')) {
+        panels[k].innerHTML = renderDetailPanel(preview);
+      }
+    }
+  });
+
+  document.addEventListener('click', function (e) {
+    var btn = e.target.closest('[data-outcome-save]');
+    if (!btn) return;
+
+    var id = parseInt(btn.dataset.outcomeSave, 10);
+    if (savingOutcome !== null) return;
+    savingOutcome = id;
+
+    var dropdown = document.querySelector('[data-outcome-select="' + id + '"]');
+    var outcomeVal = dropdown ? dropdown.value : null;
+    var payload = { outcome: outcomeVal || null };
+
+    if (outcomeVal === 'booked') {
+      var priceInput = document.querySelector('[data-outcome-price="' + id + '"]');
+      if (priceInput && priceInput.value) {
+        payload.actual_price = parseFloat(priceInput.value);
+      }
+    }
+    if (outcomeVal === 'lost') {
+      var reasonSelect = document.querySelector('[data-outcome-reason="' + id + '"]');
+      if (reasonSelect && reasonSelect.value) {
+        payload.outcome_reason = reasonSelect.value;
+      }
+    }
+
+    btn.disabled = true;
+    btn.textContent = 'Saving\u2026';
+    if (dropdown) dropdown.disabled = true;
+
+    apiPost('/api/leads/' + id + '/outcome', payload)
+      .then(function (updated) {
+        for (var i = 0; i < currentLeads.length; i++) {
+          if (currentLeads[i].id === id) { currentLeads[i] = updated; break; }
+        }
+        // Re-render full panel to update sub-fields
+        var panels = document.querySelectorAll('[data-detail="' + id + '"]');
+        for (var k = 0; k < panels.length; k++) {
+          if (panels[k].classList.contains('open')) {
+            panels[k].innerHTML = renderDetailPanel(updated);
+          }
+        }
+        // Update summary row badges
+        renderTable(currentLeads);
+        renderMobile(currentLeads);
+      })
+      .catch(function (err) {
+        alert('Save failed: ' + err.message);
+      })
+      .finally(function () {
+        savingOutcome = null;
+        if (btn) { btn.disabled = false; btn.textContent = 'Save'; }
+        if (dropdown) dropdown.disabled = false;
+      });
+  });
+
+  /* ── Recompute nudge on tab return ─────────────────────── */
+
+  document.addEventListener('visibilitychange', function () {
+    if (!document.hidden) {
+      renderTable(currentLeads);
+      renderMobile(currentLeads);
+    }
+  });
+
+  /* ── Insights Tab ──────────────────────────────────────── */
+
+  function loadInsights() {
+    var container = document.getElementById('insightsContent');
+    container.innerHTML = '<div class="shimmer"></div>';
+
+    apiFetch('/api/analytics').then(function (data) {
+      renderInsights(data);
+    }).catch(function (err) {
+      container.innerHTML = '<div class="insights-empty"><p>Failed to load analytics: ' + esc(err.message) + '</p></div>';
+    });
+  }
+
+  function renderInsights(data) {
+    var container = document.getElementById('insightsContent');
+
+    if (data.total_with_outcome === 0) {
+      container.innerHTML = '<div class="insights-empty">' +
+        '<h2>No outcomes recorded yet</h2>' +
+        '<p>Mark leads as Booked, Lost, or No Reply to see conversion stats.</p>' +
+      '</div>';
+      return;
+    }
+
+    var html = '';
+    var hasEnough = data.total_with_outcome >= 5;
+
+    // Summary cards
+    html += '<div class="insights-cards">';
+
+    // Conversion rate card
+    html += '<div class="insight-card gold">';
+    html += '<div class="insight-label">Conversion Rate</div>';
+    if (hasEnough) {
+      html += '<div class="insight-number serif">' + Math.round(data.conversion_rate * 100) + '%</div>';
+    }
+    html += '<div class="insight-sub">' + data.booked + ' of ' + data.total_with_outcome + ' booked</div>';
+    html += '</div>';
+
+    // Revenue card
+    html += '<div class="insight-card green">';
+    html += '<div class="insight-label">Revenue</div>';
+    html += '<div class="insight-number serif">' + fmtPrice(data.revenue) + '</div>';
+    if (data.avg_actual_price != null) {
+      html += '<div class="insight-sub">Avg ' + fmtPrice(data.avg_actual_price) + ' per booking</div>';
+    }
+    html += '</div>';
+
+    // Tracking card
+    html += '<div class="insight-card grey">';
+    html += '<div class="insight-label">Tracking</div>';
+    html += '<div class="insight-number serif">' + data.total_with_outcome + '</div>';
+    html += '<div class="insight-sub">' + data.total_untracked + ' leads untracked</div>';
+    html += '</div>';
+
+    html += '</div>';
+
+    // Note for small samples
+    if (!hasEnough) {
+      html += '<p class="insights-note">Based on ' + data.total_with_outcome + ' lead' + (data.total_with_outcome !== 1 ? 's' : '') + '. Percentages shown when 5+ outcomes are tracked.</p>';
+    }
+
+    // Avg prices
+    if (data.avg_quote_price != null || data.avg_actual_price != null) {
+      html += '<div class="insights-section">';
+      html += '<h3>Pricing</h3>';
+      var priceItems = [];
+      if (data.avg_quote_price != null) priceItems.push('<span>Avg Quote: <strong>' + fmtPrice(data.avg_quote_price) + '</strong></span>');
+      if (data.avg_actual_price != null) priceItems.push('<span>Avg Actual: <strong>' + fmtPrice(data.avg_actual_price) + '</strong></span>');
+      html += '<div class="insights-prices">' + priceItems.join('') + '</div>';
+      html += '</div>';
+    }
+
+    // By Platform breakdown
+    if (data.by_platform && data.by_platform.length > 0) {
+      html += renderBreakdownTable('By Platform', data.by_platform, hasEnough);
+    }
+
+    // By Format breakdown
+    if (data.by_format && data.by_format.length > 0) {
+      html += renderBreakdownTable('By Format', data.by_format, hasEnough);
+    }
+
+    container.innerHTML = html;
+  }
+
+  function renderBreakdownTable(title, rows, showPct) {
+    var maxTotal = 0;
+    for (var i = 0; i < rows.length; i++) {
+      if (rows[i].total > maxTotal) maxTotal = rows[i].total;
+    }
+
+    var html = '<div class="insights-section">';
+    html += '<h3>' + esc(title) + '</h3>';
+    html += '<table class="breakdown-table">';
+    html += '<thead><tr><th>Name</th><th>Booked</th>' + (showPct ? '<th>Rate</th>' : '') + '<th class="bar-cell"></th></tr></thead>';
+    html += '<tbody>';
+
+    for (var j = 0; j < rows.length; j++) {
+      var r = rows[j];
+      var thin = r.total < 3 ? ' class="thin-data"' : '';
+      var barWidth = maxTotal > 0 ? Math.round((r.booked / maxTotal) * 100) : 0;
+      var label = FORMAT_NAMES[r.label] || r.label || 'Unknown';
+
+      html += '<tr' + thin + '>';
+      html += '<td>' + esc(label) + '</td>';
+      html += '<td>' + r.booked + ' of ' + r.total + '</td>';
+      if (showPct) {
+        html += '<td>' + (r.total >= 3 ? Math.round(r.rate * 100) + '%' : '\u2014') + '</td>';
+      }
+      html += '<td class="bar-cell">' + (r.total >= 3 ? '<div class="bar" style="width:' + barWidth + '%"></div>' : '') + '</td>';
+      html += '</tr>';
+    }
+
+    html += '</tbody></table></div>';
+    return html;
+  }
+
   /* ── Analyze Tab ─────────────────────────────────────────── */
 
   function resetAnalyze() {
@@ -1453,7 +1944,7 @@
   function analyzeKvHTML(pairs) {
     return pairs.map(function (p) {
       return '<div class="analyze-kv">' +
-        '<span class="analyze-kv-label">' + p[0] + '</span>' +
+        '<span class="analyze-kv-label">' + esc(p[0]) + '</span>' +
         '<span class="analyze-kv-value">' + p[1] + '</span>' +
       '</div>';
     }).join('');
@@ -1504,7 +1995,7 @@
 
     document.getElementById('analyzeGate').innerHTML = analyzeKvHTML([
       ['Status', '<span class="' + (g.gate_status === 'pass' ? 'analyze-gate-pass' : 'analyze-gate-fail') + '">' +
-        g.gate_status.toUpperCase() + '</span>' +
+        esc(g.gate_status.toUpperCase()) + '</span>' +
         (data.verified ? '' : ' (unverified — best attempt)')],
       ['Validation', '"' + esc(g.validation_line) + '"'],
       ['Best Line', '"' + esc(g.best_line) + '"'],

@@ -123,6 +123,45 @@ list grows past ~20 items, revisit this tradeoff.
   just as susceptible to drift as any other hardcoded value. Interpolate constants
   into prompts the same way you would into application logic.
 
+## Second Instance: Outcome Enum Drift (2026-02-25)
+
+The lead conversion tracking feature introduced `LeadOutcome` and `LossReason`
+types with values duplicated across 5 locations: TypeScript union types, runtime
+`Set<string>`, SQL CHECK constraints, and JavaScript object literals.
+
+The same pattern applied: const array as single source of truth, derived type.
+
+```ts
+// src/types.ts
+export const LEAD_OUTCOMES = ["booked", "lost", "no_reply"] as const;
+export type LeadOutcome = (typeof LEAD_OUTCOMES)[number];
+
+export const LOSS_REASONS = ["price", "date", "style", "no_response", "other"] as const;
+export type LossReason = (typeof LOSS_REASONS)[number];
+```
+
+Runtime validation sets now import from the same source:
+
+```ts
+// src/api.ts
+const VALID_OUTCOMES = new Set<LeadOutcome>(LEAD_OUTCOMES);
+const VALID_LOSS_REASONS = new Set<LossReason>(LOSS_REASONS);
+```
+
+**One gap remains:** The SQL CHECK constraints (`CHECK(outcome IN ('booked',
+'lost', 'no_reply'))`) are string literals in the migration SQL — they can't
+import from TypeScript. SYNC comments (`-- SYNC: LEAD_OUTCOMES in types.ts`)
+mark the dependency, but the link is human-enforced, not compiler-enforced.
+If someone adds a value to `LEAD_OUTCOMES` but skips the CHECK constraint,
+the DB rejects at runtime.
+
+**TypeScript gotcha:** `Set<LeadOutcome>.has(untrustedString)` fails because
+TypeScript won't let you pass `string` to `has()` on a typed Set. The fix is
+casting the Set at the call site: `(VALID_OUTCOMES as ReadonlySet<string>).has(outcome)`.
+This is safe because you're checking membership, not assigning.
+
 ## Related
 
-- No existing related docs/solutions/ files.
+- `docs/solutions/ui-bugs/shallow-copy-for-preview-state.md`
+- `docs/solutions/architecture/escape-at-interpolation-site.md`
+- `docs/solutions/database-issues/align-derived-stat-queries.md`
