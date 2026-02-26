@@ -2027,6 +2027,17 @@
       headers: analyzeHeaders,
       body: JSON.stringify({ text: text })
     }).then(function (response) {
+      if (!response.ok) {
+        var contentType = response.headers.get('content-type') || '';
+        if (contentType.includes('application/json')) {
+          return response.json().then(function (err) {
+            throw new Error(err.error || 'API error ' + response.status);
+          });
+        }
+        return response.text().then(function (text) {
+          throw new Error(text || 'API error ' + response.status);
+        });
+      }
       var reader = response.body.getReader();
       var decoder = new TextDecoder();
       var buffer = '';

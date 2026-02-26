@@ -3,6 +3,7 @@ import { listLeadsFiltered, getLeadStats, getLead, updateLead, claimLeadForSendi
 import type { LeadStatus, LeadOutcome, LossReason, LeadApiResponse } from "./types.js";
 import { LEAD_OUTCOMES, LOSS_REASONS } from "./types.js";
 import { basicAuth } from "./auth.js";
+import { analyzeLimiter, approveLimiter } from "./rate-limit.js";
 import { sendSms } from "./sms.js";
 import { runPipeline } from "./run-pipeline.js";
 
@@ -106,7 +107,7 @@ router.get("/api/stats", (_req: Request, res: Response) => {
 
 // --- POST /api/leads/:id/approve ---
 
-router.post("/api/leads/:id/approve", async (req: Request, res: Response) => {
+router.post("/api/leads/:id/approve", approveLimiter, async (req: Request, res: Response) => {
   const id = parseInt(req.params.id as string, 10);
   if (isNaN(id)) {
     res.status(400).json({ error: "Invalid lead ID" });
@@ -276,7 +277,7 @@ router.get("/api/analytics", (_req: Request, res: Response) => {
 
 // --- POST /api/analyze ---
 
-router.post("/api/analyze", async (req: Request, res: Response) => {
+router.post("/api/analyze", analyzeLimiter, async (req: Request, res: Response) => {
   const { text } = req.body;
   if (!text || typeof text !== "string" || !text.trim()) {
     res.status(400).json({ error: "Missing 'text' field in request body" });

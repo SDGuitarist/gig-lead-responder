@@ -22,6 +22,11 @@ if (process.env.NODE_ENV === "production") {
 initDb();
 
 const app = express();
+
+// Railway runs behind a reverse proxy. Trust one hop so req.ip
+// reflects the real client IP, not the proxy IP.
+app.set("trust proxy", 1);
+
 app.use(express.json({ limit: "100kb" }));
 app.use(express.urlencoded({ extended: false }));
 app.use(express.static(join(import.meta.dirname, "..", "public")));
