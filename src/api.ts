@@ -140,8 +140,8 @@ router.post("/api/leads/:id/approve", async (req: Request, res: Response) => {
   } catch (err) {
     // Revert to previous status on SMS failure
     updateLead(id, { status: lead.status });
-    const message = err instanceof Error ? err.message : String(err);
-    res.status(500).json({ error: `SMS failed: ${message}` });
+    console.error(`Lead ${id}: SMS send failed:`, err);
+    res.status(500).json({ error: "SMS delivery failed" });
     return;
   }
 
@@ -294,8 +294,8 @@ router.post("/api/analyze", async (req: Request, res: Response) => {
     });
     sendSSE(res, "complete", output);
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : String(err);
-    sendSSE(res, "error", { error: message });
+    console.error("Analyze pipeline failed:", err);
+    sendSSE(res, "error", { error: "Analysis failed — check server logs" });
   } finally {
     res.end();
   }

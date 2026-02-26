@@ -194,7 +194,7 @@ router.post("/webhook/twilio", (req: Request, res: Response) => {
     emptyTwiml(res);
     handleApproval(leadId).catch((err) => {
       console.error("Approval handler error:", err);
-      sendSms(`Error approving: ${err instanceof Error ? err.message : String(err)}`).catch(console.error);
+      sendSms("Error approving lead. Check server logs.").catch(console.error);
     });
     return;
   }
@@ -207,7 +207,7 @@ router.post("/webhook/twilio", (req: Request, res: Response) => {
     emptyTwiml(res);
     handleEdit(leadId, instructions).catch((err) => {
       console.error("Edit handler error:", err);
-      sendSms(`Error editing lead #${leadId}: ${err instanceof Error ? err.message : String(err)}`).catch(console.error);
+      sendSms("Error editing lead. Check server logs.").catch(console.error);
     });
     return;
   }
@@ -216,7 +216,7 @@ router.post("/webhook/twilio", (req: Request, res: Response) => {
   emptyTwiml(res);
   handleEdit(null, smsBody).catch((err) => {
     console.error("Edit handler error:", err);
-    sendSms(`Error processing edit: ${err instanceof Error ? err.message : String(err)}`).catch(console.error);
+    sendSms("Error processing edit. Check server logs.").catch(console.error);
   });
 });
 
