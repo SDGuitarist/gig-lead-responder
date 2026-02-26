@@ -23,6 +23,7 @@ app.use(
     contentSecurityPolicy: {
       directives: {
         scriptSrc: ["'self'", "'unsafe-inline'"],
+        scriptSrcAttr: ["'unsafe-inline'"],
       },
     },
   })

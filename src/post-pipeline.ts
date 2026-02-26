@@ -64,7 +64,7 @@ export async function postPipelineError(
   const message = err instanceof Error ? err.message : String(err);
   const now = new Date().toISOString();
 
-  // Step 1 — Mark failed in DB
+  // Step 1 — Mark failed in DB (full error stored for dashboard debugging)
   updateLead(leadId, {
     status: "failed",
     error_message: message,
@@ -72,15 +72,13 @@ export async function postPipelineError(
     pipeline_completed_at: now,
   });
 
-  // Step 2 — Send alert SMS
-  const truncated = message.length > 100 ? message.slice(0, 100) + "…" : message;
+  // Step 2 — Send generic alert SMS (no raw error details over SMS)
   const smsBody = [
     `Lead #${leadId} — REVIEW NEEDED`,
-    `Pipeline failed: ${truncated}`,
-    "Check dashboard for details.",
+    "Pipeline failed. Check dashboard for details.",
   ].join("\n");
 
   await sendSms(smsBody);
 
-  console.error(`Lead #${leadId}: pipeline failed — ${message}`);
+  console.error(`Lead #${leadId}: pipeline failed —`, err);
 }
