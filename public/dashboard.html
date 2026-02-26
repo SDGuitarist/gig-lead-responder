@@ -2029,14 +2029,8 @@
       body: JSON.stringify({ text: text })
     }).then(function (response) {
       if (!response.ok) {
-        var contentType = response.headers.get('content-type') || '';
-        if (contentType.includes('application/json')) {
-          return response.json().then(function (err) {
-            throw new Error(err.error || 'API error ' + response.status);
-          });
-        }
-        return response.text().then(function (text) {
-          throw new Error(text || 'API error ' + response.status);
+        return response.json().then(function (body) {
+          throw new Error(body.error || 'API error ' + response.status);
         });
       }
       var reader = response.body.getReader();
@@ -2079,9 +2073,11 @@
       return readChunk();
     }).catch(function (err) {
       var errBox = document.getElementById('analyzeError');
-      errBox.textContent = 'Network error: ' + err.message;
-      errBox.style.display = 'block';
-    }).then(function () {
+      if (errBox) {
+        errBox.textContent = 'Network error: ' + err.message;
+        errBox.style.display = 'block';
+      }
+    }).finally(function () {
       btn.disabled = false;
       btn.textContent = 'Analyze';
     });
