@@ -1,4 +1,5 @@
 import { getLeadsDueForFollowUp, updateLead } from "./leads.js";
+import { generateFollowUpDraft } from "./pipeline/follow-up-generate.js";
 import { sendSms } from "./sms.js";
 import type { LeadRecord } from "./types.js";
 
@@ -26,18 +27,6 @@ function formatFollowUpSms(lead: LeadRecord, draft: string): string {
   lines.push("");
   lines.push("Reply SEND to send, SKIP to cancel all follow-ups.");
   return lines.join("\n");
-}
-
-/**
- * Stub: generates a follow-up draft for a lead.
- * Phase 3 replaces this with the real Claude-powered generator.
- */
-async function generateFollowUpDraft(lead: LeadRecord): Promise<string> {
-  // TODO(Phase 3): Replace with real AI-generated follow-up draft
-  // using src/prompts/follow-up.ts and src/pipeline/follow-up-generate.ts
-  throw new Error(
-    `generateFollowUpDraft not implemented yet (lead #${lead.id}). Deploy Phase 3 to enable.`,
-  );
 }
 
 /**
