@@ -1,7 +1,7 @@
 import twilio from "twilio";
 import { Router } from "express";
 import type { Request, Response } from "express";
-import { getLead, getLeadsByStatus, updateLead, completeApproval } from "./leads.js";
+import { getLead, getLeadsByStatus, updateLead, completeApproval, computeFollowUpDelay, runTransaction, initDb } from "./leads.js";
 import { sendSms } from "./sms.js";
 import { runEditPipeline } from "./run-pipeline.js";
 import type { Classification, LeadRecord, PricingResult } from "./types.js";
@@ -13,6 +13,10 @@ const APPROVAL_PATTERN = /^(yes|y|approve|ok)(?:[-\s](\d+))?$/i;
 
 // Edit with ID prefix: #42 or 42: followed by instructions
 const EDIT_ID_PATTERN = /^#?(\d+)[:\s]\s*([\s\S]+)/;
+
+// Follow-up commands — anchored with $ to prevent "skip this" or "send me details" from matching
+const SKIP_PATTERN = /^skip$/i;
+const FOLLOWUP_SEND_PATTERN = /^send$/i;
 
 const MAX_EDIT_ROUNDS = 3;
 
@@ -159,6 +163,62 @@ async function handleEdit(leadId: number | null, instructions: string): Promise<
   console.log(`Lead #${lead.id}: edit round ${newRound} sent via SMS`);
 }
 
+/** Handle SEND reply: approve pending follow-up draft, increment count, schedule next or exhaust. */
+async function handleFollowUpSend(): Promise<void> {
+  // Find most recent lead with follow_up_status = 'sent' (awaiting Alex's SEND/SKIP)
+  const lead = initDb()
+    .prepare("SELECT * FROM leads WHERE follow_up_status = 'sent' ORDER BY updated_at DESC LIMIT 1")
+    .get() as LeadRecord | undefined;
+
+  if (!lead) {
+    await sendSms("No follow-up awaiting approval.");
+    return;
+  }
+
+  const newCount = lead.follow_up_count + 1;
+
+  if (newCount >= 3) {
+    // Terminal — all 3 follow-ups done
+    updateLead(lead.id, {
+      follow_up_status: "exhausted",
+      follow_up_count: newCount,
+      follow_up_due_at: null,
+    });
+    await sendSms(`Follow-up #${newCount} for Lead #${lead.id} marked as sent. All 3 follow-ups complete.`);
+  } else {
+    // Schedule next follow-up
+    const delay = computeFollowUpDelay(newCount);
+    const dueAt = new Date(Date.now() + delay).toISOString();
+    runTransaction(() => {
+      updateLead(lead.id, {
+        follow_up_status: "pending",
+        follow_up_count: newCount,
+        follow_up_due_at: dueAt,
+      });
+    });
+    await sendSms(`Follow-up #${newCount} for Lead #${lead.id} marked as sent. Next follow-up scheduled.`);
+  }
+
+  console.log(`Lead #${lead.id}: follow-up #${newCount} approved via SMS`);
+}
+
+/** Handle SKIP reply: cancel all remaining follow-ups for most recent active lead. */
+async function handleFollowUpSkip(): Promise<void> {
+  // Find most recent lead with active follow-up (pending or sent)
+  const lead = initDb()
+    .prepare("SELECT * FROM leads WHERE follow_up_status IN ('pending', 'sent') ORDER BY updated_at DESC LIMIT 1")
+    .get() as LeadRecord | undefined;
+
+  if (!lead) {
+    await sendSms("No active follow-up to skip.");
+    return;
+  }
+
+  updateLead(lead.id, { follow_up_status: "skipped", follow_up_due_at: null });
+  await sendSms(`Follow-ups cancelled for Lead #${lead.id}.`);
+  console.log(`Lead #${lead.id}: follow-ups skipped via SMS`);
+}
+
 // --- Route ---
 
 router.post("/webhook/twilio", (req: Request, res: Response) => {
@@ -210,7 +270,27 @@ router.post("/webhook/twilio", (req: Request, res: Response) => {
     return;
   }
 
-  // 3. Edit without ID — entire message is the edit instructions
+  // 3. SKIP — cancel all follow-ups for most recent active lead
+  if (SKIP_PATTERN.test(smsBody)) {
+    emptyTwiml(res);
+    handleFollowUpSkip().catch((err) => {
+      console.error("Follow-up skip handler error:", err);
+      sendSms(`Error skipping follow-up: ${err instanceof Error ? err.message : String(err)}`).catch(console.error);
+    });
+    return;
+  }
+
+  // 4. SEND — approve pending follow-up draft
+  if (FOLLOWUP_SEND_PATTERN.test(smsBody)) {
+    emptyTwiml(res);
+    handleFollowUpSend().catch((err) => {
+      console.error("Follow-up send handler error:", err);
+      sendSms(`Error sending follow-up: ${err instanceof Error ? err.message : String(err)}`).catch(console.error);
+    });
+    return;
+  }
+
+  // 5. Edit without ID — entire message is the edit instructions
   emptyTwiml(res);
   handleEdit(null, smsBody).catch((err) => {
     console.error("Edit handler error:", err);
