@@ -1,7 +1,8 @@
 import { mkdirSync } from "node:fs";
 import { dirname } from "node:path";
 import Database from "better-sqlite3";
-import type { LeadRecord, LeadStatus, LeadOutcome, LossReason, AnalyticsResponse } from "./types.js";
+import type { LeadRecord, LeadStatus, LeadOutcome, LossReason, AnalyticsResponse, FollowUpStatus } from "./types.js";
+import { FOLLOW_UP_STATUSES } from "./types.js";
 
 const DB_PATH = process.env.DATABASE_PATH || "./data/leads.db";
 
@@ -70,6 +71,11 @@ export function initDb(): Database.Database {
     ["outcome_reason", "TEXT CHECK(outcome_reason IN ('price','competitor','cancelled','other'))"],
     ["actual_price", "REAL CHECK(actual_price IS NULL OR actual_price > 0)"],
     ["outcome_at", "TEXT"],
+    // SYNC: CHECK values must match FOLLOW_UP_STATUSES in types.ts
+    ["follow_up_status", `TEXT CHECK(follow_up_status IN (${FOLLOW_UP_STATUSES.map((s) => `'${s}'`).join(",")}))`],
+    ["follow_up_count", "INTEGER NOT NULL DEFAULT 0"],
+    ["follow_up_due_at", "TEXT"],
+    ["follow_up_draft", "TEXT"],
   ];
   for (const [col, type] of migrations) {
     if (!existingCols.has(col)) {
@@ -81,6 +87,7 @@ export function initDb(): Database.Database {
   db.exec("CREATE INDEX IF NOT EXISTS idx_leads_confidence ON leads(confidence_score)");
   db.exec("CREATE INDEX IF NOT EXISTS idx_leads_outcome ON leads(outcome)");
   db.exec("CREATE INDEX IF NOT EXISTS idx_leads_source_platform ON leads(source_platform)");
+  db.exec("CREATE INDEX IF NOT EXISTS idx_leads_follow_up_due ON leads(follow_up_status, follow_up_due_at)");
 
   return db;
 }
@@ -163,6 +170,7 @@ const UPDATE_ALLOWED_COLUMNS = new Set<string>([
   "confidence_score", "error_message", "pipeline_completed_at", "sms_sent_at",
   "edit_round", "edit_instructions", "done_reason",
   "outcome", "outcome_reason", "actual_price", "outcome_at",
+  "follow_up_status", "follow_up_count", "follow_up_due_at", "follow_up_draft",
   "updated_at",
 ]);
 
@@ -236,6 +244,61 @@ export function markEmailProcessed(externalId: string, platform: string): void {
 /** Run a callback inside a SQLite transaction (atomic, serialized). */
 export function runTransaction<T>(fn: () => T): T {
   return initDb().transaction(fn)();
+}
+
+// --- Follow-up helpers ---
+
+/*
+ * Follow-up state machine (4 states, 6 transitions):
+ *
+ *   NULL ──completeApproval()──▶ pending
+ *   pending ──scheduler──▶ sent        (draft generated, SMS sent to Alex)
+ *   pending ──SKIP──▶ skipped          (cancel all follow-ups)
+ *   sent ──SEND──▶ pending             (count++, schedule next if count < 3)
+ *   sent ──SEND──▶ exhausted           (count reaches 3, terminal)
+ *   sent ──SKIP──▶ skipped             (cancel all follow-ups)
+ */
+
+const FOLLOW_UP_DELAYS_MS = [
+  24 * 60 * 60 * 1_000,     // 1st: 24 hours
+  3 * 24 * 60 * 60 * 1_000, // 2nd: 3 days
+  7 * 24 * 60 * 60 * 1_000, // 3rd: 7 days
+];
+
+/** Returns delay in ms before the next follow-up. */
+export function computeFollowUpDelay(followUpCount: number): number {
+  return FOLLOW_UP_DELAYS_MS[followUpCount] ?? FOLLOW_UP_DELAYS_MS[2];
+}
+
+/** Query leads that are due for follow-up (pending + past due). */
+export function getLeadsDueForFollowUp(): LeadRecord[] {
+  const rows = initDb()
+    .prepare(
+      "SELECT * FROM leads WHERE follow_up_status = 'pending' AND follow_up_due_at <= datetime('now') ORDER BY follow_up_due_at ASC LIMIT 10",
+    )
+    .all() as LeadRecord[];
+  return rows.map(normalizeRow);
+}
+
+/** Set a lead's follow-up to pending with a due date. */
+export function scheduleFollowUp(leadId: number, dueAt: string): void {
+  updateLead(leadId, { follow_up_status: "pending", follow_up_due_at: dueAt });
+}
+
+/**
+ * Shared approval function — called by BOTH Twilio webhook and dashboard API.
+ * Atomically sets status = "done" and schedules the first follow-up.
+ */
+export function completeApproval(leadId: number, doneReason: string): LeadRecord | undefined {
+  return runTransaction(() => {
+    const lead = updateLead(leadId, { status: "done", done_reason: doneReason });
+    if (lead) {
+      const delay = computeFollowUpDelay(0);
+      const dueAt = new Date(Date.now() + delay).toISOString();
+      scheduleFollowUp(leadId, dueAt);
+    }
+    return lead;
+  });
 }
 
 // --- Dashboard queries ---
