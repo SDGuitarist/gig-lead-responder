@@ -1,6 +1,7 @@
 import { Router, type Request, type Response } from "express";
 import { listLeadsFiltered, getLeadStats, getLead, updateLead, claimLeadForSending, setLeadOutcome, getAnalytics } from "./leads.js";
 import type { LeadStatus, LeadOutcome, LossReason, LeadApiResponse } from "./types.js";
+import { LEAD_OUTCOMES, LOSS_REASONS } from "./types.js";
 import { basicAuth } from "./auth.js";
 import { sendSms } from "./sms.js";
 import { runPipeline } from "./run-pipeline.js";
@@ -194,8 +195,8 @@ router.post("/api/leads/:id/edit", async (req: Request, res: Response) => {
 
 // --- POST /api/leads/:id/outcome ---
 
-const VALID_OUTCOMES = new Set<string>(["booked", "lost", "no_reply"]);
-const VALID_LOSS_REASONS = new Set<string>(["price", "competitor", "cancelled", "other"]);
+const VALID_OUTCOMES = new Set<LeadOutcome>(LEAD_OUTCOMES);
+const VALID_LOSS_REASONS = new Set<LossReason>(LOSS_REASONS);
 
 router.post("/api/leads/:id/outcome", (req: Request, res: Response) => {
   const id = parseInt(req.params.id as string, 10);
@@ -223,7 +224,7 @@ router.post("/api/leads/:id/outcome", (req: Request, res: Response) => {
   const { outcome, actual_price, outcome_reason } = req.body;
 
   // outcome can be null (clearing) or a valid outcome string
-  if (outcome !== null && (typeof outcome !== "string" || !VALID_OUTCOMES.has(outcome))) {
+  if (outcome !== null && (typeof outcome !== "string" || !(VALID_OUTCOMES as ReadonlySet<string>).has(outcome))) {
     res.status(400).json({ error: "Invalid outcome. Must be booked, lost, no_reply, or null" });
     return;
   }
@@ -238,7 +239,7 @@ router.post("/api/leads/:id/outcome", (req: Request, res: Response) => {
 
   // Validate outcome_reason if provided
   if (outcome_reason !== undefined && outcome_reason !== null) {
-    if (typeof outcome_reason !== "string" || !VALID_LOSS_REASONS.has(outcome_reason)) {
+    if (typeof outcome_reason !== "string" || !(VALID_LOSS_REASONS as ReadonlySet<string>).has(outcome_reason)) {
       res.status(400).json({ error: "Invalid outcome_reason. Must be price, competitor, cancelled, or other" });
       return;
     }

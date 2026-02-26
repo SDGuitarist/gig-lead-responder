@@ -15,7 +15,7 @@ if (!process.env.ANTHROPIC_API_KEY) {
 initDb();
 
 const app = express();
-app.use(express.json());
+app.use(express.json({ limit: "100kb" }));
 app.use(express.urlencoded({ extended: false }));
 app.use(express.static(join(import.meta.dirname, "..", "public")));
 

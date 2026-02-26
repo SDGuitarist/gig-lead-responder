@@ -37,8 +37,8 @@ export function initDb(): Database.Database {
       edit_round INTEGER NOT NULL DEFAULT 0,
       edit_instructions TEXT,
       done_reason TEXT,
-      outcome TEXT CHECK(outcome IN ('booked','lost','no_reply')),
-      outcome_reason TEXT CHECK(outcome_reason IN ('price','competitor','cancelled','other')),
+      outcome TEXT CHECK(outcome IN ('booked','lost','no_reply')),         -- SYNC: LEAD_OUTCOMES in types.ts
+      outcome_reason TEXT CHECK(outcome_reason IN ('price','competitor','cancelled','other')),  -- SYNC: LOSS_REASONS in types.ts
       actual_price REAL CHECK(actual_price IS NULL OR actual_price > 0),
       outcome_at TEXT,
       created_at TEXT NOT NULL,
@@ -64,7 +64,9 @@ export function initDb(): Database.Database {
     ["error_message", "TEXT"],
     ["pipeline_completed_at", "TEXT"],
     ["sms_sent_at", "TEXT"],
+    // SYNC: CHECK values must match LEAD_OUTCOMES in types.ts
     ["outcome", "TEXT CHECK(outcome IN ('booked','lost','no_reply'))"],
+    // SYNC: CHECK values must match LOSS_REASONS in types.ts
     ["outcome_reason", "TEXT CHECK(outcome_reason IN ('price','competitor','cancelled','other'))"],
     ["actual_price", "REAL CHECK(actual_price IS NULL OR actual_price > 0)"],
     ["outcome_at", "TEXT"],
@@ -75,8 +77,10 @@ export function initDb(): Database.Database {
     }
   }
 
-  // Create index after migrations so confidence_score column exists
+  // Create indexes after migrations so all columns exist
   db.exec("CREATE INDEX IF NOT EXISTS idx_leads_confidence ON leads(confidence_score)");
+  db.exec("CREATE INDEX IF NOT EXISTS idx_leads_outcome ON leads(outcome)");
+  db.exec("CREATE INDEX IF NOT EXISTS idx_leads_source_platform ON leads(source_platform)");
 
   return db;
 }
@@ -309,12 +313,12 @@ export function setLeadOutcome(
   return updateLead(id, fields);
 }
 
-/** Analytics for the Insights tab. 3 queries in a read transaction. */
+/** Analytics for the Insights tab. 3 queries in a read-only transaction. */
 export function getAnalytics(): AnalyticsResponse {
-  const database = initDb();
-  return database.transaction(() => {
+  const db = initDb();
+  return db.transaction(() => {
     // Query 1: Core counts + revenue + avg prices
-    const core = database.prepare(`
+    const core = db.prepare(`
       SELECT
         COUNT(*) AS total_leads,
         SUM(CASE WHEN outcome IS NOT NULL THEN 1 ELSE 0 END) AS total_with_outcome,
@@ -341,7 +345,7 @@ export function getAnalytics(): AnalyticsResponse {
     };
 
     // Query 2: By platform
-    const byPlatform = database.prepare(`
+    const byPlatform = db.prepare(`
       SELECT source_platform AS label, COUNT(*) AS total,
         SUM(CASE WHEN outcome = 'booked' THEN 1 ELSE 0 END) AS booked
       FROM leads WHERE status = 'done' AND outcome IS NOT NULL
@@ -349,7 +353,7 @@ export function getAnalytics(): AnalyticsResponse {
     `).all() as Array<{ label: string; total: number; booked: number }>;
 
     // Query 3: By format (from classification_json)
-    const byFormat = database.prepare(`
+    const byFormat = db.prepare(`
       SELECT json_extract(classification_json, '$.format_recommended') AS label,
         COUNT(*) AS total,
         SUM(CASE WHEN outcome = 'booked' THEN 1 ELSE 0 END) AS booked

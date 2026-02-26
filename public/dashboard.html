@@ -707,6 +707,12 @@
   .insights-section {
     margin-bottom: 28px;
   }
+  .insights-prices {
+    display: flex;
+    gap: 24px;
+    font-size: 14px;
+    color: #2c2419;
+  }
   .insights-section h3 {
     font-family: 'Playfair Display', Georgia, serif;
     font-size: 18px;
@@ -1713,7 +1719,7 @@
 
   /* ── Outcome save (with in-flight gate) ─────────────────── */
 
-  var savingOutcomeForId = null;
+  var savingOutcome = null;
 
   document.addEventListener('change', function (e) {
     var sel = e.target.closest('[data-outcome-select]');
@@ -1736,8 +1742,8 @@
     if (!btn) return;
 
     var id = parseInt(btn.dataset.outcomeSave, 10);
-    if (savingOutcomeForId !== null) return;
-    savingOutcomeForId = id;
+    if (savingOutcome !== null) return;
+    savingOutcome = id;
 
     var dropdown = document.querySelector('[data-outcome-select="' + id + '"]');
     var outcomeVal = dropdown ? dropdown.value : null;
@@ -1780,7 +1786,7 @@
         alert('Save failed: ' + err.message);
       })
       .finally(function () {
-        savingOutcomeForId = null;
+        savingOutcome = null;
         if (btn) { btn.disabled = false; btn.textContent = 'Save'; }
         if (dropdown) dropdown.disabled = false;
       });
@@ -1864,7 +1870,7 @@
       var priceItems = [];
       if (data.avg_quote_price != null) priceItems.push('<span>Avg Quote: <strong>' + fmtPrice(data.avg_quote_price) + '</strong></span>');
       if (data.avg_actual_price != null) priceItems.push('<span>Avg Actual: <strong>' + fmtPrice(data.avg_actual_price) + '</strong></span>');
-      html += '<div style="display:flex;gap:24px;font-size:14px;color:#2c2419;">' + priceItems.join('') + '</div>';
+      html += '<div class="insights-prices">' + priceItems.join('') + '</div>';
       html += '</div>';
     }
 
@@ -1938,7 +1944,7 @@
   function analyzeKvHTML(pairs) {
     return pairs.map(function (p) {
       return '<div class="analyze-kv">' +
-        '<span class="analyze-kv-label">' + p[0] + '</span>' +
+        '<span class="analyze-kv-label">' + esc(p[0]) + '</span>' +
         '<span class="analyze-kv-value">' + p[1] + '</span>' +
       '</div>';
     }).join('');

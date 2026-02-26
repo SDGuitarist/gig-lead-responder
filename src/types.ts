@@ -158,8 +158,11 @@ export interface PipelineOutput {
 
 // --- Outcome tracking types ---
 
-export type LeadOutcome = "booked" | "lost" | "no_reply";
-export type LossReason = "price" | "competitor" | "cancelled" | "other";
+export const LEAD_OUTCOMES = ["booked", "lost", "no_reply"] as const;
+export type LeadOutcome = (typeof LEAD_OUTCOMES)[number];
+
+export const LOSS_REASONS = ["price", "competitor", "cancelled", "other"] as const;
+export type LossReason = (typeof LOSS_REASONS)[number];
 
 export interface AnalyticsBreakdown {
   label: string;
