@@ -460,28 +460,28 @@ export type ParseResult =
 - [x] State transition table documented as code comment in `src/leads.ts`
 
 ### Phase 2: Scheduler
-- [ ] `setTimeout` chaining (NOT `setInterval`) runs every 15 minutes
-- [ ] Runs once immediately on startup (catch up from downtime)
-- [ ] `DISABLE_FOLLOW_UPS` env var check (kill switch)
-- [ ] Sequential processing with `LIMIT 10` query
-- [ ] Per-lead error handling: if generation fails, leave as `pending`, log, continue
-- [ ] Max 3 follow-ups enforced (via `follow_up_count` check)
-- [ ] Graceful shutdown: `process.on("SIGTERM")` clears timeout
-- [ ] Heartbeat logging: `[scheduler] heartbeat` every cycle
-- [ ] Draft stored in `follow_up_draft` column BEFORE sending SMS to Alex
-- [ ] Status set to `sent` AFTER SMS sent to Alex
+- [x] `setTimeout` chaining (NOT `setInterval`) runs every 15 minutes
+- [x] Runs once immediately on startup (catch up from downtime)
+- [x] `DISABLE_FOLLOW_UPS` env var check (kill switch)
+- [x] Sequential processing with `LIMIT 10` query
+- [x] Per-lead error handling: if generation fails, leave as `pending`, log, continue
+- [x] Max 3 follow-ups enforced (via `follow_up_count` check)
+- [x] Graceful shutdown: `process.on("SIGTERM")` clears timeout
+- [x] Heartbeat logging: `[scheduler] heartbeat` every cycle
+- [x] Draft stored in `follow_up_draft` column BEFORE sending SMS to Alex
+- [x] Status set to `sent` AFTER SMS sent to Alex
 
 ### Phase 3+4: Draft Generator + SMS Commands *(deploy together)*
-- [ ] `buildFollowUpPrompt()` generates value-add nudges (not "checking in")
-- [ ] Each follow-up adds something new (song, testimonial, urgency)
-- [ ] Follow-up prompt tested against 4 existing test leads BEFORE building SMS flow
-- [ ] Follow-up SMS format has `📋 Follow-up #N` header (distinct from initial drafts)
-- [ ] Follow-up SMS includes "Reply SEND to send, SKIP to cancel all follow-ups."
-- [ ] SEND handler: increments count, schedules next follow-up (or sets exhausted), sends confirmation SMS
-- [ ] SKIP handler: sets `follow_up_status = 'skipped'`, `follow_up_due_at = null`, sends confirmation SMS
-- [ ] SKIP is idempotent (already-skipped leads silently succeed)
-- [ ] Regex routing order: APPROVAL → EDIT_ID → SKIP → SEND → catch-all edit
-- [ ] Existing YES/edit commands unaffected
+- [x] `buildFollowUpPrompt()` generates value-add nudges (not "checking in")
+- [x] Each follow-up adds something new (song, testimonial, urgency)
+- [x] Follow-up prompt tested against 4 existing test leads BEFORE building SMS flow
+- [x] Follow-up SMS format has `📋 Follow-up #N` header (distinct from initial drafts)
+- [x] Follow-up SMS includes "Reply SEND to send, SKIP to cancel all follow-ups."
+- [x] SEND handler: increments count, schedules next follow-up (or sets exhausted), sends confirmation SMS
+- [x] SKIP handler: sets `follow_up_status = 'skipped'`, `follow_up_due_at = null`, sends confirmation SMS
+- [x] SKIP is idempotent (already-skipped leads silently succeed)
+- [x] Regex routing order: APPROVAL → EDIT_ID → SKIP → SEND → catch-all edit
+- [x] Existing YES/edit commands unaffected
 
 ### Phase 5: Reply Detection *(V2)*
 - [ ] Real email samples collected and saved as test fixtures BEFORE coding
