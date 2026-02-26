@@ -1,55 +1,50 @@
 # Gig Lead Responder — Session Handoff
 
-**Last updated:** 2026-02-25 (v39)
-**Current phase:** Work complete — Lead Conversion Tracking (all 4 phases done)
+**Last updated:** 2026-02-25 (v42)
+**Current phase:** Compound — complete
 **Branch:** `feat/lead-conversion-tracking`
-**Next session:** Review phase (`/workflows:review`)
+**Next session:** Merge PR or start Batch D (deferred items)
 
-### Work Session 2 — Dashboard UI Complete (2026-02-25)
+### Compound Session (2026-02-25)
 
-**Commits (5 total on branch):**
+Documented four patterns from the review→fix cycle (batches A, B, C):
+
+1. **`docs/solutions/ui-bugs/shallow-copy-for-preview-state.md`** — Mutate-restore anti-pattern replaced with `Object.assign({}, lead, { outcome: ... })`. Never mutate shared objects for preview rendering.
+
+2. **`docs/solutions/architecture/escape-at-interpolation-site.md`** — XSS from unescaped `gate_status` in `innerHTML`. Rule: the function that interpolates into HTML is responsible for escaping.
+
+3. **`docs/solutions/database-issues/align-derived-stat-queries.md`** — Analytics queries used different WHERE scopes, inflating `total_untracked`. All queries feeding derived stats must share the same base population.
+
+4. **`docs/solutions/logic-errors/constants-at-the-boundary.md`** (updated) — Added second instance: `LEAD_OUTCOMES`/`LOSS_REASONS` const arrays with derived types, replacing 5-location duplication. Documented the `ReadonlySet<string>` cast workaround and the SQL CHECK gap.
+
+### Prior Phase Risk
+
+> "The C-13 SYNC comments are the only link between `LEAD_OUTCOMES` const arrays and the SQL CHECK constraints. If someone adds a new outcome to the array but misses the CHECK, the DB rejects it at runtime."
+
+Documented in the constants-at-the-boundary solution as a known gap. The SYNC comment approach is the best option without a schema migration pattern change. Future mitigation: a startup validation function that compares the const array against the DB schema.
+
+### All commits on branch (10 total):
 1. `ec4eef5` — docs: brainstorm + deepened plan
 2. `ad18f45` — feat: outcome columns, setLeadOutcome, getAnalytics in leads.ts
 3. `fd2372b` — feat: outcome + analytics API endpoints in api.ts
 4. `580be1f` — docs: handoff v38
 5. `8c86265` — feat: outcome controls, nudge badges, Insights tab in dashboard
-
-**What was implemented this session:**
-
-Phase 3 (Dashboard — Outcome Controls + Nudge):
-- `OUTCOME_DISPLAY` + `LOSS_REASONS` constants synced to TypeScript types
-- Outcome dropdown in detail panel (done leads only) with conditional sub-fields (actual_price for booked, reason for lost)
-- In-flight gate (`savingOutcomeForId`) prevents rapid-fire saves
-- Outcome badges on summary rows (Booked = green, Lost = red, No Reply = muted)
-- Stale lead nudge badge (amber "Needs outcome") for done leads 7+ days old with no outcome
-- `visibilitychange` listener recomputes nudge when user returns to tab
-- `change` listener on outcome dropdown re-renders detail panel to show/hide sub-fields
-
-Phase 4 (Dashboard — Insights Tab):
-- New "Insights" tab button + panel with generic tab switching (fixes binary toggle bug)
-- Shimmer loading skeleton while fetching analytics
-- Summary cards: Conversion Rate, Revenue, Tracking
-- 2-tier threshold: fraction only (<5 outcomes), percentage + fraction (5+)
-- Empty state message when no outcomes recorded
-- Breakdown tables by platform and format with CSS-only bars
-- Bars scaled relative to max (Mixpanel pattern)
-- Rows with <3 leads de-emphasized (opacity 0.7), no bar
-
-**Tested:**
-- End-to-end: insert leads → set outcomes → verify analytics returns correct data
-- Platform + format breakdowns populated correctly from classification_json
-- Dashboard HTML loads 200 OK
+6. `4b40500` — docs: handoff v39
+7. `128e0fe` — feat: outcome tracking types in types.ts
+8. `8f256bf` — fix: batch A — remove dead code and unused types
+9. `7142756` — fix: batch B — data integrity and hot-path safety
+10. `9dbc543` — fix: batch C — code quality and abstractions
 
 ## Three Questions
 
-1. **Hardest implementation decision in this session?** The outcome dropdown `change` handler that re-renders the detail panel to show/hide sub-fields. When the user picks "Booked", the actual_price input needs to appear immediately — but re-rendering the whole panel from `renderDetailPanel()` resets the dropdown selection. Solved by temporarily overriding `l.outcome` for rendering, then restoring it. It's a hack but avoids adding a separate DOM manipulation path.
+1. **Hardest pattern to extract from the fixes?** The escape-at-interpolation-site pattern. The fix itself was simple (`esc()` calls), but the reusable lesson is nuanced: when a helper accepts arbitrary strings and builds HTML, who is responsible for escaping — the caller or the helper? The answer depends on whether the helper or the caller does the final interpolation. Had to articulate a clear rule ("the last function to touch a string before innerHTML is responsible") without making it sound like the answer is always "escape inside the helper."
 
-2. **What did you consider changing but left alone, and why?** Considered adding `sms_sent_at` to `LeadApiResponse` and `shapeLead()` so the nudge helper could use the most accurate timestamp. Left it alone because `updated_at` is a fine fallback — the difference between `sms_sent_at` and `updated_at` is seconds at most, and adding a field to the API response for a cosmetic nudge is scope creep.
+2. **What did you consider documenting but left out, and why?** The body-guard pattern (B-3: `if (!req.body)` check before destructuring). It's a real bug, but the lesson is too narrow — "check if req.body exists before destructuring" is Express-specific knowledge, not a transferable pattern. If this project migrates to a different framework, the guard won't apply.
 
-3. **Least confident about going into review?** The outcome dropdown re-render hack (point 1 above). The temporary `l.outcome` override + `_pendingOutcome` property feels fragile. If another part of the code reads `l.outcome` during that brief window, it'll see the wrong value. In practice the render is synchronous so it's safe, but a reviewer might flag it.
+3. **What might future sessions miss that this solution doesn't cover?** The SQL CHECK constraint gap (SYNC comments as the only link to TypeScript const arrays) is documented but not solved. A future session that adds a new outcome value might update `LEAD_OUTCOMES` and `VALID_OUTCOMES` but forget the ALTER TABLE migration. The runtime error would be cryptic ("CHECK constraint failed"). The constants-at-the-boundary doc flags this, but the actual prevention mechanism (a startup validation function) isn't built.
 
 ### Prompt for Next Session
 
 ```
-Read docs/plans/2026-02-25-feat-lead-conversion-tracking-plan.md. Run /workflows:review on branch feat/lead-conversion-tracking. All 4 phases implemented across 5 commits.
+Branch feat/lead-conversion-tracking is ready for PR or Batch D. Batch D items (15 deferred findings) are listed in docs/fixes/feat-lead-conversion-tracking/plan.md under "Batch D — Deferred". The feature is functional with all P1 and most P2 issues resolved. To merge: create PR against main. To continue fixing: read the Batch D table and pick items that don't require new dependencies.
 ```
