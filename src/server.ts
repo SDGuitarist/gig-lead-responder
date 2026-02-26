@@ -1,5 +1,6 @@
 import "dotenv/config";
 import express from "express";
+import helmet from "helmet";
 import { join } from "node:path";
 import { initDb } from "./leads.js";
 import webhookRouter from "./webhook.js";
@@ -18,6 +19,15 @@ const app = express();
 app.use(express.json({ limit: "100kb" }));
 app.use(express.urlencoded({ extended: false }));
 app.use(express.static(join(import.meta.dirname, "..", "public")));
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        scriptSrc: ["'self'", "'unsafe-inline'"],
+      },
+    },
+  })
+);
 
 // Mailgun inbound webhook
 app.use(webhookRouter);
