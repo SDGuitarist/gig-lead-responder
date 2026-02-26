@@ -1,57 +1,45 @@
 # Gig Lead Responder — Session Handoff
 
-**Last updated:** 2026-02-26 (v52)
-**Current phase:** Work — Phases 1-4 complete, V1 ready for review
+**Last updated:** 2026-02-26 (v53)
+**Current phase:** Fix-batched — P2 review fixes complete, P3 remaining
 **Branch:** `feat/follow-up-pipeline`
-**Next session:** Review phase
+**Next session:** Compound phase (or P3 fixes if desired)
 
-### Work Session: Phases 2-4 — Scheduler + Generator + SMS Commands (2026-02-26)
+### Fix Session: P2 Review Findings 012-018 (2026-02-26)
 
-**Plan doc:** `docs/plans/2026-02-26-feat-follow-up-pipeline-plan.md`
+**Review doc:** `docs/reviews/feat-follow-up-pipeline/REVIEW-SUMMARY.md`
 
 **What was done:**
 
-- Commit `6c7ef88`: Phase 2 — Scheduler (`src/follow-up-scheduler.ts`, `src/server.ts`)
-  - setTimeout chaining loop, 15-min interval, DISABLE_FOLLOW_UPS kill switch
-  - Heartbeat logging, SIGTERM graceful shutdown, per-lead error handling
-  - Draft stored before SMS, status set after SMS (correct ordering)
+- Commit `08f289b`: All 7 P2 findings fixed in one commit (+54/-29, 4 files)
+  - 012: Extracted `getLeadAwaitingFollowUp()` and `getLeadWithActiveFollowUp()` into leads.ts — SEND/SKIP handlers now use `normalizeRow()` like all other queries
+  - 013: Removed unnecessary `runTransaction()` wrapper around single `updateLead` call
+  - 014: Added `server.close()` on SIGTERM so in-flight HTTP requests complete
+  - 015: Added in-memory retry tracking (`retryFailures` Map) — poison leads auto-skip after 3 failures, Alex notified via SMS
+  - 016: Exported `MAX_FOLLOW_UPS = 3` from leads.ts, replaced magic number in SEND handler
+  - 017: Redacted `err.message` from all SMS error notifications — errors still logged to console
+  - 018: Scheduler reuses existing `follow_up_draft` on retry instead of regenerating (saves API $)
 
-- Commit `6416313`: Phase 3 — AI Draft Generator (`src/prompts/follow-up.ts`, `src/pipeline/follow-up-generate.ts`)
-  - Value-add prompt: song suggestion (#1), testimonial (#2), urgency (#3)
-  - Uses Haiku for cost efficiency (~10x cheaper than Sonnet)
-  - Hard constraints: never "checking in", under 3 sentences, no pricing repeat
-  - Replaced Phase 2 stub with real import
-
-- Commit `25d1aa4`: Phase 4 — SEND/SKIP SMS Commands (`src/twilio-webhook.ts`)
-  - SEND: increments count, schedules next (or exhausts at 3)
-  - SKIP: cancels all remaining follow-ups
-  - Routing: APPROVAL → EDIT_ID → SKIP → SEND → catch-all
-  - Both patterns anchored with `$` to prevent false matches
-
-- Tested follow-up prompt against all 4 test leads (12 API calls):
-  - All outputs are value-add, specific, under 3 sentences
-  - Song suggestions: Rumba Gitana, Golden, Good as Hell, Autumn Leaves
-  - Cultural context preserved for flamenco lead
-  - Haiku quality sufficient — no Sonnet upgrade needed
-
-- All Phase 2 and Phase 3+4 acceptance criteria checked off
+- Pre-commit check caught `MAX_RETRIES` naming collision with `MAX_FOLLOW_UPS` — renamed to `MAX_SCHEDULER_RETRIES`
+- TypeScript build clean, no regressions
 
 **Decisions made:**
-- Phase 2 built with stub first, then replaced in Phase 3 commit (keeps commits focused)
-- Used `callClaudeText()` for follow-ups (prose output, not JSON)
-- Used `initDb()` for inline queries in SEND/SKIP handlers (plan said "inline the query")
-- SKIP searches both `pending` and `sent` statuses (per plan's state machine)
+- Used in-memory Map for retry tracking (not a DB column) — resets on restart, which is fine (lead gets fresh chances)
+- Poison leads marked as "skipped" (not a new status) since the existing status set covers the need
+- Error SMS says "Check server logs" — Alex is the only user, so this is actionable without exposing internals
+
+**P3 findings remaining (019-022):** Type narrowing, exhaustive switch default, max_tokens optimization. All small effort, none blocking deploy.
 
 ## Three Questions
 
-1. **Hardest implementation decision in this session?** Whether to build Phase 2 with a stub for `generateFollowUpDraft()` or combine Phases 2+3. Chose stub approach: keeps Phase 2 commit focused on scheduling mechanics (107 lines), Phase 3 commit focused on AI generation (99 lines). Each commit is reviewable independently.
+1. **Hardest fix in this batch?** 015 (poison lead retry limit). Had to choose between in-memory tracking vs. a DB column. In-memory is simpler and doesn't require a schema migration, but resets on restart. Accepted this tradeoff because a restart gives the lead fresh chances, which is actually desirable — the failure may have been transient (e.g., Claude API outage).
 
-2. **What did you consider changing but left alone, and why?** Considered adding a dedicated `getLeadWithActiveFollowUp()` helper for the SEND/SKIP handlers instead of inline `initDb()` queries. Left it inline because the plan explicitly said "no separate function needed" and each query is called from exactly one place. If a V2 dashboard needs the same query, extract it then.
+2. **What did you consider fixing differently, and why didn't you?** Considered adding a dedicated `follow_up_error_count` column for 015 so retry state survives restarts. Rejected because it adds migration complexity for a V1 edge case — if a lead consistently fails across restarts, the in-memory limit will still catch it within 3 cycles (45 minutes). Not worth a schema change.
 
-3. **Least confident about going into review?** The SKIP handler's idempotency claim: SKIP queries `WHERE follow_up_status IN ('pending', 'sent')` so it can't find already-skipped leads — but there's no explicit guard against a race where Alex sends SKIP twice quickly. In practice this is safe (SQLite is synchronous, Twilio queues SMS, and Alex is the only user), but a reviewer might flag the theoretical race.
+3. **Least confident about going into the next batch or compound phase?** Whether "skipped" is the right status for poison leads that hit the retry limit. It conflates user-initiated skips (Alex texted SKIP) with system-initiated skips (3 failures). In V1 this is fine since Alex gets an SMS explaining the reason, but if V2 adds analytics on skip reasons, we'd need to distinguish them.
 
 ### Prompt for Next Session
 
 ```
-Read docs/plans/2026-02-26-feat-follow-up-pipeline-plan.md and docs/HANDOFF.md. Run /workflows:review for the feat/follow-up-pipeline branch. V1 phases 1-4 are complete across 4 commits. Key risk from work phase: SKIP handler idempotency depends on SQLite synchronous writes — verify this is safe.
+Read docs/HANDOFF.md. P2 fixes are complete and pushed. Options: (1) Fix P3 todos 019-022 from docs/reviews/feat-follow-up-pipeline/REVIEW-SUMMARY.md — all small type safety improvements. (2) Skip to compound phase — document learnings in docs/solutions/. Relevant files: src/twilio-webhook.ts, src/leads.ts, src/follow-up-scheduler.ts, src/server.ts, src/prompts/follow-up.ts.
 ```
