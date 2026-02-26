@@ -11,6 +11,13 @@ if (!process.env.ANTHROPIC_API_KEY) {
   process.exit(1);
 }
 
+if (process.env.NODE_ENV === "production") {
+  if (process.env.DISABLE_TWILIO_VALIDATION || process.env.DISABLE_MAILGUN_VALIDATION) {
+    console.error("FATAL: webhook validation bypass enabled in production");
+    process.exit(1);
+  }
+}
+
 // Initialize SQLite (creates tables if needed)
 initDb();
 
