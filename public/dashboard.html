@@ -2015,6 +2015,7 @@
     if (!text) return;
 
     var btn = document.getElementById('analyzeBtn');
+    if (btn.disabled) return;  // guard against keyboard re-entry
     btn.disabled = true;
     btn.textContent = 'Analyzing\u2026';
     resetAnalyze();
