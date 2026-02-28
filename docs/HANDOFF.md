@@ -1,35 +1,34 @@
 # Gig Lead Responder — Session Handoff
 
-**Last updated:** 2026-02-26 (v56)
-**Current phase:** Compound complete — follow-up pipeline fully documented
-**Branch:** `main` (PR #8 merged from `feat/follow-up-pipeline`)
+**Last updated:** 2026-02-28
+**Current phase:** Work complete — INSTITUTIONAL-LEARNINGS.md restructured as living document
+**Branch:** `main`
 **Next session:** New feature cycle (brainstorm phase)
 
-### Compound Session: Follow-Up Pipeline (2026-02-26)
+### Lessons Restructure Session (2026-02-28)
 
 **What was done:**
 
-- Documented follow-up pipeline learnings in `docs/solutions/architecture/follow-up-pipeline-human-in-the-loop-lifecycle.md`
-- 5 parallel research subagents gathered: context analysis, solution extraction, related docs, prevention strategies, category classification
-- Key patterns documented: human-in-the-loop simplifies state machines, setTimeout chaining, shared approval functions, draft storage for crash recovery, poison lead auto-skip
-- Risk resolution chain tracked across all 5 phases (brainstorm → plan → work → review → fix)
-- V2 considerations table with 6 deferred items and their implementation triggers
-- Cross-referenced 6 existing solutions docs
+- Restructured `INSTITUTIONAL-LEARNINGS.md` from a frozen single-feature snapshot into a living multi-feature document
+- Added Top 10 patterns table with corrected #10 (`today` as parameter replaces undocumented webhook pattern)
+- Wrapped existing Follow-Up Pipeline content under feature H2, demoted internal headings to H3
+- Added template section at bottom for future features
+- Commit: `4e22b0d`
 
 **Decisions made:**
-- Category: architecture/ (not prompt-engineering/ or logic-errors/) — the core lesson is architectural
-- Accepted the "skipped" conflation risk (from fix phase Three Questions) and documented the V2 migration path
+- Top 10 #10 replaced: "Verify webhook samples before writing parsers" was inferred from a Risk Areas warning, not a documented pattern. Replaced with "`today` injected as parameter, never `new Date()` inside functions" (Section 8 of the existing learnings, directly stated with code blocks)
+- Template uses same structure as the Follow-Up Pipeline section so future features are consistent
 
 ## Three Questions
 
-1. **Hardest pattern to extract from the fixes?** The relationship between "human-in-the-loop simplifies state machines" and "when to stop simplifying." Removing the `sending` state was correct — but the review still found 11 issues in the simplified design. The lesson isn't "simple = safe" but "simple = fewer categories of bugs, with the remaining bugs being easier to find in review."
+1. **Hardest implementation decision in this session?** How much to restructure vs. preserve. The existing content was well-organized — the issue was that it was frozen as a one-time snapshot with no path for adding future features. Chose minimal restructuring: wrap in feature H2, demote headings, add Top 10 + template. The content itself is unchanged.
 
-2. **What did you consider documenting but left out, and why?** The specific Twilio webhook routing order (APPROVAL > EDIT_ID > SKIP > SEND > catch-all). It's implementation detail that belongs in code comments, not a solutions doc.
+2. **What did you consider changing but left alone, and why?** Considered splitting the file into per-feature files (like research-agent's `docs/lessons/` split). Left it as one file because gig-lead-responder only has one feature's worth of learnings — splitting would create a hub with one link. When a second feature is added, that's the time to evaluate splitting.
 
-3. **What might future sessions miss that this solution doesn't cover?** Production behavior under real conditions: Does the scheduler fire correctly after 24 hours on Railway? Does SEND/SKIP work with multiple simultaneous active follow-ups? Does the SMS fit within Twilio's 1600-char limit? These require integration testing post-deploy.
+3. **Least confident about going into review?** Whether the Top 10 selection is too Follow-Up Pipeline-specific. All 10 patterns come from the same feature because it's the only feature documented. When more features are added, the Top 10 should be re-evaluated for cross-feature patterns.
 
 ### Prompt for Next Session
 
 ```
-Read docs/HANDOFF.md. Follow-up pipeline compound phase is complete. All docs in docs/solutions/architecture/follow-up-pipeline-human-in-the-loop-lifecycle.md. Ready for next feature cycle — check roadmap or start a new brainstorm.
+Read docs/HANDOFF.md. Lessons restructure is complete. INSTITUTIONAL-LEARNINGS.md is now a living document with a template for new features. Ready for next feature cycle — check roadmap or start a new brainstorm.
 ```
