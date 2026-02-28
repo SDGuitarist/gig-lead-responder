@@ -1229,7 +1229,11 @@
       }
       return res;
     }).then(function (res) {
-      if (!res.ok) return Promise.reject(new Error('API error ' + res.status));
+      if (!res.ok) return res.json().then(function (err) {
+        return Promise.reject(new Error(err.error || 'API error ' + res.status));
+      }).catch(function () {
+        return Promise.reject(new Error('API error ' + res.status));
+      });
       return res.json();
     });
   }
@@ -2072,6 +2076,7 @@
 
       return readChunk();
     }).catch(function (err) {
+      document.getElementById('analyzeStages').style.display = 'none';
       var errBox = document.getElementById('analyzeError');
       if (errBox) {
         errBox.textContent = 'Network error: ' + err.message;

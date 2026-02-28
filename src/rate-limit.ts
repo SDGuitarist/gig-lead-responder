@@ -13,8 +13,10 @@ const handler = (
   _options: Options,
 ) => {
   console.warn(`Rate limit hit: ${req.method} ${req.path} from ${req.ip}`);
+  const retryAfter = res.getHeader("Retry-After");
   res.status(429).json({
     error: "Too many requests. Please wait before trying again.",
+    retry_after_seconds: retryAfter ? Number(retryAfter) : null,
   });
 };
 

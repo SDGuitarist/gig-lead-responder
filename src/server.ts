@@ -26,6 +26,7 @@ const app = express();
 
 // Railway runs behind a reverse proxy. Trust one hop so req.ip
 // reflects the real client IP, not the proxy IP.
+// If adding Cloudflare, change to 2. If exposed directly (no proxy), set to false.
 app.set("trust proxy", 1);
 
 app.use(express.json({ limit: "100kb" }));

@@ -146,8 +146,8 @@ router.post("/api/leads/:id/approve", approveLimiter, async (req: Request, res: 
   } catch (err) {
     // Revert to previous status on SMS failure
     updateLead(id, { status: lead.status });
-    const message = err instanceof Error ? err.message : String(err);
-    res.status(500).json({ error: `SMS failed: ${message}` });
+    console.error(`SMS failed for lead ${id}:`, err);
+    res.status(500).json({ error: "SMS delivery failed. Check server logs." });
     return;
   }
 
@@ -180,6 +180,11 @@ router.post("/api/leads/:id/edit", async (req: Request, res: Response) => {
   const lead = getLead(id);
   if (!lead) {
     res.status(404).json({ error: "Lead not found" });
+    return;
+  }
+
+  if (lead.edit_round >= 10) {
+    res.status(400).json({ error: "Maximum edit rounds reached" });
     return;
   }
 
