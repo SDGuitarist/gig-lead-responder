@@ -1097,6 +1097,7 @@
       <button class="tab-btn" data-tab="all">All Leads</button>
       <button class="tab-btn" data-tab="analyze">Analyze</button>
       <button class="tab-btn" data-tab="insights">Insights</button>
+      <button class="tab-btn" data-tab="followups">Follow-Ups</button>
     </nav>
     <button class="refresh-btn" onclick="loadStats(); loadLeads();" title="Refresh leads and stats">&#x21bb; Refresh</button>
   </header>
@@ -1244,6 +1245,18 @@
       </div>
     </div>
   </div>
+
+  <!-- ══════════════════ FOLLOW-UPS PANEL ═══════════════════ -->
+  <div class="tab-panel" id="panel-followups">
+    <div class="page-header">
+      <h1 class="serif">Follow-Ups</h1>
+      <p>Manage pending and scheduled follow-up messages</p>
+    </div>
+    <div id="followUpCards"></div>
+  </div>
+
+  <!-- Follow-up flash message -->
+  <div class="fu-flash" id="fuFlash">Done</div>
 
 </div><!-- /app-shell -->
 
@@ -1826,7 +1839,7 @@
 
   /* ── Tab switching (generic: hide all, show one) ─────────── */
 
-  var ALL_PANELS = ['panel-leads', 'panel-analyze', 'panel-insights'];
+  var ALL_PANELS = ['panel-leads', 'panel-analyze', 'panel-insights', 'panel-followups'];
   var tabBtns = document.querySelectorAll('.tab-btn');
 
   function showTab(tab) {
@@ -1839,6 +1852,9 @@
     } else if (tab === 'insights') {
       document.getElementById('panel-insights').classList.add('active');
       loadInsights();
+    } else if (tab === 'followups') {
+      document.getElementById('panel-followups').classList.add('active');
+      loadFollowUps();
     } else {
       document.getElementById('panel-leads').classList.add('active');
       if (tab === 'queue') setFilter('pending');
@@ -1848,6 +1864,12 @@
     tabBtns.forEach(function (b) {
       b.classList.toggle('active', b.getAttribute('data-tab') === tab);
     });
+
+    // Auto-scroll active tab into view (for 5-tab overflow on mobile)
+    var activeBtn = document.querySelector('.tab-btn.active');
+    if (activeBtn) {
+      activeBtn.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+    }
   }
 
   tabBtns.forEach(function (btn) {
@@ -2255,6 +2277,11 @@
   });
 
   /* ── Initial load ────────────────────────────────────────── */
+
+  // Handle #follow-ups hash from SMS notification links
+  if (window.location.hash === '#follow-ups') {
+    showTab('followups');
+  }
 
   loadStats();
   loadLeads();
