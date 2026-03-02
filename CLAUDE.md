@@ -94,3 +94,7 @@ handoff** with the same format but note what's done and what remains.
 
 Do NOT wait for the user to ask. Do NOT skip this because "the session is
 almost over." This is the last thing you do before stopping.
+
+## Conventions
+
+- After `/workflows:compound`, always run `/update-learnings` to propagate lessons to all docs
