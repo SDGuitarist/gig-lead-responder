@@ -2,13 +2,13 @@ import { Router, type Request, type Response } from "express";
 import { listLeadsFiltered, getLeadStats, getLead, updateLead, claimLeadForSending, setLeadOutcome, getAnalytics, completeApproval } from "./leads.js";
 import type { LeadStatus, LeadOutcome, LossReason, LeadApiResponse } from "./types.js";
 import { LEAD_OUTCOMES, LOSS_REASONS } from "./types.js";
-import { basicAuth } from "./auth.js";
+import { sessionAuth } from "./auth.js";
 import { analyzeLimiter, approveLimiter } from "./rate-limit.js";
 import { sendSms } from "./sms.js";
 import { runPipeline } from "./run-pipeline.js";
 
 const router = Router();
-router.use(basicAuth);
+router.use(sessionAuth);
 
 // --- Helpers ---
 

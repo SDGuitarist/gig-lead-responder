@@ -35,3 +35,11 @@ export const approveLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
 });
+
+export const followUpActionLimiter = rateLimit({
+  windowMs: WINDOW_MS,
+  limit: 20,
+  handler,
+  standardHeaders: true,
+  legacyHeaders: false,
+});

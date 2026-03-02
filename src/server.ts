@@ -1,5 +1,6 @@
 import "dotenv/config";
 import express from "express";
+import cookieParser from "cookie-parser";
 import { join } from "node:path";
 import { initDb } from "./leads.js";
 import webhookRouter from "./webhook.js";
@@ -31,6 +32,18 @@ app.set("trust proxy", 1);
 
 app.use(express.json({ limit: "100kb" }));
 app.use(express.urlencoded({ extended: false }));
+app.use(cookieParser());
+
+// Security headers
+app.use((_req, res, next) => {
+  res.setHeader("X-Frame-Options", "DENY");
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("Content-Security-Policy",
+    "default-src 'self'; script-src 'self' 'unsafe-inline'; " +
+    "style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'");
+  next();
+});
+
 app.use(express.static(join(import.meta.dirname, "..", "public")));
 
 // Mailgun inbound webhook
