@@ -2,7 +2,7 @@ import { Router, type Request, type Response } from "express";
 import { listLeadsFiltered, listFollowUpLeads, getLeadStats, getLead, updateLead, claimLeadForSending, setLeadOutcome, getAnalytics, completeApproval } from "./leads.js";
 import type { LeadStatus, LeadOutcome, LossReason, LeadApiResponse } from "./types.js";
 import { LEAD_OUTCOMES, LOSS_REASONS } from "./types.js";
-import { sessionAuth } from "./auth.js";
+import { sessionAuth, csrfGuard } from "./auth.js";
 import { analyzeLimiter, approveLimiter } from "./rate-limit.js";
 import { sendSms } from "./sms.js";
 import { runPipeline } from "./run-pipeline.js";
@@ -120,7 +120,7 @@ router.get("/api/stats", (_req: Request, res: Response) => {
 
 // --- POST /api/leads/:id/approve ---
 
-router.post("/api/leads/:id/approve", approveLimiter, async (req: Request, res: Response) => {
+router.post("/api/leads/:id/approve", approveLimiter, csrfGuard, async (req: Request, res: Response) => {
   const id = parseInt(req.params.id as string, 10);
   if (isNaN(id)) {
     res.status(400).json({ error: "Invalid lead ID" });
@@ -172,7 +172,7 @@ router.post("/api/leads/:id/approve", approveLimiter, async (req: Request, res: 
 
 // --- POST /api/leads/:id/edit ---
 
-router.post("/api/leads/:id/edit", async (req: Request, res: Response) => {
+router.post("/api/leads/:id/edit", csrfGuard, async (req: Request, res: Response) => {
   const id = parseInt(req.params.id as string, 10);
   if (isNaN(id)) {
     res.status(400).json({ error: "Invalid lead ID" });
@@ -215,7 +215,7 @@ router.post("/api/leads/:id/edit", async (req: Request, res: Response) => {
 const VALID_OUTCOMES = new Set<LeadOutcome>(LEAD_OUTCOMES);
 const VALID_LOSS_REASONS = new Set<LossReason>(LOSS_REASONS);
 
-router.post("/api/leads/:id/outcome", (req: Request, res: Response) => {
+router.post("/api/leads/:id/outcome", csrfGuard, (req: Request, res: Response) => {
   const id = parseInt(req.params.id as string, 10);
   if (isNaN(id)) {
     res.status(400).json({ error: "Invalid lead ID" });
@@ -293,7 +293,7 @@ router.get("/api/analytics", (_req: Request, res: Response) => {
 
 // --- POST /api/analyze ---
 
-router.post("/api/analyze", analyzeLimiter, async (req: Request, res: Response) => {
+router.post("/api/analyze", analyzeLimiter, csrfGuard, async (req: Request, res: Response) => {
   const { text } = req.body;
   if (!text || typeof text !== "string" || !text.trim()) {
     res.status(400).json({ error: "Missing 'text' field in request body" });
