@@ -1,34 +1,42 @@
 # Gig Lead Responder — Session Handoff
 
-**Last updated:** 2026-02-28
-**Current phase:** Work complete — INSTITUTIONAL-LEARNINGS.md restructured as living document
-**Branch:** `main`
-**Next session:** New feature cycle (brainstorm phase)
+**Last updated:** 2026-03-02
+**Current phase:** Work (Phase 1 complete, Phase 2 next)
+**Branch:** `feat/follow-up-v2-dashboard`
+**Next session:** Work phase — Phase 2 (Follow-Up API Endpoints + SMS Refactor)
 
-### Lessons Restructure Session (2026-02-28)
+### Follow-Up Pipeline V2 — Phase 1 Work (2026-03-02)
 
 **What was done:**
 
-- Restructured `INSTITUTIONAL-LEARNINGS.md` from a frozen single-feature snapshot into a living multi-feature document
-- Added Top 10 patterns table with corrected #10 (`today` as parameter replaces undocumented webhook pattern)
-- Wrapped existing Follow-Up Pipeline content under feature H2, demoted internal headings to H3
-- Added template section at bottom for future features
-- Commit: `4e22b0d`
+- Created `feat/follow-up-v2-dashboard` branch
+- Added `replied` to `FOLLOW_UP_STATUSES` and `snoozed_until` to types
+- Added `SnoozeRequestBody` and `FollowUpActionResponse` types
+- Built SQLite table rebuild migration (CHECK constraint can't be ALTERed)
+  - Tested on fresh DB and simulated old-schema DB — rows survive rebuild
+- Added `snoozed_until TEXT` column migration
+- Wired `snoozed_until` through `UPDATE_ALLOWED_COLUMNS` and `shapeLead()`
+- Installed `cookie-parser`, implemented `sessionAuth` (HMAC-SHA256 signed cookie)
+- Added `csrfGuard` middleware (X-Requested-With header check)
+- Renamed `basicAuth` → `sessionAuth` in api.ts
+- Added security headers (CSP, X-Frame-Options, nosniff)
+- Added `followUpActionLimiter` (20 req/15min)
+- 2 commits: `8c0e02b` (schema/types), `b99675e` (auth/security)
 
-**Decisions made:**
-- Top 10 #10 replaced: "Verify webhook samples before writing parsers" was inferred from a Risk Areas warning, not a documented pattern. Replaced with "`today` injected as parameter, never `new Date()` inside functions" (Section 8 of the existing learnings, directly stated with code blocks)
-- Template uses same structure as the Follow-Up Pipeline section so future features are consistent
+**Commits:**
+1. `feat(schema): add replied status, snoozed_until column, and table rebuild migration`
+2. `feat(auth): add sessionAuth with signed cookie, CSRF guard, security headers, rate limiter`
 
 ## Three Questions
 
-1. **Hardest implementation decision in this session?** How much to restructure vs. preserve. The existing content was well-organized — the issue was that it was frozen as a one-time snapshot with no path for adding future features. Chose minimal restructuring: wrap in feature H2, demote headings, add Top 10 + template. The content itself is unchanged.
+1. **Hardest implementation decision in this session?** The table rebuild migration — had to ensure the INSERT INTO SELECT copies all columns from the old table dynamically, while the new table schema is hardcoded for safety. Tested both fresh DB and old-schema DB paths.
 
-2. **What did you consider changing but left alone, and why?** Considered splitting the file into per-feature files (like research-agent's `docs/lessons/` split). Left it as one file because gig-lead-responder only has one feature's worth of learnings — splitting would create a hub with one link. When a second feature is added, that's the time to evaluate splitting.
+2. **What did you consider changing but left alone, and why?** Considered putting the table rebuild inside the same migration loop as the ALTER TABLE ADD COLUMNs. Left it separate because the rebuild depends on snoozed_until already existing (added by ALTER TABLE first), and mixing DDL approaches would be confusing.
 
-3. **Least confident about going into review?** Whether the Top 10 selection is too Follow-Up Pipeline-specific. All 10 patterns come from the same feature because it's the only feature documented. When more features are added, the Top 10 should be re-evaluated for cross-feature patterns.
+3. **Least confident about going into review?** The `csrfGuard` middleware — it skips the check when Basic Auth header is present, which is correct (browsers don't auto-attach Basic Auth), but needs verification that the dashboard JS sends `X-Requested-With: dashboard` on all POST fetches (Phase 3 work).
 
 ### Prompt for Next Session
 
 ```
-Read docs/HANDOFF.md. Lessons restructure is complete. INSTITUTIONAL-LEARNINGS.md is now a living document with a template for new features. Ready for next feature cycle — check roadmap or start a new brainstorm.
+Read docs/plans/2026-03-01-feat-follow-up-pipeline-v2-dashboard-plan.md. Run /workflows:work for Phase 2 (Follow-Up API Endpoints + SMS Refactor). Branch: feat/follow-up-v2-dashboard. Key risk from Phase 1: csrfGuard needs X-Requested-With header on all dashboard POSTs. Relevant files: src/follow-up-api.ts (new), src/leads.ts, src/api.ts, src/twilio-webhook.ts, src/follow-up-scheduler.ts.
 ```
