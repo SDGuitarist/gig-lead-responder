@@ -1,64 +1,59 @@
 # Gig Lead Responder — Session Handoff
 
 **Last updated:** 2026-03-02
-**Current phase:** Work (Phase 3 complete, all 3 phases done)
+**Current phase:** Fix-batched (Batches A + B complete)
 **Branch:** `feat/follow-up-v2-dashboard`
-**Next session:** Review phase
+**Next session:** Fix-batched Batch C, or Compound phase if skipping C/D
 
 ### Prior Phase Risk
 
-> "Least confident about going into review? The scheduler's error handling after
-> claimFollowUpForSending — if the claim succeeds but generateFollowUpDraft fails,
-> the lead is stuck in sent status with no draft."
+> "What might this review have missed? Accessibility, timezone handling, SMS content validation, logging consistency, browser compatibility."
 
-Phase 3 (dashboard) doesn't address this directly — it's a scheduler-level concern.
-The dashboard does show `sent` leads with no draft as "Waiting to be scheduled" with
-italic text, so Alex can see stuck leads and manually skip them. The review phase
-should scrutinize whether the scheduler needs a recovery path for this edge case.
+Batch A (cleanup) has no behavioral impact. Batch B addressed the critical path: CSRF, stuck scheduler, non-atomic approve, index loss. The review blind spots (a11y, timezones, SMS length) remain unaddressed — consider for future work.
 
-### Follow-Up Pipeline V2 — Phase 3 Work (2026-03-02)
+### Fix-Batched — Batches A + B (2026-03-02)
 
 **What was done:**
 
-- Added `listFollowUpLeads()` in `src/leads.ts` — SQL query for active follow-ups sorted by action-needed first
-- Wired `GET /api/leads?follow_up=active` in `src/api.ts`
-- Added `X-Requested-With: dashboard` CSRF header to `apiPost()` in dashboard
-- Made tab-nav scrollable for 5-tab mobile overflow (CSS)
-- Added ~160 lines of follow-up card CSS: status labels, 44px tap targets, snooze presets, flash
-- Added 5th "Follow-Ups" tab button and panel HTML
-- Registered `panel-followups` in `ALL_PANELS` and `showTab()`
-- Auto-scroll active tab into view on mobile
-- Hash routing: `#follow-ups` opens the tab directly (for SMS notification links)
-- Added `fmtTimestamp()` helper for ISO timestamp display
-- Added ~180 lines of follow-up JS:
-  - `loadFollowUps()` with generation counter for stale fetch discarding
-  - `renderFollowUpCards()` with status labels, full draft display, empty state
-  - Per-lead operation locks (`leadInFlight`) — disables ALL buttons per card
-  - Event-delegated handlers for approve, skip, replied, snooze presets (1d/3d/1w)
-  - 409 silent refresh (no error alert on conflict)
-  - Flash timeout cancellation for rapid actions
-  - Rate-limited visibilitychange refetch (30s minimum)
-- Skipped `hasActiveInteraction()` guard — not needed with inline preset buttons (no dropdown to protect)
-- Updated plan checkboxes: all 16 Phase 3 items marked complete
+Batch A (1 commit, 5 fixes):
+- Removed unused `export` on MAX_FOLLOW_UPS and computeFollowUpDelay
+- Removed dead `sms_sent_at` reference in isStale()
+- Removed duplicate "Outcome tracking types" comment
+- Fixed state machine comment: 5 states, 8 transitions
+- Renamed `_req` → `req` on GET /api/leads (was actually used)
+- Skipped finding 38 (COOKIE_MAX_AGE_S) — false positive
+
+Batch B (8 commits, 8 fixes):
+- Added COOKIE_SECRET to .env.example (deploy blocker)
+- Recreated idx_leads_status + idx_leads_event_date after table rebuild
+- Added csrfGuard to all 4 POST routes in api.ts
+- Scheduler reverts to pending on failure (was stuck in sent forever)
+- Folded sms_sent_at into completeApproval transaction (atomic)
+- Replaced 4x shapeLead non-null assertions with null guards
+- Guarded scheduler draft-store against user skip/reply race
+- Added production guard to DISABLE_TWILIO_VALIDATION bypass
 
 **Commits:**
-1. `f7d9688` — feat(api): add follow_up=active filter for dashboard follow-ups tab
-2. `99820b2` — feat(dashboard): add X-Requested-With CSRF header to apiPost
-3. `269a339` — feat(dashboard): add scrollable tab-nav and follow-up card CSS
-4. `7debb7d` — feat(dashboard): add Follow-Ups tab button, panel, and tab routing
-5. `4bdb88e` — feat(dashboard): add Follow-Ups tab JavaScript
-6. `456fb89` — docs: update plan checkboxes for Phase 3 complete
+1. `be86d17` — fix: batch A — remove dead code, fix comments, rename _req
+2. `a20a710` — fix: add COOKIE_SECRET to .env.example
+3. `cc1fc2b` — fix: recreate status/event_date indexes after table rebuild
+4. `415949b` — fix: add csrfGuard to all POST routes in api.ts
+5. `7313dbd` — fix: revert scheduler to pending on failure
+6. `419b654` — fix: fold sms_sent_at into completeApproval transaction
+7. `52d2cf0` — fix: replace non-null assertions on shapeLead
+8. `1fecaca` — fix: guard scheduler draft store against race condition
+9. `d90199f` — fix: add production guard to Twilio validation bypass
 
 ## Three Questions
 
-1. **Hardest implementation decision in this session?** How to handle the `fmtDate` vs `fmtTimestamp` distinction. `fmtDate` appends `T12:00:00` to parse date-only strings — but `follow_up_due_at` and `snoozed_until` are full ISO timestamps. Using `fmtDate` on them would create invalid date strings. Added `fmtTimestamp()` that parses ISO directly. Small detail, but would have caused every status label to show raw ISO strings.
+1. **Hardest fix in this batch?** Finding #5 (non-atomic approve). Had to balance `completeApproval`'s shared interface (used by both dashboard and Twilio webhook) against the dashboard-only `sms_sent_at` stamp. Solved with an optional parameter.
 
-2. **What did you consider changing but left alone, and why?** Considered adding the `hasActiveInteraction()` guard from the plan. Left it out because the plan's simplified snooze UI uses inline preset buttons (1d/3d/1w), not a dropdown or date picker — there's no "open" interaction state to protect from re-renders. The per-lead lock already handles the button-disabling concern.
+2. **What did you consider fixing differently, and why didn't you?** Scheduler retry persistence in DB (finding #4). Review recommended a `follow_up_retry_count` column, but that's a schema change better done separately. The revert-to-pending fix is the critical path — the in-memory retry Map is acceptable for single-process deployment.
 
-3. **Least confident about going into review?** The follow-up card rendering for edge cases: (a) a lead in `pending` status with no `follow_up_due_at` — shows "Waiting to be scheduled" which may be wrong if it's newly snoozed, and (b) whether the `follow_up_count` value is correct at display time (it's set during approve, so a `sent` lead shows the count *before* the pending approve increments it). The `#2/3` display might be off-by-one.
+3. **Least confident about going into the next batch or compound phase?** The draft-store race fix (#22) uses `initDb()` directly instead of `updateLead()` because `updateLead` doesn't support conditional WHERE clauses. If `updateLead` ever adds audit logging, this code path would skip it.
 
 ### Prompt for Next Session
 
 ```
-Read docs/HANDOFF.md. Run /workflows:review for the feat/follow-up-v2-dashboard branch. Key risks: (1) scheduler stuck-in-sent recovery, (2) follow_up_count off-by-one in card display, (3) fmtTimestamp edge cases. Branch has 8 commits across 3 work phases.
+Read docs/HANDOFF.md. Run /fix-batched batch3 (Batch C — code quality, 16 findings) and batch4 (Batch D — deferred, 8 findings). Or skip to /workflows:compound if Batch C/D are deprioritized. Relevant files: docs/fixes/feat-follow-up-v2-dashboard/plan.md
 ```
