@@ -160,7 +160,7 @@ export interface PipelineOutput {
 
 // --- Follow-up status types ---
 
-export const FOLLOW_UP_STATUSES = ["pending", "sent", "skipped", "exhausted"] as const;
+export const FOLLOW_UP_STATUSES = ["pending", "sent", "skipped", "exhausted", "replied"] as const;
 export type FollowUpStatus = (typeof FOLLOW_UP_STATUSES)[number];
 
 // --- Outcome tracking types ---
@@ -236,7 +236,15 @@ export interface LeadApiResponse {
   follow_up_count: number;
   follow_up_due_at: string | null;
   follow_up_draft: string | null;
+  snoozed_until: string | null;
 }
+
+// --- Follow-up V2 request/response types ---
+
+export interface SnoozeRequestBody { until: string; }
+export interface FollowUpActionSuccess { success: true; lead: LeadApiResponse; }
+export interface FollowUpActionError { error: string; }
+export type FollowUpActionResponse = FollowUpActionSuccess | FollowUpActionError;
 
 // --- Email parser types (Chunk 2) ---
 
@@ -292,6 +300,7 @@ export interface LeadRecord {
   follow_up_count: number;
   follow_up_due_at: string | null;
   follow_up_draft: string | null;
+  snoozed_until: string | null;
   created_at: string;
   updated_at: string;
 }

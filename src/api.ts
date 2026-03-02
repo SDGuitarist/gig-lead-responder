@@ -80,6 +80,7 @@ function shapeLead(lead: ReturnType<typeof getLead>): LeadApiResponse | null {
     follow_up_count: lead.follow_up_count,
     follow_up_due_at: lead.follow_up_due_at,
     follow_up_draft: lead.follow_up_draft,
+    snoozed_until: lead.snoozed_until,
   };
 }
 

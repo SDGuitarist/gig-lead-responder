@@ -76,11 +76,73 @@ export function initDb(): Database.Database {
     ["follow_up_count", "INTEGER NOT NULL DEFAULT 0"],
     ["follow_up_due_at", "TEXT"],
     ["follow_up_draft", "TEXT"],
+    ["snoozed_until", "TEXT"],
   ];
   for (const [col, type] of migrations) {
     if (!existingCols.has(col)) {
       db.exec(`ALTER TABLE leads ADD COLUMN ${col} ${type}`);
     }
+  }
+
+  // --- Table rebuild: add 'replied' to follow_up_status CHECK constraint ---
+  // SQLite cannot ALTER CHECK constraints. Existing production DBs have the old
+  // 4-value CHECK. This rebuild adds 'replied' to the constraint.
+  // Safe for small tables (<100 rows). Runs once: skips if 'replied' already in schema.
+  const tableSql = (db.prepare(
+    "SELECT sql FROM sqlite_master WHERE type='table' AND name='leads'",
+  ).get() as { sql: string } | undefined)?.sql ?? "";
+  const needsFollowUpRebuild = tableSql.includes("follow_up_status") && !tableSql.includes("'replied'");
+
+  if (needsFollowUpRebuild) {
+    console.log("Migration: rebuilding leads table to add 'replied' to follow_up_status CHECK...");
+    const colNames = (db.pragma("table_info(leads)") as Array<{ name: string }>).map(c => c.name);
+    const colList = colNames.join(", ");
+
+    db.transaction(() => {
+      db.exec(`
+        CREATE TABLE leads_new (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          source_platform TEXT,
+          mailgun_message_id TEXT UNIQUE,
+          raw_email TEXT NOT NULL,
+          client_name TEXT,
+          event_date TEXT,
+          event_type TEXT,
+          venue TEXT,
+          guest_count INTEGER,
+          budget_note TEXT,
+          status TEXT NOT NULL DEFAULT 'received' CHECK(status IN ('received','sending','sent','done','failed')),
+          classification_json TEXT,
+          pricing_json TEXT,
+          full_draft TEXT,
+          compressed_draft TEXT,
+          gate_passed INTEGER,
+          gate_json TEXT,
+          edit_round INTEGER NOT NULL DEFAULT 0,
+          edit_instructions TEXT,
+          done_reason TEXT,
+          outcome TEXT CHECK(outcome IN ('booked','lost','no_reply')),
+          outcome_reason TEXT CHECK(outcome_reason IN ('price','competitor','cancelled','other')),
+          actual_price REAL CHECK(actual_price IS NULL OR actual_price > 0),
+          outcome_at TEXT,
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL,
+          confidence_score INTEGER,
+          error_message TEXT,
+          pipeline_completed_at TEXT,
+          sms_sent_at TEXT,
+          follow_up_status TEXT CHECK(follow_up_status IN ('pending','sent','skipped','exhausted','replied')),
+          follow_up_count INTEGER NOT NULL DEFAULT 0,
+          follow_up_due_at TEXT,
+          follow_up_draft TEXT,
+          snoozed_until TEXT
+        )
+      `);
+      db.exec(`INSERT INTO leads_new (${colList}) SELECT ${colList} FROM leads`);
+      db.exec("DROP TABLE leads");
+      db.exec("ALTER TABLE leads_new RENAME TO leads");
+    })();
+    console.log("Migration complete: follow_up_status CHECK now includes 'replied'.");
   }
 
   // Create indexes after migrations so all columns exist
@@ -171,7 +233,7 @@ const UPDATE_ALLOWED_COLUMNS = new Set<string>([
   "edit_round", "edit_instructions", "done_reason",
   "outcome", "outcome_reason", "actual_price", "outcome_at",
   "follow_up_status", "follow_up_count", "follow_up_due_at", "follow_up_draft",
-  "updated_at",
+  "snoozed_until", "updated_at",
 ]);
 
 export function updateLead(
