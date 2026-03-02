@@ -1270,6 +1270,9 @@
   // SYNC: STATUS_DISPLAY keys must match LeadStatus in src/types.ts
   // See LeadApiResponse in src/types.ts for the API contract.
 
+  // SYNC: must match MAX_FOLLOW_UPS in src/leads.ts
+  var MAX_FOLLOW_UPS = 3;
+
   var FORMAT_NAMES = {
     solo: 'Solo Guitar',
     duo: 'Duo',
@@ -1407,7 +1410,8 @@
     if (authHeader) opts.headers = { Authorization: authHeader };
 
     return fetch(url, opts).then(function (res) {
-      if (res.status === 401 && authHeader === null) {
+      if (res.status === 401) {
+        authHeader = null;
         var user = prompt('Dashboard username:');
         var pass = prompt('Dashboard password:');
         if (!user) return Promise.reject(new Error('Auth cancelled'));
@@ -1448,6 +1452,8 @@
       if (!res.ok) {
         return res.json().then(function (err) {
           return Promise.reject(new Error(err.error || 'API error ' + res.status));
+        }).catch(function () {
+          return Promise.reject(new Error('API error ' + res.status));
         });
       }
       return res.json();
@@ -2341,7 +2347,7 @@
       // Header: name + count
       html += '<div class="fu-card-header">';
       html += '<span class="fu-card-name">' + esc(l.client_name) + '</span>';
-      html += '<span class="fu-card-count">#' + l.follow_up_count + '/3</span>';
+      html += '<span class="fu-card-count">#' + l.follow_up_count + '/' + MAX_FOLLOW_UPS + '</span>';
       html += '</div>';
 
       // Meta: event type · date · venue

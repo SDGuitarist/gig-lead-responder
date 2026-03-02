@@ -72,6 +72,11 @@ router.post("/api/leads/:id/follow-up/snooze", followUpActionLimiter, csrfGuard,
     return;
   }
 
+  if (!req.body || typeof req.body !== "object") {
+    res.status(400).json({ error: "Request body must be JSON" });
+    return;
+  }
+
   const { until } = req.body as SnoozeRequestBody;
 
   // Validate: must be a string

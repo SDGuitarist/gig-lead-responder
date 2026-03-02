@@ -183,6 +183,10 @@ router.post("/api/leads/:id/edit", csrfGuard, async (req: Request, res: Response
     res.status(400).json({ error: "full_draft is required" });
     return;
   }
+  if (full_draft.length > 50_000) {
+    res.status(400).json({ error: "full_draft exceeds maximum length" });
+    return;
+  }
 
   const lead = getLead(id);
   if (!lead) {
@@ -298,6 +302,10 @@ router.post("/api/analyze", analyzeLimiter, csrfGuard, async (req: Request, res:
     res.status(400).json({ error: "Missing 'text' field in request body" });
     return;
   }
+  if (text.length > 50_000) {
+    res.status(400).json({ error: "text exceeds maximum length" });
+    return;
+  }
 
   res.setHeader("Content-Type", "text/event-stream");
   res.setHeader("Cache-Control", "no-cache");
@@ -310,8 +318,8 @@ router.post("/api/analyze", analyzeLimiter, csrfGuard, async (req: Request, res:
     });
     sendSSE(res, "complete", output);
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : String(err);
-    sendSSE(res, "error", { error: message });
+    console.error("Pipeline error:", err instanceof Error ? err.message : String(err));
+    sendSSE(res, "error", { error: "Pipeline processing failed. Check server logs." });
   } finally {
     res.end();
   }

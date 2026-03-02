@@ -7,6 +7,7 @@ const INTERVAL_MS = 15 * 60 * 1_000; // 15 minutes
 const MAX_SCHEDULER_RETRIES = 3;
 let schedulerHandle: ReturnType<typeof setTimeout> | null = null;
 const retryFailures = new Map<number, number>(); // leadId → consecutive failure count
+const RETRY_MAP_CAP = 50; // safety valve against unbounded growth
 
 /** Strip trailing slashes from BASE_URL. */
 function baseUrl(): string {
@@ -32,6 +33,8 @@ function formatFollowUpNotification(lead: LeadRecord): string {
  * Per-lead error handling: if one fails, leave as pending and continue.
  */
 async function checkDueFollowUps(): Promise<void> {
+  if (retryFailures.size > RETRY_MAP_CAP) retryFailures.clear();
+
   const leads = getLeadsDueForFollowUp(); // LIMIT 10, ordered by due_at ASC
   if (leads.length === 0) return;
 
@@ -89,7 +92,6 @@ async function schedulerLoop(): Promise<void> {
     return;
   }
 
-  console.log("[scheduler] heartbeat");
   try {
     await checkDueFollowUps();
   } catch (err) {

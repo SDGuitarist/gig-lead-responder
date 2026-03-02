@@ -41,7 +41,9 @@ app.use((_req, res, next) => {
   res.setHeader("X-Content-Type-Options", "nosniff");
   res.setHeader("Content-Security-Policy",
     "default-src 'self'; script-src 'self' 'unsafe-inline'; " +
-    "style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'");
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
+    "font-src 'self' https://fonts.gstatic.com; " +
+    "img-src 'self' data:; connect-src 'self'");
   next();
 });
 
