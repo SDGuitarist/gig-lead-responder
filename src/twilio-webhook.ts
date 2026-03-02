@@ -36,7 +36,11 @@ function emptyTwiml(res: Response): void {
  *  Set DISABLE_TWILIO_VALIDATION=true to bypass (debug URL mismatches only). */
 function verifyTwilioSignature(req: Request): boolean {
   if (process.env.DISABLE_TWILIO_VALIDATION === "true") {
-    console.warn("⚠ Twilio signature validation disabled via DISABLE_TWILIO_VALIDATION");
+    if (process.env.NODE_ENV === "production" || process.env.RAILWAY_ENVIRONMENT) {
+      console.error("FATAL: DISABLE_TWILIO_VALIDATION cannot be used in production");
+      return false;
+    }
+    console.warn("Twilio signature validation disabled via DISABLE_TWILIO_VALIDATION");
     return true;
   }
 
