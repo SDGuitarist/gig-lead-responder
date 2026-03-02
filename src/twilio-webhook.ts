@@ -1,7 +1,7 @@
 import twilio from "twilio";
 import { Router } from "express";
 import type { Request, Response } from "express";
-import { getLead, getLeadsByStatus, updateLead, completeApproval, computeFollowUpDelay, MAX_FOLLOW_UPS, getLeadAwaitingFollowUp, getLeadWithActiveFollowUp } from "./leads.js";
+import { getLead, getLeadsByStatus, updateLead, completeApproval, approveFollowUp, skipFollowUp, getLeadAwaitingFollowUp, getLeadWithActiveFollowUp } from "./leads.js";
 import { sendSms } from "./sms.js";
 import { runEditPipeline } from "./run-pipeline.js";
 import type { Classification, LeadRecord, PricingResult } from "./types.js";
@@ -163,9 +163,8 @@ async function handleEdit(leadId: number | null, instructions: string): Promise<
   console.log(`Lead #${lead.id}: edit round ${newRound} sent via SMS`);
 }
 
-/** Handle SEND reply: approve pending follow-up draft, increment count, schedule next or exhaust. */
+/** Handle SEND reply: approve pending follow-up draft via shared atomic function. */
 async function handleFollowUpSend(): Promise<void> {
-  // Find most recent lead with follow_up_status = 'sent' (awaiting Alex's SEND/SKIP)
   const lead = getLeadAwaitingFollowUp();
 
   if (!lead) {
@@ -173,34 +172,24 @@ async function handleFollowUpSend(): Promise<void> {
     return;
   }
 
-  const newCount = lead.follow_up_count + 1;
-
-  if (newCount >= MAX_FOLLOW_UPS) {
-    // Terminal — all follow-ups done
-    updateLead(lead.id, {
-      follow_up_status: "exhausted",
-      follow_up_count: newCount,
-      follow_up_due_at: null,
-    });
-    await sendSms(`Follow-up #${newCount} for Lead #${lead.id} marked as sent. All ${MAX_FOLLOW_UPS} follow-ups complete.`);
-  } else {
-    // Schedule next follow-up
-    const delay = computeFollowUpDelay(newCount as 0 | 1 | 2);
-    const dueAt = new Date(Date.now() + delay).toISOString();
-    updateLead(lead.id, {
-      follow_up_status: "pending",
-      follow_up_count: newCount,
-      follow_up_due_at: dueAt,
-    });
-    await sendSms(`Follow-up #${newCount} for Lead #${lead.id} marked as sent. Next follow-up scheduled.`);
+  const updated = approveFollowUp(lead.id);
+  if (!updated) {
+    await sendSms(`Follow-up for Lead #${lead.id} is no longer in a valid state.`);
+    return;
   }
 
-  console.log(`Lead #${lead.id}: follow-up #${newCount} approved via SMS`);
+  const count = updated.follow_up_count;
+  if (updated.follow_up_status === "exhausted") {
+    await sendSms(`Follow-up #${count} for Lead #${lead.id} marked as sent. All follow-ups complete.`);
+  } else {
+    await sendSms(`Follow-up #${count} for Lead #${lead.id} marked as sent. Next follow-up scheduled.`);
+  }
+
+  console.log(`Lead #${lead.id}: follow-up #${count} approved via SMS`);
 }
 
-/** Handle SKIP reply: cancel all remaining follow-ups for most recent active lead. */
+/** Handle SKIP reply: cancel all follow-ups via shared atomic function. */
 async function handleFollowUpSkip(): Promise<void> {
-  // Find most recent lead with active follow-up (pending or sent)
   const lead = getLeadWithActiveFollowUp();
 
   if (!lead) {
@@ -208,7 +197,12 @@ async function handleFollowUpSkip(): Promise<void> {
     return;
   }
 
-  updateLead(lead.id, { follow_up_status: "skipped", follow_up_due_at: null });
+  const updated = skipFollowUp(lead.id);
+  if (!updated) {
+    await sendSms(`Follow-up for Lead #${lead.id} is no longer in a valid state.`);
+    return;
+  }
+
   await sendSms(`Follow-ups cancelled for Lead #${lead.id}.`);
   console.log(`Lead #${lead.id}: follow-ups skipped via SMS`);
 }

@@ -21,7 +21,7 @@ function safeJsonParse(raw: string | null): Record<string, unknown> | null {
   }
 }
 
-function shapeLead(lead: ReturnType<typeof getLead>): LeadApiResponse | null {
+export function shapeLead(lead: ReturnType<typeof getLead>): LeadApiResponse | null {
   if (!lead) return null;
 
   const cl = safeJsonParse(lead.classification_json);

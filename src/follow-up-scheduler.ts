@@ -1,4 +1,4 @@
-import { getLeadsDueForFollowUp, updateLead } from "./leads.js";
+import { getLeadsDueForFollowUp, updateLead, claimFollowUpForSending } from "./leads.js";
 import { generateFollowUpDraft } from "./pipeline/follow-up-generate.js";
 import { sendSms } from "./sms.js";
 import type { LeadRecord } from "./types.js";
@@ -8,27 +8,23 @@ const MAX_SCHEDULER_RETRIES = 3;
 let schedulerHandle: ReturnType<typeof setTimeout> | null = null;
 const retryFailures = new Map<number, number>(); // leadId → consecutive failure count
 
+/** Strip trailing slashes from BASE_URL. */
+function baseUrl(): string {
+  return (process.env.BASE_URL || "").replace(/\/+$/, "");
+}
+
 /**
- * Format the follow-up SMS sent to Alex for approval.
- * Uses 📋 prefix to distinguish from initial draft SMS messages.
+ * Format the follow-up notification SMS.
+ * V2: points to dashboard instead of including full draft text.
  */
-function formatFollowUpSms(lead: LeadRecord, draft: string): string {
-  const lines: string[] = [];
-  const num = lead.follow_up_count + 1; // next follow-up number (1-indexed)
-  lines.push(`📋 Follow-up #${num} for Lead #${lead.id}`);
-
-  // One-line lead summary: event_type @ venue — event_date
+function formatFollowUpNotification(lead: LeadRecord): string {
+  const num = lead.follow_up_count + 1;
   const parts: string[] = [];
-  if (lead.event_type) parts.push(lead.event_type);
-  if (lead.venue) parts.push(`@ ${lead.venue}`);
-  if (lead.event_date) parts.push(`— ${lead.event_date}`);
-  if (parts.length > 0) lines.push(parts.join(" "));
+  if (lead.client_name) parts.push(lead.client_name);
+  if (lead.event_type) parts.push(`(${lead.event_type})`);
+  const summary = parts.length > 0 ? parts.join(" ") : `Lead #${lead.id}`;
 
-  lines.push("");
-  lines.push(draft);
-  lines.push("");
-  lines.push("Reply SEND to send, SKIP to cancel all follow-ups.");
-  return lines.join("\n");
+  return `Follow-up #${num} draft ready for ${summary}.\nReview: ${baseUrl()}/dashboard.html#follow-ups`;
 }
 
 /**
@@ -43,16 +39,19 @@ async function checkDueFollowUps(): Promise<void> {
 
   for (const lead of leads) {
     try {
-      // 1. Reuse existing draft if available (SMS failed on prior attempt), else generate new one
+      // 1. Atomic claim: pending → sent (includes snoozed_until guard)
+      if (!claimFollowUpForSending(lead.id)) {
+        console.warn(`[scheduler] lead #${lead.id} claim failed (snoozed or state changed)`);
+        continue;
+      }
+      // 2. Reuse existing draft if available (SMS failed on prior attempt), else generate new one
       const draft = lead.follow_up_draft || await generateFollowUpDraft(lead);
-      // 2. Store draft in DB (survives restarts)
+      // 3. Store draft in DB (survives restarts)
       if (!lead.follow_up_draft) updateLead(lead.id, { follow_up_draft: draft });
-      // 3. Send SMS to Alex for approval
-      await sendSms(formatFollowUpSms(lead, draft));
-      // 4. Mark as sent (waiting for SEND/SKIP from Alex)
-      updateLead(lead.id, { follow_up_status: "sent" });
+      // 4. Send notification SMS pointing to dashboard
+      await sendSms(formatFollowUpNotification(lead));
       retryFailures.delete(lead.id);
-      console.log(`[scheduler] follow-up draft sent for lead #${lead.id}`);
+      console.log(`[scheduler] follow-up notification sent for lead #${lead.id}`);
     } catch (err) {
       const failures = (retryFailures.get(lead.id) || 0) + 1;
       retryFailures.set(lead.id, failures);

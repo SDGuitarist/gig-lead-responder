@@ -489,7 +489,7 @@ scheduler detects a mid-flight status change. Re-evaluate if volume grows.
 **Files:** `src/follow-up-api.ts` (new), `src/leads.ts`, `src/api.ts`,
 `src/twilio-webhook.ts`, `src/follow-up-scheduler.ts`
 
-1. Add atomic claim functions in `src/leads.ts`:
+1. ~~Add atomic claim functions in `src/leads.ts`~~ ✅
    - `approveFollowUp(leadId)` — in `runTransaction`: read count, UPDATE WHERE
      status='sent', count++, clear snoozed_until, schedule next or exhaust
    - `skipFollowUp(leadId)` — UPDATE WHERE status IN ('pending','sent'),
@@ -502,18 +502,18 @@ scheduler detects a mid-flight status change. Re-evaluate if volume grows.
    - `claimFollowUpForSending(leadId)` — scheduler's atomic claim for
      pending→sent, with `snoozed_until IS NULL OR snoozed_until <= now` guard
    - All return `LeadRecord | undefined` (undefined = claim failed)
-2. Create `src/follow-up-api.ts` with 4 POST endpoints
+2. ~~Create `src/follow-up-api.ts` with 4 POST endpoints~~ ✅
    - Export `shapeLead` from `src/api.ts` for use here
    - Wire rate limiter + CSRF guard to each endpoint
    - Snooze endpoint: validate ISO date, future, max 90 days
-3. **Refactor SMS handlers** in `src/twilio-webhook.ts`:
+3. ~~**Refactor SMS handlers** in `src/twilio-webhook.ts`~~ ✅
    - `handleFollowUpSend()` → call `approveFollowUp(lead.id)`
    - `handleFollowUpSkip()` → call `skipFollowUp(lead.id)`
-4. **Update scheduler** in `src/follow-up-scheduler.ts`:
+4. ~~**Update scheduler** in `src/follow-up-scheduler.ts`~~ ✅
    - Use `claimFollowUpForSending()` instead of direct `updateLead()`
    - Clear `snoozed_until` when processing a lead
    - Change SMS from full draft to notification with dashboard link
-5. Mount follow-up router in `src/server.ts`
+5. ~~Mount follow-up router in `src/server.ts`~~ ✅
 
 ### Phase 3: Dashboard Follow-Ups Tab
 

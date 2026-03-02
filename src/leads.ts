@@ -365,6 +365,133 @@ export function scheduleFollowUp(leadId: number, dueAt: string): void {
   updateLead(leadId, { follow_up_status: "pending", follow_up_due_at: dueAt });
 }
 
+// --- Atomic follow-up claim functions ---
+// Used by BOTH dashboard API and SMS handlers — single code path for all transitions.
+
+/** Fields to clear when entering a terminal state (skipped, exhausted, replied). */
+const TERMINAL_CLEAR = {
+  follow_up_due_at: null,
+  follow_up_draft: null,
+  snoozed_until: null,
+} as const;
+
+/**
+ * Approve a follow-up draft (SEND). Atomically claims status='sent', increments count,
+ * schedules next or exhausts. Returns updated lead or undefined if claim failed.
+ */
+export function approveFollowUp(leadId: number): LeadRecord | undefined {
+  return runTransaction(() => {
+    const now = new Date().toISOString();
+    const result = initDb()
+      .prepare(
+        "UPDATE leads SET follow_up_status = 'pending', updated_at = @now " +
+        "WHERE id = @id AND follow_up_status = 'sent'",
+      )
+      .run({ id: leadId, now });
+
+    if (result.changes === 0) return undefined;
+
+    const lead = getLead(leadId);
+    if (!lead) return undefined;
+
+    const newCount = lead.follow_up_count + 1;
+
+    if (newCount >= MAX_FOLLOW_UPS) {
+      // Terminal — all follow-ups done
+      return updateLead(leadId, {
+        follow_up_status: "exhausted",
+        follow_up_count: newCount,
+        ...TERMINAL_CLEAR,
+      });
+    }
+
+    // Schedule next follow-up
+    const delay = computeFollowUpDelay(newCount as 0 | 1 | 2);
+    const dueAt = new Date(Date.now() + delay).toISOString();
+    return updateLead(leadId, {
+      follow_up_count: newCount,
+      follow_up_due_at: dueAt,
+      follow_up_draft: null,
+      snoozed_until: null,
+    });
+  });
+}
+
+/**
+ * Skip all remaining follow-ups. Atomically claims from pending or sent.
+ * Returns updated lead or undefined if claim failed.
+ */
+export function skipFollowUp(leadId: number): LeadRecord | undefined {
+  const now = new Date().toISOString();
+  const result = initDb()
+    .prepare(
+      "UPDATE leads SET follow_up_status = 'skipped', " +
+      "follow_up_due_at = NULL, follow_up_draft = NULL, snoozed_until = NULL, " +
+      "updated_at = @now " +
+      "WHERE id = @id AND follow_up_status IN ('pending', 'sent')",
+    )
+    .run({ id: leadId, now });
+
+  if (result.changes === 0) return undefined;
+  return getLead(leadId);
+}
+
+/**
+ * Snooze a follow-up. Sets snoozed_until AND due_at atomically, clears draft,
+ * transitions to pending. Returns updated lead or undefined if claim failed.
+ */
+export function snoozeFollowUp(leadId: number, until: string): LeadRecord | undefined {
+  const now = new Date().toISOString();
+  // Enforce invariant: snoozed_until ≤ due_at (use snooze date as new due_at)
+  const result = initDb()
+    .prepare(
+      "UPDATE leads SET follow_up_status = 'pending', " +
+      "snoozed_until = @until, follow_up_due_at = @until, follow_up_draft = NULL, " +
+      "updated_at = @now " +
+      "WHERE id = @id AND follow_up_status IN ('sent', 'pending')",
+    )
+    .run({ id: leadId, until, now });
+
+  if (result.changes === 0) return undefined;
+  return getLead(leadId);
+}
+
+/**
+ * Mark that the client replied. Terminal state — clears all follow-up fields.
+ * Returns updated lead or undefined if claim failed.
+ */
+export function markClientReplied(leadId: number): LeadRecord | undefined {
+  const now = new Date().toISOString();
+  const result = initDb()
+    .prepare(
+      "UPDATE leads SET follow_up_status = 'replied', " +
+      "follow_up_due_at = NULL, follow_up_draft = NULL, snoozed_until = NULL, " +
+      "updated_at = @now " +
+      "WHERE id = @id AND follow_up_status IN ('pending', 'sent')",
+    )
+    .run({ id: leadId, now });
+
+  if (result.changes === 0) return undefined;
+  return getLead(leadId);
+}
+
+/**
+ * Scheduler's atomic claim: pending → sent. Includes snoozed_until guard so
+ * snoozed leads aren't processed. Returns true if claimed.
+ */
+export function claimFollowUpForSending(leadId: number): boolean {
+  const now = new Date().toISOString();
+  const result = initDb()
+    .prepare(
+      "UPDATE leads SET follow_up_status = 'sent', updated_at = @now " +
+      "WHERE id = @id AND follow_up_status = 'pending' " +
+      "AND (snoozed_until IS NULL OR snoozed_until <= datetime('now'))",
+    )
+    .run({ id: leadId, now });
+
+  return result.changes > 0;
+}
+
 /**
  * Shared approval function — called by BOTH Twilio webhook and dashboard API.
  * Atomically sets status = "done" and schedules the first follow-up.

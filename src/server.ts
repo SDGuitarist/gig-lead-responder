@@ -6,6 +6,7 @@ import { initDb } from "./leads.js";
 import webhookRouter from "./webhook.js";
 import twilioWebhookRouter from "./twilio-webhook.js";
 import apiRouter from "./api.js";
+import followUpApiRouter from "./follow-up-api.js";
 import { startFollowUpScheduler, stopFollowUpScheduler } from "./follow-up-scheduler.js";
 
 if (!process.env.ANTHROPIC_API_KEY) {
@@ -54,6 +55,9 @@ app.use(twilioWebhookRouter);
 
 // JSON API for new dashboard (includes /api/analyze)
 app.use(apiRouter);
+
+// Follow-up action endpoints (approve, skip, snooze, replied)
+app.use(followUpApiRouter);
 
 // Redirect root to new dashboard
 app.get("/", (_req, res) => {
