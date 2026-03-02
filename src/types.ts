@@ -156,8 +156,6 @@ export interface PipelineOutput {
   confidence_score: number; // 0-100, how much pipeline intelligence was activated and verified
 }
 
-// --- Outcome tracking types ---
-
 // --- Follow-up status types ---
 
 export const FOLLOW_UP_STATUSES = ["pending", "sent", "skipped", "exhausted", "replied"] as const;

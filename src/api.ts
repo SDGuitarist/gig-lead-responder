@@ -93,19 +93,19 @@ function sendSSE(res: Response, event: string, data: unknown) {
 const VALID_STATUSES = new Set(["received", "sent", "done", "failed"]);
 const VALID_SORTS = new Set(["date", "score", "event"]);
 
-router.get("/api/leads", (_req: Request, res: Response) => {
+router.get("/api/leads", (req: Request, res: Response) => {
   // Follow-up mode: return active follow-up leads (separate query)
-  if (_req.query.follow_up === "active") {
+  if (req.query.follow_up === "active") {
     const leads = listFollowUpLeads();
     res.json(leads.map(shapeLead));
     return;
   }
 
-  const status = typeof _req.query.status === "string" && VALID_STATUSES.has(_req.query.status)
-    ? (_req.query.status as LeadStatus)
+  const status = typeof req.query.status === "string" && VALID_STATUSES.has(req.query.status)
+    ? (req.query.status as LeadStatus)
     : undefined;
-  const sort = typeof _req.query.sort === "string" && VALID_SORTS.has(_req.query.sort)
-    ? (_req.query.sort as "date" | "score" | "event")
+  const sort = typeof req.query.sort === "string" && VALID_SORTS.has(req.query.sort)
+    ? (req.query.sort as "date" | "score" | "event")
     : undefined;
 
   const leads = listLeadsFiltered({ status, sort });

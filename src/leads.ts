@@ -311,17 +311,19 @@ export function runTransaction<T>(fn: () => T): T {
 // --- Follow-up helpers ---
 
 /*
- * Follow-up state machine (4 states, 6 transitions):
+ * Follow-up state machine (5 states, 8 transitions):
  *
  *   NULL ──completeApproval()──▶ pending
  *   pending ──scheduler──▶ sent        (draft generated, SMS sent to Alex)
  *   pending ──SKIP──▶ skipped          (cancel all follow-ups)
+ *   pending ──REPLIED──▶ replied       (client responded)
  *   sent ──SEND──▶ pending             (count++, schedule next if count < 3)
  *   sent ──SEND──▶ exhausted           (count reaches 3, terminal)
  *   sent ──SKIP──▶ skipped             (cancel all follow-ups)
+ *   sent ──REPLIED──▶ replied          (client responded)
  */
 
-export const MAX_FOLLOW_UPS = 3;
+const MAX_FOLLOW_UPS = 3;
 
 const FOLLOW_UP_DELAYS_MS = [
   24 * 60 * 60 * 1_000,     // 1st: 24 hours
@@ -330,7 +332,7 @@ const FOLLOW_UP_DELAYS_MS = [
 ];
 
 /** Returns delay in ms before the next follow-up. */
-export function computeFollowUpDelay(followUpCount: 0 | 1 | 2): number {
+function computeFollowUpDelay(followUpCount: 0 | 1 | 2): number {
   return FOLLOW_UP_DELAYS_MS[followUpCount];
 }
 

@@ -1375,7 +1375,7 @@
 
   function isStale(l) {
     if (l.status !== 'done' || l.outcome !== null) return false;
-    var ref = l.sms_sent_at || l.updated_at;
+    var ref = l.updated_at;
     if (!ref) return false;
     var diff = Date.now() - new Date(ref).getTime();
     return diff >= NUDGE_DAYS * 24 * 60 * 60 * 1000;
