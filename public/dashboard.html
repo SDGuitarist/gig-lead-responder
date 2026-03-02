@@ -47,9 +47,18 @@
   }
   .logo span { color: #cf9145; }
 
-  .tab-nav { display: flex; gap: 4px; }
+  .tab-nav {
+    display: flex;
+    gap: 4px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .tab-nav::-webkit-scrollbar { display: none; }
 
   .tab-btn {
+    flex: 0 0 auto;
+    white-space: nowrap;
     padding: 8px 20px;
     border-radius: 6px;
     border: 1px solid transparent;
@@ -469,6 +478,157 @@
     font-size: 22px;
     color: #2c2419;
     margin-bottom: 8px;
+  }
+
+  /* ── Follow-Up Cards ─────────────────────────────────────── */
+  .fu-empty {
+    text-align: center;
+    padding: 48px 24px;
+    color: #8a7e6d;
+  }
+  .fu-empty p { margin-top: 8px; font-size: 13px; }
+
+  .fu-card {
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(44,36,25,0.08);
+    padding: 16px;
+    margin-bottom: 12px;
+  }
+  .fu-card.disabled { opacity: 0.6; pointer-events: none; }
+
+  .fu-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 8px;
+  }
+  .fu-card-name {
+    font-weight: 600;
+    color: #2c2419;
+  }
+  .fu-card-count {
+    font-size: 12px;
+    color: #8a7e6d;
+  }
+
+  .fu-card-meta {
+    font-size: 13px;
+    color: #8a7e6d;
+    margin-bottom: 8px;
+  }
+  .fu-card-meta span + span::before { content: ' · '; }
+
+  .fu-status {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 10px;
+  }
+  .fu-status-action { background: #fef3c7; color: #92400e; }
+  .fu-status-scheduled { background: #e0f2fe; color: #0369a1; }
+  .fu-status-snoozed { background: #f3e8ff; color: #7c3aed; }
+
+  .fu-card-draft {
+    background: #faf8f5;
+    border: 1px solid #e8e2d9;
+    border-radius: 6px;
+    padding: 12px;
+    font-size: 13px;
+    line-height: 1.6;
+    color: #2c2419;
+    margin-bottom: 12px;
+    white-space: pre-wrap;
+  }
+
+  .fu-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .fu-btn {
+    min-height: 44px;
+    min-width: 44px;
+    padding: 10px 16px;
+    border-radius: 6px;
+    border: 1px solid #e8e2d9;
+    background: #fff;
+    color: #2c2419;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    font-family: inherit;
+  }
+  .fu-btn:hover { border-color: #cf9145; }
+  .fu-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .fu-btn-approve {
+    background: #2c2419;
+    color: #fff;
+    border-color: #2c2419;
+  }
+  .fu-btn-approve:hover { background: #3d3526; }
+
+  .fu-btn-skip {
+    color: #dc2626;
+    border-color: #fecaca;
+  }
+  .fu-btn-skip:hover { border-color: #dc2626; }
+
+  .fu-btn-replied {
+    color: #059669;
+    border-color: #a7f3d0;
+  }
+  .fu-btn-replied:hover { border-color: #059669; }
+
+  .fu-snooze-row {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    margin-top: 8px;
+  }
+  .fu-snooze-label {
+    font-size: 12px;
+    color: #8a7e6d;
+    margin-right: 2px;
+  }
+  .fu-snooze-preset {
+    min-height: 36px;
+    padding: 6px 12px;
+    border-radius: 4px;
+    border: 1px solid #e8e2d9;
+    background: #faf8f5;
+    color: #8a7e6d;
+    font-size: 12px;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .fu-snooze-preset:hover { border-color: #7c3aed; color: #7c3aed; }
+  .fu-snooze-preset:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .fu-flash {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-80px);
+    background: #065f46;
+    color: #fff;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    opacity: 0;
+    transition: transform 0.3s ease, opacity 0.3s ease;
+    z-index: 100;
+    pointer-events: none;
+  }
+  .fu-flash.show {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
   }
 
   /* ── Mobile card view ─────────────────────────────────────── */
