@@ -1332,6 +1332,13 @@
   var currentLeads = [];
   var expandedId = null;
 
+  // Follow-up tab state
+  var followUpLeads = [];
+  var leadInFlight = {};
+  var followUpRequestGeneration = 0;
+  var fuFlashTimer = null;
+  var lastFollowUpFetch = 0;
+
   /* ── Helpers ─────────────────────────────────────────────── */
 
   function esc(s) {
@@ -1352,6 +1359,13 @@
     var d = new Date(str + 'T12:00:00');
     if (isNaN(d.getTime())) return str;
     return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  }
+
+  function fmtTimestamp(str) {
+    if (!str) return '\u2014';
+    var d = new Date(str);
+    if (isNaN(d.getTime())) return str;
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   }
 
   function fmtPrice(n) {
@@ -1984,6 +1998,11 @@
     if (!document.hidden) {
       renderTable(currentLeads);
       renderMobile(currentLeads);
+      // Rate-limited follow-up refresh (30s minimum between fetches)
+      if (document.getElementById('panel-followups').classList.contains('active') &&
+          Date.now() - lastFollowUpFetch > 30000) {
+        loadFollowUps();
+      }
     }
   });
 
@@ -2274,6 +2293,169 @@
 
   document.getElementById('analyzeInput').addEventListener('keydown', function (e) {
     if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) runAnalyze();
+  });
+
+  /* ── Follow-Ups Tab ─────────────────────────────────────── */
+
+  function loadFollowUps() {
+    var gen = ++followUpRequestGeneration;
+    apiFetch('/api/leads?follow_up=active').then(function (leads) {
+      if (gen !== followUpRequestGeneration) return; // stale, discard
+      followUpLeads = leads;
+      lastFollowUpFetch = Date.now();
+      renderFollowUpCards(leads);
+    }).catch(function (e) {
+      document.getElementById('followUpCards').innerHTML =
+        '<div class="fu-empty"><p>Failed to load: ' + esc(e.message) + '</p></div>';
+    });
+  }
+
+  function fuStatusLabel(lead) {
+    if (lead.follow_up_status === 'sent') {
+      return '<span class="fu-status fu-status-action">Action Needed</span>';
+    }
+    if (lead.snoozed_until && new Date(lead.snoozed_until) > new Date()) {
+      return '<span class="fu-status fu-status-snoozed">Snoozed until ' + fmtTimestamp(lead.snoozed_until) + '</span>';
+    }
+    return '<span class="fu-status fu-status-scheduled">Scheduled ' + fmtTimestamp(lead.follow_up_due_at) + '</span>';
+  }
+
+  function renderFollowUpCards(leads) {
+    var container = document.getElementById('followUpCards');
+
+    if (!leads.length) {
+      container.innerHTML = '<div class="fu-empty">' +
+        '<h2 class="serif">No follow-ups pending</h2>' +
+        '<p>Follow-ups are scheduled automatically when you approve an initial response.</p>' +
+        '</div>';
+      return;
+    }
+
+    container.innerHTML = leads.map(function (l) {
+      var disabled = leadInFlight[l.id] ? ' disabled' : '';
+      var cardClass = leadInFlight[l.id] ? 'fu-card disabled' : 'fu-card';
+      var hasDraft = l.follow_up_status === 'sent' && l.follow_up_draft;
+
+      var html = '<div class="' + cardClass + '" data-fu-id="' + l.id + '">';
+
+      // Header: name + count
+      html += '<div class="fu-card-header">';
+      html += '<span class="fu-card-name">' + esc(l.client_name) + '</span>';
+      html += '<span class="fu-card-count">#' + l.follow_up_count + '/3</span>';
+      html += '</div>';
+
+      // Meta: event type · date · venue
+      html += '<div class="fu-card-meta">';
+      html += '<span>' + (esc(l.event_type) || 'Event') + '</span>';
+      if (l.event_date) html += '<span>' + fmtDate(l.event_date) + '</span>';
+      if (l.venue) html += '<span>' + esc(l.venue) + '</span>';
+      html += '</div>';
+
+      // Status label
+      html += fuStatusLabel(l);
+
+      // Draft text or scheduled message
+      if (hasDraft) {
+        html += '<div class="fu-card-draft">' + esc(l.follow_up_draft) + '</div>';
+      } else {
+        var schedMsg = l.follow_up_due_at
+          ? 'Scheduled for ' + fmtTimestamp(l.follow_up_due_at)
+          : 'Waiting to be scheduled';
+        html += '<div class="fu-card-draft" style="color:#8a7e6d;font-style:italic">' + esc(schedMsg) + '</div>';
+      }
+
+      // Action buttons
+      html += '<div class="fu-actions">';
+      if (l.follow_up_status === 'sent') {
+        html += '<button class="fu-btn fu-btn-approve" data-fu-approve="' + l.id + '"' + disabled + '>Approve</button>';
+      }
+      html += '<button class="fu-btn fu-btn-skip" data-fu-skip="' + l.id + '"' + disabled + '>Skip All</button>';
+      html += '<button class="fu-btn fu-btn-replied" data-fu-replied="' + l.id + '"' + disabled + '>Client Replied</button>';
+      html += '</div>';
+
+      // Snooze presets
+      html += '<div class="fu-snooze-row">';
+      html += '<span class="fu-snooze-label">Snooze:</span>';
+      html += '<button class="fu-snooze-preset" data-fu-snooze="' + l.id + '" data-days="1"' + disabled + '>1d</button>';
+      html += '<button class="fu-snooze-preset" data-fu-snooze="' + l.id + '" data-days="3"' + disabled + '>3d</button>';
+      html += '<button class="fu-snooze-preset" data-fu-snooze="' + l.id + '" data-days="7"' + disabled + '>1w</button>';
+      html += '</div>';
+
+      html += '</div>';
+      return html;
+    }).join('');
+  }
+
+  function showFuFlash(msg) {
+    var flash = document.getElementById('fuFlash');
+    flash.textContent = msg || 'Done';
+    // Cancel previous timer to prevent flicker on rapid actions
+    if (fuFlashTimer) clearTimeout(fuFlashTimer);
+    flash.classList.add('show');
+    fuFlashTimer = setTimeout(function () {
+      flash.classList.remove('show');
+      fuFlashTimer = null;
+    }, 1500);
+  }
+
+  function followUpAction(leadId, action, body) {
+    if (leadInFlight[leadId]) return;
+    leadInFlight[leadId] = true;
+    renderFollowUpCards(followUpLeads); // immediately disable buttons
+
+    apiPost('/api/leads/' + leadId + '/follow-up/' + action, body || {})
+      .then(function (result) {
+        var lead = result.lead;
+        // Update local array: remove if terminal, update if still active
+        var terminal = !lead.follow_up_status ||
+          lead.follow_up_status === 'skipped' ||
+          lead.follow_up_status === 'exhausted' ||
+          lead.follow_up_status === 'replied';
+
+        if (terminal) {
+          followUpLeads = followUpLeads.filter(function (l) { return l.id !== leadId; });
+        } else {
+          for (var i = 0; i < followUpLeads.length; i++) {
+            if (followUpLeads[i].id === leadId) { followUpLeads[i] = lead; break; }
+          }
+        }
+
+        var msgs = { approve: 'Approved', skip: 'Skipped', snooze: 'Snoozed', replied: 'Marked replied' };
+        showFuFlash(msgs[action] || 'Done');
+      })
+      .catch(function (err) {
+        if (err.message.indexOf('409') !== -1) {
+          loadFollowUps(); // silently refresh on conflict
+          return;
+        }
+        alert(action + ' failed: ' + err.message);
+      })
+      .finally(function () {
+        delete leadInFlight[leadId];
+        renderFollowUpCards(followUpLeads);
+      });
+  }
+
+  // Event delegation for follow-up action buttons
+  document.getElementById('panel-followups').addEventListener('click', function (e) {
+    var btn;
+
+    btn = e.target.closest('[data-fu-approve]');
+    if (btn) { followUpAction(parseInt(btn.dataset.fuApprove, 10), 'approve'); return; }
+
+    btn = e.target.closest('[data-fu-skip]');
+    if (btn) { followUpAction(parseInt(btn.dataset.fuSkip, 10), 'skip'); return; }
+
+    btn = e.target.closest('[data-fu-replied]');
+    if (btn) { followUpAction(parseInt(btn.dataset.fuReplied, 10), 'replied'); return; }
+
+    btn = e.target.closest('[data-fu-snooze]');
+    if (btn) {
+      var days = parseInt(btn.dataset.days, 10);
+      var until = new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString();
+      followUpAction(parseInt(btn.dataset.fuSnooze, 10), 'snooze', { until: until });
+      return;
+    }
   });
 
   /* ── Initial load ────────────────────────────────────────── */
