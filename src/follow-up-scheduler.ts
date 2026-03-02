@@ -1,4 +1,4 @@
-import { getLeadsDueForFollowUp, updateLead, claimFollowUpForSending } from "./leads.js";
+import { getLeadsDueForFollowUp, updateLead, claimFollowUpForSending, initDb } from "./leads.js";
 import { generateFollowUpDraft } from "./pipeline/follow-up-generate.js";
 import { sendSms } from "./sms.js";
 import type { LeadRecord } from "./types.js";
@@ -46,8 +46,16 @@ async function checkDueFollowUps(): Promise<void> {
       }
       // 2. Reuse existing draft if available (SMS failed on prior attempt), else generate new one
       const draft = lead.follow_up_draft || await generateFollowUpDraft(lead);
-      // 3. Store draft in DB (survives restarts)
-      if (!lead.follow_up_draft) updateLead(lead.id, { follow_up_draft: draft });
+      // 3. Store draft in DB only if still in 'sent' status (guards against user skip/reply race)
+      if (!lead.follow_up_draft) {
+        const stored = initDb()
+          .prepare("UPDATE leads SET follow_up_draft = @draft, updated_at = @now WHERE id = @id AND follow_up_status = 'sent'")
+          .run({ id: lead.id, draft, now: new Date().toISOString() });
+        if (stored.changes === 0) {
+          console.warn(`[scheduler] lead #${lead.id} status changed during draft generation — skipping`);
+          continue;
+        }
+      }
       // 4. Send notification SMS pointing to dashboard
       await sendSms(formatFollowUpNotification(lead));
       retryFailures.delete(lead.id);
