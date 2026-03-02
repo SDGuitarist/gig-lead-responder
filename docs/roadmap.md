@@ -6,14 +6,14 @@
 
 ## Up Next
 
-### 1. Follow-Up Pipeline
-Reminders, lead status tracking (new → responded → follow-up due → in conversation → booked → lost), one-click follow-up drafts, snooze. **Why first:** this is where leads die today — biggest ROI.
-
-### 2. Smart HoneyBook Handoff
+### 1. Smart HoneyBook Handoff
 Stop firehosing every lead into HoneyBook. Qualify leads in the dashboard first, only push to HoneyBook once warm. Adjust Zapier to route through Gig Lead Responder.
 
-### 3. Conversion Intelligence
+### 2. Conversion Intelligence
 Log outcomes (booked, lost to competitor, lost to price, ghosted). Dashboard analytics by source, event type, season. Competitor tracking.
+
+### 3. Follow-Up Pipeline V2
+Reply detection (Mailgun webhook for client replies), dashboard follow-up tab with status badges and SNOOZE/SKIP controls. Blocked on real email samples from GigSalad/The Bash.
 
 ## Backlog (not yet prioritized)
 
@@ -23,8 +23,7 @@ Log outcomes (booked, lost to competitor, lost to price, ghosted). Dashboard ana
 
 ## Open Maintenance
 
-11 pending code review items in `todos/` (1 P1, 4 P2, 6 P3).
-SSE abort/close coverage gap flagged in last review.
+All 22 code review items resolved. SSE abort/close coverage gap flagged in last review.
 
 ## Shipped
 
@@ -35,3 +34,4 @@ SSE abort/close coverage gap flagged in last review.
 - Dashboard UI redesign
 - Lead conversion tracking
 - API rate limiting
+- Follow-up pipeline V1 (scheduler, AI drafts, SMS approval)
