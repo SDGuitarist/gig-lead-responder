@@ -61,6 +61,9 @@ async function checkDueFollowUps(): Promise<void> {
         updateLead(lead.id, { follow_up_status: "skipped", follow_up_due_at: null });
         retryFailures.delete(lead.id);
         await sendSms(`Follow-up for Lead #${lead.id} failed ${MAX_SCHEDULER_RETRIES} times — skipped. Check logs.`).catch(console.error);
+      } else {
+        // Revert to pending so the lead is retried on the next scheduler tick
+        updateLead(lead.id, { follow_up_status: "pending" });
       }
     }
   }
