@@ -1,42 +1,36 @@
 # Gig Lead Responder — Session Handoff
 
 **Last updated:** 2026-03-02
-**Current phase:** Work (Phase 1 complete, Phase 2 next)
+**Current phase:** Work (Phase 2 complete, Phase 3 next)
 **Branch:** `feat/follow-up-v2-dashboard`
-**Next session:** Work phase — Phase 2 (Follow-Up API Endpoints + SMS Refactor)
+**Next session:** Work phase — Phase 3 (Dashboard Follow-Ups Tab)
 
-### Follow-Up Pipeline V2 — Phase 1 Work (2026-03-02)
+### Follow-Up Pipeline V2 — Phase 2 Work (2026-03-02)
 
 **What was done:**
 
-- Created `feat/follow-up-v2-dashboard` branch
-- Added `replied` to `FOLLOW_UP_STATUSES` and `snoozed_until` to types
-- Added `SnoozeRequestBody` and `FollowUpActionResponse` types
-- Built SQLite table rebuild migration (CHECK constraint can't be ALTERed)
-  - Tested on fresh DB and simulated old-schema DB — rows survive rebuild
-- Added `snoozed_until TEXT` column migration
-- Wired `snoozed_until` through `UPDATE_ALLOWED_COLUMNS` and `shapeLead()`
-- Installed `cookie-parser`, implemented `sessionAuth` (HMAC-SHA256 signed cookie)
-- Added `csrfGuard` middleware (X-Requested-With header check)
-- Renamed `basicAuth` → `sessionAuth` in api.ts
-- Added security headers (CSP, X-Frame-Options, nosniff)
-- Added `followUpActionLimiter` (20 req/15min)
-- 2 commits: `8c0e02b` (schema/types), `b99675e` (auth/security)
+- Added 5 atomic claim functions in `src/leads.ts`:
+  `approveFollowUp`, `skipFollowUp`, `snoozeFollowUp`, `markClientReplied`, `claimFollowUpForSending`
+- Created `src/follow-up-api.ts` — 4 POST endpoints with sessionAuth + csrfGuard + rate limiter
+- Exported `shapeLead` from `src/api.ts` for reuse in follow-up-api
+- Refactored SMS handlers (`handleFollowUpSend`, `handleFollowUpSkip`) to use shared atomic functions
+- Updated scheduler: atomic claim with snoozed_until guard, notification SMS instead of full draft
+- Mounted follow-up router in `src/server.ts`
+- 1 commit: `efcaa71`
 
 **Commits:**
-1. `feat(schema): add replied status, snoozed_until column, and table rebuild migration`
-2. `feat(auth): add sessionAuth with signed cookie, CSRF guard, security headers, rate limiter`
+1. `feat(follow-up): add atomic claim functions, API endpoints, and SMS refactor`
 
 ## Three Questions
 
-1. **Hardest implementation decision in this session?** The table rebuild migration — had to ensure the INSERT INTO SELECT copies all columns from the old table dynamically, while the new table schema is hardcoded for safety. Tested both fresh DB and old-schema DB paths.
+1. **Hardest implementation decision in this session?** The `approveFollowUp` function — it needs a transaction because it reads the current count, atomically claims from `sent`, then either schedules next or exhausts. The atomic UPDATE claims `sent` → `pending`, then a second `updateLead` sets the final state. This two-step approach inside `runTransaction` ensures no race between the claim and the count increment.
 
-2. **What did you consider changing but left alone, and why?** Considered putting the table rebuild inside the same migration loop as the ALTER TABLE ADD COLUMNs. Left it separate because the rebuild depends on snoozed_until already existing (added by ALTER TABLE first), and mixing DDL approaches would be confusing.
+2. **What did you consider changing but left alone, and why?** Considered adding a `REPLIED` SMS command in `twilio-webhook.ts` (like SEND/SKIP). Left it out because the plan only specifies SEND/SKIP as SMS commands — "Client Replied" is a dashboard-only action. Adding it to SMS would expand scope beyond the plan.
 
-3. **Least confident about going into review?** The `csrfGuard` middleware — it skips the check when Basic Auth header is present, which is correct (browsers don't auto-attach Basic Auth), but needs verification that the dashboard JS sends `X-Requested-With: dashboard` on all POST fetches (Phase 3 work).
+3. **Least confident about going into review?** The scheduler's error handling after `claimFollowUpForSending` — if the claim succeeds but `generateFollowUpDraft` fails, the lead is stuck in `sent` status with no draft. The retry logic handles this (lead stays `sent`, next scheduler run won't re-claim it since it's no longer `pending`). May need a recovery path for leads stuck in `sent` without a draft.
 
 ### Prompt for Next Session
 
 ```
-Read docs/plans/2026-03-01-feat-follow-up-pipeline-v2-dashboard-plan.md. Run /workflows:work for Phase 2 (Follow-Up API Endpoints + SMS Refactor). Branch: feat/follow-up-v2-dashboard. Key risk from Phase 1: csrfGuard needs X-Requested-With header on all dashboard POSTs. Relevant files: src/follow-up-api.ts (new), src/leads.ts, src/api.ts, src/twilio-webhook.ts, src/follow-up-scheduler.ts.
+Read docs/plans/2026-03-01-feat-follow-up-pipeline-v2-dashboard-plan.md. Run /workflows:work for Phase 3 (Dashboard Follow-Ups Tab). Branch: feat/follow-up-v2-dashboard. Key risk from Phase 2: scheduler error after claimFollowUpForSending — leads stuck in 'sent' without draft. Relevant files: public/dashboard.html, src/follow-up-api.ts (endpoints to call).
 ```
