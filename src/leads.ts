@@ -145,7 +145,10 @@ export function initDb(): Database.Database {
     console.log("Migration complete: follow_up_status CHECK now includes 'replied'.");
   }
 
-  // Create indexes after migrations so all columns exist
+  // Create indexes after migrations so all columns exist (includes idx_leads_status
+  // and idx_leads_event_date which are dropped if the table rebuild migration runs)
+  db.exec("CREATE INDEX IF NOT EXISTS idx_leads_status ON leads(status)");
+  db.exec("CREATE INDEX IF NOT EXISTS idx_leads_event_date ON leads(event_date)");
   db.exec("CREATE INDEX IF NOT EXISTS idx_leads_confidence ON leads(confidence_score)");
   db.exec("CREATE INDEX IF NOT EXISTS idx_leads_outcome ON leads(outcome)");
   db.exec("CREATE INDEX IF NOT EXISTS idx_leads_source_platform ON leads(source_platform)");
