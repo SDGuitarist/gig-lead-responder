@@ -159,9 +159,8 @@ router.post("/api/leads/:id/approve", approveLimiter, csrfGuard, async (req: Req
     return;
   }
 
-  // Mark done + schedule first follow-up atomically
-  updateLead(id, { sms_sent_at: new Date().toISOString() });
-  const updated = completeApproval(id, "approved_dashboard");
+  // Mark done + stamp sms_sent_at + schedule first follow-up atomically
+  const updated = completeApproval(id, "approved_dashboard", new Date().toISOString());
 
   if (!updated) {
     res.status(500).json({ error: "Failed to update lead after sending" });
