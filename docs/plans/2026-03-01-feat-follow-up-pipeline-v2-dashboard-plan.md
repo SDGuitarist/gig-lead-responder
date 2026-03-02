@@ -519,22 +519,22 @@ scheduler detects a mid-flight status change. Re-evaluate if volume grows.
 
 **Files:** `public/dashboard.html`
 
-1. Add "Follow-Ups" tab to `.tab-nav` (5th tab)
-2. Scrollable horizontal nav CSS (overflow-x: auto, flex-shrink: 0)
-3. Auto-scroll active tab into view
-4. Add follow-up tab panel with flat card list (no filters)
-5. Render follow-up cards — status label, full draft, action buttons
-6. **Per-lead operation locks** via `leadInFlight` object
-7. `hasActiveInteraction()` guard to protect snooze UI from re-renders
-8. Separate `followUpLeads` array from `currentLeads`
-9. Generation counter for stale fetch responses
-10. Snooze: inline preset buttons (1d, 3d, 1w) — no dropdown, no date picker
-11. Handle 409 as silent refresh
-12. Re-fetch on `visibilitychange` with 30s rate limit
-13. Flash timeout cancellation for rapid actions
-14. Action buttons: `X-Requested-With: dashboard` header on all POST fetches
-15. Empty state message
-16. Register tab in `ALL_PANELS` and `showTab()`
+1. ~~Add "Follow-Ups" tab to `.tab-nav` (5th tab)~~ ✅
+2. ~~Scrollable horizontal nav CSS (overflow-x: auto, flex-shrink: 0)~~ ✅
+3. ~~Auto-scroll active tab into view~~ ✅
+4. ~~Add follow-up tab panel with flat card list (no filters)~~ ✅
+5. ~~Render follow-up cards — status label, full draft, action buttons~~ ✅
+6. ~~**Per-lead operation locks** via `leadInFlight` object~~ ✅
+7. ~~`hasActiveInteraction()` guard to protect snooze UI from re-renders~~ N/A (inline presets have no open state to protect)
+8. ~~Separate `followUpLeads` array from `currentLeads`~~ ✅
+9. ~~Generation counter for stale fetch responses~~ ✅
+10. ~~Snooze: inline preset buttons (1d, 3d, 1w) — no dropdown, no date picker~~ ✅
+11. ~~Handle 409 as silent refresh~~ ✅
+12. ~~Re-fetch on `visibilitychange` with 30s rate limit~~ ✅
+13. ~~Flash timeout cancellation for rapid actions~~ ✅
+14. ~~Action buttons: `X-Requested-With: dashboard` header on all POST fetches~~ ✅
+15. ~~Empty state message~~ ✅
+16. ~~Register tab in `ALL_PANELS` and `showTab()`~~ ✅
 
 ## Sources & References
 
