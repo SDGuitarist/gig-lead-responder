@@ -1,5 +1,5 @@
 import { Router, type Request, type Response } from "express";
-import { listLeadsFiltered, getLeadStats, getLead, updateLead, claimLeadForSending, setLeadOutcome, getAnalytics, completeApproval } from "./leads.js";
+import { listLeadsFiltered, listFollowUpLeads, getLeadStats, getLead, updateLead, claimLeadForSending, setLeadOutcome, getAnalytics, completeApproval } from "./leads.js";
 import type { LeadStatus, LeadOutcome, LossReason, LeadApiResponse } from "./types.js";
 import { LEAD_OUTCOMES, LOSS_REASONS } from "./types.js";
 import { sessionAuth } from "./auth.js";
@@ -94,6 +94,13 @@ const VALID_STATUSES = new Set(["received", "sent", "done", "failed"]);
 const VALID_SORTS = new Set(["date", "score", "event"]);
 
 router.get("/api/leads", (_req: Request, res: Response) => {
+  // Follow-up mode: return active follow-up leads (separate query)
+  if (_req.query.follow_up === "active") {
+    const leads = listFollowUpLeads();
+    res.json(leads.map(shapeLead));
+    return;
+  }
+
   const status = typeof _req.query.status === "string" && VALID_STATUSES.has(_req.query.status)
     ? (_req.query.status as LeadStatus)
     : undefined;

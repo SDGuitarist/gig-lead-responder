@@ -543,6 +543,23 @@ export function listLeadsFiltered(opts: ListLeadsFilteredOpts = {}): LeadRecord[
   return rows.map(normalizeRow);
 }
 
+/**
+ * List leads with active follow-ups (pending or sent — not terminal states).
+ * Sorted: sent (action needed) first, then by due_at ascending.
+ */
+export function listFollowUpLeads(): LeadRecord[] {
+  const sql = `
+    SELECT * FROM leads
+    WHERE follow_up_status IS NOT NULL
+      AND follow_up_status NOT IN ('skipped', 'exhausted', 'replied')
+    ORDER BY
+      CASE follow_up_status WHEN 'sent' THEN 0 ELSE 1 END,
+      follow_up_due_at ASC
+  `;
+  const rows = initDb().prepare(sql).all() as LeadRecord[];
+  return rows.map(normalizeRow);
+}
+
 export interface LeadStats {
   pending: number;
   sent: number;
