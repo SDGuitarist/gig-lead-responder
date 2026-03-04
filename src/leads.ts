@@ -154,7 +154,46 @@ export function initDb(): Database.Database {
   db.exec("CREATE INDEX IF NOT EXISTS idx_leads_source_platform ON leads(source_platform)");
   db.exec("CREATE INDEX IF NOT EXISTS idx_leads_follow_up_due ON leads(follow_up_status, follow_up_due_at)");
 
+  // venue_misses: deduplicated log of venue names not found in PF-Intel
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS venue_misses (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      venue_name TEXT NOT NULL UNIQUE,
+      hit_count INTEGER NOT NULL DEFAULT 1,
+      last_lead_id INTEGER,
+      first_seen_at TEXT DEFAULT (datetime('now')),
+      last_seen_at TEXT DEFAULT (datetime('now'))
+    )
+  `);
+
   return db;
+}
+
+// --- Venue miss logging ---
+
+/**
+ * Log a venue miss (PF-Intel returned found: false).
+ * Deduplicates by venue_name — increments hit_count on repeat misses.
+ * Separate from updateLead — different concern, different failure mode.
+ */
+export function logVenueMiss(venueName: string, leadId: number | undefined): void {
+  // Truncate to 200 chars before insert
+  const truncated = venueName.slice(0, 200);
+  try {
+    initDb()
+      .prepare(
+        `INSERT INTO venue_misses (venue_name, last_lead_id)
+         VALUES (@venueName, @leadId)
+         ON CONFLICT(venue_name) DO UPDATE SET
+           hit_count = hit_count + 1,
+           last_lead_id = excluded.last_lead_id,
+           last_seen_at = datetime('now')`,
+      )
+      .run({ venueName: truncated, leadId: leadId ?? null });
+  } catch (err) {
+    // Don't let miss logging crash the pipeline
+    console.warn(`[venue-miss] Failed to log miss for "${truncated}":`, err);
+  }
 }
 
 // --- Helpers ---

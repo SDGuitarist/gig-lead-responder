@@ -5,7 +5,9 @@ import { getTodayISO } from "./utils/dates.js";
 import { selectContext } from "./pipeline/context.js";
 import { generateResponse } from "./pipeline/generate.js";
 import { verifyGate, runWithVerification } from "./pipeline/verify.js";
-import type { Classification, Drafts, GateResult, PipelineOutput, PricingResult } from "./types.js";
+import { lookupVenueContext } from "./venue-lookup.js";
+import { logVenueMiss } from "./leads.js";
+import type { Classification, Drafts, GateResult, PipelineOutput, PricingResult, VenueContext } from "./types.js";
 
 /** Progress event emitted between pipeline stages. */
 export interface StageEvent {
@@ -111,10 +113,19 @@ export async function runPipeline(
     ms: timing.price, result: pricing,
   });
 
+  // --- Venue Lookup (between Stage 2 and 3) ---
+  let venueContext: VenueContext | null = null;
+  if (enriched.venue_name) {
+    const result = await lookupVenueContext(enriched.venue_name);
+    if (result.type === "hit") venueContext = result.data;
+    if (result.type === "miss") logVenueMiss(enriched.venue_name, undefined);
+    // type === "error": logged inside lookupVenueContext, no miss record
+  }
+
   // --- Stage 3: Context Assembly ---
   onStage?.({ stage: 3, name: "context", status: "running" });
   start = Date.now();
-  const context = await selectContext(enriched);
+  const context = await selectContext(enriched, venueContext);
   timing.context = Date.now() - start;
   onStage?.({
     stage: 3, name: "context", status: "done",
@@ -157,7 +168,17 @@ export async function runEditPipeline(
   pricing: PricingResult,
   instructions: string,
 ): Promise<EditPipelineResult> {
-  const context = await selectContext(classification);
+  // Backward compat: old classification records stored before C1 lack venue_name
+  classification.venue_name = classification.venue_name ?? null;
+
+  let venueContext: VenueContext | null = null;
+  if (classification.venue_name) {
+    const result = await lookupVenueContext(classification.venue_name);
+    if (result.type === "hit") venueContext = result.data;
+    if (result.type === "miss") logVenueMiss(classification.venue_name, undefined);
+  }
+
+  const context = await selectContext(classification, venueContext);
   const drafts = await generateResponse(classification, pricing, context, [instructions]);
   const gate = await verifyGate(drafts, classification, pricing);
   return { drafts, gate };

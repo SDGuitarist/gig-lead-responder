@@ -1,6 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
-import type { Classification } from "../types.js";
+import type { Classification, VenueContext } from "../types.js";
+import { formatVenueContext } from "./format-venue-context.js";
 
 const DOCS_DIR = join(process.cwd(), "docs");
 
@@ -23,7 +24,10 @@ async function readDoc(filename: string, required: boolean): Promise<string | nu
  * Stage 3: Select and assemble context files based on classification.
  * Required files throw on missing. Optional files skip with warning.
  */
-export async function selectContext(classification: Classification): Promise<string> {
+export async function selectContext(
+  classification: Classification,
+  venueContext?: VenueContext | null,
+): Promise<string> {
   const sections: string[] = [];
 
   // Always include — REQUIRED
@@ -51,7 +55,18 @@ export async function selectContext(classification: Classification): Promise<str
     }
   }
 
-  // Conditional: venue intelligence
+  // Conditional: venue intelligence from PF-Intel
+  if (venueContext) {
+    const formatted = formatVenueContext(venueContext);
+    if (formatted) {
+      sections.push(formatted);
+    } else {
+      sections.push("## VENUE CONTEXT\n\nVenue identified but no actionable intelligence available yet.");
+    }
+  } else {
+    sections.push("## VENUE CONTEXT\n\nNo venue intelligence available for this lead.");
+  }
+
   const quickRef = await readDoc("QUICK_REFERENCE.md", false);
   if (quickRef) {
     sections.push(`## QUICK REFERENCE\n\n${quickRef}`);
