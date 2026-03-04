@@ -70,6 +70,43 @@ export interface Classification {
   platform?: "gigsalad" | "thebash" | "direct";
 }
 
+// --- PF-Intel Venue Context types (cross-repo contract) ---
+
+export interface VenueContext {
+  found: true;
+  venue_name: string;
+  venue_id: string;
+  vendor_policies: {
+    curfew_time: string | null;
+    curfew_notes: string | null;
+    db_limit_value: number | null;
+    db_limit_notes: string | null;
+    av_exclusivity: string | null;
+    coi_required: boolean | null;
+    coi_details: string | null;
+    setup_notes: string | null;
+    updated_at: string | null;
+  } | null;
+  contacts: Array<{
+    name: string;
+    role: string | null;
+  }> | null;
+  recent_events: Array<{
+    date: string | null;
+    event_type: string | null;
+  }> | null;
+  event_count: number;
+}
+
+export type VenueLookupResponse =
+  | VenueContext
+  | { found: false; venue_name: string };
+
+export type VenueLookupResult =
+  | { type: "hit"; data: VenueContext }
+  | { type: "miss"; venueName: string }
+  | { type: "error"; reason: string };
+
 export interface ScopedAlternative {
   duration_hours: number;
   price: number; // floor of scoped duration, not anchor
