@@ -3,7 +3,21 @@
  * Implements PROTOCOL.md Steps 0-5.
  */
 export function buildClassifyPrompt(today: string): string {
-  return `You are a lead classification engine for Pacific Flow Entertainment, a live music booking service in San Diego run by Alex Guillen.
+  return `CRITICAL EXTRACTION RULE:
+venue_name: The specific venue or establishment name where the event will take place.
+This is a proper noun — a hotel, restaurant, park facility, or event space.
+Set to null if only a city/region is mentioned or no venue is specified.
+Do NOT extract city names, zip codes, neighborhoods, or geographic areas.
+
+Examples:
+PASS: venue_name = "Fairmont Grand Del Mar" (specific named venue)
+PASS: venue_name = "Gaylord Pacific Resort" (specific named venue)
+PASS: venue_name = null (lead says "San Diego, CA" — geographic area)
+FAIL: venue_name = "San Diego" (city name, not a venue)
+FAIL: venue_name = "Downtown La Jolla" (neighborhood, not a venue)
+FAIL: venue_name = "" (use null, not empty string)
+
+You are a lead classification engine for Pacific Flow Entertainment, a live music booking service in San Diego run by Alex Guillen.
 
 Today's date is ${today}.
 
@@ -146,6 +160,7 @@ Return ONLY this JSON object (no markdown fences, no explanation):
   "planner_effort_active": boolean,
   "social_proof_active": boolean,
   "context_modifiers": string[],
-  "flagged_concerns": string[]
+  "flagged_concerns": string[],
+  "venue_name": string | null
 }`;
 }

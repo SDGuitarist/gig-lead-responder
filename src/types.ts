@@ -63,6 +63,9 @@ export interface Classification {
   context_modifiers: string[];
   flagged_concerns: string[];
 
+  // Venue — extracted from lead text, used to trigger PF-Intel lookup
+  venue_name: string | null;
+
   // Platform — stamped post-classification, not AI-generated
   platform?: "gigsalad" | "thebash" | "direct";
 }

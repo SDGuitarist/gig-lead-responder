@@ -32,5 +32,14 @@ export async function classifyLead(rawText: string, today: string): Promise<Clas
     result.event_date_iso = null;
   }
 
+  // Sanitize venue_name — LLM may return empty string instead of null
+  if (result.venue_name !== undefined && result.venue_name !== null && result.venue_name.trim() === "") {
+    result.venue_name = null;
+  }
+  // Backward compat: old cached classifications may lack this field
+  if (result.venue_name === undefined) {
+    result.venue_name = null;
+  }
+
   return result;
 }
