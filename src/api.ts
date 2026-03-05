@@ -202,7 +202,7 @@ router.post("/api/leads/:id/edit", csrfGuard, async (req: Request, res: Response
   // Null out compressed_draft so approve is blocked until re-analyze
   const updated = updateLead(id, {
     full_draft: full_draft.trim(),
-    compressed_draft: null as unknown as string,
+    compressed_draft: null,
     edit_round: lead.edit_round + 1,
   });
 
