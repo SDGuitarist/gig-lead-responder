@@ -13,14 +13,24 @@ function stripCodeFences(text: string): string {
 }
 
 /**
+ * Optional runtime validator for callClaude. Throw or return string on failure.
+ * If not provided, parsed JSON is returned as-is (unsafe cast).
+ */
+export type JsonValidator<T> = (raw: unknown) => T;
+
+/**
  * Call Claude and parse the response as JSON.
  * Strips code fences, parses JSON. On failure, retries once
  * with "return only valid JSON" reinforcement.
+ *
+ * @param validate - Optional runtime validator. If provided, parsed JSON is
+ *   passed through it before returning. Throw on invalid shape.
  */
 export async function callClaude<T>(
   systemPrompt: string,
   userMessage: string,
-  model: string = "claude-sonnet-4-6"
+  model: string = "claude-sonnet-4-6",
+  validate?: JsonValidator<T>,
 ): Promise<T> {
   const makeRequest = async (extraInstruction?: string): Promise<string> => {
     const finalUser = extraInstruction
@@ -45,18 +55,23 @@ export async function callClaude<T>(
   const rawResponse = await makeRequest();
   const cleaned = stripCodeFences(rawResponse);
 
+  const parseAndValidate = (text: string): T => {
+    const parsed = JSON.parse(text);
+    return validate ? validate(parsed) : parsed as T;
+  };
+
   try {
-    return JSON.parse(cleaned) as T;
+    return parseAndValidate(cleaned);
   } catch {
     // Retry with reinforcement
-    console.warn("JSON parse failed on first attempt, retrying...");
+    console.warn("JSON parse/validation failed on first attempt, retrying...");
     const retryResponse = await makeRequest(
       "IMPORTANT: Return ONLY valid JSON. No markdown code fences, no explanation, no prose. Just the raw JSON object."
     );
     const retryCleaned = stripCodeFences(retryResponse);
 
     try {
-      return JSON.parse(retryCleaned) as T;
+      return parseAndValidate(retryCleaned);
     } catch {
       const truncated = retryCleaned.length > 200
         ? retryCleaned.slice(0, 200) + "... (truncated)"

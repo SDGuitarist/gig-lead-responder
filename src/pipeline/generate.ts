@@ -1,4 +1,4 @@
-import { callClaude } from "../claude.js";
+import { callClaude, type JsonValidator } from "../claude.js";
 import { buildGeneratePrompt } from "../prompts/generate.js";
 import type { Classification, Drafts, PricingResult } from "../types.js";
 
@@ -16,6 +16,17 @@ interface GenerateResponse {
 }
 
 const CONTACT_BLOCK = `\nAlex Guillen\nPacific Flow Entertainment\n(619) 755-3246`;
+
+const validateGenerateResponse: JsonValidator<GenerateResponse> = (raw) => {
+  const obj = raw as Record<string, unknown>;
+  if (typeof obj.full_draft !== "string" || !obj.full_draft) {
+    throw new Error("LLM response missing full_draft");
+  }
+  if (typeof obj.compressed_draft !== "string" || !obj.compressed_draft) {
+    throw new Error("LLM response missing compressed_draft");
+  }
+  return raw as GenerateResponse;
+};
 
 /**
  * Stage 4: Generate full draft + compressed draft.
@@ -37,7 +48,9 @@ export async function generateResponse(
 
   const result = await callClaude<GenerateResponse>(
     systemPrompt,
-    userMessage
+    userMessage,
+    undefined,
+    validateGenerateResponse,
   );
 
   // GigSalad prohibits direct contact info — suppress contact block

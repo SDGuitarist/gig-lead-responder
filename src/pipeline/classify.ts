@@ -1,6 +1,15 @@
-import { callClaude } from "../claude.js";
+import { callClaude, type JsonValidator } from "../claude.js";
 import { buildClassifyPrompt } from "../prompts/classify.js";
 import type { Classification } from "../types.js";
+
+const validateClassification: JsonValidator<Classification> = (raw) => {
+  const obj = raw as Record<string, unknown>;
+  if (!obj.format_recommended) throw new Error("Classification missing format_recommended");
+  if (!obj.duration_hours) throw new Error("Classification missing duration_hours");
+  if (!obj.rate_card_tier) throw new Error("Classification missing rate_card_tier");
+  if (!obj.lead_source_column) throw new Error("Classification missing lead_source_column");
+  return raw as Classification;
+};
 
 /**
  * Stage 1: Classify a raw lead into structured JSON.
@@ -10,21 +19,7 @@ export async function classifyLead(rawText: string, today: string): Promise<Clas
   const systemPrompt = buildClassifyPrompt(today);
   const userMessage = `Classify this lead:\n\n${rawText}`;
 
-  const result = await callClaude<Classification>(systemPrompt, userMessage);
-
-  // Validate critical fields exist
-  if (!result.format_recommended) {
-    throw new Error("Classification missing format_recommended");
-  }
-  if (!result.duration_hours) {
-    throw new Error("Classification missing duration_hours");
-  }
-  if (!result.rate_card_tier) {
-    throw new Error("Classification missing rate_card_tier");
-  }
-  if (!result.lead_source_column) {
-    throw new Error("Classification missing lead_source_column");
-  }
+  const result = await callClaude<Classification>(systemPrompt, userMessage, undefined, validateClassification);
 
   // Sanitize event_date_iso — LLM may return "March 22" or "TBD" instead of YYYY-MM-DD
   if (result.event_date_iso && !/^\d{4}-\d{2}-\d{2}$/.test(result.event_date_iso)) {
