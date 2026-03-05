@@ -1,44 +1,48 @@
 # HANDOFF — Gig Lead Responder
 
 **Date:** 2026-03-04
-**Branch:** `feat/lead-response-loop`
-**Phase:** Fix phase complete — ready for merge to main
+**Branch:** `main`
+**Phase:** Compound phase complete — Cycle 10 done
 
-## What Was Done This Session
+## Current State
 
-### Fixed all 8 review findings (2 P1 + 6 P2)
+All 8 review findings from `feat/lead-response-loop` Cycle 2 review fixed and merged to main. Solution doc written, learnings propagated. The lead response loop feature (venue context integration, follow-up pipeline v2 dashboard, Mailgun/Twilio webhooks) is live on Railway.
 
-| # | Todo | Fix | Commit |
-|---|------|-----|--------|
-| 1 | 006 (P1) | Added `RAILWAY_ENVIRONMENT` to startup guard | `3ad2b4d` |
-| 2 | 007 (P1) | Added `X-Requested-With: dashboard` to analyzeHeaders | `aa3d55d` |
-| 3 | 008 (P2) | Added inline production guard to Mailgun webhook | `bb73b67` |
-| 4 | 009 (P2) | Moved dashboard creds check to startup + 500 in middleware | `3ad2b4d`, `60287c8` |
-| 5 | 010 (P2) | Added HSTS, Referrer-Policy, Permissions-Policy headers | `3ad2b4d` |
-| 6 | 011 (P2) | Extracted `storeFollowUpDraft()` to leads.ts | `3edaed8` |
-| 7 | 012 (P2) | Removed `null as unknown as string` cast | `5423157` |
-| 8 | 013 (P2) | Extracted `handleAction()` helper, removed 63 lines of duplication | `8dcd182` |
+## Key Artifacts
 
-**Files changed:** 7 source files + 1 HTML file
-**TypeScript:** Clean compile (tsc --noEmit passes)
+| Phase | Location |
+|-------|----------|
+| Brainstorm | `docs/brainstorms/2026-03-01-follow-up-pipeline-v2-brainstorm.md` |
+| Plan | `docs/plans/2026-03-01-feat-follow-up-pipeline-v2-dashboard-plan.md` |
+| Review | `docs/reviews/feat-lead-response-loop/REVIEW-SUMMARY.md` |
+| Solution | `docs/solutions/architecture/review-fix-cycle-2-lead-response-loop.md` |
+
+## Review Fixes Pending
+
+None — all 8 findings (2 P1, 6 P2) resolved.
+
+## Deferred Items
+
+**From Cycle 10 (~18 P3):**
+- Performance: uncached prepared statements, SELECT *, double reads, sequential scheduler
+- Structural: leads.ts 700+ lines needs split into db/migrate.ts, db/leads.ts, db/follow-ups.ts
+- Security: LLM pipeline (prompt injection, output validation) not reviewed by any agent
+- Frontend: dashboard.html 2,474 lines — extract JS/CSS at 3,000 threshold
+- Agent-native: no single-lead GET endpoint, no OpenAPI spec, SSE-only analyze
+
+**From Cycle 9 (12 deferred):**
+- See cycle 9 review summary for full list
 
 ## Three Questions
 
-1. **Hardest fix in this batch?** Todo 013 (follow-up API boilerplate) — needed to keep snooze's body validation while sharing the common path. Solved by having snooze do its own validation then call the shared tail, while the other 3 endpoints delegate entirely to `handleAction()`.
+1. **Hardest decision?** Whether "solution doc violations are high-priority" is a standalone insight or restating the purpose of solution docs. Worth documenting because the mechanism (Learnings Researcher cross-referencing) is what makes it systematic.
 
-2. **What did you consider fixing differently, and why didn't you?** Considered splitting todo 009 into a separate startup function in auth.ts (like `validateAuthConfig()`), but the check is a simple 3-line `if` that fits naturally alongside the existing `ANTHROPIC_API_KEY` and webhook validation checks in server.ts. Adding a function would be over-abstraction for one guard.
+2. **What was rejected?** Documenting the merge strategy as a solution doc — too project-specific and temporal. The general principle is captured in the Risk Resolution section.
 
-3. **Least confident about going into the next batch or compound phase?** The merge to main. There are 5 deploy-fix commits on main that aren't on this branch, and server.ts has changes on both sides. The feature branch server.ts is more complete (healthcheck, security headers, scheduler), but need to verify /health stays before routers and the IPv6 binding is preserved.
+3. **Least confident about?** Review blind spots (LLM pipeline, dashboard JS) are documented but not resolved. Same 7-agent config will have the same gaps.
 
-## Next Phase
-
-**Merge** `feat/lead-response-loop` to `main`, then **Compound** phase.
-
-### Prompt for Next Session
+## Prompt for Next Session
 
 ```
-Merge feat/lead-response-loop to main. Feature branch server.ts should win
-conflicts, but verify: (1) /health route stays before any router middleware,
-(2) IPv6 binding (::) is preserved, (3) HSTS + security headers are present.
-After merge, run /workflows:compound to document the review-fix cycle.
+Read HANDOFF.md for context. This is Gig Lead Responder, an AI-powered lead response pipeline for a musician's gig business. Cycle 10 complete, merged to main. Top priorities: (1) leads.ts structural split into db/migrate.ts, db/leads.ts, db/follow-ups.ts, (2) LLM pipeline security review, (3) dashboard JS extraction at 3,000 lines. Pick one and start with /workflows:brainstorm.
 ```
