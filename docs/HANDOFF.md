@@ -2,7 +2,7 @@
 
 **Date:** 2026-03-05
 **Branch:** `fix/p2-batch-cycle-12` (17 commits total, pending merge to main)
-**Phase:** Fix-batched complete -- Cycle 12 (P1 + P2 batch), ready for Compound
+**Phase:** Compound complete -- Cycle 12. Ready for merge, then next work.
 
 ## Current State
 
@@ -45,6 +45,7 @@ Cycle 12 review found 2 P1s + 5 P2s + 2 bonus cleanup items. All 9 fixes committ
 | Review (Cycle 11) | `docs/reviews/feat-lead-response-loop-final/REVIEW-SUMMARY.md` |
 | Solution (Cycle 10) | `docs/solutions/architecture/review-fix-cycle-2-lead-response-loop.md` |
 | Solution (Cycle 11) | `docs/solutions/architecture/review-fix-cycle-3-security-hardening.md` |
+| Solution (Cycle 12) | `docs/solutions/architecture/review-fix-cycle-4-hardening-and-cleanup.md` |
 
 ## Review Fixes Pending
 
@@ -61,10 +62,14 @@ Cycle 12 review found 2 P1s + 5 P2s + 2 bonus cleanup items. All 9 fixes committ
 - leads.ts 700+ lines split (tracked since Cycle 9, brainstorm + plan exist on this branch)
 - dashboard.html 2,474 lines JS extraction at 3,000 threshold
 
-**Known security gaps (from security-sentinel review of solution doc):**
+**Known security gaps (from security-sentinel reviews):**
 - verify.ts flagged_concerns injected outside XML delimiters
 - follow-up.ts classification fields skip `sanitizeClassification()`
 - `compressed_draft` has no independent length limit
+- `email-parser.ts` never security-reviewed (pre-auth surface if validation disabled)
+- `index.html` and `mockup-hybrid.html` not covered by CSP nonce injection (verify if actively served)
+- `csrfGuard` Basic Auth bypass path undocumented
+- `stmt()` cache stale connection risk after Railway redeploy (20+ call sites)
 
 ## Three Questions
 
@@ -77,5 +82,10 @@ Cycle 12 review found 2 P1s + 5 P2s + 2 bonus cleanup items. All 9 fixes committ
 ## Prompt for Next Session
 
 ```
-Read docs/HANDOFF.md for context. This is Gig Lead Responder on branch fix/p2-batch-cycle-12. Run /workflows:compound for Cycle 12 fix-batched phase (commits 8e09ce5..475bd12: 2 P1s, 5 P2s, 2 bonus fixes). Then merge to main and choose next: (1) leads.ts structural split (brainstorm+plan exist), (2) P3 batch, (3) new feature brainstorm.
+Read docs/HANDOFF.md for context. This is Gig Lead Responder on branch fix/p2-batch-cycle-12.
+Compound phase is done. Merge to main and choose next:
+(1) leads.ts structural split (brainstorm+plan exist on this branch),
+(2) P3 batch (035-039),
+(3) email-parser.ts security review (flagged by security-sentinel, never reviewed),
+(4) new feature brainstorm.
 ```
