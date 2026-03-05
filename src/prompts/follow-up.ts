@@ -1,4 +1,5 @@
 import type { Classification, LeadRecord } from "../types.js";
+import { wrapUntrustedData } from "../utils/sanitize.js";
 
 /**
  * Value-add type per follow-up number.
@@ -45,13 +46,12 @@ export function buildFollowUpPrompt(lead: LeadRecord, followUpNumber: number): s
 - Do NOT repeat pricing or quote details from the original response.
 - The message should feel like a casual, thoughtful text from a real person.
 
-## LEAD CONTEXT
-- Event type: ${lead.event_type || "unknown"}
+${wrapUntrustedData("lead_context", `- Event type: ${lead.event_type || "unknown"}
 - Event date: ${lead.event_date || "not specified"}
 - Venue: ${lead.venue || "not specified"}
 - Client name: ${lead.client_name || "unknown"}
-${eventContext ? `- ${eventContext}` : ""}
-${lead.compressed_draft ? `\n## ORIGINAL RESPONSE (for context continuity — do NOT repeat it)\n${lead.compressed_draft}` : ""}
+${eventContext ? `- ${eventContext}` : ""}`)}
+${lead.compressed_draft ? `\n${wrapUntrustedData("original_response", lead.compressed_draft)}` : ""}
 
 ## YOUR TASK: Follow-up #${followUpNumber} — ${valueAddType.replace(/_/g, " ")}
 

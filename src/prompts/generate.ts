@@ -1,5 +1,6 @@
 import { RATE_TABLES, type TierRates } from "../data/rates.js";
 import { CONCERN_4PIECE_ALT, CONCERN_FULL_ENSEMBLE, type Classification, type PricingResult } from "../types.js";
+import { sanitizeClassification, wrapUntrustedData } from "../utils/sanitize.js";
 
 /**
  * Builds the system prompt for response generation.
@@ -31,8 +32,7 @@ ${budgetBlock}${pastDateBlock}${classification.platform === "gigsalad"
 Do not include any phone numbers, email addresses, website URLs, or social media handles anywhere in the response. GigSalad policy prohibits direct contact information. This applies to the entire response body — not just a contact block. Do not mention "call me," "text me," "visit our site," or any variation that implies off-platform contact.
 `
     : ""}
-## CLASSIFICATION (from analysis)
-${JSON.stringify(classification, null, 2)}
+${wrapUntrustedData("lead_classification", JSON.stringify(sanitizeClassification(classification), null, 2))}
 
 ## PRICING
 Quote price: $${pricing.quote_price}

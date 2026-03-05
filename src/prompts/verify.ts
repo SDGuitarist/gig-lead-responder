@@ -1,4 +1,5 @@
 import { CONCERN_4PIECE_ALT, CONCERN_FULL_ENSEMBLE, GUT_CHECK_THRESHOLD, GUT_CHECK_TOTAL, type Classification, type PricingResult } from "../types.js";
+import { sanitizeClassification, wrapUntrustedData } from "../utils/sanitize.js";
 
 /**
  * Builds the verification gate prompt.
@@ -14,8 +15,7 @@ export function buildVerifyPrompt(
 
 Your job: evaluate a draft response against the classification and return structured evidence. You must extract EXACT QUOTES from the draft — not paraphrases.
 
-## CLASSIFICATION
-${JSON.stringify(classification, null, 2)}
+${wrapUntrustedData("lead_classification", JSON.stringify(sanitizeClassification(classification), null, 2))}
 
 ## EVALUATION CRITERIA
 
@@ -28,7 +28,7 @@ Extract the single strongest sentence in the draft — the one that would make a
 ### 3. Concern Traceability
 For EACH flagged concern in the classification, find the exact sentence in the draft that addresses it. If a concern has no matching sentence, the draft_sentence MUST be empty string "" — this is an automatic FAIL.
 
-Flagged concerns: ${JSON.stringify(classification.flagged_concerns)}
+Flagged concerns: ${JSON.stringify(sanitizeClassification(classification).flagged_concerns)}
 
 ### 4. Scene Quote
 Extract the exact sentence that puts the reader IN a moment. This is the "cinematic" test.

@@ -182,7 +182,7 @@ describe("buildGeneratePrompt — budget mode", () => {
     assert.ok(prompt.includes("OVERRIDES STEALTH PREMIUM"));
     // Budget block appears before the classification section
     const budgetIdx = prompt.indexOf("BUDGET MODE");
-    const classIdx = prompt.indexOf("## CLASSIFICATION");
+    const classIdx = prompt.indexOf("<lead_classification>");
     assert.ok(budgetIdx < classIdx, "Budget block must appear before classification");
   });
 });
