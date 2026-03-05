@@ -47,6 +47,11 @@ app.use((_req, res, next) => {
   next();
 });
 
+// Healthcheck for Railway (before any auth middleware)
+app.get("/health", (_req, res) => {
+  res.json({ status: "ok" });
+});
+
 app.use(express.static(join(import.meta.dirname, "..", "public")));
 
 // Mailgun inbound webhook
@@ -64,11 +69,6 @@ app.use(followUpApiRouter);
 // Redirect root to new dashboard
 app.get("/", (_req, res) => {
   res.redirect("/dashboard.html");
-});
-
-// Healthcheck for Railway
-app.get("/health", (_req, res) => {
-  res.json({ status: "ok" });
 });
 
 const PORT = parseInt(process.env.PORT || "3000", 10);

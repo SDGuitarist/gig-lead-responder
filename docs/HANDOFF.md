@@ -1,49 +1,74 @@
 # HANDOFF — Gig Lead Responder
 
-**Date:** 2026-03-03
-**Branch:** `feat/lead-response-loop`
-**Phase:** Work (Phase C1 complete, C2-C4 remain)
+**Date:** 2026-03-04
+**Branch:** `feat/lead-response-loop` (pushed to origin), `main` (deploy fixes)
+**Phase:** Work (Phase C complete, Phase D deploy blocker resolved)
 
 ## Prior Phase Risk
 
 > "Whether Stage 1's LLM will reliably extract venue names."
 
-Phase C1 addresses this with pass/fail examples at the TOP of the classify prompt, empty-string sanitization, and backward compat for old records. Worst case: false misses logged, not broken drafts.
+Addressed in C1 with pass/fail examples at the TOP of the classify prompt, empty-string sanitization, and backward compat for old records. Worst case: false misses logged to `venue_misses` table, not broken drafts. The miss log (C4) makes this observable.
 
 ## What Was Done
 
-2 commits on `feat/lead-response-loop`:
+6 commits on `feat/lead-response-loop`:
 
 | Commit | Phase | What |
 |--------|-------|------|
 | `6820ac2` | C1 | `venue_name: string \| null` on Classification, prompt extraction rule, sanitization |
 | `a357d98` | C1 | Test fixture fix — added `venue_name: null` to makeClassification |
+| `d631b7f` | — | HANDOFF.md update |
+| `0d01ff7` | C2 | VenueContext types, constants.ts, venue-lookup.ts client, .env.example |
+| `14b884b` | C3+C4 | format-venue-context.ts, context.ts update, run-pipeline.ts wiring, venue_misses table + logVenueMiss |
 
-### Files Changed
+### Files Changed (C2-C4, this session)
 
-- `src/types.ts` — added `venue_name: string | null` to Classification interface
-- `src/prompts/classify.ts` — venue extraction rule at top of prompt
-- `src/pipeline/classify.ts` — empty-string sanitization + backward compat
-- `src/enrich-generate.test.ts` — test fixture updated
+- `src/types.ts` — added `VenueContext`, `VenueLookupResponse`, `VenueLookupResult` types
+- `src/constants.ts` — **new** — `PF_INTEL_TIMEOUT_MS` (3000), `VENUE_CONTEXT_HEADER`
+- `src/venue-lookup.ts` — **new** — `lookupVenueContext()` with 3s timeout, input validation, discriminated hit/miss/error
+- `src/pipeline/format-venue-context.ts` — **new** — pure markdown formatter for LLM context injection
+- `src/pipeline/context.ts` — `selectContext()` now accepts optional `VenueContext`, always includes venue section
+- `src/run-pipeline.ts` — both `runPipeline()` and `runEditPipeline()` call venue lookup between Stage 2-3
+- `src/leads.ts` — `venue_misses` table creation in `initDb()`, `logVenueMiss()` upsert function
+- `.env.example` — added `PF_INTEL_API_URL` and `PF_INTEL_SERVER_API_KEY`
 
-## What Remains (this repo)
+### Tests
 
-- [ ] **C2:** Create `src/venue-lookup.ts` (fetch client) + `src/constants.ts` + VenueContext types in `src/types.ts`
-- [ ] **C3:** Create `src/pipeline/format-venue-context.ts`, update `context.ts` + `run-pipeline.ts`
-- [ ] **C4:** Add `venue_misses` table to `src/leads.ts`, wire miss logging in pipeline
+All 40 passing tests still pass. 8 pre-existing failures in `detectBudgetGap` tests (unrelated — budget gap tolerance logic).
+
+## What Remains
+
+### This repo (gig-lead-responder) — DONE for now
+Phase C is complete. No more Lead Responder code changes until PF-Intel is deployed and the endpoint is live.
+
+### PF-Intel repo — NEXT
+- [ ] **Phase A:** Deploy PF-Intel FastAPI to Railway (Dockerfile PORT fix, env vars, health check, cold start test)
+- [ ] **Phase B1:** `venue_aliases` table + migration
+- [ ] **Phase B2:** `vendor_policies` table + migration
+- [ ] **Phase B3:** Server-to-server API key auth (`verify_api_key` dependency)
+- [ ] **Phase B4:** `GET /api/v1/lead-context` endpoint + Pydantic schemas
+
+### After PF-Intel is live
+- [ ] **Phase D1:** Seed venue aliases from VENUE_MAP (cross-reference query first)
+- [ ] **Phase D2:** Seed vendor policies for top 10 venues (manual data from Alex)
+- [ ] **Phase D3:** Delete dead venue code (DEFERRED — 1 week after production)
+
+### Then
+- [ ] **Review** — run `/workflows:review` on the full PR across both repos
 
 ## Three Questions
 
-1. **Hardest implementation decision?** Placing the venue extraction rule at the TOP of the classify prompt, before the role description. This follows the documented pattern (hard constraints first) but breaks the natural reading flow of the prompt. The LLM needs to see "do NOT extract cities" before it starts reading examples.
+1. **Hardest implementation decision?** Combining C3 and C4 into one commit. The plan separates them, but `run-pipeline.ts` imports `logVenueMiss` from `leads.ts` — splitting would mean either a broken intermediate commit or a stub function. One commit with clear separation in the message is cleaner.
 
-2. **What did you consider changing but left alone?** The Classification interface uses `string | null` (required-nullable) instead of `string?` (optional). This follows the documented pattern from `docs/solutions/logic-errors/required-nullable-vs-optional-types.md`. The backward compat code in classify.ts handles old records that lack the field.
+2. **What did you consider changing but left alone?** `runPipeline()` doesn't pass lead ID to `logVenueMiss()` because it doesn't have access to it (receives raw text only). The caller (`webhook.ts`) could thread it through, but that's scope creep. The `last_lead_id` column is nullable and the miss log's primary value is the deduped venue name + hit count.
 
-3. **Least confident about going into review?** Whether the LLM consistently returns `null` vs empty string for no-venue cases. The sanitization catches empty strings, but the LLM might also return city names despite the examples. Need to monitor the miss log in week 1.
+3. **Least confident about going into review?** The `venue_misses` table uses `UNIQUE` on `venue_name` for deduplication, but venue names from LLM extraction may have inconsistent casing/spacing (e.g., "Gaylord Pacific" vs "gaylord pacific"). The upsert deduplicates on exact match only. PF-Intel normalizes on its side, but the miss log could accumulate near-duplicates. Low risk — it's a diagnostic table, not a business-critical one.
 
 ### Prompt for Next Session
 
 ```
-Read ~/Projects/pacific-flow-hub/docs/plans/2026-03-03-feat-lead-response-loop-plan.md.
-Implement Phases C2, C3, C4 in gig-lead-responder (venue lookup client, pipeline threading, miss logging).
-Branch: feat/lead-response-loop. Relevant files: src/types.ts, src/run-pipeline.ts, src/pipeline/context.ts, src/leads.ts.
+Read ~/Projects/pacific-flow-hub/docs/plans/2026-03-03-feat-lead-response-loop-plan.md, Phases A and B.
+Implement PF-Intel deployment + lead-context endpoint (Dockerfile PORT fix, venue_aliases + vendor_policies migrations, API key auth, lead-context router).
+Repo: ~/Projects/pf-intel/. Relevant files: server/Dockerfile, server/pf_intel/config.py, server/pf_intel/dependencies.py, server/pf_intel/main.py, supabase/migrations/.
 ```

@@ -13,6 +13,7 @@ Living document of patterns and lessons learned across features. Each feature ge
   - [Learnings Summary](#learnings-summary)
   - [Recommendations](#recommendations)
   - [Risk Areas to Watch](#risk-areas-to-watch)
+- [Railway / Deployment](#railway--deployment)
 - [Template for New Features](#template-for-new-features)
 
 ---
@@ -33,6 +34,7 @@ Patterns that recur across features or prevent entire categories of bugs. Search
 | 8 | Hybrid LLM + deterministic computation — LLM writes message, code chooses channel/urgency | Follow-Up Pipeline | `hybrid-llm-deterministic-computation.md` |
 | 9 | Silent failure escape hatches — `DISABLE_{SERVICE}_VALIDATION` env var for first-deploy debugging | Follow-Up Pipeline | `silent-failure-escape-hatches.md` |
 | 10 | `today` injected as parameter, never `new Date()` inside functions — makes functions pure/testable, prevents timezone bugs | Follow-Up Pipeline | `today-as-parameter-timezone.md` |
+| 11 | Healthcheck before auth middleware — `/health` must be registered before any `app.use(router)` that applies `sessionAuth`, or Railway probe gets 401 | Railway/Deploy | `railway-healthcheck-auth-middleware-ordering.md` |
 
 ---
 
@@ -161,6 +163,29 @@ LLM writes the message body (fuzzy NLP). Code computes channel, urgency tier, re
 ### Files Searched
 
 23 solution docs scanned. 8 highly relevant, 0 moderate, 15 not relevant (UI bugs, workflow, prompt engineering covered by other learnings). See `docs/solutions/` for full inventory.
+
+---
+
+## Railway / Deployment
+
+**Date:** 2026-03-04
+**Feature:** Railway healthcheck + deploy debugging
+**Search scope:** 6 deploy attempts, 3 root causes found
+
+### Learnings Summary
+
+**11. Healthcheck Before Auth Middleware** — [Full doc](docs/solutions/architecture/railway-healthcheck-auth-middleware-ordering.md)
+Express routers mounted with `app.use(router)` (no path prefix) run their middleware on ALL requests, not just routes the router defines. If `apiRouter` has `router.use(sessionAuth)`, it intercepts `/health` requests before they reach the healthcheck handler. Fix: register `/health` before all routers.
+
+**12. Deploy Debugging Order**
+When Railway deploys fail: (1) Read deploy logs for crash errors first (module not found, syntax error). (2) Remove healthcheck to test if app is reachable — the HTTP status code is diagnostic (401 = auth, 502 = not running). (3) Only try platform-level fixes (IPv6, timeouts, plan upgrades) after confirming the app itself works.
+
+**13. Never Cherry-Pick Whole Files Across Diverged Branches**
+Cherry-picking `server.ts` from a feature branch to main brought imports (`cookie-parser`, `follow-up-api`) that don't exist on main. The deploy crashed with `ERR_MODULE_NOT_FOUND`. Always make minimal edits directly on the target branch instead.
+
+### Risk Areas to Watch
+
+1. **Main/feature branch drift:** `server.ts` on main is now different from the feature branch version. When the feature branch merges, the feature branch version (with all imports) should win. The `/health` positioning fix must be preserved in the merge.
 
 ---
 

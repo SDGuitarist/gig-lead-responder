@@ -1,67 +1,43 @@
-# Review Context — Rate Limiting
+# Review Context — Gig Lead Responder
 
 ## Risk Chain
 
-**Brainstorm risk:** In-memory store resets on Railway deploys — rate limits effectively reset each time.
+**Brainstorm risk:** "Least confident about mobile UX design for the dashboard — needs wireframes or component breakdown in the plan phase."
 
-**Plan mitigation:** Accepted. Single-user threat model — catches sustained runaway, not one-off spikes. Even with resets every 15min, runaway script gets at most 5 requests per restart (99.4% reduction).
+**Plan mitigation:** Defined component layouts per breakpoint, tap target sizes (44px min), scrollable tab nav for 5-tab overflow. Simplified to cards-only layout (no separate desktop table). Cut filters, date picker, daily digest (~250 LOC saved).
 
-**Work risk (from Three Questions):** The `response.ok` check in dashboard uses `throw new Error()` inside `.then()` to trigger `.catch()` — indirect control flow.
+**Work risk (from Feed-Forward):** SQLite table rebuild migration for CHECK constraint — only destructive DB operation in the plan. Must back up DB file and test on a copy first.
 
-**Review resolution:** Throw-in-then is correct, no race condition. Two cleanup improvements: `.finally()` for button re-enable (todo 003), remove content-type sniffing dead code (todo 004). NEW finding: Ctrl+Enter bypasses in-flight guard (todo 001, P1).
+**Review resolution:** 38 unique findings (6 P1, 17 P2, 15 P3) from 9 agents across 3 batches. All 6 P1 resolved. Top findings: CSRF missing on api.ts POST routes (4 agents), non-atomic approve flow, scheduler stuck in "sent" on failure.
+
+**Fix resolution:** 21 fixed, 12 deferred, 5 rejected/false-positive. Three patterns documented: guard-at-boundary (new doc), atomic state transitions (extended existing doc), structural cluster (deferred to refactoring PR).
 
 ## Files to Scrutinize
 
 | File | What changed | Risk area |
 |------|-------------|-----------|
-| `src/rate-limit.ts` | New file — exports `analyzeLimiter` and `approveLimiter` | Handler type signature (todo 002) |
-| `src/server.ts` | `app.set("trust proxy", 1)` | Correct for Railway, fragile if infra changes |
-| `src/api.ts` | Per-route limiter middleware on analyze + approve | Middleware ordering verified correct |
-| `public/dashboard.html` | `response.ok` check in `runAnalyze()` | Ctrl+Enter re-entry (todo 001), .finally() (003), dead code (004) |
+| `src/api.ts` | CSRF guard added to 4 POST routes, input length limits, error sanitization | New middleware ordering — verify csrfGuard runs before handler |
+| `src/follow-up-api.ts` | Null guards on shapeLead (4 sites), body validation on snooze | Direct SQL for draft-store bypasses `updateLead()` abstraction |
+| `src/follow-up-scheduler.ts` | Revert-to-pending on failure, WHERE guard on draft store, retry map cap | In-memory retry map doesn't survive restarts |
+| `src/leads.ts` | Index recreation after migration, sms_sent_at folded into transaction | 700+ lines spanning 4 responsibilities — structural refactor pending |
+| `src/server.ts` | CSP font-src directive for Google Fonts | `unsafe-inline` needed for inline scripts/styles |
+| `src/twilio-webhook.ts` | Production guard on validation bypass | Defense-in-depth — startup check in server.ts is primary guard |
+| `public/dashboard.html` | Auth retry consistency, magic number constant | 2,474 lines — approaching 3,000 threshold for split |
 
 ## Plan Reference
 
-`docs/plans/2026-02-26-feat-api-rate-limiting-plan.md`
+`docs/plans/2026-03-01-feat-follow-up-pipeline-v2-dashboard-plan.md`
 
 ---
 
-# Review Context — Follow-Up Pipeline
+## Deploy Debugging Context (2026-03-04)
 
-## Risk Chain
+**Root cause:** `/health` route registered after `apiRouter` which applies `sessionAuth` to all requests. Railway healthcheck probe got 401.
 
-**Brainstorm risk:** Email reply detection edge cases — reply-to-reply chains, forwarded messages, and out-of-office auto-responses from GigSalad/The Bash. No real email samples yet.
+**Red herrings tried first:** IPv6 binding (`::` instead of default), healthcheck timeout increase (120→300), Hobby plan upgrade. None were the issue.
 
-**Plan mitigation:** Feed-forward risk flagged. Parser deferred until real samples collected. Phase 5 (email reply detection) explicitly depends on sample collection.
+**Compounding error:** Cherry-picking `server.ts` from feature branch to main brought incompatible imports (`cookie-parser`, `follow-up-api`), causing cascading deploy crashes.
 
-**Work risk (from Institutional Learnings):** 5 risk areas identified before implementation:
-1. Scheduler + dashboard race on concurrent state transitions
-2. Follow-up verify gate threshold calibration (too strict = manual fallback, too loose = spam)
-3. Email reply detection edge cases (no real samples yet)
-4. Snoozed leads becoming invisible if scheduler doesn't explicitly un-snooze
-5. Follow-ups bypass existing rate limiting (background schedule, not HTTP endpoint)
+**Key diagnostic:** Removing the healthcheck entirely → deploy succeeded → curl returned 401 on `/health`. The HTTP status code was immediately diagnostic.
 
-## Cumulative Risk Table
-
-| Risk | Source | Status | Resolution |
-|------|--------|--------|------------|
-| In-memory rate limit resets on deploy | Rate Limiting brainstorm | Accepted | Single-user model, catches sustained runaway |
-| Ctrl+Enter bypasses in-flight guard | Rate Limiting review (P1) | Fixed | Guard inside function pattern applied |
-| Scheduler + dashboard concurrent claims | Follow-Up Pipeline learnings | Open | Atomic claim pattern (`claimFollowUpForSending()`) planned |
-| Verify gate threshold calibration | Follow-Up Pipeline learnings | Open | Start at `TOTAL - 2`, adjust from production metrics |
-| Email reply detection edge cases | Follow-Up Pipeline brainstorm | Open | Blocked on real email samples from GigSalad/The Bash |
-| Snoozed leads invisible forever | Follow-Up Pipeline learnings | Open | Scheduler must query `snoozed_until <= now` explicitly |
-| Follow-ups bypass rate limiting | Follow-Up Pipeline learnings | Open | Consider per-lead limit (max 3 per 7 days) |
-
-## Files to Scrutinize
-
-| File | What changed | Risk area |
-|------|-------------|-----------|
-| `src/rate-limit.ts` | New file — exports `analyzeLimiter` and `approveLimiter` | Handler type signature (todo 002) |
-| `src/server.ts` | `app.set("trust proxy", 1)` | Correct for Railway, fragile if infra changes |
-| `src/api.ts` | Per-route limiter middleware on analyze + approve | Middleware ordering verified correct |
-| `public/dashboard.html` | `response.ok` check in `runAnalyze()` | Ctrl+Enter re-entry (todo 001), .finally() (003), dead code (004) |
-
-## Plan References
-
-- `docs/plans/2026-02-26-feat-api-rate-limiting-plan.md`
-- `INSTITUTIONAL-LEARNINGS.md` — Follow-Up Pipeline section (learnings 1-9, risk areas 1-5)
+**Solution doc:** `docs/solutions/architecture/railway-healthcheck-auth-middleware-ordering.md`
