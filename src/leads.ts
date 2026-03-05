@@ -8,6 +8,19 @@ const DB_PATH = process.env.DATABASE_PATH || "./data/leads.db";
 
 let db: Database.Database;
 
+/** Cache for prepared statements — avoids re-preparing static SQL on every call. */
+const stmtCache = new Map<string, Database.Statement>();
+
+/** Get or create a cached prepared statement for static SQL. */
+function stmt(sql: string): Database.Statement {
+  let s = stmtCache.get(sql);
+  if (!s) {
+    s = initDb().prepare(sql);
+    stmtCache.set(sql, s);
+  }
+  return s;
+}
+
 export function initDb(): Database.Database {
   if (db) return db;
 
@@ -180,16 +193,14 @@ export function logVenueMiss(venueName: string, leadId: number | undefined): voi
   // Truncate to 200 chars before insert
   const truncated = venueName.slice(0, 200);
   try {
-    initDb()
-      .prepare(
-        `INSERT INTO venue_misses (venue_name, last_lead_id)
-         VALUES (@venueName, @leadId)
-         ON CONFLICT(venue_name) DO UPDATE SET
-           hit_count = hit_count + 1,
-           last_lead_id = excluded.last_lead_id,
-           last_seen_at = datetime('now')`,
-      )
-      .run({ venueName: truncated, leadId: leadId ?? null });
+    stmt(
+      `INSERT INTO venue_misses (venue_name, last_lead_id)
+       VALUES (@venueName, @leadId)
+       ON CONFLICT(venue_name) DO UPDATE SET
+         hit_count = hit_count + 1,
+         last_lead_id = excluded.last_lead_id,
+         last_seen_at = datetime('now')`,
+    ).run({ venueName: truncated, leadId: leadId ?? null });
   } catch (err) {
     // Don't let miss logging crash the pipeline
     console.warn(`[venue-miss] Failed to log miss for "${truncated}":`, err);
@@ -219,7 +230,7 @@ export interface InsertLeadInput {
 
 export function insertLead(input: InsertLeadInput): LeadRecord {
   const now = new Date().toISOString();
-  const stmt = initDb().prepare(`
+  const insertStmt = stmt(`
     INSERT INTO leads (
       raw_email, source_platform, mailgun_message_id,
       client_name, event_date, event_type, venue, guest_count, budget_note,
@@ -231,7 +242,7 @@ export function insertLead(input: InsertLeadInput): LeadRecord {
     )
   `);
 
-  const result = stmt.run({
+  const result = insertStmt.run({
     raw_email: input.raw_email,
     source_platform: input.source_platform ?? null,
     mailgun_message_id: input.mailgun_message_id ?? null,
@@ -248,8 +259,7 @@ export function insertLead(input: InsertLeadInput): LeadRecord {
 }
 
 export function getLead(id: number): LeadRecord | undefined {
-  const row = initDb()
-    .prepare("SELECT * FROM leads WHERE id = ?")
+  const row = stmt("SELECT * FROM leads WHERE id = ?")
     .get(id) as LeadRecord | undefined;
 
   if (!row) return undefined;
@@ -257,8 +267,7 @@ export function getLead(id: number): LeadRecord | undefined {
 }
 
 export function getLeadsByStatus(status: LeadStatus): LeadRecord[] {
-  const rows = initDb()
-    .prepare("SELECT * FROM leads WHERE status = ? ORDER BY created_at DESC")
+  const rows = stmt("SELECT * FROM leads WHERE status = ? ORDER BY created_at DESC")
     .all(status) as LeadRecord[];
 
   return rows.map(normalizeRow);
@@ -320,26 +329,22 @@ export function updateLead(
 
 /** Atomically set status to 'sending' if currently approvable. Returns true if claimed. */
 export function claimLeadForSending(id: number): boolean {
-  const result = initDb()
-    .prepare(
-      "UPDATE leads SET status = 'sending', updated_at = @updated_at WHERE id = @id AND status IN ('received', 'sent')",
-    )
-    .run({ id, updated_at: new Date().toISOString() });
+  const result = stmt(
+    "UPDATE leads SET status = 'sending', updated_at = @updated_at WHERE id = @id AND status IN ('received', 'sent')",
+  ).run({ id, updated_at: new Date().toISOString() });
   return result.changes > 0;
 }
 
 // --- Idempotency (processed_emails) ---
 
 export function isEmailProcessed(externalId: string): boolean {
-  const row = initDb()
-    .prepare("SELECT 1 FROM processed_emails WHERE external_id = ?")
+  const row = stmt("SELECT 1 FROM processed_emails WHERE external_id = ?")
     .get(externalId);
   return row !== undefined;
 }
 
 export function markEmailProcessed(externalId: string, platform: string): void {
-  initDb()
-    .prepare("INSERT OR IGNORE INTO processed_emails (external_id, platform) VALUES (?, ?)")
+  stmt("INSERT OR IGNORE INTO processed_emails (external_id, platform) VALUES (?, ?)")
     .run(externalId, platform);
 }
 
@@ -378,26 +383,22 @@ function computeFollowUpDelay(followUpCount: 0 | 1 | 2): number {
 
 /** Query leads that are due for follow-up (pending + past due). */
 export function getLeadsDueForFollowUp(): LeadRecord[] {
-  const rows = initDb()
-    .prepare(
-      "SELECT * FROM leads WHERE follow_up_status = 'pending' AND follow_up_due_at <= datetime('now') ORDER BY follow_up_due_at ASC LIMIT 10",
-    )
-    .all() as LeadRecord[];
+  const rows = stmt(
+    "SELECT * FROM leads WHERE follow_up_status = 'pending' AND follow_up_due_at <= datetime('now') ORDER BY follow_up_due_at ASC LIMIT 10",
+  ).all() as LeadRecord[];
   return rows.map(normalizeRow);
 }
 
 /** Get the most recent lead awaiting follow-up approval (status = 'sent'). */
 export function getLeadAwaitingFollowUp(): LeadRecord | undefined {
-  const row = initDb()
-    .prepare("SELECT * FROM leads WHERE follow_up_status = 'sent' ORDER BY updated_at DESC LIMIT 1")
+  const row = stmt("SELECT * FROM leads WHERE follow_up_status = 'sent' ORDER BY updated_at DESC LIMIT 1")
     .get() as LeadRecord | undefined;
   return row ? normalizeRow(row) : undefined;
 }
 
 /** Get the most recent lead with an active follow-up (pending or sent). */
 export function getLeadWithActiveFollowUp(): LeadRecord | undefined {
-  const row = initDb()
-    .prepare("SELECT * FROM leads WHERE follow_up_status IN ('pending', 'sent') ORDER BY updated_at DESC LIMIT 1")
+  const row = stmt("SELECT * FROM leads WHERE follow_up_status IN ('pending', 'sent') ORDER BY updated_at DESC LIMIT 1")
     .get() as LeadRecord | undefined;
   return row ? normalizeRow(row) : undefined;
 }
@@ -424,12 +425,10 @@ const TERMINAL_CLEAR = {
 export function approveFollowUp(leadId: number): LeadRecord | undefined {
   return runTransaction(() => {
     const now = new Date().toISOString();
-    const result = initDb()
-      .prepare(
-        "UPDATE leads SET follow_up_status = 'pending', updated_at = @now " +
-        "WHERE id = @id AND follow_up_status = 'sent'",
-      )
-      .run({ id: leadId, now });
+    const result = stmt(
+      "UPDATE leads SET follow_up_status = 'pending', updated_at = @now " +
+      "WHERE id = @id AND follow_up_status = 'sent'",
+    ).run({ id: leadId, now });
 
     if (result.changes === 0) return undefined;
 
@@ -464,8 +463,7 @@ export function approveFollowUp(leadId: number): LeadRecord | undefined {
  * Returns true if the draft was stored, false if the status changed during generation.
  */
 export function storeFollowUpDraft(leadId: number, draft: string): boolean {
-  const result = initDb()
-    .prepare("UPDATE leads SET follow_up_draft = @draft, updated_at = @now WHERE id = @id AND follow_up_status = 'sent'")
+  const result = stmt("UPDATE leads SET follow_up_draft = @draft, updated_at = @now WHERE id = @id AND follow_up_status = 'sent'")
     .run({ id: leadId, draft, now: new Date().toISOString() });
   return result.changes > 0;
 }
@@ -476,14 +474,12 @@ export function storeFollowUpDraft(leadId: number, draft: string): boolean {
  */
 export function skipFollowUp(leadId: number): LeadRecord | undefined {
   const now = new Date().toISOString();
-  const row = initDb()
-    .prepare(
-      "UPDATE leads SET follow_up_status = 'skipped', " +
-      "follow_up_due_at = NULL, follow_up_draft = NULL, snoozed_until = NULL, " +
-      "updated_at = @now " +
-      "WHERE id = @id AND follow_up_status IN ('pending', 'sent') RETURNING *",
-    )
-    .get({ id: leadId, now }) as LeadRecord | undefined;
+  const row = stmt(
+    "UPDATE leads SET follow_up_status = 'skipped', " +
+    "follow_up_due_at = NULL, follow_up_draft = NULL, snoozed_until = NULL, " +
+    "updated_at = @now " +
+    "WHERE id = @id AND follow_up_status IN ('pending', 'sent') RETURNING *",
+  ).get({ id: leadId, now }) as LeadRecord | undefined;
 
   return row ? normalizeRow(row) : undefined;
 }
@@ -495,14 +491,12 @@ export function skipFollowUp(leadId: number): LeadRecord | undefined {
 export function snoozeFollowUp(leadId: number, until: string): LeadRecord | undefined {
   const now = new Date().toISOString();
   // Enforce invariant: snoozed_until ≤ due_at (use snooze date as new due_at)
-  const row = initDb()
-    .prepare(
-      "UPDATE leads SET follow_up_status = 'pending', " +
-      "snoozed_until = @until, follow_up_due_at = @until, follow_up_draft = NULL, " +
-      "updated_at = @now " +
-      "WHERE id = @id AND follow_up_status IN ('sent', 'pending') RETURNING *",
-    )
-    .get({ id: leadId, until, now }) as LeadRecord | undefined;
+  const row = stmt(
+    "UPDATE leads SET follow_up_status = 'pending', " +
+    "snoozed_until = @until, follow_up_due_at = @until, follow_up_draft = NULL, " +
+    "updated_at = @now " +
+    "WHERE id = @id AND follow_up_status IN ('sent', 'pending') RETURNING *",
+  ).get({ id: leadId, until, now }) as LeadRecord | undefined;
 
   return row ? normalizeRow(row) : undefined;
 }
@@ -513,14 +507,12 @@ export function snoozeFollowUp(leadId: number, until: string): LeadRecord | unde
  */
 export function markClientReplied(leadId: number): LeadRecord | undefined {
   const now = new Date().toISOString();
-  const row = initDb()
-    .prepare(
-      "UPDATE leads SET follow_up_status = 'replied', " +
-      "follow_up_due_at = NULL, follow_up_draft = NULL, snoozed_until = NULL, " +
-      "updated_at = @now " +
-      "WHERE id = @id AND follow_up_status IN ('pending', 'sent') RETURNING *",
-    )
-    .get({ id: leadId, now }) as LeadRecord | undefined;
+  const row = stmt(
+    "UPDATE leads SET follow_up_status = 'replied', " +
+    "follow_up_due_at = NULL, follow_up_draft = NULL, snoozed_until = NULL, " +
+    "updated_at = @now " +
+    "WHERE id = @id AND follow_up_status IN ('pending', 'sent') RETURNING *",
+  ).get({ id: leadId, now }) as LeadRecord | undefined;
 
   return row ? normalizeRow(row) : undefined;
 }
@@ -531,13 +523,11 @@ export function markClientReplied(leadId: number): LeadRecord | undefined {
  */
 export function claimFollowUpForSending(leadId: number): boolean {
   const now = new Date().toISOString();
-  const result = initDb()
-    .prepare(
-      "UPDATE leads SET follow_up_status = 'sent', updated_at = @now " +
-      "WHERE id = @id AND follow_up_status = 'pending' " +
-      "AND (snoozed_until IS NULL OR snoozed_until <= datetime('now'))",
-    )
-    .run({ id: leadId, now });
+  const result = stmt(
+    "UPDATE leads SET follow_up_status = 'sent', updated_at = @now " +
+    "WHERE id = @id AND follow_up_status = 'pending' " +
+    "AND (snoozed_until IS NULL OR snoozed_until <= datetime('now'))",
+  ).run({ id: leadId, now });
 
   return result.changes > 0;
 }
@@ -593,7 +583,7 @@ export function listLeadsFiltered(opts: ListLeadsFilteredOpts = {}): LeadRecord[
       sql += " ORDER BY created_at DESC";
   }
 
-  const rows = initDb().prepare(sql).all(params) as LeadRecord[];
+  const rows = stmt(sql).all(params) as LeadRecord[];
 
   return rows.map(normalizeRow);
 }
@@ -611,7 +601,7 @@ export function listFollowUpLeads(): LeadRecord[] {
       CASE follow_up_status WHEN 'sent' THEN 0 ELSE 1 END,
       follow_up_due_at ASC
   `;
-  const rows = initDb().prepare(sql).all() as LeadRecord[];
+  const rows = stmt(sql).all() as LeadRecord[];
   return rows.map(normalizeRow);
 }
 
@@ -660,7 +650,7 @@ export function getAnalytics(): AnalyticsResponse {
   const db = initDb();
   return db.transaction(() => {
     // Query 1: Core counts + revenue + avg prices
-    const core = db.prepare(`
+    const core = stmt(`
       SELECT
         COUNT(*) AS total_leads,
         SUM(CASE WHEN outcome IS NOT NULL THEN 1 ELSE 0 END) AS total_with_outcome,
@@ -687,7 +677,7 @@ export function getAnalytics(): AnalyticsResponse {
     };
 
     // Query 2: By platform
-    const byPlatform = db.prepare(`
+    const byPlatform = stmt(`
       SELECT source_platform AS label, COUNT(*) AS total,
         SUM(CASE WHEN outcome = 'booked' THEN 1 ELSE 0 END) AS booked
       FROM leads WHERE status = 'done' AND outcome IS NOT NULL
@@ -695,7 +685,7 @@ export function getAnalytics(): AnalyticsResponse {
     `).all() as Array<{ label: string; total: number; booked: number }>;
 
     // Query 3: By format (from classification_json)
-    const byFormat = db.prepare(`
+    const byFormat = stmt(`
       SELECT json_extract(classification_json, '$.format_recommended') AS label,
         COUNT(*) AS total,
         SUM(CASE WHEN outcome = 'booked' THEN 1 ELSE 0 END) AS booked
@@ -737,16 +727,14 @@ export function getLeadStats(): LeadStats {
   const now = new Date();
   const firstOfMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-01`;
 
-  const row = initDb()
-    .prepare(
-      `SELECT
-        SUM(CASE WHEN status = 'received' THEN 1 ELSE 0 END) AS pending,
-        SUM(CASE WHEN status = 'sent' THEN 1 ELSE 0 END) AS sent,
-        AVG(CASE WHEN confidence_score IS NOT NULL THEN confidence_score END) AS avg_score,
-        SUM(CASE WHEN created_at >= @firstOfMonth THEN 1 ELSE 0 END) AS this_month
-      FROM leads`,
-    )
-    .get({ firstOfMonth }) as {
+  const row = stmt(
+    `SELECT
+      SUM(CASE WHEN status = 'received' THEN 1 ELSE 0 END) AS pending,
+      SUM(CASE WHEN status = 'sent' THEN 1 ELSE 0 END) AS sent,
+      AVG(CASE WHEN confidence_score IS NOT NULL THEN confidence_score END) AS avg_score,
+      SUM(CASE WHEN created_at >= @firstOfMonth THEN 1 ELSE 0 END) AS this_month
+    FROM leads`,
+  ).get({ firstOfMonth }) as {
     pending: number;
     sent: number;
     avg_score: number | null;
