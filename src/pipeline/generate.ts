@@ -17,6 +17,18 @@ interface GenerateResponse {
 
 const CONTACT_BLOCK = `\nAlex Guillen\nPacific Flow Entertainment\n(619) 755-3246`;
 
+const validateGenerateResponse = (raw: unknown): GenerateResponse => {
+  if (typeof raw !== "object" || raw === null || Array.isArray(raw)) throw new Error("Expected JSON object from LLM");
+  const obj = raw as Record<string, unknown>;
+  if (typeof obj.full_draft !== "string" || !obj.full_draft) {
+    throw new Error("LLM response missing full_draft");
+  }
+  if (typeof obj.compressed_draft !== "string" || !obj.compressed_draft) {
+    throw new Error("LLM response missing compressed_draft");
+  }
+  return raw as GenerateResponse;
+};
+
 /**
  * Stage 4: Generate full draft + compressed draft.
  * Optionally accepts rewrite instructions from a failed verification gate.
@@ -37,7 +49,9 @@ export async function generateResponse(
 
   const result = await callClaude<GenerateResponse>(
     systemPrompt,
-    userMessage
+    userMessage,
+    undefined,
+    validateGenerateResponse,
   );
 
   // GigSalad prohibits direct contact info — suppress contact block

@@ -6,7 +6,7 @@ import { selectContext } from "./pipeline/context.js";
 import { generateResponse } from "./pipeline/generate.js";
 import { verifyGate, runWithVerification } from "./pipeline/verify.js";
 import { lookupVenueContext } from "./venue-lookup.js";
-import { logVenueMiss } from "./leads.js";
+import { logVenueMiss } from "./db/index.js";
 import type { Classification, Drafts, GateResult, PipelineOutput, PricingResult, VenueContext } from "./types.js";
 
 /** Progress event emitted between pipeline stages. */

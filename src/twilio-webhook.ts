@@ -1,7 +1,7 @@
 import twilio from "twilio";
 import { Router } from "express";
 import type { Request, Response } from "express";
-import { getLead, getLeadsByStatus, updateLead, completeApproval, approveFollowUp, skipFollowUp, getLeadAwaitingFollowUp, getLeadWithActiveFollowUp } from "./leads.js";
+import { getLead, getLeadsByStatus, updateLead, completeApproval, approveFollowUp, skipFollowUp, getLeadAwaitingFollowUp, getLeadWithActiveFollowUp } from "./db/index.js";
 import { sendSms } from "./sms.js";
 import { runEditPipeline } from "./run-pipeline.js";
 import type { Classification, LeadRecord, PricingResult } from "./types.js";
@@ -99,7 +99,11 @@ async function handleApproval(leadId: number | null): Promise<void> {
   const lead = result.lead;
 
   // Mark done + schedule first follow-up atomically
-  completeApproval(lead.id, "approved");
+  const updated = completeApproval(lead.id, "approved");
+  if (!updated) {
+    await sendSms(`Lead #${lead.id} could not be approved — it may have changed state.`);
+    return;
+  }
 
   await sendSms(`Lead #${lead.id} approved! Full draft: ${baseUrl()}/leads/${lead.id}`);
   console.log(`Lead #${lead.id}: approved via SMS`);

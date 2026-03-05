@@ -280,9 +280,6 @@ export interface LeadApiResponse {
 // --- Follow-up V2 request/response types ---
 
 export interface SnoozeRequestBody { until: string; }
-export interface FollowUpActionSuccess { success: true; lead: LeadApiResponse; }
-export interface FollowUpActionError { error: string; }
-export type FollowUpActionResponse = FollowUpActionSuccess | FollowUpActionError;
 
 // --- Email parser types (Chunk 2) ---
 

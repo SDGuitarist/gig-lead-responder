@@ -2411,8 +2411,7 @@
     renderFollowUpCards(followUpLeads); // immediately disable buttons
 
     apiPost('/api/leads/' + leadId + '/follow-up/' + action, body || {})
-      .then(function (result) {
-        var lead = result.lead;
+      .then(function (lead) {
         // Update local array: remove if terminal, update if still active
         var terminal = !lead.follow_up_status ||
           lead.follow_up_status === 'skipped' ||

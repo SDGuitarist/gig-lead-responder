@@ -2,11 +2,14 @@ import "dotenv/config";
 import express from "express";
 import cookieParser from "cookie-parser";
 import { join } from "node:path";
-import { initDb } from "./leads.js";
+import { readFileSync } from "node:fs";
+import { randomBytes } from "node:crypto";
+import { initDb } from "./db/index.js";
 import webhookRouter from "./webhook.js";
 import twilioWebhookRouter from "./twilio-webhook.js";
 import apiRouter from "./api.js";
 import followUpApiRouter from "./follow-up-api.js";
+import { sessionAuth, csrfGuard, logout } from "./auth.js";
 import { startFollowUpScheduler, stopFollowUpScheduler } from "./follow-up-scheduler.js";
 
 if (!process.env.ANTHROPIC_API_KEY) {
@@ -39,12 +42,14 @@ app.use(express.json({ limit: "100kb" }));
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 
-// Security headers
+// Security headers — nonce generated per request for CSP script-src
 app.use((_req, res, next) => {
+  const nonce = randomBytes(16).toString("base64");
+  res.locals.cspNonce = nonce;
   res.setHeader("X-Frame-Options", "DENY");
   res.setHeader("X-Content-Type-Options", "nosniff");
   res.setHeader("Content-Security-Policy",
-    "default-src 'self'; script-src 'self' 'unsafe-inline'; " +
+    `default-src 'self'; script-src 'self' 'nonce-${nonce}'; ` +
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
     "font-src 'self' https://fonts.gstatic.com; " +
     "img-src 'self' data:; connect-src 'self'");
@@ -61,6 +66,14 @@ app.get("/health", (_req, res) => {
   res.json({ status: "ok" });
 });
 
+// Serve dashboard.html with per-request CSP nonce injected into <script> tags
+const dashboardHtml = readFileSync(join(import.meta.dirname, "..", "public", "dashboard.html"), "utf-8");
+app.get("/dashboard.html", (_req, res) => {
+  const nonce = res.locals.cspNonce as string;
+  const html = dashboardHtml.replace(/<script(?=[\s>])/gi, `<script nonce="${nonce}"`);
+  res.type("html").send(html);
+});
+
 app.use(express.static(join(import.meta.dirname, "..", "public")));
 
 // Mailgun inbound webhook
@@ -74,6 +87,9 @@ app.use(apiRouter);
 
 // Follow-up action endpoints (approve, skip, snooze, replied)
 app.use(followUpApiRouter);
+
+// Logout — POST-only, requires auth + CSRF guard
+app.post("/logout", sessionAuth, csrfGuard, logout);
 
 // Redirect root to new dashboard
 app.get("/", (_req, res) => {

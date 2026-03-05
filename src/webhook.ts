@@ -1,7 +1,7 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { Router } from "express";
 import { parseEmail, type EmailFields } from "./email-parser.js";
-import { insertLead, isEmailProcessed, markEmailProcessed, runTransaction } from "./leads.js";
+import { insertLead, isEmailProcessed, markEmailProcessed, runTransaction } from "./db/index.js";
 import { runPipeline } from "./run-pipeline.js";
 import { postPipeline, postPipelineError } from "./post-pipeline.js";
 
@@ -36,6 +36,9 @@ function verifyMailgunSignature(
   }
 }
 
+/** Max age for Mailgun webhook timestamps (5 minutes). Prevents replay attacks. */
+const MAILGUN_TIMESTAMP_MAX_AGE_S = 5 * 60;
+
 router.post("/webhook/mailgun", (req, res) => {
   const body = req.body;
 
@@ -55,6 +58,14 @@ router.post("/webhook/mailgun", (req, res) => {
     if (!timestamp || !token || !signature) {
       console.warn("Webhook missing signature fields");
       res.status(401).json({ error: "Missing signature fields" });
+      return;
+    }
+
+    // Replay protection: reject timestamps older than 5 minutes or >60s in the future (clock skew)
+    const tsAge = Math.floor(Date.now() / 1000) - parseInt(timestamp, 10);
+    if (isNaN(tsAge) || tsAge < -60 || tsAge > MAILGUN_TIMESTAMP_MAX_AGE_S) {
+      console.warn(`Webhook timestamp out of range: ${timestamp} (age: ${tsAge}s)`);
+      res.status(401).json({ error: "Webhook timestamp expired" });
       return;
     }
 

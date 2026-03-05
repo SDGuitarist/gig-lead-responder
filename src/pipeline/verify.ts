@@ -3,6 +3,21 @@ import { buildVerifyPrompt } from "../prompts/verify.js";
 import { generateResponse } from "./generate.js";
 import type { Classification, Drafts, GateResult, PricingResult } from "../types.js";
 
+const validateGateResult = (raw: unknown): GateResult => {
+  if (typeof raw !== "object" || raw === null || Array.isArray(raw)) throw new Error("Expected JSON object from LLM");
+  const obj = raw as Record<string, unknown>;
+  if (obj.gate_status !== "pass" && obj.gate_status !== "fail") {
+    throw new Error(`LLM response invalid gate_status: ${obj.gate_status}`);
+  }
+  if (!Array.isArray(obj.fail_reasons)) {
+    throw new Error("LLM response missing fail_reasons array");
+  }
+  if (!Array.isArray(obj.concern_traceability)) {
+    throw new Error("LLM response missing concern_traceability array");
+  }
+  return raw as GateResult;
+};
+
 /**
  * Run the verification gate on a set of drafts.
  * Requires pricing for budget_acknowledged gut check.
@@ -15,7 +30,7 @@ export async function verifyGate(
   const systemPrompt = buildVerifyPrompt(classification, pricing);
   const userMessage = `Evaluate this draft:\n\n## FULL DRAFT\n${drafts.full_draft}\n\n## COMPRESSED DRAFT\n${drafts.compressed_draft}`;
 
-  return await callClaude<GateResult>(systemPrompt, userMessage);
+  return await callClaude<GateResult>(systemPrompt, userMessage, undefined, validateGateResult);
 }
 
 /**

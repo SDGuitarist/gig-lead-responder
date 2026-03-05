@@ -4,7 +4,7 @@ import { timingSafeEqual, createHmac, randomBytes } from "node:crypto";
 // --- Cookie config ---
 
 const COOKIE_NAME = "session";
-const COOKIE_MAX_AGE_S = 90 * 24 * 60 * 60; // 90 days
+const COOKIE_MAX_AGE_S = 14 * 24 * 60 * 60; // 14 days
 const COOKIE_MAX_AGE_MS = COOKIE_MAX_AGE_S * 1000;
 
 /** Get or generate COOKIE_SECRET. Falls back to random bytes in dev. */
@@ -175,4 +175,10 @@ export function csrfGuard(req: Request, res: Response, next: NextFunction): void
   }
 
   res.status(403).json({ error: "CSRF check failed — missing X-Requested-With header" });
+}
+
+/** Clear session cookie and return JSON (agent-friendly). */
+export function logout(_req: Request, res: Response): void {
+  res.clearCookie(COOKIE_NAME, { path: "/" });
+  res.json({ success: true });
 }

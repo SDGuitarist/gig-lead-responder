@@ -1,7 +1,7 @@
 import { Router } from "express";
 import type { Request, Response } from "express";
-import { getLead, approveFollowUp, skipFollowUp, snoozeFollowUp, markClientReplied } from "./leads.js";
-import { shapeLead } from "./api.js";
+import { getLead, approveFollowUp, skipFollowUp, snoozeFollowUp, markClientReplied } from "./db/index.js";
+import { shapeLead } from "./utils/shape-lead.js";
 import { sessionAuth, csrfGuard } from "./auth.js";
 import { followUpActionLimiter } from "./rate-limit.js";
 import type { SnoozeRequestBody } from "./types.js";
@@ -25,9 +25,7 @@ function handleAction(
   const updated = actionFn(id);
   if (!updated) { res.status(409).json({ error: errorMsg }); return; }
 
-  const shaped = shapeLead(updated);
-  if (!shaped) { res.status(500).json({ error: "Failed to shape lead response" }); return; }
-  res.json({ success: true, lead: shaped });
+  res.json(shapeLead(updated));
 }
 
 router.post("/api/leads/:id/follow-up/approve", followUpActionLimiter, csrfGuard, (req: Request, res: Response) => {
@@ -76,9 +74,7 @@ router.post("/api/leads/:id/follow-up/snooze", followUpActionLimiter, csrfGuard,
   const updated = snoozeFollowUp(id, snoozeDate.toISOString());
   if (!updated) { res.status(409).json({ error: "Lead is not in a valid state for snoozing" }); return; }
 
-  const shaped = shapeLead(updated);
-  if (!shaped) { res.status(500).json({ error: "Failed to shape lead response" }); return; }
-  res.json({ success: true, lead: shaped });
+  res.json(shapeLead(updated));
 });
 
 router.post("/api/leads/:id/follow-up/replied", followUpActionLimiter, csrfGuard, (req: Request, res: Response) => {
