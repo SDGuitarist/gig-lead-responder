@@ -72,7 +72,7 @@ app.get("/health", (_req, res) => {
 });
 
 const PORT = parseInt(process.env.PORT || "3000", 10);
-const server = app.listen(PORT, () => {
+const server = app.listen(PORT, "::", () => {
   console.log(`Gig Lead Responder running at http://localhost:${PORT}`);
   startFollowUpScheduler();
 });
