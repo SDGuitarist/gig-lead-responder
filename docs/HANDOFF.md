@@ -6,7 +6,7 @@
 
 ## Current State
 
-Cycle 12 review found 2 P1s + 5 P2s + 2 bonus cleanup items. All 9 fixes committed individually on `fix/p2-batch-cycle-12`. Clean TypeScript build (`npx tsc --noEmit` passes). Ready for compound phase, then merge.
+Cycle 12 complete (compound phase done). All P1s and P2s from Cycles 10-12 are fixed. 8 commits on `fix/p2-batch-cycle-12` (2 P1s, 5 P2s, 2 bonus cleanup). Solution doc written, security-sentinel reviewed, learnings propagated. Ready to merge to main.
 
 ## What Was Done This Session (Fix-Batched)
 
