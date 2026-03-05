@@ -2,7 +2,8 @@
 // NEVER import from ./index.js (circular dependency risk)
 
 import type Database from "better-sqlite3";
-import type { LeadRecord, LeadStatus, AnalyticsResponse, BookingCycleEntry, MonthlyTrendEntry, RevenueByTypeEntry, FollowUpEffectivenessEntry, LossReasonEntry } from "../types.js";
+import type { LeadRecord, LeadStatus, AnalyticsResponse, BookingCycleEntry, MonthlyTrendEntry, RevenueByTypeEntry, FollowUpEffectivenessEntry, LossReasonEntry, LossReason } from "../types.js";
+import { LOSS_REASONS } from "../types.js";
 import { initDb } from "./migrate.js";
 import { normalizeLeadRow } from "./leads.js";
 
@@ -238,7 +239,12 @@ export function getAnalytics(): AnalyticsResponse {
         lost: r.lost,
         no_reply: r.no_reply,
       })),
-      loss_reasons: lossReasons as LossReasonEntry[],
+      loss_reasons: lossReasons.map((r): LossReasonEntry => ({
+        reason: LOSS_REASONS.includes(r.reason as LossReason)
+          ? (r.reason as LossReason)
+          : "unspecified",
+        count: r.count,
+      })),
     };
   })();
 }
