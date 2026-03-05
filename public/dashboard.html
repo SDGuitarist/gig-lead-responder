@@ -2154,10 +2154,9 @@
 
   function analyzeKvHTML(pairs) {
     return pairs.map(function (p) {
-      var val = p[2] ? p[1] : esc(String(p[1]));
       return '<div class="analyze-kv">' +
         '<span class="analyze-kv-label">' + esc(p[0]) + '</span>' +
-        '<span class="analyze-kv-value">' + val + '</span>' +
+        '<span class="analyze-kv-value">' + esc(String(p[1])) + '</span>' +
       '</div>';
     }).join('');
   }
@@ -2205,10 +2204,14 @@
       }
     }
 
-    document.getElementById('analyzeGate').innerHTML = analyzeKvHTML([
-      ['Status', '<span class="' + (g.gate_status === 'pass' ? 'analyze-gate-pass' : 'analyze-gate-fail') + '">' +
-        esc(g.gate_status.toUpperCase()) + '</span>' +
-        (data.verified ? '' : ' (unverified — best attempt)'), true],
+    var gateStatusClass = g.gate_status === 'pass' ? 'analyze-gate-pass' : 'analyze-gate-fail';
+    var gateStatusHtml = '<div class="analyze-kv">' +
+      '<span class="analyze-kv-label">Status</span>' +
+      '<span class="analyze-kv-value"><span class="' + gateStatusClass + '">' +
+      esc(g.gate_status.toUpperCase()) + '</span>' +
+      (data.verified ? '' : ' (unverified — best attempt)') + '</span></div>';
+
+    document.getElementById('analyzeGate').innerHTML = gateStatusHtml + analyzeKvHTML([
       ['Validation', '"' + g.validation_line + '"'],
       ['Best Line', '"' + g.best_line + '"'],
       ['Scene', g.scene_type + ' — "' + g.scene_quote + '"'],
