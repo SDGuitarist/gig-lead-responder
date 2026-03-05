@@ -1,26 +1,39 @@
 # HANDOFF -- Gig Lead Responder
 
 **Date:** 2026-03-05
-**Branch:** `fix/p2-batch-cycle-12` (9 commits, pending review + merge to main)
-**Phase:** Work complete -- Cycle 12 (P2 batch fix)
+**Branch:** `fix/p2-batch-cycle-12` (17 commits total, pending merge to main)
+**Phase:** Fix-batched complete -- Cycle 12 (P1 + P2 batch), ready for Compound
 
 ## Current State
 
-All 9 P2 findings from Cycle 11 fixed in 9 incremental commits on `fix/p2-batch-cycle-12`. Clean TypeScript build. Awaiting review before merge to main.
+Cycle 12 review found 2 P1s + 5 P2s + 2 bonus cleanup items. All 9 fixes committed individually on `fix/p2-batch-cycle-12`. Clean TypeScript build (`npx tsc --noEmit` passes). Ready for compound phase, then merge.
 
-## What Was Done This Session
+## What Was Done This Session (Fix-Batched)
 
 | Commit | Issue | What changed |
 |--------|-------|-------------|
-| `694c9f7` | 026 | `updateLead` uses `RETURNING *` (3 queries -> 1). Same for skip/snooze/markClientReplied. |
-| `39ad0b8` | 028 | `callClaude` accepts `JsonValidator<T>` callback. classify, generate, verify all validate. |
-| `8c1827f` | 027 | `stmt()` cache helper in leads.ts. All static SQL cached (was 24+ re-prepares per call). |
-| `a3f68f8` | 029 | Per-request nonce injected into dashboard `<script>` tags. CSP uses `nonce-` not `unsafe-inline`. |
-| `1d3b928` | 030 | Mailgun webhook rejects timestamps older than 5 minutes. |
-| `5aeaae3` | 031 | Cookie lifetime 90d -> 14d. Added `GET /logout` endpoint. |
-| `1991fb8` | 032 | follow-up-api.ts now returns bare lead objects (matches api.ts). Dashboard updated. |
-| `c17bc29` | 033 | `shapeLead` extracted to `src/utils/shape-lead.ts`. api.ts re-exports for compat. |
-| `112cdb5` | 034 | `completeApproval()` return checked in Twilio handler. Notifies user on failure. |
+| `8e09ce5` | P1-1 | CSP nonce regex broadened: `/<script>/g` -> `/<script(?=[\s>])/gi` |
+| `017c053` | P1-2 | `/logout` changed from GET to POST with `sessionAuth` + `csrfGuard`, returns JSON |
+| `69839b5` | P2-3 | Replay protection: `Math.abs()` removed, one-sided check (reject <-60s or >5min) |
+| `0fb43f8` | P2-4 | `typeof raw !== "object"` guard added to classify, generate, verify validators |
+| `aaa110b` | P2-5 | `listLeadsFiltered` uses `initDb().prepare()` for dynamic SQL (was using `stmt()` cache) |
+| `7e497cb` | P2-6 | `JsonValidator<T>` type removed, inlined as `(raw: unknown) => T` in callClaude |
+| `841ea4e` | P2-7 | Deleted dead `FollowUpAction*` types from types.ts |
+| `475bd12` | Bonus | Removed dead `shapeLead` re-export + added missing semicolon in api.ts |
+
+## Previous Session (Cycle 11 fixes, commits 694c9f7..112cdb5)
+
+| Commit | Issue | What changed |
+|--------|-------|-------------|
+| `694c9f7` | 026 | `updateLead` uses `RETURNING *` (3 queries -> 1) |
+| `39ad0b8` | 028 | `callClaude` accepts `JsonValidator<T>` callback |
+| `8c1827f` | 027 | `stmt()` cache helper in leads.ts |
+| `a3f68f8` | 029 | Per-request CSP nonce injection |
+| `1d3b928` | 030 | Mailgun webhook replay protection |
+| `5aeaae3` | 031 | Cookie lifetime 90d -> 14d, added `/logout` |
+| `1991fb8` | 032 | Response envelopes standardized to bare objects |
+| `c17bc29` | 033 | `shapeLead` extracted to `src/utils/shape-lead.ts` |
+| `112cdb5` | 034 | `completeApproval()` return checked in Twilio handler |
 
 ## Key Artifacts
 
@@ -35,9 +48,9 @@ All 9 P2 findings from Cycle 11 fixed in 9 incremental commits on `fix/p2-batch-
 
 ## Review Fixes Pending
 
-**0 P1** -- all fixed (Cycle 11)
+**0 P1** -- all fixed (Cycle 12, this session)
 
-**0 P2** -- all fixed (Cycle 12, this branch)
+**0 P2** -- all fixed (Cycle 12, this session)
 
 **5 P3 (Deferred):**
 - 035-039: Agent-native gaps, dead code, LLM boundary hardening, security hardening, performance
@@ -52,18 +65,17 @@ All 9 P2 findings from Cycle 11 fixed in 9 incremental commits on `fix/p2-batch-
 - verify.ts flagged_concerns injected outside XML delimiters
 - follow-up.ts classification fields skip `sanitizeClassification()`
 - `compressed_draft` has no independent length limit
-- `callClaude` now has validator support (028) but no sanitization contract for direct callers
 
 ## Three Questions
 
-1. **Hardest implementation decision?** Whether to standardize response envelopes toward `{ success, lead }` (follow-up pattern) or bare objects (api.ts pattern). Chose bare objects because: more endpoints already use it, dashboard already consumes it, wrapping adds no value for a single-user app with no third-party consumers.
+1. **Hardest fix in this batch?** P1-2 (logout CSRF) -- required coordinating changes across server.ts (route + middleware + import) and auth.ts (response format). Had to verify `sessionAuth` and `csrfGuard` weren't already imported to avoid duplicates.
 
-2. **What did you consider changing but left alone?** The `stmt()` cache doesn't handle dynamic SQL in `updateLead` specially -- it relies on identical SQL strings sharing cache entries. Considered a WeakMap keyed on column sets but it's premature optimization for <100 rows.
+2. **What did you consider fixing differently?** P2-6 (JsonValidator inline) -- considered keeping the type alias as a local (non-exported) type in claude.ts for readability, but inlining directly in the parameter is simpler and the type was only used in one place.
 
-3. **Least confident about going into review?** The CSP nonce injection reads `dashboard.html` once at startup and replaces `<script>` with `<script nonce="...">` per request. If a future change adds `<script>` tags with attributes (e.g., `<script type="module">`), the regex won't match. Also, `style-src 'unsafe-inline'` is still present for inline styles -- not addressed in this batch.
+3. **Least confident about going into compound?** The P1-1 CSP regex fix (`/<script(?=[\s>])/gi`) uses a lookahead that matches `<script>` and `<script ` but would NOT match a hypothetical `<script\n` (newline after tag name). Unlikely in practice but worth noting in the solution doc.
 
 ## Prompt for Next Session
 
 ```
-Read docs/HANDOFF.md for context. Cycle 12 P2 batch is on fix/p2-batch-cycle-12 (9 commits, reviewed + merged). Run /workflows:compound to document the fixes, then choose: (1) leads.ts structural split (brainstorm+plan exist), (2) P3 batch, (3) new feature brainstorm.
+Read docs/HANDOFF.md for context. This is Gig Lead Responder on branch fix/p2-batch-cycle-12. Run /workflows:compound for Cycle 12 fix-batched phase (commits 8e09ce5..475bd12: 2 P1s, 5 P2s, 2 bonus fixes). Then merge to main and choose next: (1) leads.ts structural split (brainstorm+plan exist), (2) P3 batch, (3) new feature brainstorm.
 ```
