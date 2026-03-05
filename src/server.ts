@@ -73,7 +73,7 @@ app.get("/health", (_req, res) => {
 
 // Serve dashboard.html with per-request CSP nonce injected into <script> tags
 const dashboardHtml = readFileSync(join(import.meta.dirname, "..", "public", "dashboard.html"), "utf-8");
-app.get("/dashboard.html", (_req, res) => {
+app.get("/dashboard.html", sessionAuth, (_req, res) => {
   const nonce = res.locals.cspNonce as string;
   const html = dashboardHtml.replace(/<script(?=[\s>])/gi, `<script nonce="${nonce}"`);
   res.type("html").send(html);
@@ -97,7 +97,7 @@ app.use(followUpApiRouter);
 app.post("/logout", sessionAuth, csrfGuard, logout);
 
 // Redirect root to new dashboard
-app.get("/", (_req, res) => {
+app.get("/", sessionAuth, (_req, res) => {
   res.redirect("/dashboard.html");
 });
 
