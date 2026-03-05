@@ -912,6 +912,17 @@
     transition: width 0.4s ease-out;
   }
 
+  .cycle-stat {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  .insights-empty-section {
+    padding: 20px 0;
+    color: #8a7e6d;
+  }
+  @media (max-width: 700px) { .insights-empty-section p:last-child { display: none; } }
   .insights-empty {
     text-align: center;
     padding: 60px 24px;
@@ -2141,7 +2152,91 @@
       html += renderBreakdownTable('By Format', data.by_format, hasEnough);
     }
 
+    // Booking Cycle Time
+    html += renderBookingCycleSection(data.booking_cycle);
+
+    // Monthly Trends
+    var trendCols = [
+      { key: 'received', label: 'Received', format: 'integer', getValue: function(r) { return r.received; } },
+      { key: 'booked', label: 'Booked', format: 'integer', getValue: function(r) { return r.booked; } }
+    ];
+    if (data.monthly_trends && data.monthly_trends.length > 0) {
+      html += renderBreakdownTable('Monthly Trends', data.monthly_trends, false, trendCols);
+    } else {
+      html += renderEmptySection('Monthly Trends', 'See lead volume over time', 'Leads appear here as they arrive.');
+    }
+
+    // Revenue by Event Type
+    var revCols = [
+      { key: 'count', label: 'Bookings', format: 'integer', getValue: function(r) { return r.count; } },
+      { key: 'revenue', label: 'Revenue', format: 'currency', getValue: function(r) { return r.revenue; } },
+      { key: 'avg_price', label: 'Avg Price', format: 'currency', getValue: function(r) { return r.avg_price; } }
+    ];
+    if (data.revenue_by_type && data.revenue_by_type.length > 0) {
+      html += renderBreakdownTable('Revenue by Event Type', data.revenue_by_type, false, revCols);
+    } else {
+      html += renderEmptySection('Revenue by Event Type', 'See which events generate the most revenue', 'Book a gig with a price to see revenue data.');
+    }
+
     container.innerHTML = html;
+  }
+
+  function renderEmptySection(title, headline, hint) {
+    return '<div class="insights-section" data-analytics="' + esc(title.toLowerCase().replace(/\s+/g, '-')) + '">' +
+      '<h3>' + esc(title) + '</h3>' +
+      '<div class="insights-empty-section"><p><strong>' + esc(headline) + '</strong></p>' +
+      '<p class="insights-note">' + esc(hint) + '</p></div></div>';
+  }
+
+  function renderSampleCaveat(n) {
+    if (n < 5) return '<p class="insights-note">' + n + ' of 5 outcomes needed for rates</p>';
+    if (n < 30) return '<p class="insights-note">Based on ' + n + ' leads</p>';
+    return '';
+  }
+
+  function renderBookingCycleSection(rows) {
+    if (!rows || rows.length === 0) {
+      return renderEmptySection('Booking Cycle Time', 'See which lead sources convert fastest', 'Record 5 gig outcomes to see conversion rates.');
+    }
+    var totalSample = 0;
+    var weightedSum = 0;
+    for (var i = 0; i < rows.length; i++) {
+      totalSample += rows[i].sample_size;
+      weightedSum += rows[i].avg_days * rows[i].sample_size;
+    }
+    var overallAvg = totalSample > 0 ? weightedSum / totalSample : 0;
+
+    var html = '<div class="insights-section" data-analytics="booking-cycle-time">';
+    html += '<h3>Booking Cycle Time</h3>';
+    html += '<div class="cycle-stat"><span class="insight-number serif">' + overallAvg.toFixed(1) + 'd</span>';
+    html += '<span class="insight-sub">avg days to booking</span></div>';
+    html += renderSampleCaveat(totalSample);
+
+    if (rows.length > 1) {
+      var cycleCols = [
+        { key: 'avg_days', label: 'Avg Days', format: 'days', getValue: function(r) { return r.avg_days; } },
+        { key: 'sample_size', label: 'Bookings', format: 'integer', getValue: function(r) { return r.sample_size; } }
+      ];
+      // Reuse breakdown table for per-source detail
+      var tableRows = rows.map(function(r) { return { label: r.source_platform, total: r.sample_size, avg_days: r.avg_days, sample_size: r.sample_size }; });
+      html += '<table class="breakdown-table"><caption class="sr-only">Booking Cycle Time by Source</caption>';
+      html += '<thead><tr><th scope="col">Source</th>';
+      for (var c = 0; c < cycleCols.length; c++) html += '<th scope="col">' + esc(cycleCols[c].label) + '</th>';
+      html += '</tr></thead><tbody>';
+      for (var j = 0; j < tableRows.length; j++) {
+        var r = tableRows[j];
+        html += '<tr><th scope="row">' + esc(r.label || 'Unknown') + '</th>';
+        for (var k = 0; k < cycleCols.length; k++) {
+          var val = cycleCols[k].getValue(r);
+          html += '<td>' + FORMATTERS[cycleCols[k].format](val) + '</td>';
+        }
+        html += '</tr>';
+      }
+      html += '</tbody></table>';
+    }
+
+    html += '</div>';
+    return html;
   }
 
   // Formatters registry for parameterized tables
