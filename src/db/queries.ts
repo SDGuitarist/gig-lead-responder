@@ -147,7 +147,7 @@ export function getAnalytics(): AnalyticsResponse {
     const monthlyTrends = stmt(`
       SELECT strftime('%Y-%m', created_at) AS month,
         COUNT(*) AS received,
-        SUM(CASE WHEN outcome = 'booked' THEN 1 ELSE 0 END) AS booked
+        SUM(CASE WHEN status = 'done' AND outcome = 'booked' THEN 1 ELSE 0 END) AS booked
       FROM leads
       GROUP BY month
       ORDER BY month DESC
