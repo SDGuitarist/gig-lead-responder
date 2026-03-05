@@ -11,6 +11,8 @@ import { stmt } from "./stmt-cache.js";
 export interface ListLeadsFilteredOpts {
   status?: LeadStatus;
   sort?: "date" | "score" | "event";
+  limit?: number;
+  offset?: number;
 }
 
 export function listLeadsFiltered(opts: ListLeadsFilteredOpts = {}): LeadRecord[] {
@@ -35,6 +37,12 @@ export function listLeadsFiltered(opts: ListLeadsFilteredOpts = {}): LeadRecord[
     default:
       sql += " ORDER BY created_at DESC";
   }
+
+  const limit = opts.limit ?? 50;
+  const offset = opts.offset ?? 0;
+  sql += " LIMIT @limit OFFSET @offset";
+  params.limit = limit;
+  params.offset = offset;
 
   // Dynamic SQL — bypass stmt cache (same pattern as updateLead)
   const rows = initDb().prepare(sql).all(params) as LeadRecord[];

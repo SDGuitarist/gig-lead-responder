@@ -35,7 +35,10 @@ router.get("/api/leads", (req: Request, res: Response) => {
     ? (req.query.sort as "date" | "score" | "event")
     : undefined;
 
-  const leads = listLeadsFiltered({ status, sort });
+  const limit = typeof req.query.limit === "string" ? Math.min(Math.max(parseInt(req.query.limit, 10) || 50, 1), 200) : 50;
+  const offset = typeof req.query.offset === "string" ? Math.max(parseInt(req.query.offset, 10) || 0, 0) : 0;
+
+  const leads = listLeadsFiltered({ status, sort, limit, offset });
   res.json(leads.map(shapeLead));
 });
 
