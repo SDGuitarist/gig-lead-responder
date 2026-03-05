@@ -118,8 +118,8 @@ export function sessionAuth(req: Request, res: Response, next: NextFunction): vo
   // Dev bypass when creds aren't set
   if (!user || !pass) {
     if (process.env.NODE_ENV === "production" || process.env.RAILWAY_ENVIRONMENT) {
-      console.error("FATAL: DASHBOARD_USER and DASHBOARD_PASS must be set in production");
-      process.exit(1);
+      res.status(500).json({ error: "Server misconfigured — auth credentials missing" });
+      return;
     }
     console.warn("WARNING: Auth disabled — DASHBOARD_USER/DASHBOARD_PASS not set");
     next();
