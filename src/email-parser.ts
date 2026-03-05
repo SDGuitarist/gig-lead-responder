@@ -102,7 +102,7 @@ function parseTheBash(fields: EmailFields): ParseResult {
   }
 
   // event_date: HTML table — "EVENT DATE:" cell value
-  const eventDateMatch = html.match(/EVENT DATE:.*?<td[^>]*>(.*?)<\/td>/is);
+  const eventDateMatch = html.match(/EVENT DATE:[^<]*<td[^>]*>([^<]*)<\/td>/is);
   if (!eventDateMatch) {
     return { ok: false, reason: "parse_error", detail: "Could not extract event_date from HTML table" };
   }
