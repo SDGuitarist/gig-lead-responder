@@ -112,13 +112,21 @@ email-parser.ts security review fixes. 7 commits, 3 P1s + 5 P2s.
 
 ```
 Read docs/HANDOFF.md. This is Gig Lead Responder on branch fix/review-cycle-12-fixes.
-Fix-batched phase for Cycle 12 full-codebase review. 11 commits (2 P1s + 9 P2s).
 
-Two options:
-1. Merge to main and run compound phase (write solution doc, /update-learnings)
-2. Fix the dashboard to handle pagination (load more / infinite scroll) before merging
+The API now paginates leads (LIMIT 50, max 200) via ?limit=N&offset=N on
+GET /api/leads. The dashboard currently fetches all leads in one call and
+doesn't handle pagination. Add a "Load More" button to the dashboard.
 
-Review: docs/reviews/fix-p2-batch-cycle-12/REVIEW-SUMMARY.md
-Key patterns: startup validation, shared cache extraction, pagination,
-crash recovery, auth enforcement, rate limiting, XSS prevention.
+What to do:
+1. Read public/dashboard.html — find where leads are fetched and rendered
+   (look for fetchLeads, renderLeads, the table view, and the mobile card view)
+2. Track current offset in JS state. Initial fetch: ?limit=50&offset=0
+3. After rendering, if the response returned exactly 50 items, show a
+   "Load More" button below the list. Clicking it fetches the next page
+   (?offset=50, then 100, etc.) and appends rows — don't re-render existing ones.
+4. If fewer than 50 items returned, hide the button (no more pages).
+5. When filters change (status, sort, follow_up=active), reset offset to 0.
+6. Keep it simple — no infinite scroll, no total count, just append + button.
+
+Relevant files: public/dashboard.html, src/api.ts (already done — just the client).
 ```
