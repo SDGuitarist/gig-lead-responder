@@ -39,7 +39,7 @@ const app = express();
 app.set("trust proxy", 1);
 
 app.use(express.json({ limit: "100kb" }));
-app.use(express.urlencoded({ extended: false }));
+app.use(express.urlencoded({ extended: false, limit: "100kb" }));
 app.use(cookieParser());
 
 // Security headers — nonce generated per request for CSP script-src
