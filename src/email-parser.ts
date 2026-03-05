@@ -11,6 +11,15 @@ export interface EmailFields {
 /** Max body length before regex processing — defense-in-depth against ReDoS. */
 const MAX_BODY_LENGTH = 200_000;
 
+/** Validate that a token URL uses HTTPS and belongs to a known lead platform. */
+function isValidTokenUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url);
+    return parsed.protocol === "https:" &&
+      (parsed.hostname.endsWith("gigsalad.com") || parsed.hostname.endsWith("thebash.com"));
+  } catch { return false; }
+}
+
 // --- GigSalad ---
 
 const GIGSALAD_LEAD_FROM = "leads@gigsalad.com";
@@ -57,6 +66,9 @@ function parseGigSalad(fields: EmailFields): ParseResult {
   const tokenUrlMatch = html.match(/<a[^>]+href="([^"]+)"[^>]*>[^<]*View the details/i);
   if (!tokenUrlMatch) {
     return { ok: false, reason: "parse_error", detail: "Could not extract token_url from HTML body" };
+  }
+  if (!isValidTokenUrl(tokenUrlMatch[1])) {
+    return { ok: false, reason: "parse_error", detail: "token_url failed scheme/domain validation" };
   }
 
   return {
@@ -114,6 +126,9 @@ function parseTheBash(fields: EmailFields): ParseResult {
   const tokenUrlMatch = html.match(/<a[^>]+href="([^"]+)"[^>]*>[^<]*VIEW NOW/i);
   if (!tokenUrlMatch) {
     return { ok: false, reason: "parse_error", detail: "Could not extract token_url from HTML body" };
+  }
+  if (!isValidTokenUrl(tokenUrlMatch[1])) {
+    return { ok: false, reason: "parse_error", detail: "token_url failed scheme/domain validation" };
   }
 
   return {
