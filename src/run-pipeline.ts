@@ -67,6 +67,13 @@ export async function runPipeline(
   onStage?: OnStage,
   platform?: Classification["platform"],
 ): Promise<PipelineOutput> {
+  const MAX_RAW_TEXT_LENGTH = 50_000;
+  if (rawText.length > MAX_RAW_TEXT_LENGTH) {
+    const originalLength = rawText.length;
+    rawText = rawText.slice(0, MAX_RAW_TEXT_LENGTH);
+    console.warn(`Truncated lead text from ${originalLength} to ${MAX_RAW_TEXT_LENGTH} chars`);
+  }
+
   const timing: Record<string, number> = {};
   const totalStart = Date.now();
   const today = getTodayISO();
