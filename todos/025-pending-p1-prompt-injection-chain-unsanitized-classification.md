@@ -1,5 +1,5 @@
 ---
-status: pending
+status: done
 priority: p1
 issue_id: "025"
 tags: [code-review, security, llm-pipeline, prompt-injection]

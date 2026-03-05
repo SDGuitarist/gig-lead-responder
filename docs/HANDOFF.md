@@ -2,11 +2,25 @@
 
 **Date:** 2026-03-05
 **Branch:** `main`
-**Phase:** Review complete -- Cycle 11 (final verification pass)
+**Phase:** Work complete -- Cycle 11 P1 fixes
 
 ## Current State
 
-Final verification review of feat/lead-response-loop on main (33 commits, 29 files). Used 9 agents including 2 NEW agents (LLM Pipeline Security, Dashboard XSS) to cover the blind spots flagged in Cycle 10. Found 17 findings (3 P1, 9 P2, 5 P3). Prior Cycle 10 fixes (2 P1, 6 P2) all confirmed fixed. Learnings Researcher found 0 solution doc violations across 26 docs.
+All 3 P1 findings from Cycle 11 review are fixed and committed (3 commits on main). TypeScript compiles clean, test count unchanged (40 pass, 8 pre-existing fail). Ready for compound phase.
+
+### What was done
+
+| Commit | Fix | Files |
+|--------|-----|-------|
+| `83f7aad` | 023: XSS — escape untrusted LLM values in dashboard innerHTML | `public/dashboard.html` |
+| `69885be` | 024: Input size guard — truncate rawText to 50K in runPipeline | `src/run-pipeline.ts` |
+| `d18be62` | 025: Prompt injection — sanitize + XML-wrap classification fields | `src/utils/sanitize.ts` (new), `src/prompts/generate.ts`, `src/prompts/verify.ts`, `src/prompts/follow-up.ts`, `src/enrich-generate.test.ts` |
+
+### Prior Phase Risk
+
+> "Least confident about? Whether the prompt injection chain (025) is practically exploitable given the human-in-the-loop."
+
+Addressed: implemented the fix regardless — XML delimiters + field truncation is cheap insurance. Even subtle price manipulations ($50 off) that might slip past human review are now blocked at the prompt level.
 
 ## Key Artifacts
 
@@ -18,12 +32,9 @@ Final verification review of feat/lead-response-loop on main (33 commits, 29 fil
 | Review (Cycle 11) | `docs/reviews/feat-lead-response-loop-final/REVIEW-SUMMARY.md` |
 | Solution | `docs/solutions/architecture/review-fix-cycle-2-lead-response-loop.md` |
 
-## Review Fixes Pending
+## Review Fixes Remaining
 
-**3 P1 (Critical -- fix before next deploy):**
-- 023: XSS via unescaped LLM values in dashboard innerHTML (analyzeKvHTML, fmtDate, STATUS_DISPLAY)
-- 024: No input size guard on webhook path before LLM calls
-- 025: Prompt injection chain -- unsanitized classification fields in system prompts
+**0 P1** -- all fixed this session
 
 **9 P2 (Important -- fix in next cycle):**
 - 026: updateLead triple-read pattern (3 queries per update)
@@ -52,14 +63,14 @@ Final verification review of feat/lead-response-loop on main (33 commits, 29 fil
 
 ## Three Questions
 
-1. **Hardest decision?** Whether leads.ts God Module (Architecture P1) should stay P1 or be P3. Downgraded to P3 because it's a multi-session refactor already known/deferred. P1 slot reserved for active security issues (XSS, prompt injection, cost DoS).
+1. **Hardest implementation decision?** How to handle `analyzeKvHTML` double-escaping. The function now escapes all values by default, with a `p[2] = true` flag for intentional HTML (only the gate status span). This required removing `esc()` calls from all call sites — a larger diff but eliminates the class of bug where a new call site forgets to escape.
 
-2. **What was rejected?** Considered merging the Dashboard XSS and LLM Pipeline findings into one mega-finding, but kept them separate because they have different fix strategies and different developers might work on them.
+2. **What did you consider changing but left alone?** Considered restructuring `callClaude` to use Anthropic API's native content blocks (Solution B in 025) for cleaner untrusted data separation, but it's a larger refactor for marginal gain over XML delimiters. The XML approach is well-documented as effective prompt injection defense.
 
-3. **Least confident about?** Whether the prompt injection chain (025) is practically exploitable given the human-in-the-loop. Alex reviews every draft before sending. A subtle price manipulation ($50 off) might slip through review. The fix is cheap (XML delimiters + truncation), so worth doing regardless.
+3. **Least confident about going into review?** Whether the `sanitizeClassification` function covers all free-text fields that could be attacker-influenced. I covered `format_requested`, `stealth_premium_signals`, `context_modifiers`, and `flagged_concerns` — these are the ones identified in the review. But other string fields like `cultural_tradition` or `event_energy` could theoretically carry injection payloads too, even though they're constrained to known enum-like values by the classify prompt.
 
 ## Prompt for Next Session
 
 ```
-Read docs/HANDOFF.md for context. This is Gig Lead Responder -- Cycle 11 review complete with 3 P1s found. Fix the P1s in this order: (1) 023 - XSS in dashboard innerHTML, (2) 024 - input size guard on webhook, (3) 025 - prompt injection sanitization. Todo files in todos/023-025. Start with /workflows:work.
+Read docs/HANDOFF.md for context. This is Gig Lead Responder -- Cycle 11 P1 fixes complete (3 commits). Next phase is compound: document the security fixes in docs/solutions/. Start with /workflows:compound.
 ```
