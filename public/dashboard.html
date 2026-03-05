@@ -1099,7 +1099,7 @@
       <button class="tab-btn" data-tab="insights">Insights</button>
       <button class="tab-btn" data-tab="followups">Follow-Ups</button>
     </nav>
-    <button class="refresh-btn" onclick="loadStats(); loadLeads();" title="Refresh leads and stats">&#x21bb; Refresh</button>
+    <button class="refresh-btn" onclick="loadStats(); currentOffset = 0; loadLeads();" title="Refresh leads and stats">&#x21bb; Refresh</button>
   </header>
 
   <!-- ══════════════════ LEADS PANEL ════════════════════════ -->
@@ -1175,6 +1175,10 @@
     <!-- Mobile Cards -->
     <div class="mobile-cards" id="mobileCards">
       <div style="text-align:center;padding:48px;color:#8a7e6d;">Loading...</div>
+    </div>
+
+    <div id="loadMoreWrap" style="display:none;text-align:center;padding:16px 0 24px;">
+      <button id="loadMoreBtn" class="refresh-btn" style="min-width:160px;">Load More</button>
     </div>
 
   </div><!-- /panel-leads -->
@@ -1329,8 +1333,10 @@
 
   /* ── State ───────────────────────────────────────────────── */
 
+  var PAGE_SIZE = 50;
   var activeFilter = 'pending';
   var activeSort = '';
+  var currentOffset = 0;
   var authHeader = null;
   var currentLeads = [];
   var expandedId = null;
@@ -1482,27 +1488,41 @@
 
   /* ── Load + render leads ─────────────────────────────────── */
 
-  function loadLeads() {
+  function loadLeads(append) {
     var params = [];
     if (activeFilter !== 'all') {
       var apiStatus = FILTER_TO_API[activeFilter];
       if (apiStatus) params.push('status=' + apiStatus);
     }
     if (activeSort) params.push('sort=' + activeSort);
+    params.push('limit=' + PAGE_SIZE);
+    params.push('offset=' + currentOffset);
 
-    var qs = params.length ? '?' + params.join('&') : '';
+    var qs = '?' + params.join('&');
 
     apiFetch('/api/leads' + qs).then(function (leads) {
-      currentLeads = leads;
-      expandedId = null;
-      renderTable(leads);
-      renderMobile(leads);
+      if (append) {
+        currentLeads = currentLeads.concat(leads);
+        appendTable(leads);
+        appendMobile(leads);
+      } else {
+        currentLeads = leads;
+        expandedId = null;
+        renderTable(leads);
+        renderMobile(leads);
+      }
+      // Show "Load More" only if we got a full page
+      document.getElementById('loadMoreWrap').style.display =
+        leads.length >= PAGE_SIZE ? '' : 'none';
     }).catch(function (e) {
       console.error('Leads load failed:', e);
-      document.getElementById('tableBody').innerHTML =
-        '<tr><td colspan="7" style="text-align:center;padding:48px;color:#b54a3a;">Failed to load leads</td></tr>';
-      document.getElementById('mobileCards').innerHTML =
-        '<div style="text-align:center;padding:48px;color:#b54a3a;">Failed to load leads</div>';
+      if (!append) {
+        document.getElementById('tableBody').innerHTML =
+          '<tr><td colspan="7" style="text-align:center;padding:48px;color:#b54a3a;">Failed to load leads</td></tr>';
+        document.getElementById('mobileCards').innerHTML =
+          '<div style="text-align:center;padding:48px;color:#b54a3a;">Failed to load leads</div>';
+      }
+      document.getElementById('loadMoreWrap').style.display = 'none';
     });
   }
 
@@ -1640,6 +1660,71 @@
     return html;
   }
 
+  /* ── Row builders ──────────────────────────────────────── */
+
+  function buildTableRow(l) {
+    var st = STATUS_DISPLAY[l.status] || { label: esc(l.status), css: '' };
+    var sc = l.confidence_score;
+    var fmt = FORMAT_NAMES[l.format_recommended] || l.format_recommended || '\u2014';
+    var muted = (l.status === 'sent' || l.status === 'done') ? ' row-muted' : '';
+    var isOpen = expandedId === l.id;
+
+    var row = '<tr class="lead-row' + muted + '" data-id="' + l.id + '">' +
+      '<td>' +
+        '<div class="lead-event-name">' + (esc(l.event_type) || 'Unknown') + '</div>' +
+        '<div class="lead-event-sub">' + esc(l.client_name) + '</div>' +
+      '</td>' +
+      '<td class="lead-date">' + fmtDate(l.event_date) + '</td>' +
+      '<td class="lead-venue">' + (esc(l.venue) || '\u2014') + '</td>' +
+      '<td><span class="format-pill">' + esc(fmt) + '</span></td>' +
+      '<td>' + (sc != null
+        ? '<span class="score ' + scoreClass(sc) + '">' + sc + '</span>'
+        : '<span style="color:#8a7e6d">\u2014</span>') + '</td>' +
+      '<td><span class="status-badge ' + st.css + '">' + st.label + '</span>' + outcomeBadgeHTML(l) + '</td>' +
+      '<td></td>' +
+    '</tr>';
+
+    row += '<tr class="detail-row" data-detail="' + l.id + '">' +
+      '<td colspan="7"><div class="detail-panel' + (isOpen ? ' open' : '') + '" data-detail="' + l.id + '">' +
+      (isOpen ? renderDetailPanel(l) : '') +
+      '</div></td></tr>';
+
+    return row;
+  }
+
+  function buildMobileCard(l) {
+    var st = STATUS_DISPLAY[l.status] || { label: esc(l.status), css: '' };
+    var sc = l.confidence_score;
+    var fmt = FORMAT_NAMES[l.format_recommended] || l.format_recommended || '\u2014';
+    var muted = (l.status === 'sent' || l.status === 'done') ? ' style="opacity:0.7"' : '';
+    var isOpen = expandedId === l.id;
+
+    return '<div class="mobile-card"' + muted + ' data-id="' + l.id + '">' +
+      '<div class="mobile-card-header">' +
+        '<div>' +
+          '<div class="lead-event-name">' + (esc(l.event_type) || 'Unknown') + '</div>' +
+          '<div class="lead-event-sub">' + esc(l.client_name) + '</div>' +
+        '</div>' +
+        '<span class="status-badge ' + st.css + '">' + st.label + '</span>' + outcomeBadgeHTML(l) +
+      '</div>' +
+      '<div class="mobile-card-meta">' +
+        '<span>' + fmtDate(l.event_date) + '</span>' +
+        '<span>' + (esc(l.venue) || '\u2014') + '</span>' +
+        '<span class="format-pill">' + esc(fmt) + '</span>' +
+      '</div>' +
+      '<div class="mobile-card-footer">' +
+        '<div class="mobile-card-score">' +
+          (sc != null
+            ? '<span class="score ' + scoreClass(sc) + '">' + sc + '</span>'
+            : '<span style="color:#8a7e6d">\u2014</span>') +
+        '</div>' +
+      '</div>' +
+      '<div class="detail-panel' + (isOpen ? ' open' : '') + '" data-detail="' + l.id + '">' +
+        (isOpen ? renderDetailPanel(l) : '') +
+      '</div>' +
+    '</div>';
+  }
+
   /* ── Render table ───────────────────────────────────────── */
 
   function renderTable(leads) {
@@ -1651,35 +1736,12 @@
       return;
     }
 
-    tbody.innerHTML = leads.map(function (l) {
-      var st = STATUS_DISPLAY[l.status] || { label: esc(l.status), css: '' };
-      var sc = l.confidence_score;
-      var fmt = FORMAT_NAMES[l.format_recommended] || l.format_recommended || '\u2014';
-      var muted = (l.status === 'sent' || l.status === 'done') ? ' row-muted' : '';
-      var isOpen = expandedId === l.id;
+    tbody.innerHTML = leads.map(buildTableRow).join('');
+  }
 
-      var row = '<tr class="lead-row' + muted + '" data-id="' + l.id + '">' +
-        '<td>' +
-          '<div class="lead-event-name">' + (esc(l.event_type) || 'Unknown') + '</div>' +
-          '<div class="lead-event-sub">' + esc(l.client_name) + '</div>' +
-        '</td>' +
-        '<td class="lead-date">' + fmtDate(l.event_date) + '</td>' +
-        '<td class="lead-venue">' + (esc(l.venue) || '\u2014') + '</td>' +
-        '<td><span class="format-pill">' + esc(fmt) + '</span></td>' +
-        '<td>' + (sc != null
-          ? '<span class="score ' + scoreClass(sc) + '">' + sc + '</span>'
-          : '<span style="color:#8a7e6d">\u2014</span>') + '</td>' +
-        '<td><span class="status-badge ' + st.css + '">' + st.label + '</span>' + outcomeBadgeHTML(l) + '</td>' +
-        '<td></td>' +
-      '</tr>';
-
-      row += '<tr class="detail-row" data-detail="' + l.id + '">' +
-        '<td colspan="7"><div class="detail-panel' + (isOpen ? ' open' : '') + '" data-detail="' + l.id + '">' +
-        (isOpen ? renderDetailPanel(l) : '') +
-        '</div></td></tr>';
-
-      return row;
-    }).join('');
+  function appendTable(leads) {
+    var tbody = document.getElementById('tableBody');
+    tbody.insertAdjacentHTML('beforeend', leads.map(buildTableRow).join(''));
   }
 
   /* ── Render mobile cards ────────────────────────────────── */
@@ -1693,38 +1755,12 @@
       return;
     }
 
-    container.innerHTML = leads.map(function (l) {
-      var st = STATUS_DISPLAY[l.status] || { label: esc(l.status), css: '' };
-      var sc = l.confidence_score;
-      var fmt = FORMAT_NAMES[l.format_recommended] || l.format_recommended || '\u2014';
-      var muted = (l.status === 'sent' || l.status === 'done') ? ' style="opacity:0.7"' : '';
-      var isOpen = expandedId === l.id;
+    container.innerHTML = leads.map(buildMobileCard).join('');
+  }
 
-      return '<div class="mobile-card"' + muted + ' data-id="' + l.id + '">' +
-        '<div class="mobile-card-header">' +
-          '<div>' +
-            '<div class="lead-event-name">' + (esc(l.event_type) || 'Unknown') + '</div>' +
-            '<div class="lead-event-sub">' + esc(l.client_name) + '</div>' +
-          '</div>' +
-          '<span class="status-badge ' + st.css + '">' + st.label + '</span>' + outcomeBadgeHTML(l) +
-        '</div>' +
-        '<div class="mobile-card-meta">' +
-          '<span>' + fmtDate(l.event_date) + '</span>' +
-          '<span>' + (esc(l.venue) || '\u2014') + '</span>' +
-          '<span class="format-pill">' + esc(fmt) + '</span>' +
-        '</div>' +
-        '<div class="mobile-card-footer">' +
-          '<div class="mobile-card-score">' +
-            (sc != null
-              ? '<span class="score ' + scoreClass(sc) + '">' + sc + '</span>'
-              : '<span style="color:#8a7e6d">\u2014</span>') +
-          '</div>' +
-        '</div>' +
-        '<div class="detail-panel' + (isOpen ? ' open' : '') + '" data-detail="' + l.id + '">' +
-          (isOpen ? renderDetailPanel(l) : '') +
-        '</div>' +
-      '</div>';
-    }).join('');
+  function appendMobile(leads) {
+    var container = document.getElementById('mobileCards');
+    container.insertAdjacentHTML('beforeend', leads.map(buildMobileCard).join(''));
   }
 
   /* ── Row click → expand/collapse (accordion) ────────────── */
@@ -1904,6 +1940,7 @@
 
   function setFilter(key) {
     activeFilter = key;
+    currentOffset = 0;
     filterPills.forEach(function (p) {
       p.classList.toggle('active', p.dataset.filter === key);
     });
@@ -1920,7 +1957,15 @@
 
   document.getElementById('sortSelect').addEventListener('change', function (e) {
     activeSort = e.target.value;
+    currentOffset = 0;
     loadLeads();
+  });
+
+  /* ── Load More button ─────────────────────────────────────── */
+
+  document.getElementById('loadMoreBtn').addEventListener('click', function () {
+    currentOffset += PAGE_SIZE;
+    loadLeads(true);
   });
 
   /* ── Outcome save (with in-flight gate) ─────────────────── */
