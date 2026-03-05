@@ -140,10 +140,17 @@ async function handleEdit(leadId: number | null, instructions: string): Promise<
     return;
   }
 
-  const classification: Classification = JSON.parse(lead.classification_json);
+  let classification: Classification;
+  let pricing: PricingResult;
+  try {
+    classification = JSON.parse(lead.classification_json);
+    pricing = JSON.parse(lead.pricing_json);
+  } catch {
+    await sendSms(`Lead #${lead.id} has corrupt stored data. Check dashboard.`);
+    return;
+  }
   // Re-stamp platform from DB (not stored in classification JSON)
   classification.platform = (lead.source_platform as Classification["platform"]) ?? undefined;
-  const pricing: PricingResult = JSON.parse(lead.pricing_json);
 
   // Re-run context → generate (with instructions) → verify
   const { drafts, gate } = await runEditPipeline(classification, pricing, instructions);
