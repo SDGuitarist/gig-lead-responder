@@ -1,5 +1,5 @@
 import { Router, type Request, type Response } from "express";
-import { listLeadsFiltered, listFollowUpLeads, getLeadStats, getLead, updateLead, claimLeadForSending, setLeadOutcome, getAnalytics, completeApproval } from "./db/index.js";
+import { listLeadsFiltered, listFollowUpLeads, getLeadStats, getLead, updateLead, claimLeadForSending, setLeadOutcome, skipFollowUp, getAnalytics, completeApproval } from "./db/index.js";
 import type { LeadStatus, LeadOutcome, LossReason } from "./types.js";
 import { LEAD_OUTCOMES, LOSS_REASONS } from "./types.js";
 import { sessionAuth, csrfGuard } from "./auth.js";
@@ -212,7 +212,14 @@ router.post("/api/leads/:id/outcome", csrfGuard, (req: Request, res: Response) =
     return;
   }
 
-  res.json(shapeLead(updated));
+  // Freeze follow-up pipeline when setting an outcome (not when clearing)
+  if (outcome !== null) {
+    skipFollowUp(id);
+  }
+
+  // Re-fetch to include follow-up status change in response
+  const fresh = getLead(id) ?? updated;
+  res.json(shapeLead(fresh));
 });
 
 // --- GET /api/analytics ---
