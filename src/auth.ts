@@ -11,8 +11,7 @@ const COOKIE_MAX_AGE_MS = COOKIE_MAX_AGE_S * 1000;
 function getCookieSecret(): string {
   if (process.env.COOKIE_SECRET) return process.env.COOKIE_SECRET;
   if (process.env.NODE_ENV === "production" || process.env.RAILWAY_ENVIRONMENT) {
-    console.error("FATAL: COOKIE_SECRET must be set in production");
-    process.exit(1);
+    throw new Error("COOKIE_SECRET must be set in production");
   }
   console.warn("WARNING: Using random COOKIE_SECRET — sessions won't survive restarts");
   return randomBytes(32).toString("hex");

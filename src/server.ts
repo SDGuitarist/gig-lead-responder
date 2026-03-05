@@ -26,6 +26,10 @@ if (process.env.NODE_ENV === "production" || process.env.RAILWAY_ENVIRONMENT) {
     console.error("FATAL: DASHBOARD_USER and DASHBOARD_PASS must be set in production");
     process.exit(1);
   }
+  if (!process.env.COOKIE_SECRET) {
+    console.error("FATAL: COOKIE_SECRET must be set in production");
+    process.exit(1);
+  }
 }
 
 // Initialize SQLite (creates tables if needed)
