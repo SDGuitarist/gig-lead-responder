@@ -238,7 +238,7 @@ router.post("/webhook/twilio", webhookLimiter, (req: Request, res: Response) => 
 
   // Only accept messages from Alex's phone
   if (from !== process.env.ALEX_PHONE) {
-    console.warn(`Twilio webhook from unknown number: ${from}`);
+    console.warn(`Twilio webhook from unknown number: ***${from.slice(-4)}`);
     emptyTwiml(res);
     return;
   }
