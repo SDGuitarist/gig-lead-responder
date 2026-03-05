@@ -4,6 +4,7 @@ import type { Request, Response } from "express";
 import { getLead, getLeadsByStatus, updateLead, completeApproval, approveFollowUp, skipFollowUp, getLeadAwaitingFollowUp, getLeadWithActiveFollowUp } from "./db/index.js";
 import { sendSms } from "./sms.js";
 import { runEditPipeline } from "./run-pipeline.js";
+import { webhookLimiter } from "./rate-limit.js";
 import type { Classification, LeadRecord, PricingResult } from "./types.js";
 
 const router = Router();
@@ -224,7 +225,7 @@ async function handleFollowUpSkip(): Promise<void> {
 
 // --- Route ---
 
-router.post("/webhook/twilio", (req: Request, res: Response) => {
+router.post("/webhook/twilio", webhookLimiter, (req: Request, res: Response) => {
   // Signature validation
   if (!verifyTwilioSignature(req)) {
     console.warn("Twilio webhook signature validation failed");

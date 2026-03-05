@@ -4,6 +4,7 @@ import { parseEmail, type EmailFields } from "./email-parser.js";
 import { insertLead, isEmailProcessed, markEmailProcessed, runTransaction } from "./db/index.js";
 import { runPipeline } from "./run-pipeline.js";
 import { postPipeline, postPipelineError } from "./post-pipeline.js";
+import { webhookLimiter } from "./rate-limit.js";
 
 const router = Router();
 
@@ -39,7 +40,7 @@ function verifyMailgunSignature(
 /** Max age for Mailgun webhook timestamps (5 minutes). Prevents replay attacks. */
 const MAILGUN_TIMESTAMP_MAX_AGE_S = 5 * 60;
 
-router.post("/webhook/mailgun", (req, res) => {
+router.post("/webhook/mailgun", webhookLimiter, (req, res) => {
   const body = req.body;
 
   // --- HMAC validation ---
