@@ -2231,7 +2231,7 @@
     btn.textContent = 'Analyzing\u2026';
     resetAnalyze();
 
-    var analyzeHeaders = { 'Content-Type': 'application/json' };
+    var analyzeHeaders = { 'Content-Type': 'application/json', 'X-Requested-With': 'dashboard' };
     if (authHeader) analyzeHeaders.Authorization = authHeader;
 
     fetch('/api/analyze', {
