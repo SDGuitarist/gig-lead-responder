@@ -3,6 +3,7 @@ import { buildClassifyPrompt } from "../prompts/classify.js";
 import type { Classification } from "../types.js";
 
 const validateClassification: JsonValidator<Classification> = (raw) => {
+  if (typeof raw !== "object" || raw === null || Array.isArray(raw)) throw new Error("Expected JSON object from LLM");
   const obj = raw as Record<string, unknown>;
   if (!obj.format_recommended) throw new Error("Classification missing format_recommended");
   if (!obj.duration_hours) throw new Error("Classification missing duration_hours");

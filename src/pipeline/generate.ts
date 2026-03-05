@@ -18,6 +18,7 @@ interface GenerateResponse {
 const CONTACT_BLOCK = `\nAlex Guillen\nPacific Flow Entertainment\n(619) 755-3246`;
 
 const validateGenerateResponse: JsonValidator<GenerateResponse> = (raw) => {
+  if (typeof raw !== "object" || raw === null || Array.isArray(raw)) throw new Error("Expected JSON object from LLM");
   const obj = raw as Record<string, unknown>;
   if (typeof obj.full_draft !== "string" || !obj.full_draft) {
     throw new Error("LLM response missing full_draft");

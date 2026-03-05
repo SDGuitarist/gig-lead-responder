@@ -4,6 +4,7 @@ import { generateResponse } from "./generate.js";
 import type { Classification, Drafts, GateResult, PricingResult } from "../types.js";
 
 const validateGateResult: JsonValidator<GateResult> = (raw) => {
+  if (typeof raw !== "object" || raw === null || Array.isArray(raw)) throw new Error("Expected JSON object from LLM");
   const obj = raw as Record<string, unknown>;
   if (obj.gate_status !== "pass" && obj.gate_status !== "fail") {
     throw new Error(`LLM response invalid gate_status: ${obj.gate_status}`);
