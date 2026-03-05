@@ -177,8 +177,8 @@ export function csrfGuard(req: Request, res: Response, next: NextFunction): void
   res.status(403).json({ error: "CSRF check failed — missing X-Requested-With header" });
 }
 
-/** Clear session cookie and redirect to root (triggers Basic Auth prompt). */
+/** Clear session cookie and return JSON (agent-friendly). */
 export function logout(_req: Request, res: Response): void {
   res.clearCookie(COOKIE_NAME, { path: "/" });
-  res.redirect("/");
+  res.json({ success: true });
 }
