@@ -1,9 +1,9 @@
-import { callClaude, type JsonValidator } from "../claude.js";
+import { callClaude } from "../claude.js";
 import { buildVerifyPrompt } from "../prompts/verify.js";
 import { generateResponse } from "./generate.js";
 import type { Classification, Drafts, GateResult, PricingResult } from "../types.js";
 
-const validateGateResult: JsonValidator<GateResult> = (raw) => {
+const validateGateResult = (raw: unknown): GateResult => {
   if (typeof raw !== "object" || raw === null || Array.isArray(raw)) throw new Error("Expected JSON object from LLM");
   const obj = raw as Record<string, unknown>;
   if (obj.gate_status !== "pass" && obj.gate_status !== "fail") {

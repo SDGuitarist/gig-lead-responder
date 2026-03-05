@@ -1,8 +1,8 @@
-import { callClaude, type JsonValidator } from "../claude.js";
+import { callClaude } from "../claude.js";
 import { buildClassifyPrompt } from "../prompts/classify.js";
 import type { Classification } from "../types.js";
 
-const validateClassification: JsonValidator<Classification> = (raw) => {
+const validateClassification = (raw: unknown): Classification => {
   if (typeof raw !== "object" || raw === null || Array.isArray(raw)) throw new Error("Expected JSON object from LLM");
   const obj = raw as Record<string, unknown>;
   if (!obj.format_recommended) throw new Error("Classification missing format_recommended");

@@ -13,12 +13,6 @@ function stripCodeFences(text: string): string {
 }
 
 /**
- * Optional runtime validator for callClaude. Throw or return string on failure.
- * If not provided, parsed JSON is returned as-is (unsafe cast).
- */
-export type JsonValidator<T> = (raw: unknown) => T;
-
-/**
  * Call Claude and parse the response as JSON.
  * Strips code fences, parses JSON. On failure, retries once
  * with "return only valid JSON" reinforcement.
@@ -30,7 +24,7 @@ export async function callClaude<T>(
   systemPrompt: string,
   userMessage: string,
   model: string = "claude-sonnet-4-6",
-  validate?: JsonValidator<T>,
+  validate?: (raw: unknown) => T,
 ): Promise<T> {
   const makeRequest = async (extraInstruction?: string): Promise<string> => {
     const finalUser = extraInstruction

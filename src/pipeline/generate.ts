@@ -1,4 +1,4 @@
-import { callClaude, type JsonValidator } from "../claude.js";
+import { callClaude } from "../claude.js";
 import { buildGeneratePrompt } from "../prompts/generate.js";
 import type { Classification, Drafts, PricingResult } from "../types.js";
 
@@ -17,7 +17,7 @@ interface GenerateResponse {
 
 const CONTACT_BLOCK = `\nAlex Guillen\nPacific Flow Entertainment\n(619) 755-3246`;
 
-const validateGenerateResponse: JsonValidator<GenerateResponse> = (raw) => {
+const validateGenerateResponse = (raw: unknown): GenerateResponse => {
   if (typeof raw !== "object" || raw === null || Array.isArray(raw)) throw new Error("Expected JSON object from LLM");
   const obj = raw as Record<string, unknown>;
   if (typeof obj.full_draft !== "string" || !obj.full_draft) {
