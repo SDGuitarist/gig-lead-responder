@@ -319,7 +319,7 @@ export function updateLead(
   params.updated_at = new Date().toISOString();
   params.id = id;
 
-  // Single UPDATE with RETURNING * (SQLite 3.35+) — replaces triple-read pattern
+  // Dynamic SQL — bypass stmt cache (columns vary per call)
   const row = initDb()
     .prepare(`UPDATE leads SET ${setClauses.join(", ")} WHERE id = @id RETURNING *`)
     .get(params) as LeadRecord | undefined;
@@ -583,7 +583,8 @@ export function listLeadsFiltered(opts: ListLeadsFilteredOpts = {}): LeadRecord[
       sql += " ORDER BY created_at DESC";
   }
 
-  const rows = stmt(sql).all(params) as LeadRecord[];
+  // Dynamic SQL — bypass stmt cache (same pattern as updateLead)
+  const rows = initDb().prepare(sql).all(params) as LeadRecord[];
 
   return rows.map(normalizeRow);
 }
