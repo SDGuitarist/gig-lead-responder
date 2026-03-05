@@ -242,6 +242,10 @@ router.post("/api/analyze", analyzeLimiter, csrfGuard, async (req: Request, res:
   res.setHeader("Connection", "keep-alive");
   res.flushHeaders();
 
+  const heartbeat = setInterval(() => {
+    res.write(":heartbeat\n\n");
+  }, 15_000);
+
   try {
     const output = await runPipeline(text.trim(), (event) => {
       sendSSE(res, "stage", event);
@@ -251,6 +255,7 @@ router.post("/api/analyze", analyzeLimiter, csrfGuard, async (req: Request, res:
     console.error("Pipeline error:", err instanceof Error ? err.message : String(err));
     sendSSE(res, "error", { error: "Pipeline processing failed. Check server logs." });
   } finally {
+    clearInterval(heartbeat);
     res.end();
   }
 });
