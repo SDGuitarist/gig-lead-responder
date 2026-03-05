@@ -1,5 +1,6 @@
 import { callClaude } from "../claude.js";
 import { buildClassifyPrompt } from "../prompts/classify.js";
+import { wrapUntrustedData } from "../utils/sanitize.js";
 import type { Classification } from "../types.js";
 
 const validateClassification = (raw: unknown): Classification => {
@@ -18,7 +19,7 @@ const validateClassification = (raw: unknown): Classification => {
  */
 export async function classifyLead(rawText: string, today: string): Promise<Classification> {
   const systemPrompt = buildClassifyPrompt(today);
-  const userMessage = `Classify this lead:\n\n${rawText}`;
+  const userMessage = `Classify this lead:\n\n${wrapUntrustedData("lead_email", rawText)}`;
 
   const result = await callClaude<Classification>(systemPrompt, userMessage, undefined, validateClassification);
 
