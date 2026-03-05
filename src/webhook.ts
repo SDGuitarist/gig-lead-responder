@@ -45,6 +45,11 @@ router.post("/webhook/mailgun", (req, res) => {
   const signature = body.signature as string | undefined;
 
   if (process.env.DISABLE_MAILGUN_VALIDATION === "true") {
+    if (process.env.NODE_ENV === "production" || process.env.RAILWAY_ENVIRONMENT) {
+      console.error("FATAL: DISABLE_MAILGUN_VALIDATION cannot be used in production");
+      res.status(401).json({ error: "Validation bypass blocked in production" });
+      return;
+    }
     console.warn("⚠ Mailgun signature validation disabled via DISABLE_MAILGUN_VALIDATION");
   } else {
     if (!timestamp || !token || !signature) {
