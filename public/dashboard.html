@@ -2178,7 +2178,55 @@
       html += renderEmptySection('Revenue by Event Type', 'See which events generate the most revenue', 'Book a gig with a price to see revenue data.');
     }
 
+    // Follow-up Effectiveness
+    html += renderFollowUpEffectivenessSection(data.follow_up_effectiveness);
+
+    // Loss Reasons
+    if (data.loss_reasons && data.loss_reasons.length > 0) {
+      var lossCols = [
+        { key: 'count', label: 'Count', format: 'integer', getValue: function(r) { return r.count; } },
+        { key: 'pct', label: '% of Losses', format: 'pct', getValue: function(r) { return data.lost > 0 ? (r.count / data.lost * 100) : null; } }
+      ];
+      html += renderBreakdownTable('Loss Reasons', data.loss_reasons, true, lossCols);
+    } else {
+      html += renderEmptySection('Loss Reasons', 'See why leads are lost', 'Mark a lead as Lost with a reason to see patterns.');
+    }
+
     container.innerHTML = html;
+  }
+
+  function renderFollowUpEffectivenessSection(rows) {
+    if (!rows || rows.length === 0) {
+      return renderEmptySection('Follow-up Effectiveness', 'See if follow-ups help convert leads', 'Record outcomes on leads with follow-ups to see effectiveness.');
+    }
+    var totalSample = 0;
+    for (var i = 0; i < rows.length; i++) totalSample += rows[i].total;
+
+    var html = '<div class="insights-section" data-analytics="follow-up-effectiveness">';
+    html += '<h3>Follow-up Effectiveness</h3>';
+    html += renderSampleCaveat(totalSample);
+    html += '<table class="breakdown-table"><caption class="sr-only">Follow-up Effectiveness</caption>';
+    html += '<thead><tr><th scope="col">Follow-ups</th><th scope="col">Total</th><th scope="col">Booked</th><th scope="col">Lost</th><th scope="col">No Reply</th>';
+    if (totalSample >= 5) html += '<th scope="col">Book Rate</th>';
+    html += '</tr></thead><tbody>';
+
+    for (var j = 0; j < rows.length; j++) {
+      var r = rows[j];
+      var label = r.follow_up_count === 0 ? 'No follow-ups' : r.follow_up_count + ' follow-up' + (r.follow_up_count > 1 ? 's' : '');
+      html += '<tr><th scope="row">' + esc(label) + '</th>';
+      html += '<td>' + r.total + '</td>';
+      html += '<td>' + r.booked + '</td>';
+      html += '<td>' + r.lost + '</td>';
+      html += '<td>' + r.no_reply + '</td>';
+      if (totalSample >= 5) {
+        var rate = r.total > 0 ? (r.booked / r.total * 100).toFixed(1) + '%' : '\u2014';
+        html += '<td>' + rate + '</td>';
+      }
+      html += '</tr>';
+    }
+
+    html += '</tbody></table></div>';
+    return html;
   }
 
   function renderEmptySection(title, headline, hint) {
