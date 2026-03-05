@@ -1,12 +1,10 @@
 import "dotenv/config";
 import express from "express";
-import cookieParser from "cookie-parser";
 import { join } from "node:path";
 import { initDb } from "./leads.js";
 import webhookRouter from "./webhook.js";
 import twilioWebhookRouter from "./twilio-webhook.js";
 import apiRouter from "./api.js";
-import followUpApiRouter from "./follow-up-api.js";
 import { startFollowUpScheduler, stopFollowUpScheduler } from "./follow-up-scheduler.js";
 
 if (!process.env.ANTHROPIC_API_KEY) {
@@ -33,19 +31,6 @@ app.set("trust proxy", 1);
 
 app.use(express.json({ limit: "100kb" }));
 app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser());
-
-// Security headers
-app.use((_req, res, next) => {
-  res.setHeader("X-Frame-Options", "DENY");
-  res.setHeader("X-Content-Type-Options", "nosniff");
-  res.setHeader("Content-Security-Policy",
-    "default-src 'self'; script-src 'self' 'unsafe-inline'; " +
-    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
-    "font-src 'self' https://fonts.gstatic.com; " +
-    "img-src 'self' data:; connect-src 'self'");
-  next();
-});
 
 // Healthcheck for Railway (before routers that apply sessionAuth)
 app.get("/health", (_req, res) => {
@@ -62,9 +47,6 @@ app.use(twilioWebhookRouter);
 
 // JSON API for new dashboard (includes /api/analyze)
 app.use(apiRouter);
-
-// Follow-up action endpoints (approve, skip, snooze, replied)
-app.use(followUpApiRouter);
 
 // Redirect root to new dashboard
 app.get("/", (_req, res) => {
