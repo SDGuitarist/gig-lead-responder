@@ -77,12 +77,15 @@ router.post("/webhook/mailgun", (req, res) => {
   }
 
   // --- Parse email ---
+  const rawMessageId = body["Message-Id"] ?? body["message-id"];
   const fields: EmailFields = {
-    from: (body.from as string) || "",
-    subject: (body.subject as string) || "",
-    "body-plain": (body["body-plain"] as string) || "",
-    "body-html": (body["body-html"] as string) || "",
-    "Message-Id": (body["Message-Id"] as string) || (body["message-id"] as string) || undefined,
+    from: String(body.from ?? ""),
+    subject: String(body.subject ?? ""),
+    "body-plain": String(body["body-plain"] ?? ""),
+    "body-html": String(body["body-html"] ?? ""),
+    "Message-Id": typeof rawMessageId === "string" && rawMessageId.length > 0
+      ? rawMessageId
+      : undefined,
   };
 
   const result = parseEmail(fields);
