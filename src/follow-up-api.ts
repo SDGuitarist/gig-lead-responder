@@ -1,7 +1,7 @@
 import { Router } from "express";
 import type { Request, Response } from "express";
 import { getLead, approveFollowUp, skipFollowUp, snoozeFollowUp, markClientReplied } from "./leads.js";
-import { shapeLead } from "./api.js";
+import { shapeLead } from "./utils/shape-lead.js";
 import { sessionAuth, csrfGuard } from "./auth.js";
 import { followUpActionLimiter } from "./rate-limit.js";
 import type { SnoozeRequestBody } from "./types.js";
