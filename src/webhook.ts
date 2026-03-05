@@ -36,6 +36,9 @@ function verifyMailgunSignature(
   }
 }
 
+/** Max age for Mailgun webhook timestamps (5 minutes). Prevents replay attacks. */
+const MAILGUN_TIMESTAMP_MAX_AGE_S = 5 * 60;
+
 router.post("/webhook/mailgun", (req, res) => {
   const body = req.body;
 
@@ -55,6 +58,14 @@ router.post("/webhook/mailgun", (req, res) => {
     if (!timestamp || !token || !signature) {
       console.warn("Webhook missing signature fields");
       res.status(401).json({ error: "Missing signature fields" });
+      return;
+    }
+
+    // Replay protection: reject timestamps older than 5 minutes
+    const tsAge = Math.abs(Math.floor(Date.now() / 1000) - parseInt(timestamp, 10));
+    if (isNaN(tsAge) || tsAge > MAILGUN_TIMESTAMP_MAX_AGE_S) {
+      console.warn(`Webhook timestamp too old or invalid: ${timestamp} (age: ${tsAge}s)`);
+      res.status(401).json({ error: "Webhook timestamp expired" });
       return;
     }
 
