@@ -1,8 +1,8 @@
 # HANDOFF -- Gig Lead Responder
 
 **Date:** 2026-03-05
-**Branch:** `fix/p2-batch-cycle-12` (20 commits total, pending merge to main)
-**Phase:** Work complete -- leads.ts structural split. Ready for Review.
+**Branch:** `main` (commit 7379fce)
+**Phase:** Review complete -- email-parser.ts security review. Ready for Fix-Batched.
 
 ## Current State
 
@@ -60,6 +60,7 @@ leads.ts structural split is done. 751-line God Module split into 4 focused modu
 | Plan (split) | `docs/plans/2026-03-05-refactor-leads-ts-structural-split-plan.md` |
 | Review (Cycle 10) | `docs/reviews/feat-lead-response-loop/REVIEW-SUMMARY.md` |
 | Review (Cycle 11) | `docs/reviews/feat-lead-response-loop-final/REVIEW-SUMMARY.md` |
+| Review (Cycle 13) | `docs/reviews/email-parser-security/REVIEW-SUMMARY.md` |
 | Solution (Cycle 10) | `docs/solutions/architecture/review-fix-cycle-2-lead-response-loop.md` |
 | Solution (Cycle 11) | `docs/solutions/architecture/review-fix-cycle-3-security-hardening.md` |
 | Solution (Cycle 12) | `docs/solutions/architecture/review-fix-cycle-4-hardening-and-cleanup.md` |
@@ -73,7 +74,7 @@ leads.ts structural split is done. 751-line God Module split into 4 focused modu
 - verify.ts flagged_concerns injected outside XML delimiters
 - follow-up.ts classification fields skip `sanitizeClassification()`
 - `compressed_draft` has no independent length limit
-- `email-parser.ts` never security-reviewed (pre-auth surface if validation disabled)
+- `email-parser.ts` security-reviewed (Cycle 13) — 3 P1s + 5 P2s pending fixes
 - `index.html` and `mockup-hybrid.html` not covered by CSP nonce injection (verify if actively served)
 - `csrfGuard` Basic Auth bypass path undocumented
 - `stmt()` cache stale connection risk mitigated by db-reference guard in each module
@@ -89,11 +90,32 @@ leads.ts structural split is done. 751-line God Module split into 4 focused modu
 ## Prompt for Next Session
 
 ```
-Read docs/HANDOFF.md. This is Gig Lead Responder on branch fix/p2-batch-cycle-12.
-Work phase complete for leads.ts structural split (2 commits: d0cdcb3, 05f762d).
-Run /workflows:review on the split. Focus areas from Feed-Forward:
-(1) runTransaction 3-layer async guard (Layer 3 post-commit behavior),
-(2) normalizeLeadRow promotion from private to exported,
-(3) stmtCache db-reference guard correctness.
-Relevant files: src/db/*.ts, plus the 8 updated consumer files.
+Read docs/HANDOFF.md. This is Gig Lead Responder on branch main.
+Review complete for email-parser.ts security review (Cycle 13).
+Run fix-batched phase to address P1s and P2s from
+docs/reviews/email-parser-security/REVIEW-SUMMARY.md.
+
+Batch 1 (P1s — fix these first):
+  001 - ReDoS in EVENT DATE regex (src/email-parser.ts:105)
+        Fix: replace .*? with [^<]* in the regex
+  002 - Prompt injection in classify stage (src/pipeline/classify.ts:21)
+        Fix: wrap rawText with wrapUntrustedData("lead_email", rawText)
+  003 - Unsafe `as string` casts (src/webhook.ts:80-86)
+        Fix: use String(body.field ?? "") instead of (body.field as string) || ""
+
+Batch 2 (P2s):
+  004 - Empty-string Message-Id logic bug (src/webhook.ts:85)
+        Fix: explicit empty-string check, depends on 003
+  005 - No input length limits before regex (src/email-parser.ts)
+        Fix: slice body-plain and body-html to 200K before regex
+  006 - Explicit urlencoded body limit (src/server.ts:42)
+        Fix: add limit: "100kb" to express.urlencoded()
+  007 - Token URL not validated (src/email-parser.ts:54,111)
+        Fix: validate URL scheme + domain after extraction
+  008 - DISABLE_MAILGUN_VALIDATION bypass (src/webhook.ts:50-56)
+        Fix: require DEV_WEBHOOK_KEY when validation disabled
+
+Relevant files: src/email-parser.ts, src/webhook.ts, src/pipeline/classify.ts,
+src/server.ts, src/utils/sanitize.ts.
+One commit per fix, ~50-100 lines each. Run tsc --noEmit after each commit.
 ```
