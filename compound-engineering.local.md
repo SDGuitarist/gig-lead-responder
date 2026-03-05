@@ -6,37 +6,29 @@
 
 **Plan mitigation:** Defined component layouts per breakpoint, tap target sizes (44px min), scrollable tab nav for 5-tab overflow. Simplified to cards-only layout.
 
-**Work risk (from Feed-Forward):** SQLite table rebuild migration for CHECK constraint — only destructive DB operation. Merge to main with 5 divergent deploy-fix commits.
+**Work risk (from Feed-Forward):** Whether `sanitizeClassification` covers all free-text fields that could be attacker-influenced. Enum-constrained fields (`cultural_tradition`, `event_energy`) not truncated — accepted as low risk.
 
-**Review resolution (Cycle 10):** 26 unique findings (2 P1, 6 P2, ~18 P3) from 7 agents. Top findings: production guard missing RAILWAY_ENVIRONMENT (P1), analyze endpoint missing CSRF header (P1). All 8 todos fixed.
+**Review resolution (Cycle 11):** 17 unique findings (3 P1, 9 P2, 5 P3) from 9 agents (including 2 NEW: LLM Pipeline Security, Dashboard XSS). All 3 P1s fixed. Two new agents found all P1s — validating the "add agents for blind spots" lesson from Cycle 10.
 
-**Fix resolution:** 8 fixed (2 P1, 6 P2), ~18 deferred (P3). Four patterns documented: solution-doc-violation escalation, defense-in-depth for integrations, copy-paste drift extraction, double-cast as type-model signal.
+**Fix resolution:** 3 P1 fixed (XSS default-escape, input size guard, prompt injection XML delimiters). 9 P2 + 5 P3 deferred. Security-sentinel reviewed solution doc — noted 3 low-severity inconsistencies (verify.ts flagged_concerns outside XML, follow-up.ts skipping sanitizeClassification, compressed_draft lacking truncation).
 
 ## Files to Scrutinize
 
 | File | What changed | Risk area |
 |------|-------------|-----------|
-| `src/server.ts` | Security headers (HSTS, Referrer-Policy, Permissions-Policy), startup guard expanded | Merge conflict resolution — verify healthcheck ordering preserved |
-| `src/auth.ts` | RAILWAY_ENVIRONMENT added to startup guard, creds check moved to startup | Fail-fast at startup instead of per-request exit |
-| `src/follow-up-api.ts` | Extracted `handleAction()` helper, removed 63 lines duplication | Snooze body validation still runs before shared path |
-| `src/follow-up-scheduler.ts` | Extracted `storeFollowUpDraft()` to leads.ts | Now uses leads.ts abstraction instead of raw SQL |
-| `src/leads.ts` | New `storeFollowUpDraft()` function with WHERE guard | 700+ lines — structural split still pending |
-| `src/twilio-webhook.ts` | Inline production guard added to Mailgun webhook | Defense-in-depth — startup check is primary |
-| `public/dashboard.html` | X-Requested-With header added to analyze fetch | 2,474 lines — approaching extraction threshold |
+| `public/dashboard.html` | `analyzeKvHTML` default-escape refactor | Verify no double-escaping on `p[2]=true` raw HTML paths |
+| `src/run-pipeline.ts` | 50K char truncation guard at pipeline entry | Truncation at char boundary could split multi-byte UTF-8 |
+| `src/utils/sanitize.ts` | NEW — `sanitizeClassification()` + `wrapUntrustedData()` | Coverage gap: only 4 classification fields sanitized |
+| `src/prompts/generate.ts` | XML-wrapped classification data | Verify XML tags don't conflict with other prompt structure |
+| `src/prompts/verify.ts` | XML-wrapped classification + standalone flagged_concerns line | Inconsistency: flagged_concerns injected inline without XML wrapper |
+| `src/prompts/follow-up.ts` | XML-wrapped lead_context + original_response | Classification fields extracted without `sanitizeClassification()` |
 
-## Review Blind Spots (Not Covered by Current Agent Roster)
+## Remaining Security Gaps (from Security Sentinel Review)
 
-- LLM prompt/response pipeline (generate.ts, verify.ts, enrich.ts) — prompt injection, output validation, token budget
-- Dashboard client-side JS (2,474 lines) — DOM-based XSS, state management bugs
-- Consider adding prompt-security and frontend-XSS agents for next review cycle
-
-## Review Process Learnings (Cycle 10)
-
-- **Learnings Researcher is highest-ROI agent** — found both P1s by cross-referencing against existing solution docs. Always include it.
-- **Declare blind spots explicitly** — LLM pipeline and dashboard JS weren't covered. Add prompt-security and frontend-XSS agents for next cycle.
-- **P3 deferrals tracked in HANDOFF** — ~30 deferred P3s from Cycles 9-10 listed in `docs/HANDOFF.md` "Deferred Items." Surface them in next brainstorm.
-- **Merge checklist pattern** — list specific integration points to verify (not just "it builds"). Example: healthcheck ordering, IPv6 binding, security headers.
-- **No `process.exit()` in hot paths** — fatal config checks belong at startup, not per-request middleware.
+- `verify.ts` flagged_concerns injected outside XML delimiters (truncated but unwrapped)
+- `follow-up.ts` classification fields rely on XML wrapping alone, no `sanitizeClassification()`
+- `compressed_draft` passed to follow-up prompt without independent length limit
+- `callClaude` has no sanitization contract — direct callers bypass XML wrapping
 
 ## Plan Reference
 
