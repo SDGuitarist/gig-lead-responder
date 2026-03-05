@@ -34,6 +34,12 @@ All powered by one endpoint: `GET /api/analytics` calling `getAnalytics()` in `q
 
 ## Data Availability Audit
 
+### Blocker Resolution (2026-03-05)
+
+**Production DB queried via Railway CLI.** Result: the database has **zero leads**. No event_type values or outcome_at timestamps to audit. The data cleanliness concern is moot for now, but the plan should include preventive normalization (`LOWER(TRIM(event_type))`) in the Revenue by Event Type query to avoid fragmentation as leads accumulate.
+
+**Side finding:** `COOKIE_SECRET` was missing from Railway env vars, causing 502s on all authenticated routes while `/health` returned 200. Fixed by setting the variable, which triggered a redeploy.
+
 Before designing queries, verify what's actually in the database:
 
 | Column | Used for | Populated? | Notes |
@@ -132,6 +138,12 @@ Display: ranked list with revenue totals.
 
 ### 4. Follow-up Effectiveness
 
+**Bug found during review:** `setLeadOutcome()` does NOT stop active follow-ups. The scheduler can increment `follow_up_count` after an outcome is recorded, making this query inaccurate. **The plan must include a prerequisite fix:**
+
+- **Where:** `src/api.ts`, `POST /api/leads/:id/outcome` handler (NOT `leads.ts` — circular dependency risk since `follow-ups.ts` imports from `leads.ts`)
+- **What:** Import `skipFollowUp` from `./db/index.js`, call `skipFollowUp(id)` after `setLeadOutcome()` when `outcome !== null`. Re-fetch lead with `getLead(id)` for accurate response.
+- **Safe:** `skipFollowUp()` is idempotent (no-op if no active follow-up). Don't call on `outcome === null` (clearing) since skip is irreversible.
+
 ```sql
 -- Outcome breakdown by follow_up_count at time of outcome
 SELECT follow_up_count,
@@ -205,10 +217,10 @@ The entire analytics feature depends on outcomes being recorded. If Alejandro st
 
 2. **What did you reject, and why?** Rejected adding a chart library (Chart.js, etc.). CSS-only bars are simpler, lighter, and consistent with the existing breakdown bars. A chart library would add a dependency, increase page weight, and look out of place in the current minimal design. Also rejected date range filters — monthly trends provide temporal context without UI complexity.
 
-3. **Least confident about going into the next phase?** Whether `event_type` values are clean enough for "Revenue by Event Type" to be useful. They're free-text extracted by the email parser — could be inconsistent ("Wedding", "wedding", "Wedding Reception"). The plan should decide whether to normalize these in the query (LOWER + TRIM) or accept messy labels. Also uncertain about how many leads actually have `outcome_at` populated — if Alejandro set outcomes before that column existed, response time analysis will have gaps.
+3. **Least confident about going into the next phase?** ~~Whether `event_type` values are clean enough~~ **RESOLVED:** Production DB has zero leads — no dirty data to worry about. Plan should include preventive `LOWER(TRIM())` normalization. ~~Also uncertain about `outcome_at` population~~ **RESOLVED:** No data yet. Additionally, a **follow-up count bug was confirmed** — `setLeadOutcome()` doesn't stop active follow-ups, so `follow_up_count` can drift after outcome recording. Fix designed (see Section 4 above) and must be a prerequisite in the plan.
 
 ## Feed-Forward
 
 - **Hardest decision:** Single endpoint (Option A) vs multiple endpoints — chose simplicity for small dataset
 - **Rejected alternatives:** Chart library (Chart.js) — too heavy for the minimal design; date range filters — monthly trends suffice; multiple API endpoints — premature for < 100 rows
-- **Least confident:** `event_type` data cleanliness for grouping, and whether `outcome_at` has enough populated rows for response time analysis to be meaningful
+- **Least confident:** ~~event_type cleanliness and outcome_at population~~ **RESOLVED** — production DB is empty (zero leads). Preventive normalization planned. New risk: the follow-up count bug (setLeadOutcome doesn't freeze follow-ups) must be fixed as a prerequisite before follow-up effectiveness analytics are meaningful.
