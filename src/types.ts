@@ -209,6 +209,38 @@ export type LeadOutcome = (typeof LEAD_OUTCOMES)[number];
 export const LOSS_REASONS = ["price", "competitor", "cancelled", "other"] as const;
 export type LossReason = (typeof LOSS_REASONS)[number];
 
+export interface BookingCycleEntry {
+  source_platform: string;
+  avg_days: number;
+  sample_size: number;
+}
+
+export interface MonthlyTrendEntry {
+  month: string; // "YYYY-MM" format
+  received: number;
+  booked: number;
+}
+
+export interface RevenueByTypeEntry {
+  event_type: string;
+  revenue: number;
+  count: number;
+  avg_price: number;
+}
+
+export interface FollowUpEffectivenessEntry {
+  follow_up_count: number;
+  total: number;
+  booked: number;
+  lost: number;
+  no_reply: number;
+}
+
+export interface LossReasonEntry {
+  reason: LossReason | "unspecified";
+  count: number;
+}
+
 export interface AnalyticsBreakdown {
   label: string;
   total: number;
@@ -229,6 +261,11 @@ export interface AnalyticsResponse {
   avg_actual_price: number | null;
   by_platform: AnalyticsBreakdown[];
   by_format: AnalyticsBreakdown[];
+  booking_cycle: BookingCycleEntry[];
+  monthly_trends: MonthlyTrendEntry[];
+  revenue_by_type: RevenueByTypeEntry[];
+  follow_up_effectiveness: FollowUpEffectivenessEntry[];
+  loss_reasons: LossReasonEntry[];
 }
 
 // --- Dashboard API response type ---
