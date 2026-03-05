@@ -9,6 +9,7 @@ import webhookRouter from "./webhook.js";
 import twilioWebhookRouter from "./twilio-webhook.js";
 import apiRouter from "./api.js";
 import followUpApiRouter from "./follow-up-api.js";
+import { logout } from "./auth.js";
 import { startFollowUpScheduler, stopFollowUpScheduler } from "./follow-up-scheduler.js";
 
 if (!process.env.ANTHROPIC_API_KEY) {
@@ -86,6 +87,9 @@ app.use(apiRouter);
 
 // Follow-up action endpoints (approve, skip, snooze, replied)
 app.use(followUpApiRouter);
+
+// Logout — clears session cookie
+app.get("/logout", logout);
 
 // Redirect root to new dashboard
 app.get("/", (_req, res) => {
