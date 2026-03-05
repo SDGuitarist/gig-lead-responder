@@ -8,6 +8,9 @@ export interface EmailFields {
   "Message-Id"?: string;
 }
 
+/** Max body length before regex processing — defense-in-depth against ReDoS. */
+const MAX_BODY_LENGTH = 200_000;
+
 // --- GigSalad ---
 
 const GIGSALAD_LEAD_FROM = "leads@gigsalad.com";
@@ -24,8 +27,8 @@ function parseGigSalad(fields: EmailFields): ParseResult {
     return { ok: false, reason: "skip", detail: `Not a GigSalad lead email: ${fields.from}` };
   }
 
-  const plain = fields["body-plain"];
-  const html = fields["body-html"];
+  const plain = fields["body-plain"].slice(0, MAX_BODY_LENGTH);
+  const html = fields["body-html"].slice(0, MAX_BODY_LENGTH);
   const subject = fields.subject;
 
   // external_id = Message-Id header
@@ -86,8 +89,8 @@ function parseTheBash(fields: EmailFields): ParseResult {
     return { ok: false, reason: "skip", detail: "The Bash email without Gig Alert — skipping" };
   }
 
-  const html = fields["body-html"];
-  const plain = fields["body-plain"];
+  const html = fields["body-html"].slice(0, MAX_BODY_LENGTH);
+  const plain = fields["body-plain"].slice(0, MAX_BODY_LENGTH);
 
   // external_id: Gig ID from subject — "Gig ID #(\d+)"
   const gigIdMatch = subject.match(/Gig ID #(\d+)/);
