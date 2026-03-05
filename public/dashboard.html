@@ -1360,14 +1360,14 @@
   function fmtDate(str) {
     if (!str) return '\u2014';
     var d = new Date(str + 'T12:00:00');
-    if (isNaN(d.getTime())) return str;
+    if (isNaN(d.getTime())) return esc(str);
     return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
   }
 
   function fmtTimestamp(str) {
     if (!str) return '\u2014';
     var d = new Date(str);
-    if (isNaN(d.getTime())) return str;
+    if (isNaN(d.getTime())) return esc(str);
     return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   }
 
@@ -1652,7 +1652,7 @@
     }
 
     tbody.innerHTML = leads.map(function (l) {
-      var st = STATUS_DISPLAY[l.status] || { label: l.status, css: '' };
+      var st = STATUS_DISPLAY[l.status] || { label: esc(l.status), css: '' };
       var sc = l.confidence_score;
       var fmt = FORMAT_NAMES[l.format_recommended] || l.format_recommended || '\u2014';
       var muted = (l.status === 'sent' || l.status === 'done') ? ' row-muted' : '';
@@ -1694,7 +1694,7 @@
     }
 
     container.innerHTML = leads.map(function (l) {
-      var st = STATUS_DISPLAY[l.status] || { label: l.status, css: '' };
+      var st = STATUS_DISPLAY[l.status] || { label: esc(l.status), css: '' };
       var sc = l.confidence_score;
       var fmt = FORMAT_NAMES[l.format_recommended] || l.format_recommended || '\u2014';
       var muted = (l.status === 'sent' || l.status === 'done') ? ' style="opacity:0.7"' : '';
@@ -2154,9 +2154,10 @@
 
   function analyzeKvHTML(pairs) {
     return pairs.map(function (p) {
+      var val = p[2] ? p[1] : esc(String(p[1]));
       return '<div class="analyze-kv">' +
         '<span class="analyze-kv-label">' + esc(p[0]) + '</span>' +
-        '<span class="analyze-kv-value">' + p[1] + '</span>' +
+        '<span class="analyze-kv-value">' + val + '</span>' +
       '</div>';
     }).join('');
   }
@@ -2169,25 +2170,25 @@
     }
     var c = data.classification;
     document.getElementById('analyzeClassification').innerHTML = analyzeKvHTML([
-      ['Mode', esc(c.mode)],
-      ['Competition', esc(c.competition_level) + ' (' + c.competition_quote_count + ' quotes)'],
-      ['Stealth Premium', c.stealth_premium ? 'YES — ' + esc((c.stealth_premium_signals || []).join(', ')) : 'No'],
-      ['Tier', esc(c.tier) + ' / ' + esc(c.rate_card_tier)],
-      ['Format', esc(c.format_requested) + ' → ' + esc(c.format_recommended)],
+      ['Mode', c.mode],
+      ['Competition', c.competition_level + ' (' + c.competition_quote_count + ' quotes)'],
+      ['Stealth Premium', c.stealth_premium ? 'YES — ' + (c.stealth_premium_signals || []).join(', ') : 'No'],
+      ['Tier', c.tier + ' / ' + c.rate_card_tier],
+      ['Format', c.format_requested + ' → ' + c.format_recommended],
       ['Duration', c.duration_hours + 'hr'],
-      ['Cultural', c.cultural_context_active ? esc(c.cultural_tradition) : 'N/A'],
-      ['Timeline', esc(c.timeline_band) + ' / ' + esc(c.close_type) + ' close']
+      ['Cultural', c.cultural_context_active ? c.cultural_tradition : 'N/A'],
+      ['Timeline', c.timeline_band + ' / ' + c.close_type + ' close']
     ].concat(c.flagged_concerns && c.flagged_concerns.length
-      ? [['Concerns', esc(c.flagged_concerns.join(', '))]]
+      ? [['Concerns', c.flagged_concerns.join(', ')]]
       : []
     ));
 
     var p = data.pricing;
     document.getElementById('analyzePricing').innerHTML = analyzeKvHTML([
-      ['Format', esc(p.format) + ' | ' + p.duration_hours + 'hr | ' + esc(p.tier_key)],
+      ['Format', p.format + ' | ' + p.duration_hours + 'hr | ' + p.tier_key],
       ['Anchor', '$' + p.anchor],
       ['Floor', '$' + p.floor],
-      ['Quote', '$' + p.quote_price + ' (' + esc(p.competition_position) + ')']
+      ['Quote', '$' + p.quote_price + ' (' + p.competition_position + ')']
     ]);
 
     document.getElementById('analyzeFullDraft').textContent = data.drafts.full_draft;
@@ -2207,14 +2208,14 @@
     document.getElementById('analyzeGate').innerHTML = analyzeKvHTML([
       ['Status', '<span class="' + (g.gate_status === 'pass' ? 'analyze-gate-pass' : 'analyze-gate-fail') + '">' +
         esc(g.gate_status.toUpperCase()) + '</span>' +
-        (data.verified ? '' : ' (unverified — best attempt)')],
-      ['Validation', '"' + esc(g.validation_line) + '"'],
-      ['Best Line', '"' + esc(g.best_line) + '"'],
-      ['Scene', esc(g.scene_type) + ' — "' + esc(g.scene_quote) + '"'],
+        (data.verified ? '' : ' (unverified — best attempt)'), true],
+      ['Validation', '"' + g.validation_line + '"'],
+      ['Best Line', '"' + g.best_line + '"'],
+      ['Scene', g.scene_type + ' — "' + g.scene_quote + '"'],
       ['Competitor Test', g.competitor_test ? 'FAIL — could be any vendor' : 'PASS — unique'],
       ['Gut Checks', passed + '/' + total + ' passed']
     ].concat(g.fail_reasons && g.fail_reasons.length
-      ? [['Fail Reasons', esc(g.fail_reasons.join('; '))]]
+      ? [['Fail Reasons', g.fail_reasons.join('; ')]]
       : []
     ));
 
