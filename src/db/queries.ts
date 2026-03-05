@@ -1,27 +1,10 @@
 // Allowed imports: ./migrate.js, ./leads.js, ../types.js only
 // NEVER import from ./index.js (circular dependency risk)
 
-import type Database from "better-sqlite3";
 import type { LeadRecord, LeadStatus, AnalyticsResponse } from "../types.js";
 import { initDb } from "./migrate.js";
 import { normalizeLeadRow } from "./leads.js";
-
-// stmt() pattern also in leads.ts, follow-ups.ts — keep in sync
-let cachedDb: Database.Database | undefined;
-const stmtCache = new Map<string, Database.Statement>();
-function stmt(sql: string): Database.Statement {
-  const db = initDb();
-  if (db !== cachedDb) {
-    stmtCache.clear();
-    cachedDb = db;
-  }
-  let s = stmtCache.get(sql);
-  if (!s) {
-    s = db.prepare(sql);
-    stmtCache.set(sql, s);
-  }
-  return s;
-}
+import { stmt } from "./stmt-cache.js";
 
 // --- Dashboard queries ---
 
