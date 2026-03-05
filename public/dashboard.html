@@ -883,6 +883,7 @@
     margin-bottom: 14px;
   }
 
+  .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0; }
   .breakdown-table { width: 100%; border-collapse: collapse; }
   .breakdown-table th {
     font-size: 11px;
@@ -2143,31 +2144,53 @@
     container.innerHTML = html;
   }
 
-  function renderBreakdownTable(title, rows, showPct) {
+  // Formatters registry for parameterized tables
+  var FORMATTERS = {
+    currency: function(v) { return v == null ? '\u2014' : '$' + Number(v).toLocaleString(); },
+    pct:      function(v) { return v == null ? '\u2014' : v.toFixed(1) + '%'; },
+    integer:  function(v) { return v == null ? '\u2014' : Number(v).toLocaleString(); },
+    days:     function(v) { return v == null ? '\u2014' : v.toFixed(1) + 'd'; },
+    text:     function(v) { return v == null ? '\u2014' : esc(String(v)); },
+  };
+
+  var DEFAULT_COLUMNS = [
+    { key: 'booked', label: 'Booked', format: 'text', getValue: function(r) { return r.booked + ' of ' + r.total; } },
+    { key: 'rate', label: 'Rate', format: 'pct', pctGate: true, getValue: function(r) { return r.total >= 3 ? Math.round(r.rate * 100) : null; } }
+  ];
+
+  function renderBreakdownTable(title, rows, showPct, columns) {
+    var cols = columns || DEFAULT_COLUMNS;
     var maxTotal = 0;
     for (var i = 0; i < rows.length; i++) {
-      if (rows[i].total > maxTotal) maxTotal = rows[i].total;
+      if ((rows[i].total || 0) > maxTotal) maxTotal = rows[i].total || 0;
     }
 
-    var html = '<div class="insights-section">';
+    var html = '<div class="insights-section" data-analytics="' + esc(title.toLowerCase().replace(/\s+/g, '-')) + '">';
     html += '<h3>' + esc(title) + '</h3>';
-    html += '<table class="breakdown-table">';
-    html += '<thead><tr><th>Name</th><th>Booked</th>' + (showPct ? '<th>Rate</th>' : '') + '<th class="bar-cell"></th></tr></thead>';
-    html += '<tbody>';
+    html += '<table class="breakdown-table"><caption class="sr-only">' + esc(title) + '</caption>';
+    html += '<thead><tr><th scope="col">Name</th>';
+    for (var c = 0; c < cols.length; c++) {
+      if (cols[c].pctGate && !showPct) continue;
+      html += '<th scope="col">' + esc(cols[c].label) + '</th>';
+    }
+    html += '<th scope="col" class="bar-cell"></th></tr></thead><tbody>';
 
     for (var j = 0; j < rows.length; j++) {
       var r = rows[j];
-      var thin = r.total < 3 ? ' class="thin-data"' : '';
-      var barWidth = maxTotal > 0 ? Math.round((r.booked / maxTotal) * 100) : 0;
-      var label = FORMAT_NAMES[r.label] || r.label || 'Unknown';
+      var thin = (r.total || r.count || 0) < 3 ? ' class="thin-data"' : '';
+      var barVal = r.booked != null ? r.booked : (r.count || 0);
+      var barWidth = maxTotal > 0 ? Math.round((barVal / maxTotal) * 100) : 0;
+      var label = FORMAT_NAMES[r.label || r.source_platform || r.event_type || r.reason || r.month] || r.label || r.source_platform || r.event_type || r.reason || r.month || 'Unknown';
 
       html += '<tr' + thin + '>';
-      html += '<td>' + esc(label) + '</td>';
-      html += '<td>' + r.booked + ' of ' + r.total + '</td>';
-      if (showPct) {
-        html += '<td>' + (r.total >= 3 ? Math.round(r.rate * 100) + '%' : '\u2014') + '</td>';
+      html += '<th scope="row">' + esc(label) + '</th>';
+      for (var k = 0; k < cols.length; k++) {
+        if (cols[k].pctGate && !showPct) continue;
+        var val = cols[k].getValue ? cols[k].getValue(r) : r[cols[k].key];
+        var fmt = FORMATTERS[cols[k].format] || FORMATTERS.text;
+        html += '<td>' + fmt(val) + '</td>';
       }
-      html += '<td class="bar-cell">' + (r.total >= 3 ? '<div class="bar" style="width:' + barWidth + '%"></div>' : '') + '</td>';
+      html += '<td class="bar-cell" aria-hidden="true">' + ((r.total || r.count || 0) >= 3 ? '<div class="bar" style="width:' + barWidth + '%"></div>' : '') + '</td>';
       html += '</tr>';
     }
 
