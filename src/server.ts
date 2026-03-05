@@ -11,6 +11,7 @@ import apiRouter from "./api.js";
 import followUpApiRouter from "./follow-up-api.js";
 import { sessionAuth, csrfGuard, logout } from "./auth.js";
 import { startFollowUpScheduler, stopFollowUpScheduler } from "./follow-up-scheduler.js";
+import { recoverStuckLeads } from "./post-pipeline.js";
 
 if (!process.env.ANTHROPIC_API_KEY) {
   console.error("Error: ANTHROPIC_API_KEY not set in .env file");
@@ -104,6 +105,7 @@ const PORT = parseInt(process.env.PORT || "3000", 10);
 const server = app.listen(PORT, "::", () => {
   console.log(`Gig Lead Responder running at http://localhost:${PORT}`);
   startFollowUpScheduler();
+  recoverStuckLeads().catch(err => console.error("Stuck lead recovery failed:", err));
 });
 
 process.on("SIGTERM", () => {
