@@ -462,6 +462,17 @@ export function approveFollowUp(leadId: number): LeadRecord | undefined {
 }
 
 /**
+ * Store a follow-up draft, guarded by follow_up_status = 'sent'.
+ * Returns true if the draft was stored, false if the status changed during generation.
+ */
+export function storeFollowUpDraft(leadId: number, draft: string): boolean {
+  const result = initDb()
+    .prepare("UPDATE leads SET follow_up_draft = @draft, updated_at = @now WHERE id = @id AND follow_up_status = 'sent'")
+    .run({ id: leadId, draft, now: new Date().toISOString() });
+  return result.changes > 0;
+}
+
+/**
  * Skip all remaining follow-ups. Atomically claims from pending or sent.
  * Returns updated lead or undefined if claim failed.
  */
