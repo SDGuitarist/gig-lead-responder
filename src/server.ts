@@ -70,7 +70,7 @@ app.get("/health", (_req, res) => {
 const dashboardHtml = readFileSync(join(import.meta.dirname, "..", "public", "dashboard.html"), "utf-8");
 app.get("/dashboard.html", (_req, res) => {
   const nonce = res.locals.cspNonce as string;
-  const html = dashboardHtml.replace(/<script>/g, `<script nonce="${nonce}">`);
+  const html = dashboardHtml.replace(/<script(?=[\s>])/gi, `<script nonce="${nonce}"`);
   res.type("html").send(html);
 });
 
