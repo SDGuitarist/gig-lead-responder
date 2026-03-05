@@ -25,9 +25,7 @@ function handleAction(
   const updated = actionFn(id);
   if (!updated) { res.status(409).json({ error: errorMsg }); return; }
 
-  const shaped = shapeLead(updated);
-  if (!shaped) { res.status(500).json({ error: "Failed to shape lead response" }); return; }
-  res.json({ success: true, lead: shaped });
+  res.json(shapeLead(updated));
 }
 
 router.post("/api/leads/:id/follow-up/approve", followUpActionLimiter, csrfGuard, (req: Request, res: Response) => {
@@ -76,9 +74,7 @@ router.post("/api/leads/:id/follow-up/snooze", followUpActionLimiter, csrfGuard,
   const updated = snoozeFollowUp(id, snoozeDate.toISOString());
   if (!updated) { res.status(409).json({ error: "Lead is not in a valid state for snoozing" }); return; }
 
-  const shaped = shapeLead(updated);
-  if (!shaped) { res.status(500).json({ error: "Failed to shape lead response" }); return; }
-  res.json({ success: true, lead: shaped });
+  res.json(shapeLead(updated));
 });
 
 router.post("/api/leads/:id/follow-up/replied", followUpActionLimiter, csrfGuard, (req: Request, res: Response) => {
