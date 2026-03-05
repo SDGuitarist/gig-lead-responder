@@ -14,9 +14,13 @@ if (!process.env.ANTHROPIC_API_KEY) {
   process.exit(1);
 }
 
-if (process.env.NODE_ENV === "production") {
+if (process.env.NODE_ENV === "production" || process.env.RAILWAY_ENVIRONMENT) {
   if (process.env.DISABLE_TWILIO_VALIDATION || process.env.DISABLE_MAILGUN_VALIDATION) {
     console.error("FATAL: webhook validation bypass enabled in production");
+    process.exit(1);
+  }
+  if (!process.env.DASHBOARD_USER || !process.env.DASHBOARD_PASS) {
+    console.error("FATAL: DASHBOARD_USER and DASHBOARD_PASS must be set in production");
     process.exit(1);
   }
 }
@@ -44,6 +48,11 @@ app.use((_req, res, next) => {
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
     "font-src 'self' https://fonts.gstatic.com; " +
     "img-src 'self' data:; connect-src 'self'");
+  res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
+  res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+  if (process.env.NODE_ENV === "production" || process.env.RAILWAY_ENVIRONMENT) {
+    res.setHeader("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
+  }
   next();
 });
 
