@@ -1,5 +1,5 @@
 import { Router, type Request, type Response } from "express";
-import { listLeadsFiltered, listFollowUpLeads, getLeadStats, getLead, updateLead, claimLeadForSending, setLeadOutcome, getAnalytics, completeApproval } from "./leads.js";
+import { listLeadsFiltered, listFollowUpLeads, getLeadStats, getLead, updateLead, claimLeadForSending, setLeadOutcome, getAnalytics, completeApproval } from "./db/index.js";
 import type { LeadStatus, LeadOutcome, LossReason } from "./types.js";
 import { LEAD_OUTCOMES, LOSS_REASONS } from "./types.js";
 import { sessionAuth, csrfGuard } from "./auth.js";

@@ -1,4 +1,4 @@
-import { getLead, updateLead } from "./leads.js";
+import { getLead, updateLead } from "./db/index.js";
 import { sendSms } from "./sms.js";
 import type { PipelineOutput } from "./types.js";
 

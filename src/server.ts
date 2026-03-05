@@ -4,7 +4,7 @@ import cookieParser from "cookie-parser";
 import { join } from "node:path";
 import { readFileSync } from "node:fs";
 import { randomBytes } from "node:crypto";
-import { initDb } from "./leads.js";
+import { initDb } from "./db/index.js";
 import webhookRouter from "./webhook.js";
 import twilioWebhookRouter from "./twilio-webhook.js";
 import apiRouter from "./api.js";

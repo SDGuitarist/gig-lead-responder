@@ -1,7 +1,7 @@
 import twilio from "twilio";
 import { Router } from "express";
 import type { Request, Response } from "express";
-import { getLead, getLeadsByStatus, updateLead, completeApproval, approveFollowUp, skipFollowUp, getLeadAwaitingFollowUp, getLeadWithActiveFollowUp } from "./leads.js";
+import { getLead, getLeadsByStatus, updateLead, completeApproval, approveFollowUp, skipFollowUp, getLeadAwaitingFollowUp, getLeadWithActiveFollowUp } from "./db/index.js";
 import { sendSms } from "./sms.js";
 import { runEditPipeline } from "./run-pipeline.js";
 import type { Classification, LeadRecord, PricingResult } from "./types.js";

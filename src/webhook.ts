@@ -1,7 +1,7 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { Router } from "express";
 import { parseEmail, type EmailFields } from "./email-parser.js";
-import { insertLead, isEmailProcessed, markEmailProcessed, runTransaction } from "./leads.js";
+import { insertLead, isEmailProcessed, markEmailProcessed, runTransaction } from "./db/index.js";
 import { runPipeline } from "./run-pipeline.js";
 import { postPipeline, postPipelineError } from "./post-pipeline.js";
 

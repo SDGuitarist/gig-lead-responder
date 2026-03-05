@@ -1,4 +1,4 @@
-import { getLeadsDueForFollowUp, updateLead, claimFollowUpForSending, storeFollowUpDraft } from "./leads.js";
+import { getLeadsDueForFollowUp, updateLead, claimFollowUpForSending, storeFollowUpDraft } from "./db/index.js";
 import { generateFollowUpDraft } from "./pipeline/follow-up-generate.js";
 import { sendSms } from "./sms.js";
 import type { LeadRecord } from "./types.js";
