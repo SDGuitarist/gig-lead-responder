@@ -35,6 +35,11 @@ Patterns that recur across features or prevent entire categories of bugs. Search
 | 9 | Silent failure escape hatches — `DISABLE_{SERVICE}_VALIDATION` env var for first-deploy debugging | Follow-Up Pipeline | `silent-failure-escape-hatches.md` |
 | 10 | `today` injected as parameter, never `new Date()` inside functions — makes functions pure/testable, prevents timezone bugs | Follow-Up Pipeline | `today-as-parameter-timezone.md` |
 | 11 | Healthcheck before auth middleware — `/health` must be registered before any `app.use(router)` that applies `sessionAuth`, or Railway probe gets 401 | Railway/Deploy | `railway-healthcheck-auth-middleware-ordering.md` |
+| 12 | Solution doc violations are almost always P1 — the Learnings Researcher cross-references findings against existing docs, surfacing repeated mistakes | Lead Response Loop | `review-fix-cycle-2-lead-response-loop.md` |
+| 13 | Multi-agent reviews have blind spots shaped by agent roster — declare what's NOT covered | Lead Response Loop | `review-fix-cycle-2-lead-response-loop.md` |
+| 14 | Merge verification needs a specific checklist of integration points, not just "it compiles" | Lead Response Loop | `review-fix-cycle-2-lead-response-loop.md` |
+| 15 | Per-request `process.exit()` is never correct — fail-fast belongs at boot time | Lead Response Loop | `review-fix-cycle-2-lead-response-loop.md` |
+| 16 | P3 deferrals need a tracking home (HANDOFF "Deferred Items") or they vanish between sessions | Lead Response Loop | `review-fix-cycle-2-lead-response-loop.md` |
 
 ---
 
@@ -163,6 +168,47 @@ LLM writes the message body (fuzzy NLP). Code computes channel, urgency tier, re
 ### Files Searched
 
 23 solution docs scanned. 8 highly relevant, 0 moderate, 15 not relevant (UI bugs, workflow, prompt engineering covered by other learnings). See `docs/solutions/` for full inventory.
+
+---
+
+## Lead Response Loop (Cycle 10 Review)
+
+**Date:** 2026-03-04
+**Feature:** Lead response loop — venue context integration, follow-up pipeline v2 dashboard, Mailgun/Twilio webhooks
+**Search scope:** `docs/solutions/` — 2 solution docs produced, 7 existing docs cross-referenced by Learnings Researcher
+
+### Learnings Summary
+
+**14. Learnings Researcher Is the Highest-ROI Review Agent** — [Evidence: REVIEW-SUMMARY.md](docs/reviews/feat-lead-response-loop/REVIEW-SUMMARY.md)
+Cross-referencing findings against existing solution docs surfaced 2 of 2 P1s. Without this agent, they'd have been rated on individual merit (likely P2). The compound flywheel: past docs make future reviews sharper. Always include the Learnings Researcher in agent rosters.
+
+**15. Multi-Agent Reviews Have Blind Spots Shaped by Agent Roster** — [Full doc](docs/solutions/architecture/review-fix-cycle-2-lead-response-loop.md)
+7 agents produced 66 findings but zero coverage of the LLM pipeline (prompt injection, output validation) and minimal coverage of 2,474-line client-side JS. A review is only as good as the agents deployed. Explicitly declare blind spots in every review summary.
+
+**16. Merge Verification Needs a Specific Checklist** — [Full doc](docs/solutions/architecture/review-fix-cycle-2-lead-response-loop.md)
+The merge of `feat/lead-response-loop` succeeded because HANDOFF listed 3 exact things to verify (healthcheck ordering, IPv6 binding, security headers). Generic "does it build?" would miss architectural regressions. When branches diverge, list specific integration points to verify.
+
+**17. Per-Request `process.exit()` Is Never Correct** — [Full doc](docs/solutions/architecture/review-fix-cycle-2-lead-response-loop.md)
+Auth middleware was calling `process.exit(1)` on every request when creds were missing. Should be a startup check. Fail-fast belongs at boot time, not in hot paths. Move fatal config checks to application startup.
+
+**18. P3 Deferrals Need a Tracking Home** — [Evidence: REVIEW-SUMMARY.md](docs/reviews/feat-lead-response-loop/REVIEW-SUMMARY.md)
+~30 P3 items across Cycles 9-10 are documented in review summaries but have no tracking beyond that. They'll be invisible in future brainstorms unless explicitly surfaced. When deferring P3s, add them to HANDOFF.md "Deferred Items" section so the next brainstorm can pick them up.
+
+### Quick Reference: Learning to Implementation Phase Mapping
+
+| Learning | Applies To | Key Action | Source |
+|----------|-----------|------------|--------|
+| Learnings Researcher ROI | Review | Always include in agent roster | REVIEW-SUMMARY.md |
+| Agent roster blind spots | Review | Declare blind spots explicitly in review summary | review-fix-cycle-2 solution doc |
+| Merge verification checklist | Work (merge) | List specific integration points in HANDOFF before merging | review-fix-cycle-2 solution doc |
+| No per-request process.exit | Work | Move fatal config checks to startup | review-fix-cycle-2 solution doc |
+| P3 deferral tracking | Review → Brainstorm | Add deferred P3s to HANDOFF "Deferred Items" | REVIEW-SUMMARY.md |
+
+### Risk Areas to Watch
+
+1. **LLM pipeline unreviewed:** generate.ts, verify.ts, enrich.ts have never been reviewed by a prompt-security agent. Prompt injection via lead text is a real risk.
+2. **Dashboard JS at 2,474 lines:** Approaching 3,000-line extraction threshold. DOM-based XSS not examined.
+3. **P3 decay:** Deferred items lose context over time. Re-evaluate at next brainstorm or they become stale.
 
 ---
 

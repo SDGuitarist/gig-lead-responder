@@ -30,6 +30,14 @@
 - Dashboard client-side JS (2,474 lines) — DOM-based XSS, state management bugs
 - Consider adding prompt-security and frontend-XSS agents for next review cycle
 
+## Review Process Learnings (Cycle 10)
+
+- **Learnings Researcher is highest-ROI agent** — found both P1s by cross-referencing against existing solution docs. Always include it.
+- **Declare blind spots explicitly** — LLM pipeline and dashboard JS weren't covered. Add prompt-security and frontend-XSS agents for next cycle.
+- **P3 deferrals tracked in HANDOFF** — ~30 deferred P3s from Cycles 9-10 listed in `docs/HANDOFF.md` "Deferred Items." Surface them in next brainstorm.
+- **Merge checklist pattern** — list specific integration points to verify (not just "it builds"). Example: healthcheck ordering, IPv6 binding, security headers.
+- **No `process.exit()` in hot paths** — fatal config checks belong at startup, not per-request middleware.
+
 ## Plan Reference
 
 `docs/plans/2026-03-01-feat-follow-up-pipeline-v2-dashboard-plan.md`
