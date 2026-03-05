@@ -282,14 +282,11 @@ export function updateLead(
   id: number,
   fields: Partial<Omit<LeadRecord, "id" | "created_at">>,
 ): LeadRecord | undefined {
-  const current = getLead(id);
-  if (!current) return undefined;
-
   // Build SET clause from provided fields
   const entries = Object.entries(fields).filter(
     ([key]) => key !== "updated_at",
   );
-  if (entries.length === 0) return current;
+  if (entries.length === 0) return getLead(id);
 
   // Validate all keys against whitelist before building SQL
   for (const [key] of entries) {
@@ -313,11 +310,12 @@ export function updateLead(
   params.updated_at = new Date().toISOString();
   params.id = id;
 
-  initDb()
-    .prepare(`UPDATE leads SET ${setClauses.join(", ")} WHERE id = @id`)
-    .run(params);
+  // Single UPDATE with RETURNING * (SQLite 3.35+) — replaces triple-read pattern
+  const row = initDb()
+    .prepare(`UPDATE leads SET ${setClauses.join(", ")} WHERE id = @id RETURNING *`)
+    .get(params) as LeadRecord | undefined;
 
-  return getLead(id);
+  return row ? normalizeRow(row) : undefined;
 }
 
 /** Atomically set status to 'sending' if currently approvable. Returns true if claimed. */
@@ -478,17 +476,16 @@ export function storeFollowUpDraft(leadId: number, draft: string): boolean {
  */
 export function skipFollowUp(leadId: number): LeadRecord | undefined {
   const now = new Date().toISOString();
-  const result = initDb()
+  const row = initDb()
     .prepare(
       "UPDATE leads SET follow_up_status = 'skipped', " +
       "follow_up_due_at = NULL, follow_up_draft = NULL, snoozed_until = NULL, " +
       "updated_at = @now " +
-      "WHERE id = @id AND follow_up_status IN ('pending', 'sent')",
+      "WHERE id = @id AND follow_up_status IN ('pending', 'sent') RETURNING *",
     )
-    .run({ id: leadId, now });
+    .get({ id: leadId, now }) as LeadRecord | undefined;
 
-  if (result.changes === 0) return undefined;
-  return getLead(leadId);
+  return row ? normalizeRow(row) : undefined;
 }
 
 /**
@@ -498,17 +495,16 @@ export function skipFollowUp(leadId: number): LeadRecord | undefined {
 export function snoozeFollowUp(leadId: number, until: string): LeadRecord | undefined {
   const now = new Date().toISOString();
   // Enforce invariant: snoozed_until ≤ due_at (use snooze date as new due_at)
-  const result = initDb()
+  const row = initDb()
     .prepare(
       "UPDATE leads SET follow_up_status = 'pending', " +
       "snoozed_until = @until, follow_up_due_at = @until, follow_up_draft = NULL, " +
       "updated_at = @now " +
-      "WHERE id = @id AND follow_up_status IN ('sent', 'pending')",
+      "WHERE id = @id AND follow_up_status IN ('sent', 'pending') RETURNING *",
     )
-    .run({ id: leadId, until, now });
+    .get({ id: leadId, until, now }) as LeadRecord | undefined;
 
-  if (result.changes === 0) return undefined;
-  return getLead(leadId);
+  return row ? normalizeRow(row) : undefined;
 }
 
 /**
@@ -517,17 +513,16 @@ export function snoozeFollowUp(leadId: number, until: string): LeadRecord | unde
  */
 export function markClientReplied(leadId: number): LeadRecord | undefined {
   const now = new Date().toISOString();
-  const result = initDb()
+  const row = initDb()
     .prepare(
       "UPDATE leads SET follow_up_status = 'replied', " +
       "follow_up_due_at = NULL, follow_up_draft = NULL, snoozed_until = NULL, " +
       "updated_at = @now " +
-      "WHERE id = @id AND follow_up_status IN ('pending', 'sent')",
+      "WHERE id = @id AND follow_up_status IN ('pending', 'sent') RETURNING *",
     )
-    .run({ id: leadId, now });
+    .get({ id: leadId, now }) as LeadRecord | undefined;
 
-  if (result.changes === 0) return undefined;
-  return getLead(leadId);
+  return row ? normalizeRow(row) : undefined;
 }
 
 /**
