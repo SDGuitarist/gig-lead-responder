@@ -53,7 +53,12 @@ router.post("/webhook/mailgun", (req, res) => {
       res.status(401).json({ error: "Validation bypass blocked in production" });
       return;
     }
-    console.warn("⚠ Mailgun signature validation disabled via DISABLE_MAILGUN_VALIDATION");
+    const devKey = process.env.DEV_WEBHOOK_KEY;
+    if (!devKey || body.dev_key !== devKey) {
+      res.status(401).json({ error: "Dev webhook key required when validation is disabled" });
+      return;
+    }
+    console.warn("⚠ Mailgun signature validation disabled — dev key accepted");
   } else {
     if (!timestamp || !token || !signature) {
       console.warn("Webhook missing signature fields");
