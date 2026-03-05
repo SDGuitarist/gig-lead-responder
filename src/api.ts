@@ -8,9 +8,7 @@ import { sendSms } from "./sms.js";
 import { runPipeline } from "./run-pipeline.js";
 import { shapeLead } from "./utils/shape-lead.js";
 
-export { shapeLead } from "./utils/shape-lead.js";
-
-const router = Router()
+const router = Router();
 router.use(sessionAuth);
 
 function sendSSE(res: Response, event: string, data: unknown) {
