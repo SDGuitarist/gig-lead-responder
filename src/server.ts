@@ -2,6 +2,8 @@ import "dotenv/config";
 import express from "express";
 import cookieParser from "cookie-parser";
 import { join } from "node:path";
+import { readFileSync } from "node:fs";
+import { randomBytes } from "node:crypto";
 import { initDb } from "./leads.js";
 import webhookRouter from "./webhook.js";
 import twilioWebhookRouter from "./twilio-webhook.js";
@@ -39,12 +41,14 @@ app.use(express.json({ limit: "100kb" }));
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 
-// Security headers
+// Security headers — nonce generated per request for CSP script-src
 app.use((_req, res, next) => {
+  const nonce = randomBytes(16).toString("base64");
+  res.locals.cspNonce = nonce;
   res.setHeader("X-Frame-Options", "DENY");
   res.setHeader("X-Content-Type-Options", "nosniff");
   res.setHeader("Content-Security-Policy",
-    "default-src 'self'; script-src 'self' 'unsafe-inline'; " +
+    `default-src 'self'; script-src 'self' 'nonce-${nonce}'; ` +
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
     "font-src 'self' https://fonts.gstatic.com; " +
     "img-src 'self' data:; connect-src 'self'");
@@ -59,6 +63,14 @@ app.use((_req, res, next) => {
 // Healthcheck for Railway (before any auth middleware)
 app.get("/health", (_req, res) => {
   res.json({ status: "ok" });
+});
+
+// Serve dashboard.html with per-request CSP nonce injected into <script> tags
+const dashboardHtml = readFileSync(join(import.meta.dirname, "..", "public", "dashboard.html"), "utf-8");
+app.get("/dashboard.html", (_req, res) => {
+  const nonce = res.locals.cspNonce as string;
+  const html = dashboardHtml.replace(/<script>/g, `<script nonce="${nonce}">`);
+  res.type("html").send(html);
 });
 
 app.use(express.static(join(import.meta.dirname, "..", "public")));
