@@ -17,7 +17,9 @@ function fillMonthlyGaps(rows: Array<{ month: string; received: number; booked: 
   const filled: Array<{ month: string; received: number; booked: number }> = [];
   let [y, m] = first.split("-").map(Number);
   const [endY, endM] = last.split("-").map(Number);
-  while (y < endY || (y === endY && m <= endM)) {
+  const MAX_MONTHS = 120;
+  let iterations = 0;
+  while ((y < endY || (y === endY && m <= endM)) && iterations++ < MAX_MONTHS) {
     const key = `${y}-${String(m).padStart(2, "0")}`;
     filled.push(byMonth.get(key) ?? { month: key, received: 0, booked: 0 });
     m++;
@@ -174,6 +176,7 @@ export function getAnalytics(): AnalyticsResponse {
     `).all() as Array<{ month: string; received: number; booked: number }>;
 
     // Query 6: Revenue by Event Type
+    // LOWER(TRIM()) kept for legacy rows inserted before insertLead() normalization
     const revenueByType = stmt(`
       SELECT LOWER(TRIM(event_type)) AS event_type,
         COALESCE(total(actual_price), 0) AS revenue,

@@ -124,7 +124,7 @@ router.post("/webhook/mailgun", (req, res) => {
       source_platform: lead.platform,
       mailgun_message_id: lead.external_id,
       event_date: lead.event_date,
-      event_type: lead.event_type?.trim().toLowerCase() ?? null,
+      event_type: lead.event_type ?? null,
       venue: lead.location ?? null,
     });
   });
