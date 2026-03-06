@@ -1,5 +1,5 @@
 ---
-status: pending
+status: done
 priority: p2
 issue_id: "059"
 tags: [code-review, defensive-coding, analytics]
@@ -59,6 +59,6 @@ if (y > endY || (y === endY && m > endM)) return [...rows].reverse();
 
 ## Acceptance Criteria
 
-- [ ] fillMonthlyGaps() cannot loop more than 120 iterations
-- [ ] Existing behavior unchanged for valid input (LIMIT 12 month data)
-- [ ] TypeScript compiles clean
+- [x] fillMonthlyGaps() cannot loop more than 120 iterations
+- [x] Existing behavior unchanged for valid input (LIMIT 12 month data)
+- [x] TypeScript compiles clean

@@ -1,5 +1,5 @@
 ---
-status: pending
+status: done
 priority: p2
 issue_id: "058"
 tags: [code-review, architecture, data-integrity]
@@ -58,7 +58,7 @@ Leave webhook.ts as-is, keep Query 6's `LOWER(TRIM())`. Add a comment to Query 6
 
 ## Acceptance Criteria
 
-- [ ] `insertLead()` normalizes event_type (trim + lowercase) for all callers
-- [ ] webhook.ts no longer applies its own normalization (delegates to insertLead)
-- [ ] Query 6 retains LOWER(TRIM()) for legacy data with an explanatory comment
-- [ ] TypeScript compiles clean
+- [x] `insertLead()` normalizes event_type (trim + lowercase) for all callers
+- [x] webhook.ts no longer applies its own normalization (delegates to insertLead)
+- [x] Query 6 retains LOWER(TRIM()) for legacy data with an explanatory comment
+- [x] TypeScript compiles clean

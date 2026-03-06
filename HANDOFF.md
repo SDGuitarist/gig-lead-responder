@@ -6,8 +6,9 @@
 
 ## Current State
 
-PR #10 (`fix/p3-batch-cycle-15`) merged to main with 7 commits: 5 original P3 fixes + 2 P2 fixes added after review.
-PR #11 (`chore/cross-project-hygiene-session-1a`) merged to main: HANDOFF.md moved to root, INSTITUTIONAL-LEARNINGS.md renamed to LESSONS_LEARNED.md.
+All Cycle 15 fixes merged to main. PR #10 contains P3 batch (051-057) + P2 fixes (058-060). PR #11 (hygiene) also merged.
+
+Browser tests passed on all dashboard tabs (Queue, All Leads, Analyze, Insights, Follow-Ups) -- no console errors, no layout regressions after CSS extraction.
 
 ### PR #10 Commits (7)
 - #051: Normalize event_type at write time
@@ -17,6 +18,13 @@ PR #11 (`chore/cross-project-hygiene-session-1a`) merged to main: HANDOFF.md mov
 - #057: Cache DOM element in esc()
 - #058: Move event_type normalization to insertLead() (P2 fix)
 - #059 + #060: Loop guard for fillMonthlyGaps() + hoist getBarValue (P2 fixes)
+
+### P2 Fixes Verified This Session
+- **058** -- `insertLead()` now normalizes event_type (trim+lowercase). Webhook delegates. Query 6 keeps LOWER(TRIM()) with comment for legacy data.
+- **059** -- `fillMonthlyGaps()` has MAX_MONTHS=120 loop guard.
+- **060** -- `getBarValue` hoisted above row loop in `renderBreakdownTable()`.
+
+All three todo files updated to `status: done` with acceptance criteria checked.
 
 ## Key Artifacts
 
@@ -31,7 +39,7 @@ PR #11 (`chore/cross-project-hygiene-session-1a`) merged to main: HANDOFF.md mov
 
 ## Deferred Items
 
-**From Cycle 15 review (P2s now fixed, P3 remains):**
+**From Cycle 15 review (P2s done, P3 remains):**
 - ~~058 -- Move event_type normalization to insertLead() (P2)~~ DONE
 - ~~059 -- Add loop guard to fillMonthlyGaps() (P2)~~ DONE
 - ~~060 -- Hoist getBarValue above row loop (P2)~~ DONE
@@ -50,16 +58,16 @@ PR #11 (`chore/cross-project-hygiene-session-1a`) merged to main: HANDOFF.md mov
 
 ## Three Questions
 
-1. **Hardest implementation decision in this session?** Whether to fix P2s on the same branch or start a new cycle. Chose same branch -- 4 lines of code didn't justify a new cycle.
+1. **Hardest fix in this batch?** 058 -- three files touched (leads.ts, webhook.ts, queries.ts) with the added judgment of keeping LOWER(TRIM()) for legacy data rather than removing it.
 
-2. **What did you consider changing but left alone, and why?** Query 6's LOWER(TRIM()) in queries.ts -- it's defense-in-depth for legacy data and should stay until a data migration cleans old rows.
+2. **What did you consider fixing differently, and why didn't you?** Considered splitting the combined commit (058+059 went in together because a linter pre-applied the changes). Decided against rewriting history since the merge to main already happened.
 
-3. **Least confident about going into compound?** The 11 pre-existing test failures (budget-gap.test.ts, email-parser.test.ts). They're unrelated to these fixes but should be investigated before the next feature work.
+3. **Least confident about going into the next batch or compound phase?** The 11 pre-existing test failures (budget-gap.test.ts, email-parser.test.ts) -- unknown root cause, not investigated. Should be addressed before next feature work.
 
 ## Feed-Forward
 
-- **Hardest decision:** Fixing P2s on the review branch instead of a new cycle
-- **Rejected alternatives:** Merging PR #10 as-is and deferring P2s (unnecessary delay for trivial fixes)
+- **Hardest decision:** Keeping Query 6's LOWER(TRIM()) as legacy defense rather than removing it
+- **Rejected alternatives:** Rewriting git history to split combined commits (risk vs. no benefit)
 - **Least confident:** Pre-existing test failures -- unknown root cause, not investigated this session
 
 ## Prompt for Next Session
@@ -67,9 +75,9 @@ PR #11 (`chore/cross-project-hygiene-session-1a`) merged to main: HANDOFF.md mov
 ```
 Read HANDOFF.md for context. This is Gig Lead Responder -- an automated lead response pipeline for a musician.
 
-PR #10 (P3 batch + P2 fixes) and PR #11 (hygiene) both merged to main. Next phase is Compound for Cycle 15.
+All Cycle 15 fixes are merged (P3 batch + P2 fixes). Browser tests pass. Next phase is Compound for Cycle 15.
 
-Run /workflows:compound to document the patterns from Cycle 15 fixes (write-time normalization, loop guards, hoist-above-loop). Then /update-learnings.
+Run /workflows:compound to document patterns from Cycle 15 (write-time normalization, loop guards, hoist-above-loop, CSS extraction). Then /update-learnings.
 
 Review: docs/reviews/cycle-15/REVIEW-SUMMARY.md
 Repo: ~/Projects/gig-lead-responder/

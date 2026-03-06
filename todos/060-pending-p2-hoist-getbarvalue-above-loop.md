@@ -1,5 +1,5 @@
 ---
-status: pending
+status: done
 priority: p2
 issue_id: "060"
 tags: [code-review, performance, dashboard, quality]
@@ -56,5 +56,5 @@ for (var j = 0; j < rows.length; j++) {
 
 ## Acceptance Criteria
 
-- [ ] `getBarValue` is resolved once per table, not per row
-- [ ] Dashboard renders identically (breakdown tables show same data/bars)
+- [x] `getBarValue` is resolved once per table, not per row
+- [x] Dashboard renders identically (breakdown tables show same data/bars)
