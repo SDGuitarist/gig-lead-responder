@@ -2,29 +2,13 @@
 
 **Date:** 2026-03-06
 **Branch:** `main`
-**Phase:** Compound (Cycle 15) next
+**Phase:** Compound (Cycle 15) complete. Next: Brainstorm (test failure investigation or next feature).
 
 ## Current State
 
-All Cycle 15 fixes merged to main. PR #10 contains P3 batch (051-057) + P2 fixes (058-060). PR #11 (hygiene) also merged.
+Cycle 15 compound phase complete. Solution doc written documenting 4 defensive patterns (write-time normalization, loop guards, hoist-above-loop, CSS extraction). All P2 fixes merged (PRs #10 and #11). Learnings propagated to all surfaces.
 
-Browser tests passed on all dashboard tabs (Queue, All Leads, Analyze, Insights, Follow-Ups) -- no console errors, no layout regressions after CSS extraction.
-
-### PR #10 Commits (7)
-- #051: Normalize event_type at write time
-- #052: Extract CSS to dashboard.css (1,086 lines)
-- #054 + #056: Fill monthly trend gaps + non-mutating reverse
-- #055: Rename pctGate to requireMinSample, explicit getBarValue
-- #057: Cache DOM element in esc()
-- #058: Move event_type normalization to insertLead() (P2 fix)
-- #059 + #060: Loop guard for fillMonthlyGaps() + hoist getBarValue (P2 fixes)
-
-### P2 Fixes Verified This Session
-- **058** -- `insertLead()` now normalizes event_type (trim+lowercase). Webhook delegates. Query 6 keeps LOWER(TRIM()) with comment for legacy data.
-- **059** -- `fillMonthlyGaps()` has MAX_MONTHS=120 loop guard.
-- **060** -- `getBarValue` hoisted above row loop in `renderBreakdownTable()`.
-
-All three todo files updated to `status: done` with acceptance criteria checked.
+Dashboard is at 1,596 lines (down from 2,680 after CSS extraction). 31 solution docs total. 11 pre-existing test failures remain uninvestigated -- this is the top priority before any new feature work.
 
 ## Key Artifacts
 
@@ -36,13 +20,11 @@ All three todo files updated to `status: done` with acceptance criteria checked.
 | Review (Cycle 15) | `docs/reviews/cycle-15/REVIEW-SUMMARY.md` |
 | Solution (Cycle 14 fixes) | `docs/solutions/logic-errors/2026-03-05-dashboard-runtime-validation-and-atomic-ops.md` |
 | Solution (Cycle 14 arch) | `docs/solutions/architecture/2026-03-05-lead-analytics-dashboard-parameterized-rendering.md` |
+| Solution (Cycle 15) | `docs/solutions/logic-errors/2026-03-06-dashboard-defensive-patterns-normalization-and-loop-guards.md` |
 
 ## Deferred Items
 
-**From Cycle 15 review (P2s done, P3 remains):**
-- ~~058 -- Move event_type normalization to insertLead() (P2)~~ DONE
-- ~~059 -- Add loop guard to fillMonthlyGaps() (P2)~~ DONE
-- ~~060 -- Hoist getBarValue above row loop (P2)~~ DONE
+**From Cycle 15 review:**
 - 061 -- Deferred P3 bundle (CSS newline, Cache-Control, fillMonthlyGaps location, stale data, CSP)
 
 **From prior cycles (still open):**
@@ -52,33 +34,33 @@ All three todo files updated to `status: done` with acceptance criteria checked.
 - Analytics transaction error handling -- untested failure paths
 
 **Structural debt:**
-- dashboard.html now at ~1,596 lines (down from 2,694 after CSS extraction)
+- dashboard.html at 1,596 lines (JS extraction threshold: ~2,500)
 - leads.ts structural split (brainstorm+plan exist)
 - LLM pipeline behavior never reviewed
 
+**Critical investigation needed:**
+- 11 pre-existing test failures (budget-gap.test.ts, email-parser.test.ts) -- unknown root cause
+
 ## Three Questions
 
-1. **Hardest fix in this batch?** 058 -- three files touched (leads.ts, webhook.ts, queries.ts) with the added judgment of keeping LOWER(TRIM()) for legacy data rather than removing it.
+1. **Hardest pattern to extract?** Write-time normalization (058) -- spans three files and required balancing forward correctness against backward compatibility (keeping LOWER(TRIM()) for legacy data).
 
-2. **What did you consider fixing differently, and why didn't you?** Considered splitting the combined commit (058+059 went in together because a linter pre-applied the changes). Decided against rewriting history since the merge to main already happened.
+2. **What was left out?** esc() DOM caching (057) and requireMinSample rename (055) -- straightforward single-line improvements that don't generalize into reusable patterns.
 
-3. **Least confident about going into the next batch or compound phase?** The 11 pre-existing test failures (budget-gap.test.ts, email-parser.test.ts) -- unknown root cause, not investigated. Should be addressed before next feature work.
+3. **Least confident about?** The interaction between write-time normalization and pre-existing test failures. If test failures are caused by un-normalized data, the fixes might have silently addressed a symptom. Next brainstorm should investigate whether failures predate or postdate normalization changes.
 
 ## Feed-Forward
 
 - **Hardest decision:** Keeping Query 6's LOWER(TRIM()) as legacy defense rather than removing it
-- **Rejected alternatives:** Rewriting git history to split combined commits (risk vs. no benefit)
-- **Least confident:** Pre-existing test failures -- unknown root cause, not investigated this session
+- **Rejected alternatives:** Documenting esc() caching and requireMinSample rename (too simple to compound)
+- **Least confident:** Pre-existing test failures may be related to normalization changes -- investigate before next feature
 
 ## Prompt for Next Session
 
 ```
 Read HANDOFF.md for context. This is Gig Lead Responder -- an automated lead response pipeline for a musician.
 
-All Cycle 15 fixes are merged (P3 batch + P2 fixes). Browser tests pass. Next phase is Compound for Cycle 15.
+Cycle 15 compound is complete. 11 pre-existing test failures need investigation before next feature work. Run a brainstorm to scope the test failure investigation: budget-gap.test.ts and email-parser.test.ts.
 
-Run /workflows:compound to document patterns from Cycle 15 (write-time normalization, loop guards, hoist-above-loop, CSS extraction). Then /update-learnings.
-
-Review: docs/reviews/cycle-15/REVIEW-SUMMARY.md
 Repo: ~/Projects/gig-lead-responder/
 ```
