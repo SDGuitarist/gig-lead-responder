@@ -2268,22 +2268,8 @@
         { key: 'avg_days', label: 'Avg Days', format: 'days', getValue: function(r) { return r.avg_days; } },
         { key: 'sample_size', label: 'Bookings', format: 'integer', getValue: function(r) { return r.sample_size; } }
       ];
-      // Reuse breakdown table for per-source detail
       var tableRows = rows.map(function(r) { return { label: r.source_platform, total: r.sample_size, avg_days: r.avg_days, sample_size: r.sample_size }; });
-      html += '<table class="breakdown-table"><caption class="sr-only">Booking Cycle Time by Source</caption>';
-      html += '<thead><tr><th scope="col">Source</th>';
-      for (var c = 0; c < cycleCols.length; c++) html += '<th scope="col">' + esc(cycleCols[c].label) + '</th>';
-      html += '</tr></thead><tbody>';
-      for (var j = 0; j < tableRows.length; j++) {
-        var r = tableRows[j];
-        html += '<tr><th scope="row">' + esc(r.label || 'Unknown') + '</th>';
-        for (var k = 0; k < cycleCols.length; k++) {
-          var val = cycleCols[k].getValue(r);
-          html += '<td>' + FORMATTERS[cycleCols[k].format](val) + '</td>';
-        }
-        html += '</tr>';
-      }
-      html += '</tbody></table>';
+      html += renderBreakdownTable('Booking Cycle by Source', tableRows, false, cycleCols);
     }
 
     html += '</div>';
