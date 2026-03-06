@@ -2278,10 +2278,10 @@
 
   // Formatters registry for parameterized tables
   var FORMATTERS = {
-    currency: function(v) { return v == null ? '\u2014' : '$' + Number(v).toLocaleString(); },
-    pct:      function(v) { return v == null ? '\u2014' : v.toFixed(1) + '%'; },
-    integer:  function(v) { return v == null ? '\u2014' : Number(v).toLocaleString(); },
-    days:     function(v) { return v == null ? '\u2014' : v.toFixed(1) + 'd'; },
+    currency: function(v) { return v == null ? '\u2014' : esc('$' + Number(v).toLocaleString()); },
+    pct:      function(v) { return v == null ? '\u2014' : esc(v.toFixed(1) + '%'); },
+    integer:  function(v) { return v == null ? '\u2014' : esc(Number(v).toLocaleString()); },
+    days:     function(v) { return v == null ? '\u2014' : esc(v.toFixed(1) + 'd'); },
     text:     function(v) { return v == null ? '\u2014' : esc(String(v)); },
   };
 
