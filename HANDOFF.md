@@ -1,16 +1,22 @@
 # HANDOFF -- Gig Lead Responder
 
 **Date:** 2026-03-06
-**Branch:** `chore/cross-project-hygiene-session-1a`
-**Phase:** Cross-project hygiene Session 1a complete
+**Branch:** `main`
+**Phase:** Compound (Cycle 15) next
 
 ## Current State
 
-Session 1a of cross-project hygiene complete. Two file restructuring commits:
-1. `f9a12e5` -- Moved `docs/HANDOFF.md` → root `HANDOFF.md`. Updated 5 files (CLAUDE.md, update-learnings.md, fix-batched.md, production-automation-loop plan, HANDOFF.md self-reference). Left `docs/reviews/` references unchanged (historical).
-2. `88cbcb0` -- Renamed `INSTITUTIONAL-LEARNINGS.md` → `LESSONS_LEARNED.md`. Updated update-learnings.md (5 occurrences).
+PR #10 (`fix/p3-batch-cycle-15`) merged to main with 7 commits: 5 original P3 fixes + 2 P2 fixes added after review.
+PR #11 (`chore/cross-project-hygiene-session-1a`) merged to main: HANDOFF.md moved to root, INSTITUTIONAL-LEARNINGS.md renamed to LESSONS_LEARNED.md.
 
-Prior state: Cycle 14 compound complete, `feat/lead-analytics-dashboard-v2` ready to merge (18 commits ahead of main).
+### PR #10 Commits (7)
+- #051: Normalize event_type at write time
+- #052: Extract CSS to dashboard.css (1,086 lines)
+- #054 + #056: Fill monthly trend gaps + non-mutating reverse
+- #055: Rename pctGate to requireMinSample, explicit getBarValue
+- #057: Cache DOM element in esc()
+- #058: Move event_type normalization to insertLead() (P2 fix)
+- #059 + #060: Loop guard for fillMonthlyGaps() + hoist getBarValue (P2 fixes)
 
 ## Key Artifacts
 
@@ -19,62 +25,52 @@ Prior state: Cycle 14 compound complete, `feat/lead-analytics-dashboard-v2` read
 | Brainstorm (dashboard) | `docs/brainstorms/2026-03-05-lead-analytics-dashboard-brainstorm.md` |
 | Plan (dashboard) | `docs/plans/2026-03-05-feat-lead-analytics-dashboard-plan.md` |
 | Review (Cycle 14) | `docs/reviews/feat-lead-analytics-dashboard/REVIEW-SUMMARY.md` |
+| Review (Cycle 15) | `docs/reviews/cycle-15/REVIEW-SUMMARY.md` |
 | Solution (Cycle 14 fixes) | `docs/solutions/logic-errors/2026-03-05-dashboard-runtime-validation-and-atomic-ops.md` |
 | Solution (Cycle 14 arch) | `docs/solutions/architecture/2026-03-05-lead-analytics-dashboard-parameterized-rendering.md` |
-| Solution (Cycle 12 full) | `docs/solutions/architecture/review-fix-cycle-12-full-codebase-hardening.md` |
-| Plan (leads.ts split) | `docs/plans/2026-03-05-refactor-leads-ts-structural-split-plan.md` |
 
 ## Deferred Items
 
-**From Cycle 14 (renumbered 050-057):**
-- 051 -- normalize event_type at write time (P2, not blocking at <1000 rows)
-- 052 -- extract CSS from dashboard.html (P2, structural debt trigger at 2,800 lines)
-- 054 -- Monthly Trends gap-filling (P3, missing months not shown)
-- 055 -- pctGate flag cryptic + bar value guessing implicit (P3)
-- 056 -- monthlyTrends.reverse() mutates in place (P3, style-only)
-- 057 -- esc() creates DOM element per call (P3, micro-optimization)
+**From Cycle 15 review (P2s now fixed, P3 remains):**
+- ~~058 -- Move event_type normalization to insertLead() (P2)~~ DONE
+- ~~059 -- Add loop guard to fillMonthlyGaps() (P2)~~ DONE
+- ~~060 -- Hoist getBarValue above row loop (P2)~~ DONE
+- 061 -- Deferred P3 bundle (CSS newline, Cache-Control, fillMonthlyGaps location, stale data, CSP)
 
-**From Cycle 12 full review (P2s):**
-- 010 -- timestamp replay unit tests (blocked on test infrastructure)
-- 015 -- parallel follow-up scheduler (acceptable at current scale)
-- 016 -- automated test suite (separate initiative)
-
-**From P3s (018-030):**
-- 018-030 -- see prior HANDOFF for full list
+**From prior cycles (still open):**
+- 023 -- XSS unescaped LLM values (pre-existing P1)
+- 024 -- No input size guard webhook/LLM (pre-existing P1)
+- 025 -- Prompt injection chain (pre-existing P1)
+- Analytics transaction error handling -- untested failure paths
 
 **Structural debt:**
-- dashboard.html JS extraction at 3,000 threshold (now at 2,694 -- approaching)
+- dashboard.html now at ~1,596 lines (down from 2,694 after CSS extraction)
 - leads.ts structural split (brainstorm+plan exist)
-- Analytics transaction error handling -- untested failure paths (deferred from Cycle 14 review)
-
-**Uncovered blind spots:**
-- LLM pipeline behavior (prompt injection resilience, response format drift)
-- Accessibility (keyboard nav, screen readers, color contrast)
-- Error message leakage to client
-- `npm audit` never run
+- LLM pipeline behavior never reviewed
 
 ## Three Questions
 
-1. **Hardest pattern to extract?** The relationship between Pattern C (label normalization) and the deduplication win in #044 -- the dedup was a consequence of getting the abstraction right, not a separate pattern.
-2. **What was left out?** Monthly Trends `status='done'` fix (#041) as a standalone pattern -- it's just "follow the existing solution doc," already documented in `align-derived-stat-queries.md`.
-3. **Least confident about?** Analytics transaction error handling. No solution doc covers what happens when a query throws mid-transaction. Future analytics features could trigger this.
+1. **Hardest implementation decision in this session?** Whether to fix P2s on the same branch or start a new cycle. Chose same branch -- 4 lines of code didn't justify a new cycle.
+
+2. **What did you consider changing but left alone, and why?** Query 6's LOWER(TRIM()) in queries.ts -- it's defense-in-depth for legacy data and should stay until a data migration cleans old rows.
+
+3. **Least confident about going into compound?** The 11 pre-existing test failures (budget-gap.test.ts, email-parser.test.ts). They're unrelated to these fixes but should be investigated before the next feature work.
 
 ## Feed-Forward
 
-- **Hardest decision:** Documenting deduplication as a bonus of Pattern C rather than a fourth pattern
-- **Rejected alternatives:** Monthly Trends fix as a standalone pattern (already covered by existing solution doc)
-- **Least confident:** Transaction error handling in getAnalytics() -- untested failure paths remain
+- **Hardest decision:** Fixing P2s on the review branch instead of a new cycle
+- **Rejected alternatives:** Merging PR #10 as-is and deferring P2s (unnecessary delay for trivial fixes)
+- **Least confident:** Pre-existing test failures -- unknown root cause, not investigated this session
 
 ## Prompt for Next Session
 
 ```
-Read HANDOFF.md. This is Gig Lead Responder -- an automated lead response pipeline for a musician.
+Read HANDOFF.md for context. This is Gig Lead Responder -- an automated lead response pipeline for a musician.
 
-Session 1a (GLR file restructuring) done on branch chore/cross-project-hygiene-session-1a.
-HANDOFF.md moved to root, INSTITUTIONAL-LEARNINGS.md renamed to LESSONS_LEARNED.md.
+PR #10 (P3 batch + P2 fixes) and PR #11 (hygiene) both merged to main. Next phase is Compound for Cycle 15.
 
-Next: Session 1b (PF-Intel file restructuring) or merge hygiene branch + resume
-feat/lead-analytics-dashboard-v2 merge to main.
+Run /workflows:compound to document the patterns from Cycle 15 fixes (write-time normalization, loop guards, hoist-above-loop). Then /update-learnings.
 
+Review: docs/reviews/cycle-15/REVIEW-SUMMARY.md
 Repo: ~/Projects/gig-lead-responder/
 ```
