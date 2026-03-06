@@ -1362,11 +1362,11 @@
 
   /* ── Helpers ─────────────────────────────────────────────── */
 
+  var _escDiv = document.createElement('div');
   function esc(s) {
     if (!s) return '';
-    var d = document.createElement('div');
-    d.textContent = s;
-    return d.innerHTML;
+    _escDiv.textContent = s;
+    return _escDiv.innerHTML;
   }
 
   function scoreClass(n) {
