@@ -1,12 +1,12 @@
 # HANDOFF -- Gig Lead Responder
 
 **Date:** 2026-03-05
-**Branch:** `feat/lead-analytics-dashboard` (21 commits)
+**Branch:** `feat/lead-analytics-dashboard-v2` (18 commits ahead of main)
 **Phase:** Compound complete (Cycle 14) -- ready for merge
 
 ## Current State
 
-Lead analytics dashboard fully implemented and reviewed. Cycle 14 review found 7 new issues (0 P1, 4 P2, 3 P3) + 1 pre-existing P1. All P1+P2 fixed (5 commits). Compound phase documented 3 reusable patterns: runtime validation on DB results, temporal coupling composition, call-site label normalization. Branch is ready to merge to main.
+Lead analytics dashboard fully implemented and reviewed. Cycle 14 review found 7 new issues (0 P1, 4 P2, 3 P3) + 1 pre-existing P1. All P1+P2 fixed. Two additional fixes applied (#050 formatters defense-in-depth, #053 avg_price null check). Todo files cleaned up -- duplicate review run IDs resolved, remaining items renumbered to 050-057. Two compound solution docs: fix patterns (logic-errors) and rendering architecture (architecture). Branch is ready to merge to main.
 
 ## Key Artifacts
 
@@ -15,16 +15,20 @@ Lead analytics dashboard fully implemented and reviewed. Cycle 14 review found 7
 | Brainstorm (dashboard) | `docs/brainstorms/2026-03-05-lead-analytics-dashboard-brainstorm.md` |
 | Plan (dashboard) | `docs/plans/2026-03-05-feat-lead-analytics-dashboard-plan.md` |
 | Review (Cycle 14) | `docs/reviews/feat-lead-analytics-dashboard/REVIEW-SUMMARY.md` |
-| Solution (Cycle 14) | `docs/solutions/logic-errors/2026-03-05-dashboard-runtime-validation-and-atomic-ops.md` |
+| Solution (Cycle 14 fixes) | `docs/solutions/logic-errors/2026-03-05-dashboard-runtime-validation-and-atomic-ops.md` |
+| Solution (Cycle 14 arch) | `docs/solutions/architecture/2026-03-05-lead-analytics-dashboard-parameterized-rendering.md` |
 | Solution (Cycle 12 full) | `docs/solutions/architecture/review-fix-cycle-12-full-codebase-hardening.md` |
 | Plan (leads.ts split) | `docs/plans/2026-03-05-refactor-leads-ts-structural-split-plan.md` |
 
 ## Deferred Items
 
-**From Cycle 14 (P3s):**
-- 045 -- avg_price falsy check instead of null check (1-line fix)
-- 046 -- Monthly Trends gap-filling not implemented (missing months not shown)
-- 047 -- pctGate flag cryptic + bar value guessing implicit
+**From Cycle 14 (renumbered 050-057):**
+- 051 -- normalize event_type at write time (P2, not blocking at <1000 rows)
+- 052 -- extract CSS from dashboard.html (P2, structural debt trigger at 2,800 lines)
+- 054 -- Monthly Trends gap-filling (P3, missing months not shown)
+- 055 -- pctGate flag cryptic + bar value guessing implicit (P3)
+- 056 -- monthlyTrends.reverse() mutates in place (P3, style-only)
+- 057 -- esc() creates DOM element per call (P3, micro-optimization)
 
 **From Cycle 12 full review (P2s):**
 - 010 -- timestamp replay unit tests (blocked on test infrastructure)
@@ -62,10 +66,11 @@ Lead analytics dashboard fully implemented and reviewed. Cycle 14 review found 7
 ```
 Read docs/HANDOFF.md. This is Gig Lead Responder -- an automated lead response pipeline for a musician.
 
-Cycle 14 complete (compound done). Branch feat/lead-analytics-dashboard ready to merge.
-21 commits: Cycle 12 fixes + analytics dashboard + Cycle 14 review fixes.
+Cycle 14 complete (compound done). Branch feat/lead-analytics-dashboard-v2 ready to merge.
+18 commits ahead of main: analytics dashboard + Cycle 14 review fixes + todo cleanup.
 
-Next: Merge to main. Then choose next work: leads.ts structural split (plan exists), P3 batch, or new feature brainstorm.
+Next: Merge to main. Then choose next work: leads.ts structural split (plan exists),
+P3 batch (todos 051-057), or new feature brainstorm.
 
 Repo: ~/Projects/gig-lead-responder/
 ```
