@@ -2,9 +2,11 @@
 // NEVER import from ./index.js (circular dependency risk)
 
 import type Database from "better-sqlite3";
-import type { LeadRecord, LeadStatus, AnalyticsResponse } from "../types.js";
+import type { LeadRecord, LeadStatus, LeadOutcome, AnalyticsResponse, BookingCycleEntry, MonthlyTrendEntry, RevenueByTypeEntry, FollowUpEffectivenessEntry, LossReasonEntry, LossReason } from "../types.js";
+import { LOSS_REASONS } from "../types.js";
 import { initDb } from "./migrate.js";
-import { normalizeLeadRow } from "./leads.js";
+import { normalizeLeadRow, setLeadOutcome } from "./leads.js";
+import { skipFollowUp } from "./follow-ups.js";
 
 // stmt() pattern also in leads.ts, follow-ups.ts — keep in sync
 let cachedDb: Database.Database | undefined;
@@ -131,6 +133,64 @@ export function getAnalytics(): AnalyticsResponse {
       GROUP BY label
     `).all() as Array<{ label: string; total: number; booked: number }>;
 
+    // Query 4: Booking Cycle Time by source platform
+    const bookingCycle = stmt(`
+      SELECT source_platform,
+        COALESCE(AVG(julianday(outcome_at) - julianday(created_at)), 0) AS avg_days,
+        COUNT(*) AS sample_size
+      FROM leads
+      WHERE status = 'done' AND outcome = 'booked' AND outcome_at IS NOT NULL
+      GROUP BY source_platform
+    `).all() as Array<{ source_platform: string | null; avg_days: number; sample_size: number }>;
+
+    // Query 5: Monthly Trends (last 12 months)
+    // Intentionally no status filter on received: counts total incoming volume
+    const monthlyTrends = stmt(`
+      SELECT strftime('%Y-%m', created_at) AS month,
+        COUNT(*) AS received,
+        SUM(CASE WHEN status = 'done' AND outcome = 'booked' THEN 1 ELSE 0 END) AS booked
+      FROM leads
+      GROUP BY month
+      ORDER BY month DESC
+      LIMIT 12
+    `).all() as Array<{ month: string; received: number; booked: number }>;
+
+    // Query 6: Revenue by Event Type
+    const revenueByType = stmt(`
+      SELECT LOWER(TRIM(event_type)) AS event_type,
+        COALESCE(total(actual_price), 0) AS revenue,
+        COUNT(*) AS count,
+        COALESCE(AVG(actual_price), 0) AS avg_price
+      FROM leads
+      WHERE status = 'done' AND outcome = 'booked' AND actual_price IS NOT NULL
+        AND event_type IS NOT NULL
+      GROUP BY LOWER(TRIM(event_type))
+      ORDER BY revenue DESC
+    `).all() as Array<{ event_type: string; revenue: number; count: number; avg_price: number }>;
+
+    // Query 7: Follow-up Effectiveness
+    const followUpEff = stmt(`
+      SELECT follow_up_count,
+        COUNT(*) AS total,
+        COUNT(CASE WHEN outcome = 'booked' THEN 1 END) AS booked,
+        COUNT(CASE WHEN outcome = 'lost' THEN 1 END) AS lost,
+        COUNT(CASE WHEN outcome = 'no_reply' THEN 1 END) AS no_reply
+      FROM leads
+      WHERE status = 'done' AND outcome IS NOT NULL
+      GROUP BY follow_up_count
+      ORDER BY follow_up_count
+    `).all() as Array<{ follow_up_count: number; total: number; booked: number; lost: number; no_reply: number }>;
+
+    // Query 8: Loss Reasons
+    const lossReasons = stmt(`
+      SELECT COALESCE(outcome_reason, 'unspecified') AS reason,
+        COUNT(*) AS count
+      FROM leads
+      WHERE status = 'done' AND outcome = 'lost'
+      GROUP BY reason
+      ORDER BY count DESC
+    `).all() as Array<{ reason: string; count: number }>;
+
     const totalWithOutcome = core.total_with_outcome ?? 0;
     const booked = core.booked ?? 0;
 
@@ -157,7 +217,53 @@ export function getAnalytics(): AnalyticsResponse {
         booked: r.booked,
         rate: r.total > 0 ? r.booked / r.total : 0,
       })),
+      booking_cycle: bookingCycle.map((r): BookingCycleEntry => ({
+        source_platform: r.source_platform ?? "unknown",
+        avg_days: r.avg_days ?? 0,
+        sample_size: r.sample_size,
+      })),
+      monthly_trends: monthlyTrends.reverse().map((r): MonthlyTrendEntry => ({
+        month: r.month,
+        received: r.received ?? 0,
+        booked: r.booked ?? 0,
+      })),
+      revenue_by_type: revenueByType.map((r): RevenueByTypeEntry => ({
+        event_type: r.event_type,
+        revenue: r.revenue ?? 0,
+        count: r.count,
+        avg_price: r.avg_price != null ? Math.round(r.avg_price) : 0,
+      })),
+      follow_up_effectiveness: followUpEff.map((r): FollowUpEffectivenessEntry => ({
+        follow_up_count: r.follow_up_count,
+        total: r.total,
+        booked: r.booked,
+        lost: r.lost,
+        no_reply: r.no_reply,
+      })),
+      loss_reasons: lossReasons.map((r): LossReasonEntry => ({
+        reason: LOSS_REASONS.includes(r.reason as LossReason)
+          ? (r.reason as LossReason)
+          : "unspecified",
+        count: r.count,
+      })),
     };
+  })();
+}
+
+/**
+ * Set outcome and freeze follow-up pipeline atomically.
+ * Eliminates temporal coupling — callers cannot forget to skip follow-ups.
+ */
+export function setLeadOutcomeAndFreeze(
+  id: number,
+  outcome: LeadOutcome | null,
+  options?: { outcome_reason?: LossReason; actual_price?: number },
+): LeadRecord | undefined {
+  const db = initDb();
+  return db.transaction(() => {
+    const updated = setLeadOutcome(id, outcome, options);
+    if (updated && outcome !== null) skipFollowUp(id);
+    return updated;
   })();
 }
 

@@ -219,7 +219,11 @@ export function runTransaction<T>(fn: () => NotPromise<T>): T {
 
 // --- Outcome tracking ---
 
-/** Set or clear a lead's outcome. Handles sub-field cleanup automatically. */
+/**
+ * Set or clear a lead's outcome. Handles sub-field cleanup automatically.
+ * Use setLeadOutcomeAndFreeze() in queries.ts for the public API —
+ * it wraps this function and atomically freezes follow-ups.
+ */
 export function setLeadOutcome(
   id: number,
   outcome: LeadOutcome | null,

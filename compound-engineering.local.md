@@ -2,42 +2,34 @@
 
 ## Risk Chain
 
-**Brainstorm risk:** "Least confident about mobile UX design for the dashboard — needs wireframes or component breakdown in the plan phase."
+**Brainstorm risk:** "The follow-up count bug (setLeadOutcome doesn't freeze follow-ups) must be fixed as a prerequisite before follow-up effectiveness analytics are meaningful."
 
-**Plan mitigation:** Defined component layouts per breakpoint, tap target sizes (44px min), scrollable tab nav for 5-tab overflow. Simplified to cards-only layout.
+**Plan mitigation:** Step 0 of the plan fixes the bug before any analytics work. Fix goes in api.ts to avoid circular dependency.
 
-**Work risk (from Feed-Forward):** Whether `sanitizeClassification` covers all free-text fields that could be attacker-influenced. Enum-constrained fields accepted as low risk.
+**Work risk (from Feed-Forward):** "Line budget tightness (2,694/2,800) may have compressed rendering logic too much. Monthly Trends WHERE clause deviation needs review scrutiny."
 
-**Review resolution (Cycle 11 → 12):** 17 unique findings (3 P1, 9 P2, 5 P3) from 9 agents. Cycle 11 fixed 3 P1s + 9 P2s. Cycle 12 fixed 2 P1s + 5 P2s introduced by Cycle 11 fixes. 4/8 Cycle 12 fixes corrected Cycle 11 code — validates review-after-every-fix-batch.
+**Review resolution (Cycle 14):** 7 new findings (0 P1, 4 P2, 3 P3) from 7 agents + 1 pre-existing P1 re-confirmed. All P1+P2 fixed (5 commits). Key patterns documented: runtime validation on DB results, temporal coupling composition, call-site label normalization.
 
-**Compound resolution (Cycle 12):** Solution doc written. Security-sentinel reviewed — no misrepresentations. Escalated: email-parser.ts never reviewed (pre-auth surface), index.html/mockup-hybrid.html CSP gap, stmt() stale connection risk.
+**Compound resolution:** Complete. Solution doc written. Three patterns documented with prevention strategies and review checklist items. Deferred: analytics transaction error handling (no agent tested failure paths).
 
 ## Files to Scrutinize
 
 | File | What changed | Risk area |
 |------|-------------|-----------|
-| `src/server.ts` | CSP nonce regex broadened, /logout changed to POST | Regex lookahead doesn't match `<script\n`; verify all HTML files get nonce injection |
-| `src/auth.ts` | Logout returns JSON, csrfGuard + sessionAuth added | Basic Auth bypass path in csrfGuard undocumented |
-| `src/webhook.ts` | Replay protection one-sided timestamp check | 60s future tolerance — verify Mailgun clock skew is within bounds |
-| `src/pipeline/classify.ts` | typeof object guard added to validator | Verify guard catches all non-object JSON shapes |
-| `src/pipeline/generate.ts` | typeof object guard added to validator | Same pattern as classify.ts |
-| `src/pipeline/verify.ts` | typeof object guard added to validator | Same pattern as classify.ts |
-| `src/leads.ts` | listLeadsFiltered uses initDb().prepare() instead of stmt() | stmt() cache still used in 20+ static-SQL call sites — stale connection risk after redeploy |
-| `src/claude.ts` | JsonValidator<T> inlined | No risk — pure type cleanup |
-| `src/types.ts` | Dead FollowUpAction* types deleted | No risk — dead code removal |
-| `src/api.ts` | Dead shapeLead re-export removed | No risk — dead code removal |
+| `src/db/queries.ts` | lossReasons .map() validation, booked status filter, setLeadOutcomeAndFreeze() | New composed function -- verify transaction boundary is correct |
+| `src/db/leads.ts` | setLeadOutcome() docs updated, no longer public API | Verify no external callers remain |
+| `src/db/index.ts` | Barrel export changed: setLeadOutcome removed, setLeadOutcomeAndFreeze added | Verify all callers updated |
+| `src/api.ts` | Calls setLeadOutcomeAndFreeze instead of two separate functions | Simplified -- lower risk |
+| `public/dashboard.html` | Label normalization at call sites, booking cycle table delegated to renderBreakdownTable | Verify all table types render correctly with normalized labels |
 
-## Remaining Security Gaps
+## Remaining Gaps (carried forward)
 
-- `email-parser.ts` never security-reviewed (pre-auth surface if DISABLE_MAILGUN_VALIDATION=true)
-- `index.html` and `mockup-hybrid.html` not covered by CSP nonce injection
-- `verify.ts` flagged_concerns injected outside XML delimiters
-- `follow-up.ts` classification fields skip `sanitizeClassification()`
-- `compressed_draft` has no independent length limit
-- `csrfGuard` Basic Auth bypass path undocumented
-- `callClaude` has no sanitization contract — direct callers bypass XML wrapping
-- `stmt()` cache stale connection risk after Railway redeploy (20+ call sites)
+- Analytics transaction error handling (8 queries, what if one throws?)
+- LLM pipeline behavior never reviewed (prompt injection resilience)
+- Accessibility never reviewed
+- `npm audit` never run
+- dashboard.html at 2,694/2,800 lines -- extract JS on next feature
 
 ## Plan Reference
 
-`docs/plans/2026-03-01-feat-follow-up-pipeline-v2-dashboard-plan.md`
+`docs/plans/2026-03-05-feat-lead-analytics-dashboard-plan.md`

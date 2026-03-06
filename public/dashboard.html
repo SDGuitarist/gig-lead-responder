@@ -883,6 +883,7 @@
     margin-bottom: 14px;
   }
 
+  .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0; }
   .breakdown-table { width: 100%; border-collapse: collapse; }
   .breakdown-table th {
     font-size: 11px;
@@ -911,6 +912,17 @@
     transition: width 0.4s ease-out;
   }
 
+  .cycle-stat {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  .insights-empty-section {
+    padding: 20px 0;
+    color: #8a7e6d;
+  }
+  @media (max-width: 700px) { .insights-empty-section p:last-child { display: none; } }
   .insights-empty {
     text-align: center;
     padding: 60px 24px;
@@ -1099,7 +1111,7 @@
       <button class="tab-btn" data-tab="insights">Insights</button>
       <button class="tab-btn" data-tab="followups">Follow-Ups</button>
     </nav>
-    <button class="refresh-btn" onclick="loadStats(); loadLeads();" title="Refresh leads and stats">&#x21bb; Refresh</button>
+    <button class="refresh-btn" onclick="loadStats(); currentOffset = 0; loadLeads();" title="Refresh leads and stats">&#x21bb; Refresh</button>
   </header>
 
   <!-- ══════════════════ LEADS PANEL ════════════════════════ -->
@@ -1175,6 +1187,10 @@
     <!-- Mobile Cards -->
     <div class="mobile-cards" id="mobileCards">
       <div style="text-align:center;padding:48px;color:#8a7e6d;">Loading...</div>
+    </div>
+
+    <div id="loadMoreWrap" style="display:none;text-align:center;padding:16px 0 24px;">
+      <button id="loadMoreBtn" class="refresh-btn" style="min-width:160px;">Load More</button>
     </div>
 
   </div><!-- /panel-leads -->
@@ -1329,8 +1345,10 @@
 
   /* ── State ───────────────────────────────────────────────── */
 
+  var PAGE_SIZE = 50;
   var activeFilter = 'pending';
   var activeSort = '';
+  var currentOffset = 0;
   var authHeader = null;
   var currentLeads = [];
   var expandedId = null;
@@ -1482,27 +1500,41 @@
 
   /* ── Load + render leads ─────────────────────────────────── */
 
-  function loadLeads() {
+  function loadLeads(append) {
     var params = [];
     if (activeFilter !== 'all') {
       var apiStatus = FILTER_TO_API[activeFilter];
       if (apiStatus) params.push('status=' + apiStatus);
     }
     if (activeSort) params.push('sort=' + activeSort);
+    params.push('limit=' + PAGE_SIZE);
+    params.push('offset=' + currentOffset);
 
-    var qs = params.length ? '?' + params.join('&') : '';
+    var qs = '?' + params.join('&');
 
     apiFetch('/api/leads' + qs).then(function (leads) {
-      currentLeads = leads;
-      expandedId = null;
-      renderTable(leads);
-      renderMobile(leads);
+      if (append) {
+        currentLeads = currentLeads.concat(leads);
+        appendTable(leads);
+        appendMobile(leads);
+      } else {
+        currentLeads = leads;
+        expandedId = null;
+        renderTable(leads);
+        renderMobile(leads);
+      }
+      // Show "Load More" only if we got a full page
+      document.getElementById('loadMoreWrap').style.display =
+        leads.length >= PAGE_SIZE ? '' : 'none';
     }).catch(function (e) {
       console.error('Leads load failed:', e);
-      document.getElementById('tableBody').innerHTML =
-        '<tr><td colspan="7" style="text-align:center;padding:48px;color:#b54a3a;">Failed to load leads</td></tr>';
-      document.getElementById('mobileCards').innerHTML =
-        '<div style="text-align:center;padding:48px;color:#b54a3a;">Failed to load leads</div>';
+      if (!append) {
+        document.getElementById('tableBody').innerHTML =
+          '<tr><td colspan="7" style="text-align:center;padding:48px;color:#b54a3a;">Failed to load leads</td></tr>';
+        document.getElementById('mobileCards').innerHTML =
+          '<div style="text-align:center;padding:48px;color:#b54a3a;">Failed to load leads</div>';
+      }
+      document.getElementById('loadMoreWrap').style.display = 'none';
     });
   }
 
@@ -1640,6 +1672,71 @@
     return html;
   }
 
+  /* ── Row builders ──────────────────────────────────────── */
+
+  function buildTableRow(l) {
+    var st = STATUS_DISPLAY[l.status] || { label: esc(l.status), css: '' };
+    var sc = l.confidence_score;
+    var fmt = FORMAT_NAMES[l.format_recommended] || l.format_recommended || '\u2014';
+    var muted = (l.status === 'sent' || l.status === 'done') ? ' row-muted' : '';
+    var isOpen = expandedId === l.id;
+
+    var row = '<tr class="lead-row' + muted + '" data-id="' + l.id + '">' +
+      '<td>' +
+        '<div class="lead-event-name">' + (esc(l.event_type) || 'Unknown') + '</div>' +
+        '<div class="lead-event-sub">' + esc(l.client_name) + '</div>' +
+      '</td>' +
+      '<td class="lead-date">' + fmtDate(l.event_date) + '</td>' +
+      '<td class="lead-venue">' + (esc(l.venue) || '\u2014') + '</td>' +
+      '<td><span class="format-pill">' + esc(fmt) + '</span></td>' +
+      '<td>' + (sc != null
+        ? '<span class="score ' + scoreClass(sc) + '">' + sc + '</span>'
+        : '<span style="color:#8a7e6d">\u2014</span>') + '</td>' +
+      '<td><span class="status-badge ' + st.css + '">' + st.label + '</span>' + outcomeBadgeHTML(l) + '</td>' +
+      '<td></td>' +
+    '</tr>';
+
+    row += '<tr class="detail-row" data-detail="' + l.id + '">' +
+      '<td colspan="7"><div class="detail-panel' + (isOpen ? ' open' : '') + '" data-detail="' + l.id + '">' +
+      (isOpen ? renderDetailPanel(l) : '') +
+      '</div></td></tr>';
+
+    return row;
+  }
+
+  function buildMobileCard(l) {
+    var st = STATUS_DISPLAY[l.status] || { label: esc(l.status), css: '' };
+    var sc = l.confidence_score;
+    var fmt = FORMAT_NAMES[l.format_recommended] || l.format_recommended || '\u2014';
+    var muted = (l.status === 'sent' || l.status === 'done') ? ' style="opacity:0.7"' : '';
+    var isOpen = expandedId === l.id;
+
+    return '<div class="mobile-card"' + muted + ' data-id="' + l.id + '">' +
+      '<div class="mobile-card-header">' +
+        '<div>' +
+          '<div class="lead-event-name">' + (esc(l.event_type) || 'Unknown') + '</div>' +
+          '<div class="lead-event-sub">' + esc(l.client_name) + '</div>' +
+        '</div>' +
+        '<span class="status-badge ' + st.css + '">' + st.label + '</span>' + outcomeBadgeHTML(l) +
+      '</div>' +
+      '<div class="mobile-card-meta">' +
+        '<span>' + fmtDate(l.event_date) + '</span>' +
+        '<span>' + (esc(l.venue) || '\u2014') + '</span>' +
+        '<span class="format-pill">' + esc(fmt) + '</span>' +
+      '</div>' +
+      '<div class="mobile-card-footer">' +
+        '<div class="mobile-card-score">' +
+          (sc != null
+            ? '<span class="score ' + scoreClass(sc) + '">' + sc + '</span>'
+            : '<span style="color:#8a7e6d">\u2014</span>') +
+        '</div>' +
+      '</div>' +
+      '<div class="detail-panel' + (isOpen ? ' open' : '') + '" data-detail="' + l.id + '">' +
+        (isOpen ? renderDetailPanel(l) : '') +
+      '</div>' +
+    '</div>';
+  }
+
   /* ── Render table ───────────────────────────────────────── */
 
   function renderTable(leads) {
@@ -1651,35 +1748,12 @@
       return;
     }
 
-    tbody.innerHTML = leads.map(function (l) {
-      var st = STATUS_DISPLAY[l.status] || { label: esc(l.status), css: '' };
-      var sc = l.confidence_score;
-      var fmt = FORMAT_NAMES[l.format_recommended] || l.format_recommended || '\u2014';
-      var muted = (l.status === 'sent' || l.status === 'done') ? ' row-muted' : '';
-      var isOpen = expandedId === l.id;
+    tbody.innerHTML = leads.map(buildTableRow).join('');
+  }
 
-      var row = '<tr class="lead-row' + muted + '" data-id="' + l.id + '">' +
-        '<td>' +
-          '<div class="lead-event-name">' + (esc(l.event_type) || 'Unknown') + '</div>' +
-          '<div class="lead-event-sub">' + esc(l.client_name) + '</div>' +
-        '</td>' +
-        '<td class="lead-date">' + fmtDate(l.event_date) + '</td>' +
-        '<td class="lead-venue">' + (esc(l.venue) || '\u2014') + '</td>' +
-        '<td><span class="format-pill">' + esc(fmt) + '</span></td>' +
-        '<td>' + (sc != null
-          ? '<span class="score ' + scoreClass(sc) + '">' + sc + '</span>'
-          : '<span style="color:#8a7e6d">\u2014</span>') + '</td>' +
-        '<td><span class="status-badge ' + st.css + '">' + st.label + '</span>' + outcomeBadgeHTML(l) + '</td>' +
-        '<td></td>' +
-      '</tr>';
-
-      row += '<tr class="detail-row" data-detail="' + l.id + '">' +
-        '<td colspan="7"><div class="detail-panel' + (isOpen ? ' open' : '') + '" data-detail="' + l.id + '">' +
-        (isOpen ? renderDetailPanel(l) : '') +
-        '</div></td></tr>';
-
-      return row;
-    }).join('');
+  function appendTable(leads) {
+    var tbody = document.getElementById('tableBody');
+    tbody.insertAdjacentHTML('beforeend', leads.map(buildTableRow).join(''));
   }
 
   /* ── Render mobile cards ────────────────────────────────── */
@@ -1693,38 +1767,12 @@
       return;
     }
 
-    container.innerHTML = leads.map(function (l) {
-      var st = STATUS_DISPLAY[l.status] || { label: esc(l.status), css: '' };
-      var sc = l.confidence_score;
-      var fmt = FORMAT_NAMES[l.format_recommended] || l.format_recommended || '\u2014';
-      var muted = (l.status === 'sent' || l.status === 'done') ? ' style="opacity:0.7"' : '';
-      var isOpen = expandedId === l.id;
+    container.innerHTML = leads.map(buildMobileCard).join('');
+  }
 
-      return '<div class="mobile-card"' + muted + ' data-id="' + l.id + '">' +
-        '<div class="mobile-card-header">' +
-          '<div>' +
-            '<div class="lead-event-name">' + (esc(l.event_type) || 'Unknown') + '</div>' +
-            '<div class="lead-event-sub">' + esc(l.client_name) + '</div>' +
-          '</div>' +
-          '<span class="status-badge ' + st.css + '">' + st.label + '</span>' + outcomeBadgeHTML(l) +
-        '</div>' +
-        '<div class="mobile-card-meta">' +
-          '<span>' + fmtDate(l.event_date) + '</span>' +
-          '<span>' + (esc(l.venue) || '\u2014') + '</span>' +
-          '<span class="format-pill">' + esc(fmt) + '</span>' +
-        '</div>' +
-        '<div class="mobile-card-footer">' +
-          '<div class="mobile-card-score">' +
-            (sc != null
-              ? '<span class="score ' + scoreClass(sc) + '">' + sc + '</span>'
-              : '<span style="color:#8a7e6d">\u2014</span>') +
-          '</div>' +
-        '</div>' +
-        '<div class="detail-panel' + (isOpen ? ' open' : '') + '" data-detail="' + l.id + '">' +
-          (isOpen ? renderDetailPanel(l) : '') +
-        '</div>' +
-      '</div>';
-    }).join('');
+  function appendMobile(leads) {
+    var container = document.getElementById('mobileCards');
+    container.insertAdjacentHTML('beforeend', leads.map(buildMobileCard).join(''));
   }
 
   /* ── Row click → expand/collapse (accordion) ────────────── */
@@ -1904,6 +1952,7 @@
 
   function setFilter(key) {
     activeFilter = key;
+    currentOffset = 0;
     filterPills.forEach(function (p) {
       p.classList.toggle('active', p.dataset.filter === key);
     });
@@ -1920,7 +1969,15 @@
 
   document.getElementById('sortSelect').addEventListener('change', function (e) {
     activeSort = e.target.value;
+    currentOffset = 0;
     loadLeads();
+  });
+
+  /* ── Load More button ─────────────────────────────────────── */
+
+  document.getElementById('loadMoreBtn').addEventListener('click', function () {
+    currentOffset += PAGE_SIZE;
+    loadLeads(true);
   });
 
   /* ── Outcome save (with in-flight gate) ─────────────────── */
@@ -2095,34 +2152,177 @@
       html += renderBreakdownTable('By Format', data.by_format, hasEnough);
     }
 
+    // Booking Cycle Time
+    html += renderBookingCycleSection(data.booking_cycle);
+
+    // Monthly Trends
+    var trendCols = [
+      { key: 'received', label: 'Received', format: 'integer', getValue: function(r) { return r.received; } },
+      { key: 'booked', label: 'Booked', format: 'integer', getValue: function(r) { return r.booked; } }
+    ];
+    if (data.monthly_trends && data.monthly_trends.length > 0) {
+      var trendRows = data.monthly_trends.map(function(r) { r.label = r.month; return r; });
+      html += renderBreakdownTable('Monthly Trends', trendRows, false, trendCols);
+    } else {
+      html += renderEmptySection('Monthly Trends', 'See lead volume over time', 'Leads appear here as they arrive.');
+    }
+
+    // Revenue by Event Type
+    var revCols = [
+      { key: 'count', label: 'Bookings', format: 'integer', getValue: function(r) { return r.count; } },
+      { key: 'revenue', label: 'Revenue', format: 'currency', getValue: function(r) { return r.revenue; } },
+      { key: 'avg_price', label: 'Avg Price', format: 'currency', getValue: function(r) { return r.avg_price; } }
+    ];
+    if (data.revenue_by_type && data.revenue_by_type.length > 0) {
+      var revRows = data.revenue_by_type.map(function(r) { r.label = r.event_type; return r; });
+      html += renderBreakdownTable('Revenue by Event Type', revRows, false, revCols);
+    } else {
+      html += renderEmptySection('Revenue by Event Type', 'See which events generate the most revenue', 'Book a gig with a price to see revenue data.');
+    }
+
+    // Follow-up Effectiveness
+    html += renderFollowUpEffectivenessSection(data.follow_up_effectiveness);
+
+    // Loss Reasons
+    if (data.loss_reasons && data.loss_reasons.length > 0) {
+      var lossCols = [
+        { key: 'count', label: 'Count', format: 'integer', getValue: function(r) { return r.count; } },
+        { key: 'pct', label: '% of Losses', format: 'pct', getValue: function(r) { return data.lost > 0 ? (r.count / data.lost * 100) : null; } }
+      ];
+      var lossRows = data.loss_reasons.map(function(r) { r.label = r.reason; return r; });
+      html += renderBreakdownTable('Loss Reasons', lossRows, true, lossCols);
+    } else {
+      html += renderEmptySection('Loss Reasons', 'See why leads are lost', 'Mark a lead as Lost with a reason to see patterns.');
+    }
+
     container.innerHTML = html;
   }
 
-  function renderBreakdownTable(title, rows, showPct) {
-    var maxTotal = 0;
-    for (var i = 0; i < rows.length; i++) {
-      if (rows[i].total > maxTotal) maxTotal = rows[i].total;
+  function renderFollowUpEffectivenessSection(rows) {
+    if (!rows || rows.length === 0) {
+      return renderEmptySection('Follow-up Effectiveness', 'See if follow-ups help convert leads', 'Record outcomes on leads with follow-ups to see effectiveness.');
     }
+    var totalSample = 0;
+    for (var i = 0; i < rows.length; i++) totalSample += rows[i].total;
 
-    var html = '<div class="insights-section">';
-    html += '<h3>' + esc(title) + '</h3>';
-    html += '<table class="breakdown-table">';
-    html += '<thead><tr><th>Name</th><th>Booked</th>' + (showPct ? '<th>Rate</th>' : '') + '<th class="bar-cell"></th></tr></thead>';
-    html += '<tbody>';
+    var html = '<div class="insights-section" data-analytics="follow-up-effectiveness">';
+    html += '<h3>Follow-up Effectiveness</h3>';
+    html += renderSampleCaveat(totalSample);
+    html += '<table class="breakdown-table"><caption class="sr-only">Follow-up Effectiveness</caption>';
+    html += '<thead><tr><th scope="col">Follow-ups</th><th scope="col">Total</th><th scope="col">Booked</th><th scope="col">Lost</th><th scope="col">No Reply</th>';
+    if (totalSample >= 5) html += '<th scope="col">Book Rate</th>';
+    html += '</tr></thead><tbody>';
 
     for (var j = 0; j < rows.length; j++) {
       var r = rows[j];
-      var thin = r.total < 3 ? ' class="thin-data"' : '';
-      var barWidth = maxTotal > 0 ? Math.round((r.booked / maxTotal) * 100) : 0;
+      var label = r.follow_up_count === 0 ? 'No follow-ups' : r.follow_up_count + ' follow-up' + (r.follow_up_count > 1 ? 's' : '');
+      html += '<tr><th scope="row">' + esc(label) + '</th>';
+      html += '<td>' + r.total + '</td>';
+      html += '<td>' + r.booked + '</td>';
+      html += '<td>' + r.lost + '</td>';
+      html += '<td>' + r.no_reply + '</td>';
+      if (totalSample >= 5) {
+        var rate = r.total > 0 ? (r.booked / r.total * 100).toFixed(1) + '%' : '\u2014';
+        html += '<td>' + rate + '</td>';
+      }
+      html += '</tr>';
+    }
+
+    html += '</tbody></table></div>';
+    return html;
+  }
+
+  function renderEmptySection(title, headline, hint) {
+    return '<div class="insights-section" data-analytics="' + esc(title.toLowerCase().replace(/\s+/g, '-')) + '">' +
+      '<h3>' + esc(title) + '</h3>' +
+      '<div class="insights-empty-section"><p><strong>' + esc(headline) + '</strong></p>' +
+      '<p class="insights-note">' + esc(hint) + '</p></div></div>';
+  }
+
+  function renderSampleCaveat(n) {
+    if (n < 5) return '<p class="insights-note">' + n + ' of 5 outcomes needed for rates</p>';
+    if (n < 30) return '<p class="insights-note">Based on ' + n + ' leads</p>';
+    return '';
+  }
+
+  function renderBookingCycleSection(rows) {
+    if (!rows || rows.length === 0) {
+      return renderEmptySection('Booking Cycle Time', 'See which lead sources convert fastest', 'Record 5 gig outcomes to see conversion rates.');
+    }
+    var totalSample = 0;
+    var weightedSum = 0;
+    for (var i = 0; i < rows.length; i++) {
+      totalSample += rows[i].sample_size;
+      weightedSum += rows[i].avg_days * rows[i].sample_size;
+    }
+    var overallAvg = totalSample > 0 ? weightedSum / totalSample : 0;
+
+    var html = '<div class="insights-section" data-analytics="booking-cycle-time">';
+    html += '<h3>Booking Cycle Time</h3>';
+    html += '<div class="cycle-stat"><span class="insight-number serif">' + overallAvg.toFixed(1) + 'd</span>';
+    html += '<span class="insight-sub">avg days to booking</span></div>';
+    html += renderSampleCaveat(totalSample);
+
+    if (rows.length > 1) {
+      var cycleCols = [
+        { key: 'avg_days', label: 'Avg Days', format: 'days', getValue: function(r) { return r.avg_days; } },
+        { key: 'sample_size', label: 'Bookings', format: 'integer', getValue: function(r) { return r.sample_size; } }
+      ];
+      var tableRows = rows.map(function(r) { return { label: r.source_platform, total: r.sample_size, avg_days: r.avg_days, sample_size: r.sample_size }; });
+      html += renderBreakdownTable('Booking Cycle by Source', tableRows, false, cycleCols);
+    }
+
+    html += '</div>';
+    return html;
+  }
+
+  // Formatters registry for parameterized tables
+  var FORMATTERS = {
+    currency: function(v) { return v == null ? '\u2014' : esc('$' + Number(v).toLocaleString()); },
+    pct:      function(v) { return v == null ? '\u2014' : esc(v.toFixed(1) + '%'); },
+    integer:  function(v) { return v == null ? '\u2014' : esc(Number(v).toLocaleString()); },
+    days:     function(v) { return v == null ? '\u2014' : esc(v.toFixed(1) + 'd'); },
+    text:     function(v) { return v == null ? '\u2014' : esc(String(v)); },
+  };
+
+  var DEFAULT_COLUMNS = [
+    { key: 'booked', label: 'Booked', format: 'text', getValue: function(r) { return r.booked + ' of ' + r.total; } },
+    { key: 'rate', label: 'Rate', format: 'pct', pctGate: true, getValue: function(r) { return r.total >= 3 ? Math.round(r.rate * 100) : null; } }
+  ];
+
+  function renderBreakdownTable(title, rows, showPct, columns) {
+    var cols = columns || DEFAULT_COLUMNS;
+    var maxTotal = 0;
+    for (var i = 0; i < rows.length; i++) {
+      if ((rows[i].total || 0) > maxTotal) maxTotal = rows[i].total || 0;
+    }
+
+    var html = '<div class="insights-section" data-analytics="' + esc(title.toLowerCase().replace(/\s+/g, '-')) + '">';
+    html += '<h3>' + esc(title) + '</h3>';
+    html += '<table class="breakdown-table"><caption class="sr-only">' + esc(title) + '</caption>';
+    html += '<thead><tr><th scope="col">Name</th>';
+    for (var c = 0; c < cols.length; c++) {
+      if (cols[c].pctGate && !showPct) continue;
+      html += '<th scope="col">' + esc(cols[c].label) + '</th>';
+    }
+    html += '<th scope="col" class="bar-cell"></th></tr></thead><tbody>';
+
+    for (var j = 0; j < rows.length; j++) {
+      var r = rows[j];
+      var thin = (r.total || r.count || 0) < 3 ? ' class="thin-data"' : '';
+      var barVal = r.booked != null ? r.booked : (r.count || 0);
+      var barWidth = maxTotal > 0 ? Math.round((barVal / maxTotal) * 100) : 0;
       var label = FORMAT_NAMES[r.label] || r.label || 'Unknown';
 
       html += '<tr' + thin + '>';
-      html += '<td>' + esc(label) + '</td>';
-      html += '<td>' + r.booked + ' of ' + r.total + '</td>';
-      if (showPct) {
-        html += '<td>' + (r.total >= 3 ? Math.round(r.rate * 100) + '%' : '\u2014') + '</td>';
+      html += '<th scope="row">' + esc(label) + '</th>';
+      for (var k = 0; k < cols.length; k++) {
+        if (cols[k].pctGate && !showPct) continue;
+        var val = cols[k].getValue ? cols[k].getValue(r) : r[cols[k].key];
+        var fmt = FORMATTERS[cols[k].format] || FORMATTERS.text;
+        html += '<td>' + fmt(val) + '</td>';
       }
-      html += '<td class="bar-cell">' + (r.total >= 3 ? '<div class="bar" style="width:' + barWidth + '%"></div>' : '') + '</td>';
+      html += '<td class="bar-cell" aria-hidden="true">' + ((r.total || r.count || 0) >= 3 ? '<div class="bar" style="width:' + barWidth + '%"></div>' : '') + '</td>';
       html += '</tr>';
     }
 

@@ -18,7 +18,6 @@ export {
   markEmailProcessed,
   runTransaction,
   logVenueMiss,
-  setLeadOutcome,
 } from "./leads.js";
 // normalizeLeadRow intentionally NOT re-exported — internal cross-module helper
 
@@ -44,4 +43,5 @@ export {
   listFollowUpLeads,
   getAnalytics,
   getLeadStats,
+  setLeadOutcomeAndFreeze,
 } from "./queries.js";
