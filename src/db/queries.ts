@@ -2,10 +2,11 @@
 // NEVER import from ./index.js (circular dependency risk)
 
 import type Database from "better-sqlite3";
-import type { LeadRecord, LeadStatus, AnalyticsResponse, BookingCycleEntry, MonthlyTrendEntry, RevenueByTypeEntry, FollowUpEffectivenessEntry, LossReasonEntry, LossReason } from "../types.js";
+import type { LeadRecord, LeadStatus, LeadOutcome, AnalyticsResponse, BookingCycleEntry, MonthlyTrendEntry, RevenueByTypeEntry, FollowUpEffectivenessEntry, LossReasonEntry, LossReason } from "../types.js";
 import { LOSS_REASONS } from "../types.js";
 import { initDb } from "./migrate.js";
-import { normalizeLeadRow } from "./leads.js";
+import { normalizeLeadRow, setLeadOutcome } from "./leads.js";
+import { skipFollowUp } from "./follow-ups.js";
 
 // stmt() pattern also in leads.ts, follow-ups.ts — keep in sync
 let cachedDb: Database.Database | undefined;
@@ -246,6 +247,23 @@ export function getAnalytics(): AnalyticsResponse {
         count: r.count,
       })),
     };
+  })();
+}
+
+/**
+ * Set outcome and freeze follow-up pipeline atomically.
+ * Eliminates temporal coupling — callers cannot forget to skip follow-ups.
+ */
+export function setLeadOutcomeAndFreeze(
+  id: number,
+  outcome: LeadOutcome | null,
+  options?: { outcome_reason?: LossReason; actual_price?: number },
+): LeadRecord | undefined {
+  const db = initDb();
+  return db.transaction(() => {
+    const updated = setLeadOutcome(id, outcome, options);
+    if (updated && outcome !== null) skipFollowUp(id);
+    return updated;
   })();
 }
 

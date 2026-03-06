@@ -221,11 +221,8 @@ export function runTransaction<T>(fn: () => NotPromise<T>): T {
 
 /**
  * Set or clear a lead's outcome. Handles sub-field cleanup automatically.
- *
- * CALLER CONTRACT: When outcome !== null, the caller MUST also call
- * skipFollowUp(id) to freeze the follow-up pipeline. Without this,
- * the scheduler can increment follow_up_count after outcome recording,
- * silently corrupting follow-up effectiveness analytics.
+ * Use setLeadOutcomeAndFreeze() in queries.ts for the public API —
+ * it wraps this function and atomically freezes follow-ups.
  */
 export function setLeadOutcome(
   id: number,

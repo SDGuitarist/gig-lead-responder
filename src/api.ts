@@ -1,5 +1,5 @@
 import { Router, type Request, type Response } from "express";
-import { listLeadsFiltered, listFollowUpLeads, getLeadStats, getLead, updateLead, claimLeadForSending, setLeadOutcome, skipFollowUp, getAnalytics, completeApproval } from "./db/index.js";
+import { listLeadsFiltered, listFollowUpLeads, getLeadStats, getLead, updateLead, claimLeadForSending, setLeadOutcomeAndFreeze, getAnalytics, completeApproval } from "./db/index.js";
 import type { LeadStatus, LeadOutcome, LossReason } from "./types.js";
 import { LEAD_OUTCOMES, LOSS_REASONS } from "./types.js";
 import { sessionAuth, csrfGuard } from "./auth.js";
@@ -202,7 +202,7 @@ router.post("/api/leads/:id/outcome", csrfGuard, (req: Request, res: Response) =
     return;
   }
 
-  const updated = setLeadOutcome(id, outcome as LeadOutcome | null, {
+  const updated = setLeadOutcomeAndFreeze(id, outcome as LeadOutcome | null, {
     actual_price: actual_price ?? undefined,
     outcome_reason: outcome_reason as LossReason | undefined,
   });
@@ -210,11 +210,6 @@ router.post("/api/leads/:id/outcome", csrfGuard, (req: Request, res: Response) =
   if (!updated) {
     res.status(500).json({ error: "Failed to update outcome" });
     return;
-  }
-
-  // Freeze follow-up pipeline when setting an outcome (not when clearing)
-  if (outcome !== null) {
-    skipFollowUp(id);
   }
 
   // Re-fetch to include follow-up status change in response
