@@ -231,7 +231,7 @@ export function getAnalytics(): AnalyticsResponse {
         event_type: r.event_type,
         revenue: r.revenue ?? 0,
         count: r.count,
-        avg_price: r.avg_price ? Math.round(r.avg_price) : 0,
+        avg_price: r.avg_price != null ? Math.round(r.avg_price) : 0,
       })),
       follow_up_effectiveness: followUpEff.map((r): FollowUpEffectivenessEntry => ({
         follow_up_count: r.follow_up_count,
