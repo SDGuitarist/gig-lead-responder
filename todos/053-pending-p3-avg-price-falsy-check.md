@@ -1,7 +1,7 @@
 ---
 status: pending
 priority: p3
-issue_id: "045"
+issue_id: "053"
 tags: [code-review, typescript, correctness]
 dependencies: []
 unblocks: []

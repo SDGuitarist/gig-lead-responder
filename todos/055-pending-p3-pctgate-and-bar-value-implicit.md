@@ -1,9 +1,9 @@
 ---
 status: pending
 priority: p3
-issue_id: "047"
+issue_id: "055"
 tags: [code-review, dashboard, simplicity]
-dependencies: ["043"]
+dependencies: []
 unblocks: []
 sub_priority: 7
 ---

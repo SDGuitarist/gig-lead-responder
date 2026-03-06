@@ -1,7 +1,7 @@
 ---
 status: pending
 priority: p3
-issue_id: "048"
+issue_id: "056"
 tags: [code-review, style, queries]
 dependencies: []
 unblocks: []

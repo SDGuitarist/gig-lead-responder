@@ -1,7 +1,7 @@
 ---
 status: pending
 priority: p2
-issue_id: "047"
+issue_id: "052"
 tags: [code-review, architecture, dashboard, line-budget]
 dependencies: []
 unblocks: ["046"]

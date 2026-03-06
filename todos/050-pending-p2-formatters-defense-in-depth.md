@@ -1,7 +1,7 @@
 ---
 status: pending
 priority: p2
-issue_id: "044"
+issue_id: "050"
 tags: [code-review, security, xss, dashboard]
 dependencies: []
 unblocks: []
