@@ -367,4 +367,4 @@ Simplifications applied after parallel review by 3 agents (DHH, Kieran, Simplici
 - **Existing types:** `src/types.ts` (Classification, PricingResult, Drafts, GateResult, PipelineOutput)
 - **Claude helper:** `src/claude.ts` (callClaude<T>, callClaudeText)
 - **Pipeline functions:** `src/pipeline/classify.ts`, `src/pipeline/price.ts`, `src/pipeline/context.ts`, `src/pipeline/generate.ts`, `src/pipeline/verify.ts`
-- **Architecture notes:** `docs/HANDOFF.md`
+- **Architecture notes:** `HANDOFF.md`

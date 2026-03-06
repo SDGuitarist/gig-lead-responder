@@ -64,7 +64,7 @@ Lead analytics dashboard fully implemented and reviewed. Cycle 14 review found 7
 ## Prompt for Next Session
 
 ```
-Read docs/HANDOFF.md. This is Gig Lead Responder -- an automated lead response pipeline for a musician.
+Read HANDOFF.md. This is Gig Lead Responder -- an automated lead response pipeline for a musician.
 
 Cycle 14 complete (compound done). Branch feat/lead-analytics-dashboard-v2 ready to merge.
 18 commits ahead of main: analytics dashboard + Cycle 14 review fixes + todo cleanup.

@@ -63,7 +63,7 @@ Read each file before editing. Append — never overwrite.
 - Add new section if the solution introduced a wholly new concept not covered by existing sections.
 - Keep total file under 200 lines (it gets truncated after that).
 
-#### 3d. docs/HANDOFF.md
+#### 3d. HANDOFF.md
 
 - Update the header (last updated date, current phase, next session).
 - Add a brief entry for this cycle under the latest session section.
@@ -87,7 +87,7 @@ Files updated:
   - INSTITUTIONAL-LEARNINGS.md — [new section / updated existing section]
   - compound-engineering.local.md — risk chain updated
   - MEMORY.md — [sections updated]
-  - docs/HANDOFF.md — phase updated
+  - HANDOFF.md — phase updated
   - ~/Documents/dev-notes/YYYY-MM-DD.md — journal entry appended
 
 New cross-feature patterns: [count or "none"]
