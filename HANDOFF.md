@@ -4,6 +4,12 @@
 **Branch:** `main`
 **Phase:** Compound (Cycle 15) complete. Next: Brainstorm (test failure investigation or next feature).
 
+## Current Priority
+
+- Goal: scope the 11 pre-existing test failures before any new feature work.
+- Stop condition: a written brainstorm or plan exists for investigating `budget-gap.test.ts` and `email-parser.test.ts`.
+- Read next: `docs/solutions/logic-errors/2026-03-06-dashboard-defensive-patterns-normalization-and-loop-guards.md`
+
 ## Current State
 
 Cycle 15 compound phase complete. Solution doc written documenting 4 defensive patterns (write-time normalization, loop guards, hoist-above-loop, CSS extraction). All P2 fixes merged (PRs #10 and #11). Learnings propagated to all surfaces.
