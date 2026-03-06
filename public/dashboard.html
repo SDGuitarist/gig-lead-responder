@@ -2161,7 +2161,8 @@
       { key: 'booked', label: 'Booked', format: 'integer', getValue: function(r) { return r.booked; } }
     ];
     if (data.monthly_trends && data.monthly_trends.length > 0) {
-      html += renderBreakdownTable('Monthly Trends', data.monthly_trends, false, trendCols);
+      var trendRows = data.monthly_trends.map(function(r) { r.label = r.month; return r; });
+      html += renderBreakdownTable('Monthly Trends', trendRows, false, trendCols);
     } else {
       html += renderEmptySection('Monthly Trends', 'See lead volume over time', 'Leads appear here as they arrive.');
     }
@@ -2173,7 +2174,8 @@
       { key: 'avg_price', label: 'Avg Price', format: 'currency', getValue: function(r) { return r.avg_price; } }
     ];
     if (data.revenue_by_type && data.revenue_by_type.length > 0) {
-      html += renderBreakdownTable('Revenue by Event Type', data.revenue_by_type, false, revCols);
+      var revRows = data.revenue_by_type.map(function(r) { r.label = r.event_type; return r; });
+      html += renderBreakdownTable('Revenue by Event Type', revRows, false, revCols);
     } else {
       html += renderEmptySection('Revenue by Event Type', 'See which events generate the most revenue', 'Book a gig with a price to see revenue data.');
     }
@@ -2187,7 +2189,8 @@
         { key: 'count', label: 'Count', format: 'integer', getValue: function(r) { return r.count; } },
         { key: 'pct', label: '% of Losses', format: 'pct', getValue: function(r) { return data.lost > 0 ? (r.count / data.lost * 100) : null; } }
       ];
-      html += renderBreakdownTable('Loss Reasons', data.loss_reasons, true, lossCols);
+      var lossRows = data.loss_reasons.map(function(r) { r.label = r.reason; return r; });
+      html += renderBreakdownTable('Loss Reasons', lossRows, true, lossCols);
     } else {
       html += renderEmptySection('Loss Reasons', 'See why leads are lost', 'Mark a lead as Lost with a reason to see patterns.');
     }
@@ -2323,7 +2326,7 @@
       var thin = (r.total || r.count || 0) < 3 ? ' class="thin-data"' : '';
       var barVal = r.booked != null ? r.booked : (r.count || 0);
       var barWidth = maxTotal > 0 ? Math.round((barVal / maxTotal) * 100) : 0;
-      var label = FORMAT_NAMES[r.label || r.source_platform || r.event_type || r.reason || r.month] || r.label || r.source_platform || r.event_type || r.reason || r.month || 'Unknown';
+      var label = FORMAT_NAMES[r.label] || r.label || 'Unknown';
 
       html += '<tr' + thin + '>';
       html += '<th scope="row">' + esc(label) + '</th>';
