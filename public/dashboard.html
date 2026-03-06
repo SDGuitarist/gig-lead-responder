@@ -1221,11 +1221,11 @@
       html += '<th scope="col">' + esc(cols[c].label) + '</th>';
     }
     html += '<th scope="col" class="bar-cell"></th></tr></thead><tbody>';
+    var getBarValue = cols[0].getBarValue || function(row) { return row.booked != null ? row.booked : (row.count || 0); };
 
     for (var j = 0; j < rows.length; j++) {
       var r = rows[j];
       var thin = (r.total || r.count || 0) < 3 ? ' class="thin-data"' : '';
-      var getBarValue = cols[0].getBarValue || function(row) { return row.booked != null ? row.booked : (row.count || 0); };
       var barVal = getBarValue(r);
       var barWidth = maxTotal > 0 ? Math.round((barVal / maxTotal) * 100) : 0;
       var label = FORMAT_NAMES[r.label] || r.label || 'Unknown';
