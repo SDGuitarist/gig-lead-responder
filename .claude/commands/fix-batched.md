@@ -257,7 +257,7 @@ session.>
 
 ### Step 3: Update HANDOFF.md
 
-- Read `docs/HANDOFF.md`.
+- Read `HANDOFF.md`.
 - Find the current version number in the header.
 - Increment it by 1.
 - Update the "Current phase" line to note fix phase complete.

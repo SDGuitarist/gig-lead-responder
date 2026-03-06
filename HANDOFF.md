@@ -1,12 +1,16 @@
 # HANDOFF -- Gig Lead Responder
 
-**Date:** 2026-03-05
-**Branch:** `feat/lead-analytics-dashboard-v2` (18 commits ahead of main)
-**Phase:** Compound complete (Cycle 14) -- ready for merge
+**Date:** 2026-03-06
+**Branch:** `chore/cross-project-hygiene-session-1a`
+**Phase:** Cross-project hygiene Session 1a complete
 
 ## Current State
 
-Lead analytics dashboard fully implemented and reviewed. Cycle 14 review found 7 new issues (0 P1, 4 P2, 3 P3) + 1 pre-existing P1. All P1+P2 fixed. Two additional fixes applied (#050 formatters defense-in-depth, #053 avg_price null check). Todo files cleaned up -- duplicate review run IDs resolved, remaining items renumbered to 050-057. Two compound solution docs: fix patterns (logic-errors) and rendering architecture (architecture). Branch is ready to merge to main.
+Session 1a of cross-project hygiene complete. Two file restructuring commits:
+1. `f9a12e5` -- Moved `docs/HANDOFF.md` → root `HANDOFF.md`. Updated 5 files (CLAUDE.md, update-learnings.md, fix-batched.md, production-automation-loop plan, HANDOFF.md self-reference). Left `docs/reviews/` references unchanged (historical).
+2. `88cbcb0` -- Renamed `INSTITUTIONAL-LEARNINGS.md` → `LESSONS_LEARNED.md`. Updated update-learnings.md (5 occurrences).
+
+Prior state: Cycle 14 compound complete, `feat/lead-analytics-dashboard-v2` ready to merge (18 commits ahead of main).
 
 ## Key Artifacts
 
@@ -64,13 +68,13 @@ Lead analytics dashboard fully implemented and reviewed. Cycle 14 review found 7
 ## Prompt for Next Session
 
 ```
-Read docs/HANDOFF.md. This is Gig Lead Responder -- an automated lead response pipeline for a musician.
+Read HANDOFF.md. This is Gig Lead Responder -- an automated lead response pipeline for a musician.
 
-Cycle 14 complete (compound done). Branch feat/lead-analytics-dashboard-v2 ready to merge.
-18 commits ahead of main: analytics dashboard + Cycle 14 review fixes + todo cleanup.
+Session 1a (GLR file restructuring) done on branch chore/cross-project-hygiene-session-1a.
+HANDOFF.md moved to root, INSTITUTIONAL-LEARNINGS.md renamed to LESSONS_LEARNED.md.
 
-Next: Merge to main. Then choose next work: leads.ts structural split (plan exists),
-P3 batch (todos 051-057), or new feature brainstorm.
+Next: Session 1b (PF-Intel file restructuring) or merge hygiene branch + resume
+feat/lead-analytics-dashboard-v2 merge to main.
 
 Repo: ~/Projects/gig-lead-responder/
 ```

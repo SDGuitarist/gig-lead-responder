@@ -73,7 +73,7 @@ absence and proceed normally.
 ## Session-Closing Handoff (Mandatory)
 
 Before ending ANY session — whether the phase is complete or context is running
-low — you MUST update `docs/HANDOFF.md` with:
+low — you MUST update `HANDOFF.md` with:
 
 1. **What was done** this session (commits, files changed, decisions made)
 2. **Three questions** answered (per the phase-specific format above)
