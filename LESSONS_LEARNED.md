@@ -235,6 +235,21 @@ Cherry-picking `server.ts` from a feature branch to main brought imports (`cooki
 
 ---
 
+## Cross-Tool Workflow (March 2026)
+
+**Date:** 2026-03-06
+**Feature:** Codex integration as independent planning/review agent
+
+### Learnings Summary
+
+**19. Two Independent Reviewers > One Self-Reviewing Tool**
+Codex reviews first (fresh eyes, no context bias from implementation), then Claude Code reviews with compound learnings researcher. Deduplicate findings across both. Two independent perspectives catch blind spots that a single tool misses — especially when the implementing tool also reviews its own work.
+
+**20. Handoff Prompts Start With Plan Reference**
+Codex generates focused Claude Code prompts with exact file paths, scope boundaries, acceptance criteria, and stop conditions. Always starts with "Read docs/plans/[file].md" to prevent broad exploration and conserve context window.
+
+---
+
 ## Template for New Features
 
 Copy this template when adding learnings for a new feature. Paste it as a new H2 section above this template.
