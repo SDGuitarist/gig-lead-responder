@@ -1,6 +1,6 @@
 ---
 name: update-learnings
-description: Update all learning docs after compound phase — INSTITUTIONAL-LEARNINGS.md, compound-engineering.local.md, MEMORY.md, HANDOFF.md, and journal
+description: Update all learning docs after compound phase — LESSONS_LEARNED.md, compound-engineering.local.md, MEMORY.md, HANDOFF.md, and journal
 argument-hint: "[cycle or feature name]"
 ---
 
@@ -25,7 +25,7 @@ Run immediately after `/workflows:compound` completes. The compound phase create
 Read these files to understand what just happened:
 
 1. **Most recent solution doc** — `docs/solutions/` sorted by modification time, pick newest
-2. **INSTITUTIONAL-LEARNINGS.md** — current state of the hub (feature sections, Top 10 Patterns)
+2. **LESSONS_LEARNED.md** — current state of the hub (feature sections, Top 10 Patterns)
 3. **compound-engineering.local.md** — current risk chain and cumulative risk table
 4. **MEMORY.md** — at `/Users/alejandroguillen/.claude/projects/-Users-alejandroguillen-Projects-gig-lead-responder/memory/MEMORY.md`
 5. **Review summary** — `docs/reviews/*/REVIEW-SUMMARY.md` for the current cycle (if exists)
@@ -44,7 +44,7 @@ From the solution doc and review summary, extract:
 
 Read each file before editing. Append — never overwrite.
 
-#### 3a. INSTITUTIONAL-LEARNINGS.md
+#### 3a. LESSONS_LEARNED.md
 
 - **If the feature already has an H2 section:** append the new learning to its Learnings Summary and update its Quick Reference table.
 - **If this is a new feature:** copy the template at the bottom of the file, fill it in, and insert it as a new H2 section above the template.
@@ -84,7 +84,7 @@ Print a summary:
 Update Learnings — [Feature Name] Complete
 
 Files updated:
-  - INSTITUTIONAL-LEARNINGS.md — [new section / updated existing section]
+  - LESSONS_LEARNED.md — [new section / updated existing section]
   - compound-engineering.local.md — risk chain updated
   - MEMORY.md — [sections updated]
   - HANDOFF.md — phase updated
@@ -97,7 +97,7 @@ Top 10 changes: [added/bumped/no changes]
 ## Rules
 
 1. **Read before writing** — always read a file before editing it
-2. **Don't duplicate** — link to solution docs, don't copy their content into INSTITUTIONAL-LEARNINGS.md
+2. **Don't duplicate** — link to solution docs, don't copy their content into LESSONS_LEARNED.md
 3. **Don't invent lessons** — only extract what's in the solution doc and review summary
 4. **Keep journal entries under 50 lines** — concise summary, not a rewrite
 5. **Preserve existing content** — append, don't overwrite. Edit specific sections.
