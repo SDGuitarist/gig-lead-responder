@@ -156,6 +156,23 @@ describe("parseEmail — The Bash", () => {
     assert.equal(result.reason, "parse_error");
     assert.ok(result.detail.includes("Gig ID"));
   });
+
+  it("EVENT DATE regex does not backtrack on malicious input", () => {
+    // Regression test for March 5 ReDoS fix (finding 001).
+    // Input that caused a 27-second hang with the old .*? pattern.
+    const maliciousHtml =
+      "EVENT DATE:" + "<td".repeat(10_000);
+    const result = parseEmail({
+      ...THEBASH_FIELDS,
+      "body-html": maliciousHtml,
+    });
+    // Must return quickly (parse_error, not hang). If this test times out,
+    // the regex has regressed to a backtracking-vulnerable pattern.
+    assert.equal(result.ok, false);
+    if (!result.ok) {
+      assert.equal(result.reason, "parse_error");
+    }
+  });
 });
 
 // --- Unknown sender ---

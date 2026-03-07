@@ -116,8 +116,11 @@ function parseTheBash(fields: EmailFields): ParseResult {
     return { ok: false, reason: "parse_error", detail: "Could not extract event_type from subject" };
   }
 
-  // event_date: HTML table — "EVENT DATE:" cell value
-  const eventDateMatch = html.match(/EVENT DATE:[^<]*<td[^>]*>([^<]*)<\/td>/is);
+  // EVENT DATE: appears in its own <td>, value is in the next <td>.
+  // Pattern: EVENT DATE:</td><td>value</td>
+  // Fixture modeled on confirmed real format; no live sample available (2026-03-07).
+  // If fixture is wrong, update regex + fixture — ReDoS regression test protects the security property.
+  const eventDateMatch = html.match(/EVENT DATE:<\/td>\s*<td[^>]*>([^<]*)<\/td>/is);
   if (!eventDateMatch) {
     return { ok: false, reason: "parse_error", detail: "Could not extract event_date from HTML table" };
   }
