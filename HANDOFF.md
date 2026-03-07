@@ -2,91 +2,37 @@
 
 **Date:** 2026-03-07
 **Branch:** `main`
-**Phase:** Plan (test failure fixes) deepened. Next: Work.
+**Phase:** Review (handed off to Codex). Next: Compound (after review).
 
 ## Current Suite
 
-- **Total tests:** 48 (budget-gap 25, email-parser 12, enrich-generate 11)
-- **Passing:** 37 | **Failing:** 11 (8 budget-gap + 3 email-parser)
-
-## Current Priority
-
-- Goal: fix the 11 pre-existing test failures (8 budget-gap, 3 email-parser).
-- Stop condition (work): 49/49 tests pass (48 existing + 1 new ReDoS
-  regression test), 2 commits landed.
-- Read next: `docs/plans/2026-03-07-test-failure-fixes.md`
+- **Total tests:** 49 (budget-gap 25, email-parser 13, enrich-generate 11)
+- **Passing:** 49 | **Failing:** 0
 
 ## What Was Done This Session
 
-### Brainstorm (prior session)
-- Traced all 11 failures to root cause via static analysis
-- Wrote brainstorm doc with two failure groups, investigation order, rejected options
+### Work Phase — Fix 11 Pre-Existing Test Failures
 
-### Plan (prior session + revised this session)
-- Traced all 8 budget-gap tests through `findScopedAlternative()` with current rates.ts values
-- Identified that 3 near-miss tests need updated inputs (not just assertions) to preserve coverage
-- Two commits planned: (1) email-parser regex + ReDoS regression test, (2) budget-gap test expectations
+**Commit 1:** `a0a947e` — fix(email-parser): adjust EVENT DATE regex to cross cell boundary
+- Changed regex on line 120 of `src/email-parser.ts` from `EVENT DATE:[^<]*<td` to `EVENT DATE:<\/td>\s*<td` — explicitly matches `</td><td>` boundary
+- Added 4-line comment explaining the pattern and fixture provenance
+- Added ReDoS regression test (10,000 `<td` repetitions) to `src/email-parser.test.ts`
+- Non-backtracking property preserved (all segments use `[^<]*` or `[^>]*`)
 
-### Plan Revision (prior review pass)
-1. Clarified budget-gap test identity: hybrid design (gap tiers = pure unit
-   test, scope-down = integration test against rates.ts)
-2. Updated test comments to distinguish synthetic `floor` param from
-   rates.ts-dependent scope-down floors; added "(rates.ts)" tag convention
-3. Added ReDoS regression test as concrete guardrail for low-confidence
-   email-parser regex change (replaces "low-confidence note" with a test that
-   locks the security property)
-4. Corrected all test counts: 48 total (not 51), 37 pass (not 40), target
-   49/49 after fix (48 + 1 new)
-5. Verified test count per file: budget-gap 25, email-parser 12,
-   enrich-generate 11
+**Commit 2:** `23ee092` — fix(tests): update budget-gap scope-down expectations for current rates
+- Updated 8 failing tests to match current `rates.ts` Solo floors
+- Tests 1, 3, 8: tier changed from `large` to `no_viable_scope` (scope-down fails with higher floors)
+- Tests 2, 4: `alt.price` updated from 400 to 550
+- Tests 5, 6, 7: inputs updated so near-miss tolerance feature retains passing coverage
+- Existing boundary test refreshed to current-rate exact-tolerance fail case (`475, 650` → `no_viable_scope`)
+- 6 comment-only fixes for passing tests (stale Solo rate references, duo test description)
+- All scope-down floor references now tagged `(rates.ts)` for searchability
 
-### Plan Deepening (this session)
-1. Independently re-traced the proposed new inputs for budget-gap tests 5, 6,
-   and 7 through `findScopedAlternative()` using current Solo rates:
-   confirmed expected results stay `large` with alt prices `650`, `550`, and
-   `550`
-2. Decided not to add a second malicious regex input for the new EVENT DATE
-   pattern; documented why the new pattern has no nested or overlapping
-   quantifiers that would create exponential backtracking
-3. Closed the near-miss boundary gap without increasing suite count: reused
-   the existing passing boundary test as the current-rate exact-tolerance fail
-   case (`detectBudgetGap(475, 650, "solo", 2, "T2D")` → `no_viable_scope`)
-4. Audited the 17 currently-passing budget-gap tests and added five
-   comment-only fixes to the plan for stale Solo-rate references
-5. Updated the plan’s acceptance criteria, commit guidance, and changed-files
-   summary to reflect the deeper review
-
-### Key Decisions
-
-**Budget-gap test identity:** Tests are hybrid — gap-tier classification is a
-pure unit test (floor is a synthetic param), but scope-down is an integration
-test against rates.ts. Comments must not claim synthetic floors match rates.ts.
-Scope-down expectations must match current rates.ts. Tagged with "(rates.ts)".
-
-**Near-miss test inputs:** Tests 5-7 all become `no_viable_scope` with current
-rates if only assertions are updated. Updated inputs instead so near-miss
-tolerance feature retains passing test coverage.
-
-**Email-parser guardrail:** ReDoS regression test added (Step 1b). Uses the
-malicious input from the March 5 security review (10,000 `<td` repetitions).
-Locks the non-backtracking property regardless of fixture accuracy.
-
-**Near-miss boundary coverage:** Reuse the existing exact-tolerance fail test
-instead of adding a brand-new 50th test. This keeps the planned suite count at
-49 while covering both current-rate boundary directions: just-barely-pass and
-exact-tolerance fail.
-
-**Arithmetic verification:** The proposed inputs for tests 5-7 were checked
-directly against the current `detectBudgetGap()` implementation after tracing
-the helper logic by hand. Remaining arithmetic uncertainty is now removed from
-the plan.
-
-**Passing comment cleanup:** Passing budget-gap tests still carried stale Solo
-rate comments even when their assertions passed. The plan now calls out five
-comment-only fixes so the work phase does not leave misleading docs in the
-test file.
-
-**Write-time normalization:** Confirmed unrelated to both failure groups.
+### Decisions
+- Preserved March 5 security hardening — no `.*?` patterns introduced
+- Did not add a second malicious regex input (new pattern has no nested quantifiers)
+- Reused existing boundary test instead of adding a 50th test
+- No changes to `src/pipeline/price.ts` or `src/data/rates.ts`
 
 ## Key Artifacts
 
@@ -118,58 +64,33 @@ test file.
 
 ## Three Questions
 
-1. **Hardest decision in this session?** Whether to add a brand-new
-   current-rate exact-tolerance fail test or repurpose the existing passing
-   boundary test. Chose to repurpose the existing test so near-miss coverage
-   improves without changing the planned suite count.
+1. **Hardest implementation decision in this session?** The duo test description
+   fix — had to verify that `DUO_RATES` actually has 1hr entries to confirm the
+   old description was wrong (it claimed "no 1hr duo exists" but the real reason
+   is scope-down floor $850 is too high for $450 budget).
 
-2. **What did you reject, and why?** (a) Adding a second malicious regex
-   payload for the new EVENT DATE pattern. Rejected because the pattern has no
-   nested or overlapping quantifiers, so a second crafted string would not add
-   meaningful coverage. (b) Leaving the old passing near-miss boundary test as
-   comment-only. Rejected because it no longer exercised the current-rate
-   exact-tolerance edge. (c) Leaving stale Solo-rate comments in passing tests.
-   Rejected because they would keep the test file misleading even after the
-   assertions were fixed.
+2. **What did you consider changing but left alone, and why?** Considered whether
+   the boundary test gap assertion (`175`) was correct given the new inputs.
+   Left it as-is after verifying: `650 - 475 = 175`. Also considered whether
+   Test 8 (security edge case) needed its inputs updated, but left them — the
+   security property (sanitized value enters normal processing) doesn't depend
+   on which tier results.
 
-3. **Least confident about going into the next phase?** The real Bash HTML
-   structure is still unverified. The regression test protects against ReDoS,
-   and the arithmetic for budget-gap tests is now independently verified, but
-   the `</td><td>` fixture shape is still an assumption until a live sample is
-   seen.
+3. **Least confident about going into review?** The email-parser fixture is still
+   an assumption. The ReDoS regression test protects the security property, but
+   if a real Bash HTML sample shows a different cell structure, the regex and
+   fixture both need updating.
 
 ## Feed-Forward
 
-- **Hardest decision:** Reuse existing boundary test vs. add a new one
-- **Rejected alternatives:** Second malicious regex input, leaving stale passing comments, adding a 50th boundary test
-- **Least confident:** Real Bash HTML structure for the EVENT DATE cell boundary
+- **Hardest decision:** Duo test description — verifying the real reason for no_viable_scope
+- **Rejected alternatives:** Updating Test 8 inputs, adding a 50th test
+- **Least confident:** Email-parser fixture accuracy (no live Bash HTML sample)
 
-### Prompt for Next Session (Work)
+### Prompt for Next Session (Compound — after Codex review)
 
 ```
-Read HANDOFF.md, CLAUDE.md, and docs/plans/2026-03-07-test-failure-fixes.md.
-Implement the plan in commit order.
-
-Relevant files:
-- src/email-parser.ts
-- src/email-parser.test.ts
-- src/budget-gap.test.ts
-
-Required checks:
-- npm test -- --test-name-pattern='parseEmail'
-- npm test -- --test-name-pattern='detectBudgetGap'
-- npm test
-
-Important constraints:
-- Preserve the March 5 security hardening; keep the EVENT DATE pattern non-backtracking.
-- Add exactly one new parseEmail ReDoS regression test.
-- Keep the planned suite target at 49/49.
-- Update the existing near-miss boundary test to the current-rate exact-tolerance fail case instead of adding a new budget-gap test.
-- Fix the five stale comments called out in the plan.
-- If real Bash HTML evidence appears to contradict the fixture, stop and document it before broadening the parser change.
-
-Stop when:
-- both commits are made
-- all 49 tests pass
-- HANDOFF.md is updated for the work phase
+Read HANDOFF.md and the Codex review output. Run /workflows:compound for
+the test-failure fixes (commits a0a947e and 23ee092). If Codex found
+issues, fix them first. Then write the solution doc and run /update-learnings.
 ```
