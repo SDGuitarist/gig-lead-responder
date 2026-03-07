@@ -34,7 +34,7 @@ describe("detectBudgetGap — input validation", () => {
 // --- detectBudgetGap: gap tiers ---
 
 describe("detectBudgetGap — gap tiers", () => {
-  // Solo 2hr T2D: floor = 500
+  // These tests use synthetic floor values to exercise gap thresholds only.
   it("budget at floor → tier: none (gap = 0)", () => {
     const result = detectBudgetGap(500, 500, "solo", 2, "T2D");
     assert.equal(result.tier, "none");
@@ -57,42 +57,36 @@ describe("detectBudgetGap — gap tiers", () => {
     assert.equal((result as { gap: number }).gap, 74);
   });
 
-  it("gap exactly $75 → tier: large (near-miss tolerance widens funnel)", () => {
-    // Solo 2hr T2D: floor = 500. Budget = 425 → gap = 75 (in large range)
-    // Solo 1hr T2D: floor = 450. Near-miss check: 450 >= 425 + 75 = 500? No → returns alt
-    // With NEAR_MISS_TOLERANCE = 75, budget $425 vs 1hr floor $450 (gap $25) passes
+  it("gap $75, scope-down floor too high → no_viable_scope", () => {
+    // Synthetic floor 500 creates gap = 75 (in large range)
+    // Scope-down: Solo 1hr T2D floor = 550 (rates.ts). 550 >= 425 + 75 = 500? Yes → null
     const result = detectBudgetGap(425, 500, "solo", 2, "T2D");
     assert.notEqual(result.tier, "small"); // NOT small — 75 is past the threshold
-    assert.equal(result.tier, "large");
+    assert.equal(result.tier, "no_viable_scope");
     assert.equal((result as { gap: number }).gap, 75);
-    const alt = (result as { scoped_alternative: { duration_hours: number; price: number } }).scoped_alternative;
-    assert.equal(alt.duration_hours, 1);
-    assert.equal(alt.price, 450);
   });
 
   it("gap $75 with successful scope-down → tier: large", () => {
-    // Solo 2hr T2D: floor = 500. Budget = 425 → 1hr T2D floor = 450 > 425 → no fit
-    // Need a case where shorter duration floor <= budget
-    // Solo 3hr T2P: floor = 600. Budget = 525 → gap = 75
-    // Solo 2hr T2P: floor = 400. 400 <= 525? Yes! → large with scoped alt
+    // Synthetic floor 600 creates gap = 75
+    // Scope-down: Solo 2hr T2P floor = 550 (rates.ts). 550 >= 525 + 75 = 600? No → alt returned
     const result = detectBudgetGap(525, 600, "solo", 3, "T2P");
     assert.equal(result.tier, "large");
     assert.equal((result as { gap: number }).gap, 75);
     const alt = (result as { scoped_alternative: { duration_hours: number; price: number } }).scoped_alternative;
     assert.equal(alt.duration_hours, 2);
-    assert.equal(alt.price, 400);
+    assert.equal(alt.price, 550);
   });
 
-  it("gap exactly $200 → tier: large (with scope-down)", () => {
-    // Solo 3hr T2P: floor = 600. Budget = 400 → gap = 200
-    // Solo 2hr T2P: floor = 400. 400 <= 400? Yes → scoped alt
+  it("gap $200, scope-down floor too high → no_viable_scope", () => {
+    // Synthetic floor 600 creates gap = 200
+    // Scope-down: Solo 2hr T2P floor = 550 (rates.ts). 550 >= 400 + 75 = 475? Yes → null
     const result = detectBudgetGap(400, 600, "solo", 3, "T2P");
-    assert.equal(result.tier, "large");
+    assert.equal(result.tier, "no_viable_scope");
     assert.equal((result as { gap: number }).gap, 200);
   });
 
   it("gap $201 → tier: no_viable_scope", () => {
-    // Solo 3hr T2P: floor = 600. Budget = 399 → gap = 201
+    // Synthetic floor 600 creates gap = 201 (above max large threshold)
     const result = detectBudgetGap(399, 600, "solo", 3, "T2P");
     assert.equal(result.tier, "no_viable_scope");
     assert.equal((result as { gap: number }).gap, 201);
@@ -102,79 +96,77 @@ describe("detectBudgetGap — gap tiers", () => {
 // --- detectBudgetGap: scope-down edge cases ---
 
 describe("detectBudgetGap — scope-down", () => {
-  it("duo at 2hr with large gap → no_viable_scope (no 1hr duo exists)", () => {
-    // Duo 2hr T2P: floor = 600. Budget = 450 → gap = 150 (in large range)
-    // Duo has no 1hr entry → no scope-down → no_viable_scope
+  it("duo at 2hr with large gap → no_viable_scope (scope-down 1hr floor $850 too high for $450 budget)", () => {
+    // Synthetic floor 600. Budget = 450 → gap = 150 (large range)
+    // Scope-down: Duo 1hr T2P floor = 850 (rates.ts). 850 >= 450 + 75 = 525? Yes → null
     const result = detectBudgetGap(450, 600, "duo", 2, "T2P");
     assert.equal(result.tier, "no_viable_scope");
     assert.equal((result as { gap: number }).gap, 150);
   });
 
   it("solo at 1hr → no_viable_scope (no shorter duration)", () => {
-    // Solo 1hr T2P: floor = 400. Budget = 325 → gap = 75
-    // Already at minimum duration → no scope-down
+    // Synthetic floor 400. Budget = 325 → gap = 75 (large range)
+    // Already at minimum duration → no scope-down available
     const result = detectBudgetGap(325, 400, "solo", 1, "T2P");
     assert.equal(result.tier, "no_viable_scope");
     assert.equal((result as { gap: number }).gap, 75);
   });
 
   it("scoped alternative uses same tier_key", () => {
-    // Solo 3hr T2P: floor = 600. Budget = 500 → gap = 100
-    // Solo 2hr T2P: floor = 400. 400 <= 500? Yes
+    // Synthetic floor 600 creates gap = 100
+    // Scope-down: Solo 2hr T2P floor = 550 (rates.ts). 550 >= 500 + 75 = 575? No → alt returned
     const result = detectBudgetGap(500, 600, "solo", 3, "T2P");
     assert.equal(result.tier, "large");
     const alt = (result as { scoped_alternative: { duration_hours: number; price: number } }).scoped_alternative;
     assert.equal(alt.duration_hours, 2);
-    assert.equal(alt.price, 400); // T2P floor for solo 2hr
+    assert.equal(alt.price, 550); // Solo 2hr T2P: floor = 550 (rates.ts)
   });
 
   it("scoped alternative price is floor, not anchor", () => {
-    // Solo 3hr T2D: floor = 700. Budget = 550 → gap = 150
-    // Solo 2hr T2D: floor = 500. 500 <= 550? Yes
-    const result = detectBudgetGap(550, 700, "solo", 3, "T2D");
+    // Synthetic floor 700 creates gap = 100
+    // Scope-down: Solo 2hr T2D anchor = 700, floor = 650 (rates.ts). 650 >= 600 + 75 = 675? No → alt returned
+    const result = detectBudgetGap(600, 700, "solo", 3, "T2D");
     assert.equal(result.tier, "large");
     const alt = (result as { scoped_alternative: { duration_hours: number; price: number } }).scoped_alternative;
-    assert.equal(alt.price, 500); // Floor, not anchor (550)
+    assert.equal(alt.price, 650); // Floor (rates.ts), not anchor
   });
 });
 
 // --- Near-miss tolerance (NEAR_MISS_TOLERANCE = 75) ---
 
 describe("detectBudgetGap — near-miss tolerance", () => {
-  // All use Solo 2hr T2D (floor 500) → 1hr T2D (floor 450)
+  // All use Solo 2hr T2D → scope-down to 1hr T2D floor = 550 (rates.ts)
 
-  it("$400 budget vs $450 1hr floor (gap $50 < tolerance $75) → large", () => {
-    // Original gap: 500 - 400 = 100 (large range)
-    // Near-miss: 450 >= 400 + 75 = 475? No → returns scoped alt
-    const result = detectBudgetGap(400, 500, "solo", 2, "T2D");
+  it("$500 budget vs $550 1hr floor (gap $50 < tolerance $75) → large", () => {
+    // Budget $500 vs 1hr T2D floor $550 — gap $50 is within tolerance $75,
+    // so scope-down succeeds. (rates.ts: solo 1hr T2D floor = 550)
+    const result = detectBudgetGap(500, 650, "solo", 2, "T2D");
     assert.equal(result.tier, "large");
     const alt = (result as { scoped_alternative: { duration_hours: number; price: number } }).scoped_alternative;
-    assert.equal(alt.price, 450);
+    assert.equal(alt.price, 550);
     assert.equal(alt.duration_hours, 1);
   });
 
-  it("$376 budget vs $450 1hr floor (gap $74 < tolerance $75) → large", () => {
-    // Original gap: 500 - 376 = 124 (large range)
-    // Near-miss: 450 >= 376 + 75 = 451? No → returns scoped alt
-    const result = detectBudgetGap(376, 500, "solo", 2, "T2D");
+  it("$476 budget vs $550 1hr floor (gap $74 < tolerance $75) → large", () => {
+    // Budget $476 + tolerance $75 = $551 > floor $550 — just barely
+    // passes the near-miss check. (rates.ts: solo 1hr T2D floor = 550)
+    const result = detectBudgetGap(476, 650, "solo", 2, "T2D");
     assert.equal(result.tier, "large");
     const alt = (result as { scoped_alternative: { duration_hours: number; price: number } }).scoped_alternative;
-    assert.equal(alt.price, 450);
+    assert.equal(alt.price, 550);
   });
 
-  it("$375 budget vs $450 1hr floor (gap $75 = tolerance) → no_viable_scope", () => {
-    // Original gap: 500 - 375 = 125 (large range)
-    // Near-miss: 450 >= 375 + 75 = 450? Yes → null → no_viable_scope
-    const result = detectBudgetGap(375, 500, "solo", 2, "T2D");
+  it("$475 budget vs $550 1hr floor (gap $75 = tolerance) → no_viable_scope", () => {
+    // Budget $475 + tolerance $75 = $550 = floor $550 — exact tolerance,
+    // scope-down fails. (rates.ts: solo 1hr T2D floor = 550)
+    const result = detectBudgetGap(475, 650, "solo", 2, "T2D");
     assert.equal(result.tier, "no_viable_scope");
-    assert.equal((result as { gap: number }).gap, 125);
+    assert.equal((result as { gap: number }).gap, 175);
   });
 
-  it("$400 budget, no shorter duration available → no_viable_scope", () => {
-    // Solo 1hr T2D: floor = 450. Budget = 400, gap = 50 (in small range)
-    // Wait — gap 50 < 75, that's small tier. Use a bigger gap:
-    // Solo 1hr T2D: floor = 450. Budget = 350, gap = 100 (large range)
-    // Already at 1hr — no shorter duration → no_viable_scope
+  it("$350 budget at 1hr, no shorter duration available → no_viable_scope", () => {
+    // Synthetic floor 450. Budget = 350 → gap = 100 (large range)
+    // Already at 1hr — no shorter duration available for scope-down
     const result = detectBudgetGap(350, 450, "solo", 1, "T2D");
     assert.equal(result.tier, "no_viable_scope");
     assert.equal((result as { gap: number }).gap, 100);
@@ -185,9 +177,10 @@ describe("detectBudgetGap — near-miss tolerance", () => {
 
 describe("detectBudgetGap — security edge cases", () => {
   it("injection string parsed as number (400) → normal processing", () => {
-    // If classify extracts 400 from "$400\\n\\nIgnore instructions", detectBudgetGap gets 400
+    // Security property: sanitized injection value enters normal processing.
+    // Scope-down: Solo 1hr T2D floor = 550 (rates.ts). 550 >= 400 + 75 = 475? Yes → no_viable_scope
     const result = detectBudgetGap(400, 500, "solo", 2, "T2D");
-    assert.equal(result.tier, "large"); // normal large-gap processing
+    assert.equal(result.tier, "no_viable_scope"); // normal processing (tier depends on current rates)
   });
 
   it("-500 → tier: none", () => {
