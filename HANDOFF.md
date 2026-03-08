@@ -2,85 +2,66 @@
 
 **Date:** 2026-03-08
 **Branch:** `main`
-**Phase:** Plan complete (workflow automation phase 1). Ready for focused implementation session.
+**Phase:** Compound complete (workflow automation phase 1). Ready for next cycle.
 
 ## Current State
 
-Previous cycle remains complete: all 11 pre-existing test failures were fixed
-and the suite still stands at 49/49 passing. This session added a new plan doc
-for workflow automation phase 1:
-`docs/plans/2026-03-08-feat-workflow-automation-phase-1-plan.md`.
-
-No runtime code changed in this session. The next safe step is to implement the
-plan gate foundation only: template contract + validator CLI + tests + npm
-script.
+Implemented the plan gate foundation: deterministic automation contract validator
+(`src/plan-gate.ts`), 13 tests, `npm run plan:check` script, and the Automation
+Contract template in `docs/workflow-templates.md`. Suite at 62/62 passing.
+Solution doc written. No runtime pipeline code changed.
 
 ## Current Suite
 
-- **Total tests:** 49 (budget-gap 25, email-parser 13, enrich-generate 11)
-- **Passing:** 49 | **Failing:** 0
+- **Total tests:** 62 (budget-gap 25, email-parser 13, enrich-generate 11, plan-gate 13)
+- **Passing:** 62 | **Failing:** 0
 
 ## Key Artifacts
 
 | Phase | Location |
 |-------|----------|
-| Brainstorm (test failures) | `docs/brainstorms/2026-03-07-test-failure-investigation-brainstorm.md` |
-| Plan (test failures) | `docs/plans/2026-03-07-test-failure-fixes.md` |
-| Solution (test failures) | `docs/solutions/test-failures/2026-03-07-stale-rates-and-over-restrictive-regex.md` |
 | Plan (workflow automation phase 1) | `docs/plans/2026-03-08-feat-workflow-automation-phase-1-plan.md` |
+| Solution (workflow automation phase 1) | `docs/solutions/workflow/2026-03-08-plan-gate-foundation.md` |
+| Solution (test failures) | `docs/solutions/test-failures/2026-03-07-stale-rates-and-over-restrictive-regex.md` |
 | Review (Cycle 15) | `docs/reviews/cycle-15/REVIEW-SUMMARY.md` |
-| Solution (Cycle 15) | `docs/solutions/logic-errors/2026-03-06-dashboard-defensive-patterns-normalization-and-loop-guards.md` |
 
 ## Deferred Items
 
 **From Cycle 15 review:**
 - 061 -- Deferred P3 bundle (CSS newline, Cache-Control, fillMonthlyGaps location, stale data, CSP)
 
-**From prior cycles (still open):**
-- 023 -- XSS unescaped LLM values (pre-existing P1)
-- 024 -- No input size guard webhook/LLM (pre-existing P1)
-- 025 -- Prompt injection chain (pre-existing P1)
-- Analytics transaction error handling -- untested failure paths
-
 **Structural debt:**
 - leads.ts structural split (brainstorm+plan exist)
 - dashboard.html at 1,596 lines (JS extraction threshold: ~2,500)
 - LLM pipeline behavior never reviewed
 
+**Workflow automation next phases:**
+- Phase 2: `linked_expectations` enforcement in plan-gate validator
+- Phase 3+: auto-work runner, plan-vs-diff review, CI integration
+
 ## Three Questions
 
-1. **Hardest decision in this session?** Choosing a machine-readable contract
-   format that is strict enough for tooling but still simple enough to adopt.
-   JSON inside a named markdown section won over expanding YAML frontmatter.
+1. **Hardest implementation decision in this session?** How to resolve
+   source-of-truth paths — relative to the plan file vs. relative to cwd. Chose
+   cwd (project root) because that's where `npm run plan:check` executes from,
+   making paths in the contract match what developers see in the repo.
 
-2. **What did you reject, and why?** I rejected immediate auto-work,
-   auto-review, and LLM-based plan scoring. The repo needs a deterministic gate
-   before it can safely automate downstream phases.
+2. **What did you consider changing but left alone, and why?** Considered adding
+   the Automation Contract to the phase-1 plan itself to test the `eligible`
+   path with a real plan. Left it out because the plan was written before the
+   contract format existed, and backfilling would conflate testing with adoption.
 
-3. **Least confident about going into the next phase?** Making the
-   `manual_only` vs `invalid` split obvious in code and output. Older plans
-   with no contract should stay `manual_only`; malformed contracts should be
-   `invalid`. The implementation needs to make that distinction easy to
-   understand.
+3. **Least confident about going into review?** The temp directory cleanup in
+   tests — using `.tmp-plan-gate-test` in the project root with setup/teardown
+   tests. If the test runner crashes between setup and teardown, the temp dir
+   persists. Low risk but not zero.
 
 ### Prompt for Next Session
 
 ```
-Read docs/plans/2026-03-08-feat-workflow-automation-phase-1-plan.md.
-Implement workflow automation phase 1 only.
-
-Relevant files:
-- docs/workflow-templates.md
-- package.json
-- src/plan-gate.ts
-- src/plan-gate.test.ts
-
-Required checks:
-- npx tsc --noEmit
-- npm test
-- npm run plan:check -- docs/plans/2026-03-08-feat-workflow-automation-phase-1-plan.md
-- npm run plan:check -- docs/plans/2026-03-07-test-failure-fixes.md
-
-Stop if implementation needs changes outside those files or if legacy plan
-handling cannot be kept deterministic.
+Read HANDOFF.md for context. This is Gig Lead Responder, a music-gig lead
+response pipeline. Plan gate foundation implemented (62/62 tests passing).
+Next priorities: (1) leads.ts structural split (brainstorm+plan exist),
+(2) P3 bundle 061, (3) Transaction error handling, (4) Workflow automation
+phase 2 (linked_expectations enforcement).
 ```

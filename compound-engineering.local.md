@@ -2,26 +2,24 @@
 
 ## Risk Chain
 
-**Brainstorm risk:** "The email-parser regex fix. If the real Bash HTML structure differs from the fixture, the regex fix could be correct but the fixture wrong — and we'd be 'fixing' a test to match a wrong fixture."
+**Plan risk:** "Making the `manual_only` vs `invalid` split obvious in code and output. Older plans with no contract should stay `manual_only`; malformed contracts should be `invalid`."
 
-**Plan mitigation:** Added ReDoS regression test to lock the security property regardless of fixture accuracy. Fixture tagged with dated comment noting it's unverified.
+**Work resolution:** Early return for missing contract (→ `manual_only`) before validation logic runs. Malformed JSON or failed field checks → `invalid`. Each status has specific reason strings. 13 tests cover both paths.
 
-**Work risk (from Feed-Forward):** "Email-parser fixture accuracy (no live Bash HTML sample). ReDoS regression test protects the security property, but if a real Bash HTML sample shows a different cell structure, the regex and fixture both need updating."
-
-**Review resolution:** Codex review of commits a0a947e and 23ee092 found no code fixes needed. No real Bash HTML sample exists in the project.
-
-**Compound resolution:** Solution doc written. Two prevention patterns documented (tag dependent expectations, regex hardening needs boundary tests). Risk accepted — fixture is assumption-based but ReDoS regression test guards the security property.
+**Compound resolution:** Solution doc written. Early-return pattern documented. `linked_expectations` field reserved but deferred.
 
 ## Files to Scrutinize
 
 | File | What changed | Risk area |
 |------|-------------|-----------|
-| `src/email-parser.ts` | EVENT DATE regex changed to cross `</td><td>` boundary | Fixture accuracy unverified against live email |
-| `src/email-parser.test.ts` | ReDoS regression test added (10K `<td` repetitions) | Test locks security property only, not correctness |
-| `src/budget-gap.test.ts` | 8 failing tests fixed, 1 boundary test refreshed, 6 comment fixes | Expectations coupled to live `rates.ts` values |
+| `src/plan-gate.ts` | NEW — deterministic plan validator CLI | No external deps, no LLM calls |
+| `src/plan-gate.test.ts` | NEW — 13 tests including real plan dry runs | Temp dir cleanup in teardown |
+| `docs/workflow-templates.md` | Added Automation Contract section to plan template | Must not break existing template usage |
+| `package.json` | Added `plan:check` script | No new dependencies |
 
 ## Remaining Gaps (carried forward)
 
+- `linked_expectations` field reserved but not enforced — Phase 2 work
 - Analytics transaction error handling (8 queries, what if one throws?)
 - LLM pipeline behavior never reviewed (prompt injection resilience)
 - Accessibility never reviewed
@@ -30,13 +28,6 @@
 - P3 bundle deferred from Cycle 15 (061)
 - leads.ts structural split (brainstorm+plan exist)
 
-## Cross-Tool Review Protocol
-
-Codex is an independent second-opinion agent in this workflow. For reviews:
-1. Run Codex `review-branch-risks` first (independent findings)
-2. Then run Claude Code `/workflows:review` (compound review with learnings researcher)
-3. Merge both finding sets, deduplicate, and apply fix ordering per CLAUDE.md rules
-
 ## Plan Reference
 
-`docs/plans/2026-03-07-test-failure-fixes.md`
+`docs/plans/2026-03-08-feat-workflow-automation-phase-1-plan.md`
