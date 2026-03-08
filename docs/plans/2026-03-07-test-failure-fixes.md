@@ -149,10 +149,25 @@ This test will pass regardless of whether the regex matches `</td><td>` or
 future regex adjustment.
 
 No second malicious input is needed. The new pattern has no nested or
-overlapping quantifiers: `\s*` only spans contiguous whitespace between fixed
-tags, and `[^>]*` / `[^<]*` each advance monotonically to a single delimiter,
-so repeated `<td` fragments or attributes do not create exponential
-backtracking paths.
+overlapping quantifiers. Segment-by-segment analysis:
+
+| Segment | Quantifier | Stop character | Can overlap with next segment? |
+|---------|-----------|----------------|-------------------------------|
+| `EVENT DATE:` | literal | — | No |
+| `<\/td>` | literal | — | No |
+| `\s*` | `*` | non-whitespace | No — next token is `<td` (not whitespace) |
+| `<td` | literal | — | No |
+| `[^>]*` | `*` | `>` | No — stops at first `>`, next token is `>` |
+| `>` | literal | — | No |
+| `([^<]*)` | `*` | `<` | No — stops at first `<`, next token is `<\/td>` |
+| `<\/td>` | literal | — | No |
+
+Every quantifier advances monotonically to a single delimiter that it cannot
+consume. Crafted inputs (nested `<td` with attributes, repeated `\s*`
+expansion, `<td>` fragments without closing tags) cannot create exponential
+backtracking because no two adjacent quantifiers compete for the same
+characters. One malicious input (10,000 `<td` repetitions) is sufficient to
+lock the non-backtracking property.
 
 ### Verify
 
@@ -221,6 +236,23 @@ the helper always looks one step shorter:
 Each proposed input below was also checked directly against the current
 `detectBudgetGap()` implementation to confirm the expected tier and
 `alt.price`.
+
+**Second independent verification (deepening pass 2):** All three traces
+re-derived from `src/data/rates.ts` values and `findScopedAlternative()` logic:
+
+- **Test 5:** `detectBudgetGap(600, 700, "solo", 3, "T2D")` → gap=100 →
+  shorter=2 → SOLO_RATES["2"].T2D.floor=650 → 650 >= 675? No → alt {2, 650} ✓
+- **Test 6:** `detectBudgetGap(500, 650, "solo", 2, "T2D")` → gap=150 →
+  shorter=1 → SOLO_RATES["1"].T2D.floor=550 → 550 >= 575? No → alt {1, 550} ✓
+- **Test 7:** `detectBudgetGap(476, 650, "solo", 2, "T2D")` → gap=174 →
+  shorter=1 → SOLO_RATES["1"].T2D.floor=550 → 550 >= 551? No → alt {1, 550} ✓
+  (passes by $1)
+- **Boundary:** `detectBudgetGap(475, 650, "solo", 2, "T2D")` → gap=175 →
+  shorter=1 → floor=550 → 550 >= 550? Yes → null → no_viable_scope ✓
+  (fails by $0 — exact tolerance)
+
+Arithmetic confidence: **confirmed by two independent passes.** No corrections
+needed.
 
 ### Recomputed expectations for each failing test
 
@@ -366,7 +398,7 @@ Each proposed input below was also checked directly against the current
 
 ### Passing-tests audit (comment-only fixes)
 
-Audit result: the currently-passing budget-gap tests need **five comment-only
+Audit result: the currently-passing budget-gap tests need **six comment-only
 fixes** plus the one exact-tolerance boundary refresh above.
 
 - Gap-tier suite header (line 37): remove `Solo 2hr T2D: floor = 500` and say
@@ -379,6 +411,11 @@ fixes** plus the one exact-tolerance boundary refresh above.
   wording that matches the updated current-rate near-miss cases.
 - `no shorter duration available` test (lines 173-180): remove stale
   `Solo 1hr T2D: floor = 450` wording; keep only the minimum-duration logic.
+- `duo at 2hr` test (lines 105-111): description says "(no 1hr duo exists)" but
+  `DUO_RATES` has "1" entries (1hr T2P floor = 850). Test passes because
+  scope-down's near-miss check rejects (850 >= 450+75=525), not because 1hr is
+  missing. Fix description to "(scope-down 1hr floor $850 too high for $450
+  budget)".
 
 ---
 
@@ -420,9 +457,10 @@ existing exact-tolerance fail test is also refreshed to current-rate
 values, so near-miss coverage now includes both just-barely-pass and
 just-barely-fail cases.
 
-Passing comments that quoted stale rate values are corrected, and
-scope-down floor references now tag "(rates.ts)" so future rate
-changes can be found with a search.
+Passing comments that quoted stale rate values are corrected (6 fixes,
+including duo test description that wrongly claimed 1hr duo doesn't
+exist), and scope-down floor references now tag "(rates.ts)" so future
+rate changes can be found with a search.
 
 Verified: unrelated to Cycle 15 write-time normalization.
 ```
@@ -461,7 +499,8 @@ Two commits, each independently verifiable.
 - [ ] Near-miss tolerance coverage includes both current-rate boundary cases:
   just-barely-pass and exact-tolerance fail
 - [ ] Test comments that reference scope-down floors include "(rates.ts)"
-- [ ] Passing budget-gap comments no longer quote stale Solo rate values
+- [ ] Passing budget-gap comments no longer quote stale Solo rate values (6 fixes)
+- [ ] Duo test description corrected (scope-down floor too high, not missing duration)
 - [ ] March 5 security hardening preserved
 
 ---
@@ -480,7 +519,7 @@ Two commits, each independently verifiable.
 |------|---------------|
 | `src/email-parser.ts` | Runtime — one regex on line 120 |
 | `src/email-parser.test.ts` | Test — 1 new ReDoS regression test |
-| `src/budget-gap.test.ts` | Test — 8 failing cases updated, 1 existing passing boundary case refreshed, 5 passing comment-only fixes |
+| `src/budget-gap.test.ts` | Test — 8 failing cases updated, 1 existing passing boundary case refreshed, 6 passing comment-only fixes |
 
 ---
 
