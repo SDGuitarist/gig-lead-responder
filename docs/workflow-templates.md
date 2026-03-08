@@ -55,6 +55,76 @@ Then STOP. Do not begin work. Do not write any code.
 
 ---
 
+## Automation Contract (optional — include in plan docs)
+
+Plans can include a machine-readable automation contract to indicate whether
+they are safe for automated work execution. Add this section to the plan doc
+after the acceptance criteria.
+
+When to set `auto_work_candidate` to `false`:
+- The plan involves security, pricing logic, parsing, or user-visible behavior
+- The plan says "investigate during implementation" or has open unknowns
+- The plan involves broad refactors or unclear source of truth
+- You want human judgment during implementation
+
+When `auto_work_candidate` can be `true`:
+- The plan is specific enough that a junior engineer could execute it without
+  making design decisions
+- All files to change and not-change are explicitly listed
+- Arithmetic, boundary cases, and edge cases are pre-checked in the plan
+- Required checks and stop conditions are concrete
+
+Plans without this section are treated as `manual_only` by the validator
+(`npm run plan:check`). Legacy plans do not need to be backfilled.
+
+```markdown
+## Automation Contract
+
+\`\`\`json
+{
+  "auto_work_candidate": false,
+  "human_signoff_required": true,
+  "risk_level": "medium",
+  "allowed_paths": [
+    "src/example.ts",
+    "src/example.test.ts"
+  ],
+  "forbidden_paths": [
+    "src/pipeline",
+    "src/data"
+  ],
+  "source_of_truth": [
+    "docs/plans/YYYY-MM-DD-plan.md",
+    "CLAUDE.md"
+  ],
+  "required_checks": [
+    "npx tsc --noEmit",
+    "npm test"
+  ],
+  "stop_conditions": [
+    "Stop if implementation requires editing any file outside allowed_paths.",
+    "Stop if the plan has open unknowns that require design decisions."
+  ],
+  "linked_expectations": []
+}
+\`\`\`
+```
+
+**Field meanings:**
+
+- `auto_work_candidate` — whether a future work runner may execute from this plan
+- `human_signoff_required` — whether a human must approve after automated work
+- `risk_level` — safety label for routing: `low`, `medium`, or `high`
+- `allowed_paths` — exact files the implementation may edit
+- `forbidden_paths` — paths that must stay untouched
+- `source_of_truth` — files the reviewer or gate should compare against
+- `required_checks` — commands that must pass before work is complete
+- `stop_conditions` — reasons the runner must stop and return control to a human
+- `linked_expectations` — dependency pairs (e.g., boundary tests) that must be
+  updated together (reserved for future enforcement)
+
+---
+
 ## Phase 2: Work (per session)
 
 ```
