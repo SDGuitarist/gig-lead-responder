@@ -1,14 +1,19 @@
 # HANDOFF -- Gig Lead Responder
 
-**Date:** 2026-03-07
+**Date:** 2026-03-08
 **Branch:** `main`
-**Phase:** Cycle complete (test failure fix cycle). Ready for next feature brainstorm.
+**Phase:** Plan complete (workflow automation phase 1). Ready for focused implementation session.
 
 ## Current State
 
-Fixed all 11 pre-existing test failures (8 budget-gap, 3 email-parser). Suite
-now 49/49 passing. Solution doc written, learnings propagated. No runtime code
-changes except one regex in `email-parser.ts`. Codex review found no issues.
+Previous cycle remains complete: all 11 pre-existing test failures were fixed
+and the suite still stands at 49/49 passing. This session added a new plan doc
+for workflow automation phase 1:
+`docs/plans/2026-03-08-feat-workflow-automation-phase-1-plan.md`.
+
+No runtime code changed in this session. The next safe step is to implement the
+plan gate foundation only: template contract + validator CLI + tests + npm
+script.
 
 ## Current Suite
 
@@ -22,6 +27,7 @@ changes except one regex in `email-parser.ts`. Codex review found no issues.
 | Brainstorm (test failures) | `docs/brainstorms/2026-03-07-test-failure-investigation-brainstorm.md` |
 | Plan (test failures) | `docs/plans/2026-03-07-test-failure-fixes.md` |
 | Solution (test failures) | `docs/solutions/test-failures/2026-03-07-stale-rates-and-over-restrictive-regex.md` |
+| Plan (workflow automation phase 1) | `docs/plans/2026-03-08-feat-workflow-automation-phase-1-plan.md` |
 | Review (Cycle 15) | `docs/reviews/cycle-15/REVIEW-SUMMARY.md` |
 | Solution (Cycle 15) | `docs/solutions/logic-errors/2026-03-06-dashboard-defensive-patterns-normalization-and-loop-guards.md` |
 
@@ -43,25 +49,38 @@ changes except one regex in `email-parser.ts`. Codex review found no issues.
 
 ## Three Questions
 
-1. **Hardest pattern to extract from the fixes?** The "separate security
-   property from correctness property" insight — both the regex fix and
-   budget-gap updates involved tests conflating two concerns.
+1. **Hardest decision in this session?** Choosing a machine-readable contract
+   format that is strict enough for tooling but still simple enough to adopt.
+   JSON inside a named markdown section won over expanding YAML frontmatter.
 
-2. **What did you consider documenting but left out, and why?** The full
-   arithmetic traces for all 8 budget-gap tests — already in the plan doc,
-   duplicating would bloat without adding searchable value.
+2. **What did you reject, and why?** I rejected immediate auto-work,
+   auto-review, and LLM-based plan scoring. The repo needs a deterministic gate
+   before it can safely automate downstream phases.
 
-3. **What might future sessions miss that this solution doesn't cover?** If
-   `rates.ts` changes again, someone might update budget-gap test values but
-   forget the near-miss boundary tests (tests 6, 7, and exact-tolerance test).
-   The "(rates.ts)" tag helps but the relationship between boundary-pair tests
-   isn't enforced.
+3. **Least confident about going into the next phase?** Making the
+   `manual_only` vs `invalid` split obvious in code and output. Older plans
+   with no contract should stay `manual_only`; malformed contracts should be
+   `invalid`. The implementation needs to make that distinction easy to
+   understand.
 
 ### Prompt for Next Session
 
 ```
-Read HANDOFF.md for context. This is Gig Lead Responder, a music-gig lead
-response pipeline. All 49 tests passing, test failure fix cycle complete.
-Next priorities: (1) leads.ts structural split (brainstorm+plan exist),
-(2) P3 bundle 061, (3) Transaction error handling investigation.
+Read docs/plans/2026-03-08-feat-workflow-automation-phase-1-plan.md.
+Implement workflow automation phase 1 only.
+
+Relevant files:
+- docs/workflow-templates.md
+- package.json
+- src/plan-gate.ts
+- src/plan-gate.test.ts
+
+Required checks:
+- npx tsc --noEmit
+- npm test
+- npm run plan:check -- docs/plans/2026-03-08-feat-workflow-automation-phase-1-plan.md
+- npm run plan:check -- docs/plans/2026-03-07-test-failure-fixes.md
+
+Stop if implementation needs changes outside those files or if legacy plan
+handling cannot be kept deterministic.
 ```
