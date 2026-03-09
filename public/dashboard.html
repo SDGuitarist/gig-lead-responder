@@ -195,6 +195,13 @@
 (function () {
   'use strict';
 
+  function applyDataWidths(container) {
+    container.querySelectorAll('[data-width]').forEach(function(el) {
+      el.style.width = el.dataset.width + '%';
+      el.removeAttribute('data-width');
+    });
+  }
+
   /* ── Constants ───────────────────────────────────────────── */
   // SYNC: FORMAT_NAMES keys must match Format type in src/types.ts
   // SYNC: CHECK_NAMES keys must match GUT_CHECK_KEYS in src/types.ts
@@ -479,7 +486,7 @@
 
       html += '<div class="gut-check-row">' +
         '<span class="gut-label">Gut Checks</span>' +
-        '<div class="gut-bar-track"><div class="gut-bar-fill ' + barClass + '" style="width:' + pct + '%"></div></div>' +
+        '<div class="gut-bar-track"><div class="gut-bar-fill ' + barClass + '" data-width="' + pct + '"></div></div>' +
         '<span class="gut-fraction">' + l.gut_check_passed + '/' + l.gut_check_total + '</span>' +
       '</div>';
 
@@ -716,6 +723,7 @@
         for (var k = 0; k < panels.length; k++) {
           panels[k].classList.add('open');
           panels[k].innerHTML = renderDetailPanel(lead);
+          applyDataWidths(panels[k]);
         }
       }
     }
@@ -911,6 +919,7 @@
     for (var k = 0; k < panels.length; k++) {
       if (panels[k].classList.contains('open')) {
         panels[k].innerHTML = renderDetailPanel(preview);
+        applyDataWidths(panels[k]);
       }
     }
   });
@@ -954,6 +963,7 @@
         for (var k = 0; k < panels.length; k++) {
           if (panels[k].classList.contains('open')) {
             panels[k].innerHTML = renderDetailPanel(updated);
+            applyDataWidths(panels[k]);
           }
         }
         // Update summary row badges
@@ -1111,6 +1121,7 @@
     }
 
     container.innerHTML = html;
+    applyDataWidths(container);
   }
 
   function renderFollowUpEffectivenessSection(rows) {
@@ -1238,7 +1249,7 @@
         var fmt = FORMATTERS[cols[k].format] || FORMATTERS.text;
         html += '<td>' + fmt(val) + '</td>';
       }
-      html += '<td class="bar-cell" aria-hidden="true">' + ((r.total || r.count || 0) >= 3 ? '<div class="bar" style="width:' + barWidth + '%"></div>' : '') + '</td>';
+      html += '<td class="bar-cell" aria-hidden="true">' + ((r.total || r.count || 0) >= 3 ? '<div class="bar" data-width="' + barWidth + '"></div>' : '') + '</td>';
       html += '</tr>';
     }
 
