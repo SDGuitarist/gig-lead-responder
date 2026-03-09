@@ -7,6 +7,7 @@ import { analyzeLimiter, approveLimiter } from "./rate-limit.js";
 import { sendSms } from "./sms.js";
 import { runPipeline } from "./run-pipeline.js";
 import { shapeLead } from "./utils/shape-lead.js";
+import { asyncHandler } from "./utils/async-handler.js";
 
 const router = Router();
 router.use(sessionAuth);
@@ -47,7 +48,7 @@ router.get("/api/stats", (_req: Request, res: Response) => {
 
 // --- POST /api/leads/:id/approve ---
 
-router.post("/api/leads/:id/approve", approveLimiter, csrfGuard, async (req: Request, res: Response) => {
+router.post("/api/leads/:id/approve", approveLimiter, csrfGuard, asyncHandler(async (req: Request, res: Response) => {
   const id = parseInt(req.params.id as string, 10);
   if (isNaN(id)) {
     res.status(400).json({ error: "Invalid lead ID" });
@@ -94,11 +95,11 @@ router.post("/api/leads/:id/approve", approveLimiter, csrfGuard, async (req: Req
     return;
   }
   res.json(shapeLead(updated));
-});
+}));
 
 // --- POST /api/leads/:id/edit ---
 
-router.post("/api/leads/:id/edit", csrfGuard, async (req: Request, res: Response) => {
+router.post("/api/leads/:id/edit", csrfGuard, asyncHandler(async (req: Request, res: Response) => {
   const id = parseInt(req.params.id as string, 10);
   if (isNaN(id)) {
     res.status(400).json({ error: "Invalid lead ID" });
@@ -138,7 +139,7 @@ router.post("/api/leads/:id/edit", csrfGuard, async (req: Request, res: Response
     return;
   }
   res.json(shapeLead(updated));
-});
+}));
 
 // --- POST /api/leads/:id/outcome ---
 

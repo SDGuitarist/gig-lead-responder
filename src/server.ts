@@ -1,5 +1,6 @@
 import "dotenv/config";
 import express from "express";
+import type { Request, Response, NextFunction } from "express";
 import cookieParser from "cookie-parser";
 import { join } from "node:path";
 import { readFileSync } from "node:fs";
@@ -94,6 +95,36 @@ app.post("/logout", sessionAuth, csrfGuard, logout);
 // Redirect root to new dashboard
 app.get("/", (_req, res) => {
   res.redirect("/dashboard.html");
+});
+
+// Global error handler — must be registered last, must have 4 parameters
+app.use((err: unknown, req: Request, res: Response, _next: NextFunction) => {
+  const message = err instanceof Error ? err.message : String(err);
+  const stack = err instanceof Error ? err.stack : undefined;
+  console.error(`[ERROR] ${req.method} ${req.path}:`, message);
+  if (stack) console.error(stack);
+
+  // If response already started (e.g., SSE streaming), just close it
+  if (res.headersSent) {
+    res.end();
+    return;
+  }
+
+  // Respect status codes set by Express middleware (e.g., 400 from JSON parse)
+  const status =
+    typeof (err as any).status === "number" &&
+    (err as any).status >= 400 &&
+    (err as any).status < 600
+      ? (err as any).status
+      : 500;
+
+  // err.expose is set by http-errors (used by express.json / body-parser).
+  // true for 4xx = message is safe to show. false/absent for 5xx = hide internals.
+  const clientMessage = (err as any).expose === true && message
+    ? message
+    : "Internal server error";
+
+  res.status(status).json({ error: clientMessage });
 });
 
 const PORT = parseInt(process.env.PORT || "3000", 10);
