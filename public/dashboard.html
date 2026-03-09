@@ -195,6 +195,15 @@
 (function () {
   'use strict';
 
+  /**
+   * Apply data-width attributes as inline style.width via JS (CSP-compliant).
+   * IMPORTANT: Call this after any innerHTML assignment that may contain
+   * data-width elements. Current producers:
+   *   - renderDetailPanel (gut-check bar)
+   *   - table builder in renderInsights (chart bar)
+   * If you add a new innerHTML producer with data-width, add an
+   * applyDataWidths(container) call after the assignment.
+   */
   function applyDataWidths(container) {
     container.querySelectorAll('[data-width]').forEach(function(el) {
       el.style.width = el.dataset.width + '%';
