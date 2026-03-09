@@ -2,20 +2,24 @@
 
 ## Risk Chain
 
-**Plan risk:** "Making the `manual_only` vs `invalid` split obvious in code and output. Older plans with no contract should stay `manual_only`; malformed contracts should be `invalid`."
+**Plan risk:** "The 2 dynamic `style="width:X%"` attributes use string concatenation to build HTML. The `data-width` + post-render JS approach requires hooking into every place these elements get inserted via innerHTML. If a render hook is missed, bars render at 0 width."
 
-**Work resolution:** Early return for missing contract (→ `manual_only`) before validation logic runs. Malformed JSON or failed field checks → `invalid`. Each status has specific reason strings. 13 tests cover both paths.
+**Work resolution:** All 4 innerHTML call sites hooked with `applyDataWidths()`. Work phase flagged uncertainty about complete coverage.
 
-**Compound resolution:** Solution doc written. Early-return pattern documented. `linked_expectations` field reserved but deferred.
+**Review resolution:** 0 P1, 2 P2, 6 P3 from 7 agents. Security Sentinel independently verified all 4 call sites match all innerHTML assignments. Architecture Strategist recommends contract comment (062). Data Migration Expert found updateLead missing normalization (063).
+
+**Compound resolution:** Solution doc written with 3 named patterns. Risk chain closed — applyDataWidths coverage confirmed complete.
 
 ## Files to Scrutinize
 
 | File | What changed | Risk area |
 |------|-------------|-----------|
-| `public/dashboard.html` | applyDataWidths pattern (4 call sites) | Must call after innerHTML with data-width |
-| `src/db/leads.ts` | `??` → `||` for event_type | updateLead still lacks normalization (063) |
-| `src/db/migrate.ts` | event_type normalization migration | Idempotent, self-quenching |
-| `src/server.ts` | CSP unsafe-inline removed, Cache-Control added | Complete — all inline styles extracted |
+| `public/dashboard.html` | 14 inline styles → CSS classes, 2 dynamic widths → data-width + applyDataWidths (4 call sites) | Must call applyDataWidths after innerHTML with data-width elements |
+| `public/dashboard.css` | New classes for extracted styles + mobile-card-muted | Cache-bust param (?v=2) must accompany class additions |
+| `src/server.ts` | CSP unsafe-inline removed, Cache-Control 1h added | Complete — all inline styles extracted |
+| `src/db/migrate.ts` | event_type normalization migration (guard-checked, idempotent) | Self-quenching after first run |
+| `src/db/leads.ts` | `??` → `||` for event_type write path | updateLead still lacks normalization (063) |
+| `src/db/queries.ts` | Removed LOWER(TRIM()) from Query 6 | Clean — data normalized at write time |
 
 ## Remaining Gaps (carried forward)
 
@@ -25,17 +29,9 @@
 - Accessibility never reviewed
 - `npm audit` never run
 - Pre-existing P1s: XSS unescaped LLM values (023), no input size guard (024), prompt injection chain (025)
-- ~~P3 bundle deferred from Cycle 15 (061)~~ — done, 2 P2 follow-ups (062, 063)
+- P2 follow-ups: applyDataWidths contract comment (062), updateLead event_type normalization (063)
 - leads.ts structural split (brainstorm+plan exist)
 
 ## Plan Reference
 
-`docs/plans/2026-03-08-feat-workflow-automation-phase-1-plan.md`
-
-## Review Context (P3 bundle 061)
-
-**Risk chain:** Work phase flagged applyDataWidths coverage → Security Sentinel verified all 4 call sites covered → Architecture Strategist recommends contract comment (062).
-
-**Data migration risk:** updateLead accepts event_type without normalization (063). No current callers but structural gap.
-
-**Review:** `docs/reviews/p3-bundle-061/REVIEW-SUMMARY.md`
+`docs/plans/2026-03-08-fix-p3-bundle-061-plan.md`

@@ -76,6 +76,49 @@ Read each file before editing. Append — never overwrite.
 - Include: what shipped, key lesson, risk chain summary, solution doc path.
 - Keep it concise — 30-50 lines max.
 
+### Step 3f: Cycle Reflection (Undocumented Process Insights)
+
+Steps 3a-3e extract lessons from the **solution doc** (code patterns, risk
+chains). This step looks across the **entire cycle arc** — plan, review, and
+the gaps between them — for process-level insights that no single artifact
+captures.
+
+**Inputs:** Re-read the plan, review summary, and solution doc as a set (already
+loaded from Step 1).
+
+**Ask these four questions:**
+
+1. **What workflow decision was made that we haven't documented?**
+   Examples: skipping brainstorm, bundling multiple findings, deferring a fix,
+   splitting commits in a specific order. Look at the plan's "Prior Phase Risk"
+   section and the review's "Three Questions" for clues.
+
+2. **Where did complexity exceed severity?**
+   Compare the review's severity ratings (P1/P2/P3) against actual
+   implementation effort. If a P3 required pattern invention, spec research,
+   or 50+ lines of changes, that gap is an insight.
+
+3. **What tool or analysis justified itself unexpectedly?**
+   Did SpecFlow, a specific review agent, or plan deepening find issues that
+   the "obvious" approach would have missed? Look for additions to the plan
+   that weren't in the original scope.
+
+4. **What bundling, batching, or skipping decision worked and should become a rule?**
+   Did grouping items by domain save overhead? Did skipping a phase work
+   because inputs were already specified? These are reusable process rules.
+
+**For each insight found:**
+
+- Add to `LESSONS_LEARNED.md` under `## Workflow & Process` (3-line format:
+  Context, Lesson, Source)
+- Add to `workflow.md` under `## Things to Watch` (1-line format)
+- Add to `MEMORY.md` under `## User Preferences` if it's a reusable rule
+  (1-line format)
+- Append to today's journal entry as a `- **Cycle-level insights:**` bullet
+
+**If no insights found:** Note "No undocumented cycle-level insights" in the
+Step 4 report and move on. Do not invent insights.
+
 ### Step 4: Report
 
 Print a summary:
@@ -92,13 +135,14 @@ Files updated:
 
 New cross-feature patterns: [count or "none"]
 Top 10 changes: [added/bumped/no changes]
+Cycle reflection: [N process insights found / "none"]
 ```
 
 ## Rules
 
 1. **Read before writing** — always read a file before editing it
 2. **Don't duplicate** — link to solution docs, don't copy their content into LESSONS_LEARNED.md
-3. **Don't invent lessons** — only extract what's in the solution doc and review summary
+3. **Don't invent lessons** — Steps 3a-3e extract from solution doc and review summary. Step 3f (cycle reflection) may surface insights from the plan and cycle arc, but they must be grounded in specific decisions or outcomes — not speculation
 4. **Keep journal entries under 50 lines** — concise summary, not a rewrite
 5. **Preserve existing content** — append, don't overwrite. Edit specific sections.
 6. **Match existing format** — follow the table structures and section headers already in each file
