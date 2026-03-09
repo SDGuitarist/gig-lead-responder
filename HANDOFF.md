@@ -2,15 +2,15 @@
 
 **Date:** 2026-03-08
 **Branch:** `main`
-**Phase:** Work complete for P2 follow-ups (062, 063). Ready for compound or next cycle.
+**Phase:** Plan complete for global error middleware. Ready for plan review.
 
 ## Current State
 
-P2 follow-ups from P3 bundle 061 review are done. Two commits pushed to main:
-- `e6d2be7` — 062: Contract comment on `applyDataWidths` (documentation only)
-- `29fb849` — 063: `event_type` normalization in `updateLead` (3-line fix)
+Plan complete for global Express error middleware. No code changes yet.
 
-All 62 tests passing. No functional regressions.
+- Brainstorm: `docs/brainstorms/2026-03-08-global-error-middleware-brainstorm.md`
+- Plan: `docs/plans/2026-03-08-fix-global-express-error-middleware-plan.md`
+- All 62 tests passing. No code changes yet.
 
 ## Current Suite
 
@@ -21,11 +21,11 @@ All 62 tests passing. No functional regressions.
 
 | Phase | Location |
 |-------|----------|
+| Brainstorm (error middleware) | `docs/brainstorms/2026-03-08-global-error-middleware-brainstorm.md` |
+| Plan (error middleware) | `docs/plans/2026-03-08-fix-global-express-error-middleware-plan.md` |
 | Plan (P3 bundle 061) | `docs/plans/2026-03-08-fix-p3-bundle-061-plan.md` |
 | Review (P3 bundle 061) | `docs/reviews/p3-bundle-061/REVIEW-SUMMARY.md` |
 | Solution (P3 bundle 061) | `docs/solutions/architecture/2026-03-08-p3-bundle-061-csp-migration-patterns.md` |
-| Todo 062 (done) | `todos/062-pending-p2-applydatawidths-contract-comment.md` |
-| Todo 063 (done) | `todos/063-pending-p2-updatelead-event-type-normalization.md` |
 
 ## Deferred Items
 
@@ -34,32 +34,62 @@ All 62 tests passing. No functional regressions.
 - **dashboard.html** at ~1,604 lines (JS extraction threshold: ~2,500)
 - **LLM pipeline behavior** never reviewed
 - **Workflow automation phase 2** — `linked_expectations` enforcement
-- **Transaction error handling** — 8 analytics queries, no error boundary
+- **404 catch-all handler** — Express returns HTML for unmatched routes (identified during plan)
 
 ## Three Questions
 
-1. **Hardest implementation decision in this session?** Neither fix required
-   design decisions — both had exact specs from the review todos. The hardest
-   call was keeping the contract comment concise (listing function names, not
-   line numbers, since line numbers drift).
+1. **Hardest decision in this session?** Whether to wrap `/api/analyze` with
+   `asyncHandler`. It's async and would benefit from the safety net, but its
+   try-catch-finally is designed for SSE streaming. Wrapping risks
+   double-response. Decided not to wrap.
 
-2. **What did you consider changing but left alone, and why?** Considered adding
-   the same `trim().toLowerCase()` normalization to other `updateLead` string
-   fields (client_name, venue, budget_note) since the `??` vs `||` gap exists
-   there too. Left it alone — no todo for it, and those fields may intentionally
-   preserve casing (e.g., venue names).
+2. **What did you reject, and why?** Removing the `async` keyword from
+   `/api/leads/:id/edit` instead of wrapping it. Simpler today, but fragile —
+   if someone adds an `await` later, protection vanishes silently.
 
-3. **Least confident about going into review?** These are too small for a
-   standalone review cycle. The normalization fix has no current callers, so
-   correctness is verified by code inspection, not runtime. If `updateLead`
-   gains an `event_type` caller later, add a test then.
+3. **Least confident about going into the next phase?** The `err.status`
+   handling. Returning 400 (from `express.json()` parse errors) but with
+   message "Internal server error" is slightly misleading. Fine for a
+   single-user app, but a reviewer should weigh in.
 
-### Prompt for Next Session
+### Prompt for Plan Review (Codex / External Agent)
 
 ```
-Read HANDOFF.md for context. This is Gig Lead Responder, an automated lead
-response pipeline for a musician's booking business. P2 follow-ups (062, 063)
-are done and pushed. Next priorities: (1) leads.ts structural split
-(brainstorm+plan exist), (2) Transaction error handling, (3) Workflow
-automation phase 2 (linked_expectations enforcement).
+Review the plan at docs/plans/2026-03-08-fix-global-express-error-middleware-plan.md
+in the context of a Node.js/Express v4.21.x app (better-sqlite3 for sync DB).
+
+Focus on these 3 risk areas flagged during planning:
+
+1. **err.status + generic message mismatch** — The middleware respects
+   err.status (e.g., 400 for malformed JSON from express.json()) but always
+   returns { error: "Internal server error" }. Is a 400 with message "Internal
+   server error" acceptable, or should the message vary by status class
+   (4xx → "Bad request", 5xx → "Internal server error")?
+
+2. **Decision NOT to wrap /api/analyze** — This SSE endpoint (line 228 of
+   src/api.ts) is async with a comprehensive try-catch-finally. The plan
+   excludes it from asyncHandler wrapping. Is there any code path where an
+   error could escape the try block after res.flushHeaders()? Read src/api.ts
+   lines 228-255 and verify.
+
+3. **asyncHandler completeness** — Only 2 routes are wrapped (approve, edit).
+   Are there any other async handlers in the codebase that were missed? Check
+   src/api.ts, src/follow-up-api.ts, src/webhook.ts, src/twilio-webhook.ts.
+
+Also validate:
+- Does the plan pass the 4-question quality gate? (What changes / what must
+  not change / how to verify / most likely failure mode)
+- Is the scope fence appropriate? Any gaps?
+- Is ~30 lines of change the right size, or is something missing?
+
+Key files to read: src/server.ts, src/api.ts (lines 50-120, 228-255),
+src/follow-up-api.ts, src/webhook.ts, src/twilio-webhook.ts
+```
+
+### Prompt for Next Session (after plan review)
+
+```
+Read docs/plans/2026-03-08-fix-global-express-error-middleware-plan.md and
+HANDOFF.md. Apply any plan-review findings. Then run /workflows:work.
+Relevant files: src/server.ts, src/api.ts, src/utils/ (new async-handler.ts).
 ```
