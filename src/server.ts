@@ -74,7 +74,7 @@ app.get("/dashboard.html", (_req, res) => {
   res.type("html").send(html);
 });
 
-app.use(express.static(join(import.meta.dirname, "..", "public")));
+app.use(express.static(join(import.meta.dirname, "..", "public"), { maxAge: "1h" }));
 
 // Mailgun inbound webhook
 app.use(webhookRouter);
