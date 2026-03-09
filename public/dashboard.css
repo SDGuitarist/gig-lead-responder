@@ -278,7 +278,7 @@
   .status-badge.failed  { background: #b54a3a; }
 
   /* Muted rows for sent/done */
-  tr.row-muted td { opacity: 0.65; }
+  tr.row-muted td { opacity: 0.7; }
   tr.row-muted:hover td { opacity: 0.8; }
 
   /* Action buttons (ready for Chunk 4) */
@@ -1082,3 +1082,15 @@
 
   .analyze-gate-pass { color: #5a8a5e; font-weight: 700; }
   .analyze-gate-fail { color: #b54a3a; font-weight: 700; }
+
+  /* ── Extracted inline styles (P3 bundle 061) ────────────── */
+  .placeholder-text { text-align: center; padding: 48px; color: #8a7e6d; }
+  .placeholder-text-mobile { text-align: center; padding: 48px 16px; color: #8a7e6d; }
+  .error-text { text-align: center; padding: 48px; color: #b54a3a; }
+  .load-more-wrap { display: none; text-align: center; padding: 16px 0 24px; }
+  .btn-load-more { min-width: 160px; }
+  .mt-10 { margin-top: 10px; }
+  .text-muted { color: #8a7e6d; }
+  .text-scheduled { color: #8a7e6d; font-style: italic; }
+  .edit-btn-row { margin-top: 10px; display: flex; gap: 8px; }
+  .mobile-card-muted { opacity: 0.7; }
