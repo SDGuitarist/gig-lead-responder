@@ -87,7 +87,7 @@ export function insertLead(input: InsertLeadInput): LeadRecord {
     mailgun_message_id: input.mailgun_message_id ?? null,
     client_name: input.client_name ?? null,
     event_date: input.event_date ?? null,
-    event_type: input.event_type?.trim().toLowerCase() ?? null,
+    event_type: input.event_type?.trim().toLowerCase() || null,
     venue: input.venue ?? null,
     guest_count: input.guest_count ?? null,
     budget_note: input.budget_note ?? null,

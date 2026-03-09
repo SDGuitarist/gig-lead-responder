@@ -176,16 +176,15 @@ export function getAnalytics(): AnalyticsResponse {
     `).all() as Array<{ month: string; received: number; booked: number }>;
 
     // Query 6: Revenue by Event Type
-    // LOWER(TRIM()) kept for legacy rows inserted before insertLead() normalization
     const revenueByType = stmt(`
-      SELECT LOWER(TRIM(event_type)) AS event_type,
+      SELECT event_type,
         COALESCE(total(actual_price), 0) AS revenue,
         COUNT(*) AS count,
         COALESCE(AVG(actual_price), 0) AS avg_price
       FROM leads
       WHERE status = 'done' AND outcome = 'booked' AND actual_price IS NOT NULL
         AND event_type IS NOT NULL
-      GROUP BY LOWER(TRIM(event_type))
+      GROUP BY event_type
       ORDER BY revenue DESC
     `).all() as Array<{ event_type: string; revenue: number; count: number; avg_price: number }>;
 

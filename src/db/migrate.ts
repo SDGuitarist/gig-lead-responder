@@ -147,6 +147,25 @@ export function initDb(): Database.Database {
     console.log("Migration complete: follow_up_status CHECK now includes 'replied'.");
   }
 
+  // One-shot: normalize legacy event_type values (pre-insertLead normalization)
+  const staleCount = db.prepare(`
+    SELECT COUNT(*) AS cnt FROM leads
+    WHERE event_type IS NOT NULL
+      AND (TRIM(event_type) = '' OR event_type != LOWER(TRIM(event_type)))
+  `).get() as { cnt: number };
+
+  if (staleCount.cnt > 0) {
+    db.prepare(`
+      UPDATE leads SET event_type =
+        CASE WHEN TRIM(event_type) = '' THEN NULL
+             ELSE LOWER(TRIM(event_type))
+        END
+      WHERE event_type IS NOT NULL
+        AND (TRIM(event_type) = '' OR event_type != LOWER(TRIM(event_type)))
+    `).run();
+    console.log(`Migration: normalized ${staleCount.cnt} stale event_type rows.`);
+  }
+
   // Create indexes after migrations so all columns exist (includes idx_leads_status
   // and idx_leads_event_date which are dropped if the table rebuild migration runs)
   db.exec("CREATE INDEX IF NOT EXISTS idx_leads_status ON leads(status)");
