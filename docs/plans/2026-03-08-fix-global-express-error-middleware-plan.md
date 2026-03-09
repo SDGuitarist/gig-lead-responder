@@ -1,7 +1,7 @@
 ---
 title: "fix: Global Express Error Middleware"
 type: fix
-status: active
+status: completed
 date: 2026-03-08
 origin: docs/brainstorms/2026-03-08-global-error-middleware-brainstorm.md
 feed_forward:
@@ -45,12 +45,19 @@ The fix is two components:
 | `src/utils/async-handler.ts` | **New file** — 8-line `asyncHandler` wrapper |
 | `src/api.ts` | Wrap 2 async route handlers with `asyncHandler` (lines 50, 101) |
 
-**Total:** ~30 lines across 3 files.
+**Total:** ~30 lines of production code across 3 files. Tests are additional
+(not counted in this estimate).
 
 ## What Must Not Change?
 
-- `POST /api/analyze` — has its own try-catch-finally for SSE streaming. Do NOT
-  wrap with `asyncHandler`. Its error handling is intentionally SSE-specific.
+- **SSE framing, stream lifecycle, and `/api/analyze` behavior** — this route
+  has its own try-catch-finally for SSE streaming. Do NOT wrap with
+  `asyncHandler`. Do not change `res.flushHeaders()`, `sendSSE()`, or
+  `res.end()` calls. The SSE error format (`event: error`) is intentionally
+  different from the JSON `{ error }` format the global middleware returns.
+- **Normal sync-route behavior** — sync routes using better-sqlite3 already
+  throw into Express natively. The global middleware catches these without any
+  wrapping. Do not add `asyncHandler` to sync routes.
 - `src/webhook.ts` and `src/twilio-webhook.ts` — sync at Express level with
   fire-and-forget async chains. Already protected by `.catch()`.
 - `src/follow-up-api.ts` — all 4 routes are synchronous. Global middleware
@@ -73,14 +80,96 @@ The fix is two components:
 
 ## Most Likely Way This Plan Is Wrong
 
-The `asyncHandler` wrapper is standard and well-understood. The most likely
-mistake would be accidentally wrapping `/api/analyze` and breaking its SSE
-error handling. The scope fence explicitly prevents this.
+Two concrete failure modes, ranked by likelihood:
+
+1. **Missed async route.** If a future session adds an async route handler
+   without `asyncHandler`, the global middleware never sees its rejections. The
+   async-handler inventory below makes the current state explicit so review can
+   catch drift.
+
+2. **Post-flush SSE error path.** If `/api/analyze` somehow reaches the global
+   middleware after `res.flushHeaders()`, the `res.headersSent` guard must
+   prevent a double-response crash. This is a safety net — the SSE route's own
+   try-catch-finally covers all post-flush code (verified: lines 244–254 in
+   `src/api.ts`). But if someone later adds code between `flushHeaders` and
+   `try`, the guard becomes load-bearing.
 
 A subtler risk: the `POST /api/leads/:id/edit` handler is declared `async` but
 contains zero `await` calls. Removing `async` would also fix it (sync handlers
 are caught natively). But wrapping with `asyncHandler` is defensive — if
 someone later adds an `await`, the protection stays. Worth the one-line cost.
+
+## Async-Route Inventory
+
+Every async handler across the 4 named files, whether it is wrapped, and why.
+
+### src/api.ts
+
+| Handler | Line | Async? | Protected? | Action |
+|---------|------|--------|------------|--------|
+| `GET /api/leads` | 23 | No | Sync — Express catches natively | None |
+| `GET /api/stats` | 44 | No | Sync — Express catches natively | None |
+| `POST /api/leads/:id/approve` | 50 | **Yes** | Partial — try-catch covers SMS only; DB calls before it are bare | **Wrap with `asyncHandler`** |
+| `POST /api/leads/:id/edit` | 101 | **Yes** | No try-catch at all | **Wrap with `asyncHandler`** |
+| `POST /api/leads/:id/outcome` | 148 | No | Sync — Express catches natively | None |
+| `GET /api/analytics` | 222 | No | Sync — Express catches natively | None |
+| `POST /api/analyze` | 228 | **Yes** | Full try-catch-finally (SSE-specific) | **Do NOT wrap** (see SSE decision below) |
+
+### src/follow-up-api.ts
+
+| Handler | Line | Async? | Protected? | Action |
+|---------|------|--------|------------|--------|
+| `POST .../follow-up/approve` | 31 | No | Sync via `handleAction` | None |
+| `POST .../follow-up/skip` | 35 | No | Sync via `handleAction` | None |
+| `POST .../follow-up/snooze` | 39 | No | Sync inline | None |
+| `POST .../follow-up/replied` | 80 | No | Sync via `handleAction` | None |
+
+### src/webhook.ts
+
+| Handler | Line | Async? | Protected? | Action |
+|---------|------|--------|------------|--------|
+| `POST /webhook/mailgun` | 42 | No | Sync handler; pipeline is fire-and-forget with `.catch()` | None |
+
+### src/twilio-webhook.ts
+
+| Handler | Line | Async? | Protected? | Action |
+|---------|------|--------|------------|--------|
+| `POST /webhook/twilio` | 220 | No | Sync handler; returns TwiML immediately, async work via `.catch()` | None |
+
+**Summary:** 3 async handlers exist. 2 need wrapping. 1 (SSE) is self-handled.
+All other handlers are sync and caught natively by Express.
+
+## SSE Decision: Why `/api/analyze` Stays Self-Handled
+
+In plain English: once an SSE response starts streaming (`res.flushHeaders()`
+on line 242), the HTTP headers — including status code and content-type — are
+already sent to the client. You can't change the status code or switch to JSON
+after that point. So the SSE route **must** handle its own errors by writing
+an SSE `event: error` message into the stream, not by calling `next(err)`.
+
+The global middleware's `res.headersSent` guard is a safety net for this case:
+if an error somehow reaches the global handler after headers are flushed, it
+calls `res.end()` instead of trying to send JSON. But this should never
+actually fire, because the SSE route's try-catch-finally (lines 244–254)
+covers every code path after `flushHeaders`. There is no code between
+`res.flushHeaders()` (line 242) and the `try` block (line 244) that could
+throw and escape.
+
+## Public Error-Body Rule
+
+The global middleware uses `err.expose` (set by `http-errors`, which
+`express.json()` uses internally) to decide the client-facing message:
+
+- **`err.expose === true`** (4xx errors from Express middleware like
+  `express.json()`): return `err.message` — e.g., `"Unexpected token x in
+  JSON at position 0"`. These messages come from Node's `JSON.parse` and do
+  not contain server internals.
+- **`err.expose !== true`** (5xx errors, application throws): return
+  `"Internal server error"`. Never leak DB table names, SQL, column names, or
+  stack traces to the client.
+
+This means a malformed JSON request gets `{ error: "Unexpected token..." }`
+with status 400 — not `{ error: "Internal server error" }` with status 400.
 
 ## Proposed Solution
 
@@ -164,7 +253,14 @@ app.use((err: unknown, req: Request, res: Response, _next: NextFunction) => {
       ? (err as any).status
       : 500;
 
-  res.status(status).json({ error: "Internal server error" });
+  // err.expose is set by http-errors (used by express.json / body-parser).
+  // true for 4xx = message is safe to show (e.g., JSON parse error).
+  // false/absent for 5xx = hide internals, return generic message.
+  const clientMessage = (err as any).expose === true && message
+    ? message
+    : "Internal server error";
+
+  res.status(status).json({ error: clientMessage });
 });
 ```
 
@@ -183,9 +279,12 @@ app.use((err: unknown, req: Request, res: Response, _next: NextFunction) => {
    etc. The `err instanceof Error` check handles both cases. (Identified by
    SpecFlow.)
 
-4. **Generic client message** — Always returns "Internal server error", never
-   the raw error. Prevents leaking DB internals (table names, SQL, column names).
-   (From brainstorm.)
+4. **`err.expose`-gated client message** — For 4xx errors from Express
+   middleware (e.g., `express.json()`), `err.expose` is `true` and the message
+   is safe to show (it comes from Node's `JSON.parse`, not from our code). For
+   5xx errors, `err.expose` is absent/false, so we return "Internal server
+   error" to prevent leaking DB internals. (Refined from brainstorm based on
+   Express conventions.)
 
 5. **`_next` parameter required** — Express identifies error middleware by its
    4-parameter signature. Removing `_next` would turn it into regular
@@ -193,16 +292,40 @@ app.use((err: unknown, req: Request, res: Response, _next: NextFunction) => {
 
 ## Acceptance Criteria
 
-- [ ] Global error middleware registered last in `src/server.ts`
-- [ ] Unhandled sync route errors return `{ error: "Internal server error" }` with appropriate status
-- [ ] Unhandled async route errors (approve, edit) are caught and forwarded to middleware
-- [ ] `POST /api/analyze` is NOT wrapped — SSE error handling unchanged
-- [ ] `res.headersSent` guard prevents double-response crash
-- [ ] `err.status` respected for Express middleware errors (e.g., 400 for malformed JSON)
-- [ ] Structured log includes method, path, error message, and stack trace
-- [ ] No internal error details exposed to client
-- [ ] All 62 existing tests pass
-- [ ] No frontend changes required
+- [x] Global error middleware registered last in `src/server.ts`
+- [x] Unhandled sync route errors return `{ error: "Internal server error" }` with status 500
+- [x] Unhandled async route errors (approve, edit) are caught and forwarded to middleware
+- [x] `POST /api/analyze` is NOT wrapped — SSE error handling unchanged
+- [x] `res.headersSent` guard prevents double-response crash
+- [x] `err.status` respected for Express middleware errors (e.g., 400 for malformed JSON)
+- [x] 400 errors return the `err.message` (via `err.expose`), NOT "Internal server error"
+- [x] 500 errors return "Internal server error", never raw error details
+- [x] Structured log includes method, path, error message, and stack trace
+- [x] All 62 existing tests pass
+- [x] No frontend changes required
+
+## Verification Checks
+
+These are the specific scenarios to test during the work phase:
+
+1. **Malformed JSON → 400 with matching message.** Send a POST with invalid
+   JSON body to any `express.json()`-protected route. Expect status 400 and
+   `{ error: "Unexpected token..." }` (the `JSON.parse` error message), not
+   `{ error: "Internal server error" }`.
+
+2. **Wrapped async route rejection → global middleware.** Force an error in
+   `/api/leads/:id/approve` or `/edit` (e.g., pass an ID that triggers a DB
+   error). Expect status 500 and `{ error: "Internal server error" }`, plus a
+   structured console log with method, path, and stack.
+
+3. **SSE route handles its own failure after headers flush.** Trigger a
+   pipeline error in `/api/analyze` after `res.flushHeaders()`. Expect an SSE
+   `event: error` message in the stream, NOT a JSON response. The global
+   middleware should NOT fire (no `[ERROR]` log line for this path).
+
+4. **Sync routes unchanged.** Hit `GET /api/analytics` or `GET /api/leads`
+   normally. Expect identical behavior to before — no extra middleware
+   overhead, same response shape.
 
 ## Scope Fence
 
@@ -217,9 +340,22 @@ app.use((err: unknown, req: Request, res: Response, _next: NextFunction) => {
 - Frontend/dashboard changes
 - Database layer changes
 - External error reporting (Sentry, etc.)
-- 404 catch-all handler (follow-up item)
+- **404 catch-all handler** — Express returns HTML for unmatched routes. This
+  is a known gap but a separate change. Do not add a 404 handler in this work.
 - Request body logging (PII risk)
 - Request IDs (YAGNI for single-user app)
+
+## Stop Conditions
+
+Stop work and re-evaluate if:
+
+1. You find another async route handler in the named files that this plan did
+   not account for. (The inventory above should be exhaustive — if it's not,
+   the plan needs updating before continuing.)
+
+2. `/api/analyze` has any post-flush code path outside its try-catch-finally.
+   (Verified as of this plan review: it does not. But if the code has changed
+   since, re-verify before wrapping other routes.)
 
 ## Sources
 
@@ -242,9 +378,10 @@ app.use((err: unknown, req: Request, res: Response, _next: NextFunction) => {
    fragile — if someone later adds an `await`, the protection vanishes silently.
    `asyncHandler` is defensive and costs one line.
 
-3. **Least confident about going into the next phase?** The `err.status`
-   handling. Returning the middleware-set status (e.g., 400) but always with
-   message "Internal server error" is slightly misleading — a 400 suggests the
-   client did something wrong, but the message says "server error." For this
-   single-user app it's fine, but a future review might want status-appropriate
-   messages (400 → "Bad request", 500 → "Internal server error").
+3. **Least confident about going into the next phase?** The `err.expose` gate.
+   The plan now uses `err.expose === true` to forward the raw error message for
+   4xx errors (e.g., JSON parse errors from `express.json()`). This is the
+   Express convention and avoids "Internal server error" on 400 responses. The
+   remaining uncertainty: if a future middleware sets `err.expose = true` on a
+   5xx error, the raw message would leak. This is unlikely (only `http-errors`
+   sets `expose`, and it sets `false` for 5xx), but worth noting.
