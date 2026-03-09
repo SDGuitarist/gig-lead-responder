@@ -12,10 +12,10 @@
 
 | File | What changed | Risk area |
 |------|-------------|-----------|
-| `src/plan-gate.ts` | NEW — deterministic plan validator CLI | No external deps, no LLM calls |
-| `src/plan-gate.test.ts` | NEW — 13 tests including real plan dry runs | Temp dir cleanup in teardown |
-| `docs/workflow-templates.md` | Added Automation Contract section to plan template | Must not break existing template usage |
-| `package.json` | Added `plan:check` script | No new dependencies |
+| `public/dashboard.html` | applyDataWidths pattern (4 call sites) | Must call after innerHTML with data-width |
+| `src/db/leads.ts` | `??` → `||` for event_type | updateLead still lacks normalization (063) |
+| `src/db/migrate.ts` | event_type normalization migration | Idempotent, self-quenching |
+| `src/server.ts` | CSP unsafe-inline removed, Cache-Control added | Complete — all inline styles extracted |
 
 ## Remaining Gaps (carried forward)
 
@@ -25,9 +25,17 @@
 - Accessibility never reviewed
 - `npm audit` never run
 - Pre-existing P1s: XSS unescaped LLM values (023), no input size guard (024), prompt injection chain (025)
-- P3 bundle deferred from Cycle 15 (061)
+- ~~P3 bundle deferred from Cycle 15 (061)~~ — done, 2 P2 follow-ups (062, 063)
 - leads.ts structural split (brainstorm+plan exist)
 
 ## Plan Reference
 
 `docs/plans/2026-03-08-feat-workflow-automation-phase-1-plan.md`
+
+## Review Context (P3 bundle 061)
+
+**Risk chain:** Work phase flagged applyDataWidths coverage → Security Sentinel verified all 4 call sites covered → Architecture Strategist recommends contract comment (062).
+
+**Data migration risk:** updateLead accepts event_type without normalization (063). No current callers but structural gap.
+
+**Review:** `docs/reviews/p3-bundle-061/REVIEW-SUMMARY.md`
