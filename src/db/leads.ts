@@ -151,6 +151,10 @@ export function updateLead(
       : value;
   }
 
+  if ('event_type' in params && params.event_type != null) {
+    params.event_type = String(params.event_type).trim().toLowerCase() || null;
+  }
+
   setClauses.push("updated_at = @updated_at");
   params.updated_at = new Date().toISOString();
   params.id = id;
