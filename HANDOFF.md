@@ -2,14 +2,12 @@
 
 **Date:** 2026-03-08
 **Branch:** `main`
-**Phase:** Work complete for P3 bundle 061. Ready for review.
+**Phase:** Review complete for P3 bundle 061. Ready for compound.
 
 ## Current State
 
-All 4 commits landed on `main`. P3 bundle 061 fully implemented — Cache-Control
-headers, event_type migration + write-path hardening, 14 inline style extractions
-to CSS classes, dynamic width conversion via data-width + JS, and CSP unsafe-inline
-removed. Suite at 62/62 passing. Zero inline `style=` attributes remain.
+P3 bundle 061 fully implemented (4 commits) and reviewed (7 agents, 0 P1, 2 P2).
+Browser test confirmed zero CSP violations. Two P2 follow-up todos created (062, 063).
 
 ## Current Suite
 
@@ -24,15 +22,23 @@ removed. Suite at 62/62 passing. Zero inline `style=` attributes remain.
 | 2 | `f65d371` | event_type migration + write-path `??` → `\|\|` + Query 6 cleanup | `src/db/migrate.ts`, `src/db/leads.ts`, `src/db/queries.ts` |
 | 3 | `5120055` | Extract 14 inline styles to CSS classes + ?v=2 cache-bust | `public/dashboard.html`, `public/dashboard.css` |
 | 4 | `c128563` | Dynamic widths → data-width + applyDataWidths() + remove unsafe-inline | `public/dashboard.html`, `src/server.ts` |
+| 5 | `bc2f028` | Review artifacts: summary, 2 P2 todos, plan, updated local config | docs + todos |
 
 ## Key Artifacts
 
 | Phase | Location |
 |-------|----------|
 | Plan (P3 bundle 061) | `docs/plans/2026-03-08-fix-p3-bundle-061-plan.md` |
-| Review (Cycle 15) | `docs/reviews/cycle-15/REVIEW-SUMMARY.md` |
-| Plan (workflow automation phase 1) | `docs/plans/2026-03-08-feat-workflow-automation-phase-1-plan.md` |
-| Solution (workflow automation phase 1) | `docs/solutions/workflow/2026-03-08-plan-gate-foundation.md` |
+| Review (P3 bundle 061) | `docs/reviews/p3-bundle-061/REVIEW-SUMMARY.md` |
+| Todo 062 | `todos/062-pending-p2-applydatawidths-contract-comment.md` |
+| Todo 063 | `todos/063-pending-p2-updatelead-event-type-normalization.md` |
+
+## Review Findings (P3 bundle 061)
+
+- **0 P1** — no blockers
+- **2 P2** — (1) applyDataWidths needs contract comment, (2) updateLead missing event_type normalization
+- **6 P3** — all informational, no action needed
+- **Risk resolved:** applyDataWidths coverage confirmed complete (4/4 call sites verified by Security Sentinel)
 
 ## Deferred Items
 
@@ -50,30 +56,30 @@ removed. Suite at 62/62 passing. Zero inline `style=` attributes remain.
 
 ## Three Questions
 
-1. **Hardest implementation decision in this session?** The mobile card muted
-   pattern — switching from appending `style="opacity:0.7"` as an HTML attribute
-   to appending a class name into the existing `class="mobile-card"` string
-   required changing the string concatenation structure (class inside quotes vs
-   attribute outside quotes).
+1. **Hardest judgment call in this review?** Whether `updateLead` missing
+   normalization is P2 or P3. Chose P2 because it's the same class of bug the
+   migration is fixing — a structural gap that will bite silently if a future
+   caller passes event_type to updateLead. Zero current callers makes it
+   non-urgent, but the fix is trivial.
 
-2. **What did you consider changing but left alone, and why?** The `renderTable`
-   and `renderMobile` functions also set innerHTML but don't contain any
-   data-width elements. Considered adding `applyDataWidths` calls there
-   defensively, but the plan confirmed neither function builds gut-check or chart
-   bars, so the extra calls would be dead code.
+2. **What did you consider flagging but chose not to, and why?** The `??` vs
+   `||` inconsistency across other insertLead fields (client_name, venue,
+   budget_note). These fields don't apply `.trim()` so empty string can't be
+   produced by the optional chain. The inconsistency is only relevant if
+   normalization is added to those fields later — speculative, not actionable.
 
-3. **Least confident about going into review?** Whether the `applyDataWidths`
-   hooks cover every code path that rebuilds detail panels. There are 3 separate
-   innerHTML assignments for `renderDetailPanel` (expand, outcome preview, outcome
-   save). All 3 got hooked, but if a future code path adds a 4th, bars will
-   render at 0 width with no error.
+3. **What might this review have missed?** Browser-level CSP testing with a
+   populated database. We verified headers and empty-state rendering, but
+   gut-check bars and chart bars (the data-width pattern) need production data
+   to render. Code review confirmed the 4 call sites are correct.
 
 ### Prompt for Next Session
 
 ```
-Read HANDOFF.md. Run /workflows:review on the P3 bundle 061 work (4 commits
-on main). Plan: docs/plans/2026-03-08-fix-p3-bundle-061-plan.md. Risk area
-from work phase: applyDataWidths hooks — verify all renderDetailPanel innerHTML
-assignments are covered. Files changed: src/server.ts, src/db/migrate.ts,
-src/db/leads.ts, src/db/queries.ts, public/dashboard.html, public/dashboard.css.
+Read HANDOFF.md. Run /workflows:compound on the P3 bundle 061 work.
+Review: docs/reviews/p3-bundle-061/REVIEW-SUMMARY.md.
+Plan: docs/plans/2026-03-08-fix-p3-bundle-061-plan.md.
+Patterns to document: (1) data-width + applyDataWidths for CSP-compliant
+dynamic styles, (2) event_type migration + write-path hardening pattern,
+(3) SpecFlow-identified cache-busting dependency between commits.
 ```
