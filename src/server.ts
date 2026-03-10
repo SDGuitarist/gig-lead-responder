@@ -97,6 +97,11 @@ app.get("/", (_req, res) => {
   res.redirect("/dashboard.html");
 });
 
+// 404 catch-all — after all routes, before error handler
+app.use((_req: Request, res: Response) => {
+  res.status(404).json({ error: "Not found" });
+});
+
 // Global error handler — must be registered last, must have 4 parameters
 app.use((err: unknown, req: Request, res: Response, _next: NextFunction) => {
   const message = err instanceof Error ? err.message : String(err);

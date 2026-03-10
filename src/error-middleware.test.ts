@@ -165,6 +165,29 @@ describe("Global error middleware", () => {
     assert.equal(res2.status, 500);
   });
 
+  it("returns 404 JSON for unmatched routes when catch-all is present", async () => {
+    const app = express();
+    app.get("/exists", (_req: Request, res: Response) => {
+      res.json({ ok: true });
+    });
+    app.use((_req: Request, res: Response) => {
+      res.status(404).json({ error: "Not found" });
+    });
+    app.use(errorHandler);
+
+    await withServer(app, async (srv) => {
+      // Unmatched route returns 404
+      const res = await request(srv, "GET", "/nonexistent");
+      assert.equal(res.status, 404);
+      const json = JSON.parse(res.body);
+      assert.equal(json.error, "Not found");
+
+      // Matched route still works
+      const res2 = await request(srv, "GET", "/exists");
+      assert.equal(res2.status, 200);
+    });
+  });
+
   it("never exposes raw message on 5xx even if err.expose is true", async () => {
     const appWith5xx = createTestApp([
       "get",
