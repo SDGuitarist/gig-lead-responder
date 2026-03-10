@@ -119,10 +119,12 @@ app.use((err: unknown, req: Request, res: Response, _next: NextFunction) => {
       : 500;
 
   // err.expose is set by http-errors (used by express.json / body-parser).
-  // true for 4xx = message is safe to show. false/absent for 5xx = hide internals.
-  const clientMessage = (err as any).expose === true && message
-    ? message
-    : "Internal server error";
+  // Only forward err.message for 4xx — never expose raw messages on 5xx,
+  // even if err.expose is true (guards against future middleware misuse).
+  const clientMessage =
+    status >= 400 && status < 500 && (err as any).expose === true && message
+      ? message
+      : "Internal server error";
 
   res.status(status).json({ error: clientMessage });
 });
