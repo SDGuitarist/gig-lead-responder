@@ -1,33 +1,15 @@
 # HANDOFF — Gig Lead Responder
 
-**Date:** 2026-03-08
+**Date:** 2026-03-10
 **Branch:** `fix/global-express-error-middleware`
-**Phase:** Work complete. Ready for review.
+**Phase:** Compound complete. PR #12 open, ready to merge.
 
-## What Was Done
+## Current State
 
-1. **Created `src/utils/async-handler.ts`** — 13-line wrapper that forwards
-   rejected promises to Express error middleware (required for Express v4).
-
-2. **Wrapped 2 async routes in `src/api.ts`** — `POST /api/leads/:id/approve`
-   and `POST /api/leads/:id/edit` now use `asyncHandler()`. `/api/analyze`
-   intentionally NOT wrapped (SSE self-handled).
-
-3. **Added global error middleware in `src/server.ts`** — registered last
-   (after all routes, before `app.listen`). Features:
-   - `res.headersSent` guard for SSE safety
-   - `err.status` respect for Express middleware errors (400 from JSON parse)
-   - `err.expose` gate: 4xx → raw message, 5xx → "Internal server error"
-   - Structured `console.error` with method, path, message, stack
-
-4. **Plan updated** — all 11 acceptance criteria checked off, status → completed.
-
-**Commit:** `333443d` — `fix: add global Express error middleware and asyncHandler wrapper`
-
-## Current Suite
-
-- **Total tests:** 62 | **Passing:** 62 | **Failing:** 0
-- TypeScript compiles clean (`tsc --noEmit` passes)
+Global Express error middleware cycle complete — brainstorm, plan, work, review,
+compound all done. PR #12 adds a global error handler (JSON responses instead of
+HTML), asyncHandler wrapper for Express v4 async routes, and 6 tests. 62 existing
+tests + 6 new tests all pass.
 
 ## Key Artifacts
 
@@ -35,37 +17,27 @@
 |-------|----------|
 | Brainstorm | `docs/brainstorms/2026-03-08-global-error-middleware-brainstorm.md` |
 | Plan | `docs/plans/2026-03-08-fix-global-express-error-middleware-plan.md` |
-| Code | `src/server.ts`, `src/api.ts`, `src/utils/async-handler.ts` |
+| Solution | `docs/solutions/architecture/2026-03-10-global-express-error-middleware.md` |
+| PR | #12 (`fix/global-express-error-middleware`) |
 
 ## Deferred Items
 
+- **P2 follow-ups:** (062) applyDataWidths contract comment, (063) updateLead event_type normalization
 - **leads.ts structural split** — brainstorm+plan exist, do before next feature
-- **404 catch-all handler** — Express returns HTML for unmatched routes (identified during plan)
-- **fillMonthlyGaps relocation** — single caller, deferred
-- **dashboard.html** at ~1,604 lines (JS extraction threshold: ~2,500)
-- **LLM pipeline behavior** never reviewed
+- **404 catch-all handler** — Express returns HTML for unmatched routes (identified during error middleware plan)
+- **Test sync risk** — error-middleware.test.ts duplicates handler logic from server.ts (extract to shared module later)
+- **Transaction error handling** — analytics 8-query transaction has no error handling
 - **Workflow automation phase 2** — `linked_expectations` enforcement
 
 ## Three Questions
 
-1. **Hardest implementation decision in this session?** None — the plan was
-   specific enough that implementation was pure execution. Every line was
-   pre-specified with exact placement and rationale.
-
-2. **What did you consider changing but left alone, and why?** Considered
-   removing the `async` keyword from `/api/leads/:id/edit` (it has zero
-   `await` calls) instead of wrapping it. Left the plan's decision in place —
-   `asyncHandler` is defensive against future `await` additions.
-
-3. **Least confident about going into review?** The `err.expose` gate for 5xx
-   leakage. If a future middleware sets `err.expose = true` on a 5xx error,
-   the raw message would leak to the client. Unlikely per Express conventions
-   but worth reviewer scrutiny.
+1. **Hardest decision?** Whether to wrap `/api/analyze` with asyncHandler. Decided no — SSE self-handled, wrapping risks double-response.
+2. **What was rejected?** Removing `async` from `/api/leads/:id/edit` instead of wrapping it. Fragile — future `await` additions would silently lose protection.
+3. **Least confident about?** Test duplication — the test file copies the error handler logic instead of importing it. If server.ts middleware changes, the test could pass against stale logic.
 
 ### Prompt for Next Session
 
 ```
-Read docs/plans/2026-03-08-fix-global-express-error-middleware-plan.md and
-HANDOFF.md. Run /workflows:review on branch fix/global-express-error-middleware.
-Relevant files: src/server.ts, src/api.ts, src/utils/async-handler.ts.
+Read HANDOFF.md for context. This is Gig Lead Responder, an automated lead response pipeline for a musician.
+PR #12 is open and reviewed. Merge it, then pick up the next priority: P2 follow-ups (062 applyDataWidths contract comment, 063 updateLead event_type normalization).
 ```

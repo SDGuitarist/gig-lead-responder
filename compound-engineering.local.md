@@ -2,24 +2,24 @@
 
 ## Risk Chain
 
-**Plan risk:** "The 2 dynamic `style="width:X%"` attributes use string concatenation to build HTML. The `data-width` + post-render JS approach requires hooking into every place these elements get inserted via innerHTML. If a render hook is missed, bars render at 0 width."
+**Brainstorm risk:** "Async error handling. Express v4 doesn't automatically catch rejected promises in async route handlers. Our DB calls are synchronous (better-sqlite3), but POST /api/analyze and webhook handlers are async."
 
-**Work resolution:** All 4 innerHTML call sites hooked with `applyDataWidths()`. Work phase flagged uncertainty about complete coverage.
+**Plan mitigation:** Full async-route inventory across 4 files. 2 routes need wrapping. `/api/analyze` self-handled (SSE). `asyncHandler` wrapper created.
 
-**Review resolution:** 0 P1, 2 P2, 6 P3 from 7 agents. Security Sentinel independently verified all 4 call sites match all innerHTML assignments. Architecture Strategist recommends contract comment (062). Data Migration Expert found updateLead missing normalization (063).
+**Work risk (from Feed-Forward):** "If a future middleware sets `err.expose = true` on a 5xx error, the raw message would leak."
 
-**Compound resolution:** Solution doc written with 3 named patterns. Risk chain closed — applyDataWidths coverage confirmed complete.
+**Review resolution:** 0 P1, 0 P2, 2 P3 from in-conversation review. Feed-Forward risk fully addressed — `err.expose` gated to 4xx only with explicit test. P3-1: test duplicates error handler (sync risk). P3-2: no test for non-Error throws.
+
+**Compound resolution:** Solution doc written. Risk chain closed — 4xx-only expose gate + test.
 
 ## Files to Scrutinize
 
 | File | What changed | Risk area |
 |------|-------------|-----------|
-| `public/dashboard.html` | 14 inline styles → CSS classes, 2 dynamic widths → data-width + applyDataWidths (4 call sites) | Must call applyDataWidths after innerHTML with data-width elements |
-| `public/dashboard.css` | New classes for extracted styles + mobile-card-muted | Cache-bust param (?v=2) must accompany class additions |
-| `src/server.ts` | CSP unsafe-inline removed, Cache-Control 1h added | Complete — all inline styles extracted |
-| `src/db/migrate.ts` | event_type normalization migration (guard-checked, idempotent) | Self-quenching after first run |
-| `src/db/leads.ts` | `??` → `||` for event_type write path | updateLead still lacks normalization (063) |
-| `src/db/queries.ts` | Removed LOWER(TRIM()) from Query 6 | Clean — data normalized at write time |
+| `src/server.ts` | Global error middleware (lines 100-130) | Must stay registered last, 4-param signature required |
+| `src/utils/async-handler.ts` | New — asyncHandler wrapper | Must be used on all future async routes |
+| `src/api.ts` | 2 routes wrapped with asyncHandler | `/api/analyze` intentionally NOT wrapped |
+| `src/error-middleware.test.ts` | New — 6 tests, duplicated error handler | Must stay in sync with server.ts middleware |
 
 ## Remaining Gaps (carried forward)
 
@@ -28,10 +28,11 @@
 - LLM pipeline behavior never reviewed (prompt injection resilience)
 - Accessibility never reviewed
 - `npm audit` never run
-- Pre-existing P1s: XSS unescaped LLM values (023), no input size guard (024), prompt injection chain (025)
 - P2 follow-ups: applyDataWidths contract comment (062), updateLead event_type normalization (063)
 - leads.ts structural split (brainstorm+plan exist)
+- 404 catch-all handler (Express returns HTML for unmatched routes)
+- Test file duplicates error handler logic (sync risk if middleware changes)
 
 ## Plan Reference
 
-`docs/plans/2026-03-08-fix-p3-bundle-061-plan.md`
+`docs/plans/2026-03-08-fix-global-express-error-middleware-plan.md`
