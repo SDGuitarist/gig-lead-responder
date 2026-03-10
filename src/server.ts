@@ -1,6 +1,6 @@
 import "dotenv/config";
 import express from "express";
-import type { Request, Response, NextFunction } from "express";
+import type { Request, Response } from "express";
 import cookieParser from "cookie-parser";
 import { join } from "node:path";
 import { readFileSync } from "node:fs";
@@ -12,6 +12,7 @@ import apiRouter from "./api.js";
 import followUpApiRouter from "./follow-up-api.js";
 import { sessionAuth, csrfGuard, logout } from "./auth.js";
 import { startFollowUpScheduler, stopFollowUpScheduler } from "./follow-up-scheduler.js";
+import { errorHandler } from "./utils/error-handler.js";
 
 if (!process.env.ANTHROPIC_API_KEY) {
   console.error("Error: ANTHROPIC_API_KEY not set in .env file");
@@ -103,36 +104,7 @@ app.use((_req: Request, res: Response) => {
 });
 
 // Global error handler — must be registered last, must have 4 parameters
-app.use((err: unknown, req: Request, res: Response, _next: NextFunction) => {
-  const message = err instanceof Error ? err.message : String(err);
-  const stack = err instanceof Error ? err.stack : undefined;
-  console.error(`[ERROR] ${req.method} ${req.path}:`, message);
-  if (stack) console.error(stack);
-
-  // If response already started (e.g., SSE streaming), just close it
-  if (res.headersSent) {
-    res.end();
-    return;
-  }
-
-  // Respect status codes set by Express middleware (e.g., 400 from JSON parse)
-  const status =
-    typeof (err as any).status === "number" &&
-    (err as any).status >= 400 &&
-    (err as any).status < 600
-      ? (err as any).status
-      : 500;
-
-  // err.expose is set by http-errors (used by express.json / body-parser).
-  // Only forward err.message for 4xx — never expose raw messages on 5xx,
-  // even if err.expose is true (guards against future middleware misuse).
-  const clientMessage =
-    status >= 400 && status < 500 && (err as any).expose === true && message
-      ? message
-      : "Internal server error";
-
-  res.status(status).json({ error: clientMessage });
-});
+app.use(errorHandler);
 
 const PORT = parseInt(process.env.PORT || "3000", 10);
 const server = app.listen(PORT, "::", () => {

@@ -1,36 +1,10 @@
 import { describe, it, after } from "node:test";
 import assert from "node:assert/strict";
 import express from "express";
-import type { Request, Response, NextFunction, RequestHandler, ErrorRequestHandler } from "express";
+import type { Request, Response, NextFunction, RequestHandler } from "express";
 import http from "node:http";
 import { asyncHandler } from "./utils/async-handler.js";
-
-/**
- * The exact error handler from src/server.ts (with the 4xx-only expose fix).
- * Duplicated here so tests don't import the full server with its side effects.
- */
-const errorHandler: ErrorRequestHandler = (err: unknown, _req, res, _next) => {
-  const message = err instanceof Error ? err.message : String(err);
-
-  if (res.headersSent) {
-    res.end();
-    return;
-  }
-
-  const status =
-    typeof (err as any).status === "number" &&
-    (err as any).status >= 400 &&
-    (err as any).status < 600
-      ? (err as any).status
-      : 500;
-
-  const clientMessage =
-    status >= 400 && status < 500 && (err as any).expose === true && message
-      ? message
-      : "Internal server error";
-
-  res.status(status).json({ error: clientMessage });
-};
+import { errorHandler } from "./utils/error-handler.js";
 
 /** Build a minimal Express app with the global error handler and optional extra routes. */
 function createTestApp(...routes: Array<[string, string, RequestHandler]>) {
