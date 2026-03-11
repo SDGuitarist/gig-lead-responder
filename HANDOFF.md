@@ -1,43 +1,69 @@
 # HANDOFF — Gig Lead Responder
 
 **Date:** 2026-03-10
-**Branch:** `fix/global-express-error-middleware`
-**Phase:** Compound complete. PR #12 open, ready to merge.
+**Branch:** `fix/deferred-p2-batch`
+**Phase:** Work complete. PR #13 open, ready for Codex code review.
 
-## Current State
+## What Was Done
 
-Global Express error middleware cycle complete — brainstorm, plan, work, review,
-compound all done. PR #12 adds a global error handler (JSON responses instead of
-HTML), asyncHandler wrapper for Express v4 async routes, and 6 tests. 62 existing
-tests + 6 new tests all pass.
+1. **404 catch-all handler** (commit `21cfb15`): Added `app.use()` between root
+   redirect and error handler. Returns `{ error: "Not found" }` with status 404.
+
+2. **Error handler extraction** (commit `8fe027b`): Created `src/utils/error-handler.ts`
+   with the full error handler (including `console.error` logging). Updated
+   `src/server.ts` and `src/error-middleware.test.ts` to import from it. Deleted
+   the duplicate handler from the test file.
+
+3. **createApp() factory extraction** (commit `450410f`): Moved app construction
+   from `src/server.ts` into `src/app.ts`. Server.ts retains env guards, DB init,
+   and listen. Upgraded the 404 test from a mini app to `createApp()` — now
+   verifies real middleware ordering (404, static CSS, healthcheck). Plan updated
+   to document the scope change.
+
+All 69 tests pass.
 
 ## Key Artifacts
 
 | Phase | Location |
 |-------|----------|
-| Brainstorm | `docs/brainstorms/2026-03-08-global-error-middleware-brainstorm.md` |
-| Plan | `docs/plans/2026-03-08-fix-global-express-error-middleware-plan.md` |
-| Solution | `docs/solutions/architecture/2026-03-10-global-express-error-middleware.md` |
-| PR | #12 (`fix/global-express-error-middleware`) |
+| Plan | `docs/plans/2026-03-10-fix-deferred-p2-batch-plan.md` |
+| PR | #13 (`fix/deferred-p2-batch`) |
 
 ## Deferred Items
 
-- **P2 follow-ups:** (062) applyDataWidths contract comment, (063) updateLead event_type normalization
-- **leads.ts structural split** — brainstorm+plan exist, do before next feature
-- **404 catch-all handler** — Express returns HTML for unmatched routes (identified during error middleware plan)
-- **Test sync risk** — error-middleware.test.ts duplicates handler logic from server.ts (extract to shared module later)
-- **Transaction error handling** — analytics 8-query transaction has no error handling
-- **Workflow automation phase 2** — `linked_expectations` enforcement
+- **Workflow automation phase 2** — `linked_expectations` enforcement (needs own brainstorm+plan)
 
 ## Three Questions
 
-1. **Hardest decision?** Whether to wrap `/api/analyze` with asyncHandler. Decided no — SSE self-handled, wrapping risks double-response.
-2. **What was rejected?** Removing `async` from `/api/leads/:id/edit` instead of wrapping it. Fragile — future `await` additions would silently lose protection.
-3. **Least confident about?** Test duplication — the test file copies the error handler logic instead of importing it. If server.ts middleware changes, the test could pass against stale logic.
+1. **Hardest implementation decision in this session?** Pulling the `createApp()`
+   extraction into this batch (originally deferred). The review finding required
+   testing real middleware order, and the extraction was the minimal way to do it.
+2. **What did you consider changing but left alone, and why?** The root redirect
+   (`app.get("/", ...)`) is effectively dead code because `express.static` serves
+   `public/index.html` first. Left it as a fallback in case index.html is removed.
+3. **Least confident about going into review?** If a future router adds import-time
+   side effects, `createApp()` in tests would break. Low risk — would surface
+   immediately as a test failure.
+
+## Next Phase
+
+**Review** — Codex code review of PR #13, then compound phase.
 
 ### Prompt for Next Session
 
 ```
-Read HANDOFF.md for context. This is Gig Lead Responder, an automated lead response pipeline for a musician.
-PR #12 is open and reviewed. Merge it, then pick up the next priority: P2 follow-ups (062 applyDataWidths contract comment, 063 updateLead event_type normalization).
+Review branch fix/deferred-p2-batch against docs/plans/2026-03-10-fix-deferred-p2-batch-plan.md.
+
+Focus on:
+1. Does the diff match the plan? Flag anything added or missing.
+2. Bugs, regressions, or missing edge cases
+3. Security risks (input validation, injection, auth)
+4. The Feed-Forward risk from the plan: "404 catch-all placement relative to static middleware and routers; test logging noise from shared error handler"
+5. Files that should NOT have changed but did
+
+Key files changed: src/app.ts (new), src/server.ts, src/utils/error-handler.ts, src/error-middleware.test.ts
+Plan doc: docs/plans/2026-03-10-fix-deferred-p2-batch-plan.md
+PR: https://github.com/SDGuitarist/gig-lead-responder/pull/13
+
+Output: findings ordered by severity + a Claude Code fix prompt if issues found.
 ```
