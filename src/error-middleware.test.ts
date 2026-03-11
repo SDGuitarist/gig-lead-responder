@@ -5,6 +5,7 @@ import type { Request, Response, NextFunction, RequestHandler } from "express";
 import http from "node:http";
 import { asyncHandler } from "./utils/async-handler.js";
 import { errorHandler } from "./utils/error-handler.js";
+import { createApp } from "./app.js";
 
 /** Build a minimal Express app with the global error handler and optional extra routes. */
 function createTestApp(...routes: Array<[string, string, RequestHandler]>) {
@@ -139,26 +140,29 @@ describe("Global error middleware", () => {
     assert.equal(res2.status, 500);
   });
 
-  it("returns 404 JSON for unmatched routes when catch-all is present", async () => {
-    const app = express();
-    app.get("/exists", (_req: Request, res: Response) => {
-      res.json({ ok: true });
-    });
-    app.use((_req: Request, res: Response) => {
-      res.status(404).json({ error: "Not found" });
-    });
-    app.use(errorHandler);
+  it("returns 404 JSON for unmatched routes (real app wiring)", async () => {
+    const realApp = createApp();
 
-    await withServer(app, async (srv) => {
-      // Unmatched route returns 404
+    await withServer(realApp, async (srv) => {
+      // Unmatched route returns 404 from the real middleware stack
       const res = await request(srv, "GET", "/nonexistent");
       assert.equal(res.status, 404);
       const json = JSON.parse(res.body);
       assert.equal(json.error, "Not found");
 
-      // Matched route still works
-      const res2 = await request(srv, "GET", "/exists");
-      assert.equal(res2.status, 200);
+      // Static serving still works (catch-all didn't shadow express.static)
+      const cssRes = await request(srv, "GET", "/dashboard.css");
+      assert.equal(cssRes.status, 200);
+      assert.ok(
+        cssRes.headers["content-type"]?.includes("text/css"),
+        `Expected CSS content-type, got: ${cssRes.headers["content-type"]}`
+      );
+
+      // Healthcheck still works (existing non-static route)
+      const healthRes = await request(srv, "GET", "/health");
+      assert.equal(healthRes.status, 200);
+      const healthJson = JSON.parse(healthRes.body);
+      assert.equal(healthJson.status, "ok");
     });
   });
 
