@@ -1,6 +1,24 @@
 import Anthropic from "@anthropic-ai/sdk";
 
-const client = new Anthropic();
+type ClaudeMessageRequest = Parameters<Anthropic["messages"]["create"]>[0];
+type ClaudeMessageResponse = Awaited<ReturnType<Anthropic["messages"]["create"]>>;
+type ClaudeRequester = (request: ClaudeMessageRequest) => Promise<ClaudeMessageResponse>;
+
+let client: Anthropic | null = null;
+
+function getClient(): Anthropic {
+  if (!client) {
+    client = new Anthropic();
+  }
+  return client;
+}
+
+const defaultClaudeRequester: ClaudeRequester = (request) => getClient().messages.create(request);
+let requestClaudeMessage: ClaudeRequester = defaultClaudeRequester;
+
+export function setClaudeRequesterForTests(requester?: ClaudeRequester): void {
+  requestClaudeMessage = requester ?? defaultClaudeRequester;
+}
 
 /**
  * Strip markdown code fences from Claude's response.
@@ -31,7 +49,7 @@ export async function callClaude<T>(
       ? `${userMessage}\n\n${extraInstruction}`
       : userMessage;
 
-    const response = await client.messages.create({
+    const response = await requestClaudeMessage({
       model,
       max_tokens: 4096,
       system: systemPrompt,
@@ -67,12 +85,7 @@ export async function callClaude<T>(
     try {
       return parseAndValidate(retryCleaned);
     } catch {
-      const truncated = retryCleaned.length > 200
-        ? retryCleaned.slice(0, 200) + "... (truncated)"
-        : retryCleaned;
-      throw new Error(
-        `Failed to parse JSON after retry.\nRaw response (first 200 chars):\n${truncated}`
-      );
+      throw new Error("Failed to parse Claude JSON response after retry.");
     }
   }
 }
@@ -87,7 +100,7 @@ export async function callClaudeText(
   model: string = "claude-sonnet-4-6",
   maxTokens: number = 4096,
 ): Promise<string> {
-  const response = await client.messages.create({
+  const response = await requestClaudeMessage({
     model,
     max_tokens: maxTokens,
     system: systemPrompt,

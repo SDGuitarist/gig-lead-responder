@@ -140,10 +140,25 @@ describe("Global error middleware", () => {
     assert.equal(res2.status, 500);
   });
 
-  it("returns 404 JSON for unmatched routes (real app wiring)", async () => {
+  it("preserves legacy redirects, static assets, and 404s in the real app", async () => {
     const realApp = createApp();
 
     await withServer(realApp, async (srv) => {
+      const rootRes = await request(srv, "GET", "/");
+      assert.equal(rootRes.status, 302);
+      assert.equal(rootRes.headers.location, "/dashboard.html");
+
+      const legacyRes = await request(srv, "GET", "/index.html");
+      assert.equal(legacyRes.status, 302);
+      assert.equal(legacyRes.headers.location, "/dashboard.html");
+
+      const dashboardRes = await request(srv, "GET", "/dashboard.html");
+      assert.equal(dashboardRes.status, 200);
+      assert.ok(
+        dashboardRes.headers["content-type"]?.includes("text/html"),
+        `Expected HTML content-type, got: ${dashboardRes.headers["content-type"]}`
+      );
+
       // Unmatched route returns 404 from the real middleware stack
       const res = await request(srv, "GET", "/nonexistent");
       assert.equal(res.status, 404);

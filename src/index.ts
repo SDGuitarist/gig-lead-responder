@@ -1,6 +1,7 @@
 import "dotenv/config";
 import { runPipeline } from "./run-pipeline.js";
 import type { PipelineOutput } from "./types.js";
+import { logCliPipelineError } from "./utils/cli-error.js";
 
 // Validate API key on startup
 if (!process.env.ANTHROPIC_API_KEY) {
@@ -120,9 +121,6 @@ function capitalize(s: string): string {
 }
 
 main().catch((err) => {
-  console.error("Pipeline error:", err.message);
-  if (process.argv.includes("--verbose")) {
-    console.error(err.stack);
-  }
+  logCliPipelineError(err, verbose);
   process.exit(1);
 });

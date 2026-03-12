@@ -151,9 +151,8 @@ export function sessionAuth(req: Request, res: Response, next: NextFunction): vo
 }
 
 /**
- * CSRF guard for cookie-authenticated POST requests.
+ * CSRF guard for state-changing dashboard requests.
  * Requires X-Requested-With: dashboard header on POSTs.
- * Skips check if the request uses Basic Auth (not auto-attached by browsers).
  */
 export function csrfGuard(req: Request, res: Response, next: NextFunction): void {
   // Only check POST/PUT/DELETE (state-changing methods)
@@ -162,13 +161,6 @@ export function csrfGuard(req: Request, res: Response, next: NextFunction): void
     return;
   }
 
-  // Skip if authenticated via Basic Auth header (not auto-attached by browsers)
-  if (req.headers.authorization?.startsWith("Basic ")) {
-    next();
-    return;
-  }
-
-  // For cookie-authenticated requests: require custom header
   if (req.headers["x-requested-with"] === "dashboard") {
     next();
     return;

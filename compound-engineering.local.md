@@ -2,37 +2,33 @@
 
 ## Risk Chain
 
-**Brainstorm risk:** "Async error handling. Express v4 doesn't automatically catch rejected promises in async route handlers. Our DB calls are synchronous (better-sqlite3), but POST /api/analyze and webhook handlers are async."
+**Brainstorm risk:** Skipped (brainstorm skip gate — inputs from prior review with exact files/lines/acceptance criteria)
 
-**Plan mitigation:** Full async-route inventory across 4 files. 2 routes need wrapping. `/api/analyze` self-handled (SSE). `asyncHandler` wrapper created.
+**Plan mitigation:** Four deferred items evaluated. Two needed code, two resolved/deferred. 404 placement specified exactly (after static, after all routers, before error handler). Error handler extraction eliminates test sync risk.
 
-**Work risk (from Feed-Forward):** "If a future middleware sets `err.expose = true` on a 5xx error, the raw message would leak."
+**Work risk (from Feed-Forward):** "404 catch-all placement relative to static middleware and routers; test logging noise from shared error handler"
 
-**Review resolution:** 0 P1, 0 P2, 2 P3 from in-conversation review. Feed-Forward risk fully addressed — `err.expose` gated to 4xx only with explicit test. P3-1: test duplicates error handler (sync risk). P3-2: no test for non-Error throws.
+**Review resolution:** PR #13 merged. `createApp()` factory extraction pulled into batch to close testability gap flagged in plan. Integration test verifies real middleware ordering (404, static CSS, healthcheck). Test logging noise accepted as conscious tradeoff.
 
-**Compound resolution:** Solution doc written. Risk chain closed — 4xx-only expose gate + test.
+**Compound resolution:** Solution doc written. Two patterns documented: factory extraction for Express testability, middleware ordering as testable contract.
 
 ## Files to Scrutinize
 
 | File | What changed | Risk area |
 |------|-------------|-----------|
-| `src/server.ts` | Global error middleware (lines 100-130) | Must stay registered last, 4-param signature required |
-| `src/utils/async-handler.ts` | New — asyncHandler wrapper | Must be used on all future async routes |
-| `src/api.ts` | 2 routes wrapped with asyncHandler | `/api/analyze` intentionally NOT wrapped |
-| `src/error-middleware.test.ts` | New — 6 tests, duplicated error handler | Must stay in sync with server.ts middleware |
+| `src/app.ts` | New — `createApp()` factory with all middleware + routes | Side-effect-free constraint — if a future router adds import-time effects, tests break |
+| `src/server.ts` | Simplified to env guards + DB init + `createApp()` + listen | Must stay thin — no middleware registration here |
+| `src/utils/error-handler.ts` | New — extracted error handler shared by app.ts and tests | Single source of truth — no duplicates allowed |
+| `src/error-middleware.test.ts` | Imports shared handler + uses `createApp()` for 404 test | Tests real middleware order, not mini app |
 
 ## Remaining Gaps (carried forward)
 
-- `linked_expectations` field reserved but not enforced — Phase 2 work
-- Analytics transaction error handling (8 queries, what if one throws?)
+- `linked_expectations` field reserved but not enforced — needs own brainstorm+plan
 - LLM pipeline behavior never reviewed (prompt injection resilience)
 - Accessibility never reviewed
 - `npm audit` never run
-- P2 follow-ups: applyDataWidths contract comment (062), updateLead event_type normalization (063)
-- leads.ts structural split (brainstorm+plan exist)
-- 404 catch-all handler (Express returns HTML for unmatched routes)
-- Test file duplicates error handler logic (sync risk if middleware changes)
+- Side-effect-free router constraint has no lint enforcement
 
 ## Plan Reference
 
-`docs/plans/2026-03-08-fix-global-express-error-middleware-plan.md`
+`docs/plans/2026-03-10-fix-deferred-p2-batch-plan.md`

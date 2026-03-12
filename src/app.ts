@@ -59,6 +59,11 @@ export function createApp() {
     res.type("html").send(html);
   });
 
+  // Retire the legacy analyzer entry points in favor of the dashboard.
+  app.get(["/", "/index.html"], (_req, res) => {
+    res.redirect("/dashboard.html");
+  });
+
   app.use(express.static(join(import.meta.dirname, "..", "public"), { maxAge: "1h" }));
 
   // Mailgun inbound webhook
@@ -75,11 +80,6 @@ export function createApp() {
 
   // Logout — POST-only, requires auth + CSRF guard
   app.post("/logout", sessionAuth, csrfGuard, logout);
-
-  // Redirect root to new dashboard
-  app.get("/", (_req, res) => {
-    res.redirect("/dashboard.html");
-  });
 
   // 404 catch-all — after all routes, before error handler
   app.use((_req: Request, res: Response) => {

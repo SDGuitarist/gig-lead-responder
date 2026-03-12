@@ -82,7 +82,8 @@ router.post("/api/leads/:id/approve", approveLimiter, csrfGuard, asyncHandler(as
   } catch (err) {
     // Revert to previous status on SMS failure
     updateLead(id, { status: lead.status });
-    console.error(`SMS failed for lead ${id}:`, err);
+    void err;
+    console.error("SMS delivery failed");
     res.status(500).json({ error: "SMS delivery failed. Check server logs." });
     return;
   }
@@ -248,7 +249,8 @@ router.post("/api/analyze", analyzeLimiter, csrfGuard, async (req: Request, res:
     });
     sendSSE(res, "complete", output);
   } catch (err: unknown) {
-    console.error("Pipeline error:", err instanceof Error ? err.message : String(err));
+    void err;
+    console.error("Pipeline error");
     sendSSE(res, "error", { error: "Pipeline processing failed. Check server logs." });
   } finally {
     res.end();

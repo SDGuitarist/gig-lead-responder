@@ -118,6 +118,7 @@ curl -s -u "$DASHBOARD_USER:$DASHBOARD_PASS" https://YOUR-APP.railway.app/api/an
 # Outcome validation (should reject bad input)
 curl -s -X POST -u "$DASHBOARD_USER:$DASHBOARD_PASS" \
   -H "Content-Type: application/json" \
+  -H "X-Requested-With: dashboard" \
   -d '{"outcome":"invalid"}' \
   https://YOUR-APP.railway.app/api/leads/1/outcome
 
