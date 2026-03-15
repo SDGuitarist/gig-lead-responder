@@ -175,6 +175,69 @@ describe("parseEmail — The Bash", () => {
   });
 });
 
+// --- ReDoS regression tests ---
+// All patterns are safe by construction (single quantifiers, negated character
+// classes), but these tests guard against future regex changes that could
+// introduce catastrophic backtracking. Each input targets the specific
+// quantifier structure of its pattern. If any test hangs, the regex has
+// regressed to a vulnerable pattern.
+
+describe("parseEmail — ReDoS regression", () => {
+  it("event_type regex (.+?) does not backtrack on repeated ' on' near-matches", () => {
+    // Pattern: /would like a quote for (?:a |an )?(.+?) on/i
+    // .+? before " on" — input has many " on" occurrences
+    const result = parseEmail({
+      ...GIGSALAD_FIELDS,
+      "body-plain": "would like a quote for " + "x on".repeat(10_000),
+    });
+    // May match first "x on" quickly or fail — either way, must not hang
+    assert.equal(typeof result.ok, "boolean");
+  });
+
+  it("event_date regex does not backtrack on repeated near-match dates", () => {
+    // Pattern: /on ([A-Z][a-z]+ \d+, \d{4})\./
+    // Disjoint character classes — inherently safe, but guard the property
+    const result = parseEmail({
+      ...GIGSALAD_FIELDS,
+      "body-plain":
+        "would like a quote for a Wedding on March 19, 2026.\n" +
+        "on " + "January 1".repeat(10_000),
+    });
+    assert.equal(typeof result.ok, "boolean");
+  });
+
+  it("location regex (.+) does not backtrack on long subject without ')'", () => {
+    // Pattern: /in (.+)\)/
+    // Single greedy .+ without ) — linear backward scan, not exponential
+    const result = parseEmail({
+      ...GIGSALAD_FIELDS,
+      subject: "New lead (03/19/2026 in " + "a".repeat(50_000),
+    });
+    assert.equal(typeof result.ok, "boolean");
+  });
+
+  it("GigSalad token_url regex does not backtrack on many HTML attributes", () => {
+    // Pattern: /<a[^>]+href="([^"]+)"[^>]*>[^<]*View the details/i
+    // Negated char classes [^>], [^"], [^<] — inherently safe
+    const maliciousHtml = "<a " + 'x="y" '.repeat(10_000) + 'href="';
+    const result = parseEmail({
+      ...GIGSALAD_FIELDS,
+      "body-html": maliciousHtml,
+    });
+    assert.equal(result.ok, false);
+  });
+
+  it("Gig Alert event_type regex (.+?) does not backtrack on repeated ' Lead' near-matches", () => {
+    // Pattern: /Gig Alert: (.+?) Lead!/
+    // .+? before " Lead!" — input has " Lead" without "!" many times
+    const result = parseEmail({
+      ...THEBASH_FIELDS,
+      subject: "Gig Alert: " + "x Lead".repeat(10_000) + " (Gig ID #123)",
+    });
+    assert.equal(typeof result.ok, "boolean");
+  });
+});
+
 // --- Unknown sender ---
 
 describe("parseEmail — unknown sender", () => {

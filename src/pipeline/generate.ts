@@ -1,6 +1,7 @@
 import { callClaude } from "../claude.js";
 import { buildGeneratePrompt } from "../prompts/generate.js";
 import type { Classification, Drafts, PricingResult } from "../types.js";
+import { wrapEditInstructions } from "../utils/sanitize.js";
 
 /** Shape returned by the generate prompt (reasoning is discarded, only drafts used downstream) */
 interface GenerateResponse {
@@ -44,7 +45,14 @@ export async function generateResponse(
   let userMessage = "Reason about this lead, then write the two response drafts based on the classification, pricing, and context provided in the system prompt.";
 
   if (rewriteInstructions && rewriteInstructions.length > 0) {
-    userMessage += `\n\nREWRITE INSTRUCTIONS — Fix these specific issues from the previous draft:\n${rewriteInstructions.map((r, i) => `${i + 1}. ${r}`).join("\n")}`;
+    const MAX_INSTRUCTION_LENGTH = 200;
+    const sanitized = rewriteInstructions
+      .map((r) => r.length > MAX_INSTRUCTION_LENGTH ? r.slice(0, MAX_INSTRUCTION_LENGTH) + "…" : r)
+      .map((r, i) => `${i + 1}. ${r}`)
+      .join("\n");
+    userMessage += "\n\n" + wrapEditInstructions(
+      `Fix these specific issues from the previous draft:\n${sanitized}`
+    );
   }
 
   const result = await callClaude<GenerateResponse>(
@@ -57,7 +65,13 @@ export async function generateResponse(
   // GigSalad prohibits direct contact info — suppress contact block
   const suppressContact = classification.platform === "gigsalad";
   const fullDraft = suppressContact ? result.full_draft : ensureContactBlock(result.full_draft);
-  const compressedDraft = suppressContact ? result.compressed_draft : ensureContactBlock(result.compressed_draft);
+
+  // Truncate compressed_draft BEFORE contact block so the block is never sliced off
+  const MAX_COMPRESSED_LENGTH = 2000;
+  const rawCompressed = result.compressed_draft.length > MAX_COMPRESSED_LENGTH
+    ? result.compressed_draft.slice(0, MAX_COMPRESSED_LENGTH)
+    : result.compressed_draft;
+  const compressedDraft = suppressContact ? rawCompressed : ensureContactBlock(rawCompressed);
 
   const compressedWordCount = countWords(compressedDraft);
 
