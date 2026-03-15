@@ -105,7 +105,12 @@ Plans without this section are treated as `manual_only` by the validator
     "Stop if implementation requires editing any file outside allowed_paths.",
     "Stop if the plan has open unknowns that require design decisions."
   ],
-  "linked_expectations": []
+  "linked_expectations": [
+    {
+      "files": ["src/types.ts", "src/prompts/verify.ts"],
+      "reason": "gut check keys must stay in sync"
+    }
+  ]
 }
 \`\`\`
 ```
@@ -120,8 +125,11 @@ Plans without this section are treated as `manual_only` by the validator
 - `source_of_truth` — files the reviewer or gate should compare against
 - `required_checks` — commands that must pass before work is complete
 - `stop_conditions` — reasons the runner must stop and return control to a human
-- `linked_expectations` — dependency pairs (e.g., boundary tests) that must be
-  updated together (reserved for future enforcement)
+- `linked_expectations` — file groups that must be edited together. Each entry
+  has `files` (2+ paths) and `reason` (why they're linked). If any file in a
+  group appears in `allowed_paths`, all files in the group must. Groups where
+  no file appears in `allowed_paths` are silently skipped. Use `[]` when the
+  plan has no file dependencies.
 
 ---
 
