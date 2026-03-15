@@ -65,7 +65,13 @@ export async function generateResponse(
   // GigSalad prohibits direct contact info — suppress contact block
   const suppressContact = classification.platform === "gigsalad";
   const fullDraft = suppressContact ? result.full_draft : ensureContactBlock(result.full_draft);
-  const compressedDraft = suppressContact ? result.compressed_draft : ensureContactBlock(result.compressed_draft);
+
+  // Truncate compressed_draft BEFORE contact block so the block is never sliced off
+  const MAX_COMPRESSED_LENGTH = 2000;
+  const rawCompressed = result.compressed_draft.length > MAX_COMPRESSED_LENGTH
+    ? result.compressed_draft.slice(0, MAX_COMPRESSED_LENGTH)
+    : result.compressed_draft;
+  const compressedDraft = suppressContact ? rawCompressed : ensureContactBlock(rawCompressed);
 
   const compressedWordCount = countWords(compressedDraft);
 
