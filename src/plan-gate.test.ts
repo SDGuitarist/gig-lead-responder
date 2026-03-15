@@ -142,6 +142,98 @@ describe("checkPlanGate", () => {
     assert.ok(result.reasons[0].includes("Cannot read plan file"));
   });
 
+  // --- linked_expectations enforcement ---
+
+  it("linked pair — all files in allowed_paths → eligible", () => {
+    const path = writePlan(
+      "linked-ok.md",
+      "# Plan\n\n" +
+        contractBlock({
+          allowed_paths: ["src/plan-gate.ts", "src/plan-gate.test.ts"],
+          linked_expectations: [
+            {
+              files: ["src/plan-gate.ts", "src/plan-gate.test.ts"],
+              reason: "source and test must stay in sync",
+            },
+          ],
+        })
+    );
+    const result = checkPlanGate(path);
+    assert.equal(result.status, "eligible");
+  });
+
+  it("linked pair violated — one file missing → invalid", () => {
+    const path = writePlan(
+      "linked-violated.md",
+      "# Plan\n\n" +
+        contractBlock({
+          linked_expectations: [
+            {
+              files: ["src/plan-gate.ts", "src/prompts/verify.ts"],
+              reason: "gut check sync",
+            },
+          ],
+        })
+    );
+    const result = checkPlanGate(path);
+    assert.equal(result.status, "invalid");
+    assert.ok(result.reasons.some((r) => r.includes("Linked pair violated")));
+    assert.ok(result.reasons.some((r) => r.includes("src/prompts/verify.ts")));
+  });
+
+  it("linked pair — neither file in allowed_paths → eligible", () => {
+    const path = writePlan(
+      "linked-passthrough.md",
+      "# Plan\n\n" +
+        contractBlock({
+          linked_expectations: [
+            { files: ["foo.ts", "bar.ts"], reason: "unrelated pair" },
+          ],
+        })
+    );
+    const result = checkPlanGate(path);
+    assert.equal(result.status, "eligible");
+  });
+
+  it("malformed linked entry — missing reason → invalid", () => {
+    const path = writePlan(
+      "linked-no-reason.md",
+      "# Plan\n\n" +
+        contractBlock({
+          linked_expectations: [{ files: ["a.ts", "b.ts"] }],
+        })
+    );
+    const result = checkPlanGate(path);
+    assert.equal(result.status, "invalid");
+    assert.ok(result.reasons.some((r) => r.includes("reason")));
+  });
+
+  it("malformed linked entry — files has 1 item → invalid", () => {
+    const path = writePlan(
+      "linked-one-file.md",
+      "# Plan\n\n" +
+        contractBlock({
+          linked_expectations: [{ files: ["a.ts"], reason: "solo" }],
+        })
+    );
+    const result = checkPlanGate(path);
+    assert.equal(result.status, "invalid");
+    assert.ok(result.reasons.some((r) => r.includes("at least 2")));
+  });
+
+  it("old-format string entry → invalid", () => {
+    const path = writePlan(
+      "linked-old-format.md",
+      "# Plan\n\n" +
+        contractBlock({
+          linked_expectations: ["src/foo.ts", "src/bar.ts"],
+        })
+    );
+    const result = checkPlanGate(path);
+    assert.equal(result.status, "invalid");
+    assert.ok(result.reasons.some((r) => r.includes("must be an object")));
+  });
+
   it("real plan: phase-1 plan → manual_only", () => {
     const result = checkPlanGate(
       "docs/plans/2026-03-08-feat-workflow-automation-phase-1-plan.md"

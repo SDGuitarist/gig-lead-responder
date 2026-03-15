@@ -11,6 +11,11 @@ interface GateResult {
   contract: AutomationContract | null;
 }
 
+interface LinkedExpectation {
+  files: string[];
+  reason: string;
+}
+
 interface AutomationContract {
   auto_work_candidate: boolean;
   human_signoff_required: boolean;
@@ -20,7 +25,7 @@ interface AutomationContract {
   source_of_truth: string[];
   required_checks: string[];
   stop_conditions: string[];
-  linked_expectations: string[];
+  linked_expectations: LinkedExpectation[];
 }
 
 const REQUIRED_KEYS: (keyof AutomationContract)[] = [
@@ -136,6 +141,35 @@ function validateContract(
     }
   }
 
+  // Shape validation for linked_expectations entries
+  if (Array.isArray(obj.linked_expectations)) {
+    const linkedExp = obj.linked_expectations as unknown[];
+    for (let i = 0; i < linkedExp.length; i++) {
+      const entry = linkedExp[i];
+      if (typeof entry !== "object" || entry === null || Array.isArray(entry)) {
+        errors.push(
+          `"linked_expectations[${i}]" must be an object with "files" and "reason".`
+        );
+        continue;
+      }
+      const e = entry as Record<string, unknown>;
+      if (!Array.isArray(e.files) || e.files.length < 2) {
+        errors.push(
+          `"linked_expectations[${i}].files" must be an array of at least 2 file paths.`
+        );
+      } else if (e.files.some((f: unknown) => typeof f !== "string" || f === "")) {
+        errors.push(
+          `"linked_expectations[${i}].files" entries must be non-empty strings.`
+        );
+      }
+      if (typeof e.reason !== "string" || e.reason.trim() === "") {
+        errors.push(
+          `"linked_expectations[${i}].reason" must be a non-empty string.`
+        );
+      }
+    }
+  }
+
   if (errors.length > 0) {
     return { contract: null as unknown as AutomationContract, errors };
   }
@@ -158,6 +192,30 @@ function validateContract(
     const fullPath = resolve(planDir, sot);
     if (!existsSync(fullPath)) {
       errors.push(`Source-of-truth file not found: "${sot}".`);
+    }
+  }
+
+  // Linked expectations enforcement
+  for (const linked of contract.linked_expectations) {
+    const covered: string[] = [];
+    const missing: string[] = [];
+    for (const f of linked.files) {
+      const isCovered = contract.allowed_paths.some(
+        (a) => a === f || f.startsWith(a + "/")
+      );
+      if (isCovered) {
+        covered.push(f);
+      } else {
+        missing.push(f);
+      }
+    }
+    if (covered.length > 0 && missing.length > 0) {
+      for (const m of missing) {
+        errors.push(
+          `Linked pair violated: "${covered[0]}" is in allowed_paths but ` +
+          `"${m}" is not. Reason: ${linked.reason}.`
+        );
+      }
     }
   }
 

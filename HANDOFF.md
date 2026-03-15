@@ -1,53 +1,56 @@
 # HANDOFF — Gig Lead Responder
 
 **Date:** 2026-03-15
-**Branch:** `main`
-**Phase:** Brainstorm complete. Ready for Plan phase.
+**Branch:** `feat/linked-expectations-enforcement` (PR #14)
+**Phase:** Work complete. Ready for Review phase.
 
 ## Current State
 
-Brainstorm for `linked_expectations` enforcement complete (commit c2036f7).
-Decided on: named pairs with reason (`{ files, reason }`), plan-time
-validation only (no git diff enforcement), per-plan definitions (no global
-registry). 75 tests pass, 0 failures.
+`linked_expectations` enforcement implemented and tested. PR #14 open against
+main. 81 tests pass (75 existing + 6 new), `tsc` clean. Backward compatible
+with all existing plans (empty `[]` valid in both old and new format).
+
+## What Was Done
+
+1. `src/plan-gate.ts` — Added `LinkedExpectation` interface, changed type from
+   `string[]` to `LinkedExpectation[]`, added shape validation (before line 139
+   early return) and cross-field validation (after overlap check). ~59 lines.
+2. `src/plan-gate.test.ts` — 6 new tests: happy path, violation, pass-through,
+   malformed entries (missing reason, single file), old-format migration. ~92 lines.
+3. `docs/workflow-templates.md` — Updated template example and field description
+   with pass-through semantics note.
 
 ## Key Artifacts
 
 | Phase | Location |
 |-------|----------|
 | Brainstorm | `docs/brainstorms/2026-03-15-linked-expectations-enforcement-brainstorm.md` |
-
-## Deferred Items
-
-- **LLM pipeline review** — prompt injection resilience never deeply reviewed
-- **Accessibility review** — never reviewed
-- **`npm audit`** — never run
-- **Side-effect-free router constraint** — no lint enforcement (would surface as test failure)
-- **External Basic Auth POST client verification** — rollout risk: unverified locally, needs deployment test
-- **Production log detail sufficiency** — genericized server logs may lack detail during incidents
-- **Legacy `public/index.html` deletion** — file still exists, retired via redirect only
+| Plan | `docs/plans/2026-03-15-feat-linked-expectations-enforcement-plan.md` |
+| PR | https://github.com/SDGuitarist/gig-lead-responder/pull/14 |
 
 ## Three Questions
 
-1. **Hardest decision in this session?** Entry format — simple pairs vs named
-   pairs vs directed dependencies. Named pairs (Option B) hit the sweet spot:
-   self-documenting errors without graph complexity.
+1. **Hardest implementation decision in this session?** Avoiding the Set spread
+   syntax (`[...coveredSet][0]`) due to tsconfig target — switched to plain
+   arrays for covered/missing files. Simpler and avoids the downlevelIteration
+   issue.
 
-2. **What did you reject, and why?** Global registry file — right long-term
-   but premature for 3-5 known pairs. Also directed dependencies (source →
-   dependents) — adds complexity we don't have concrete cases for yet.
+2. **What did you consider changing but left alone, and why?** The pre-existing
+   `null as unknown as AutomationContract` type lie (lines 74, 89 of
+   plan-gate.ts). The TS reviewer flagged it but it's out of scope — fixing it
+   would change the function signature and affect all callers.
 
-3. **Least confident about going into the next phase?** Whether bidirectional
-   enforcement ("if any file in group is in allowed_paths, all must be") is
-   too strict for edge cases. Mitigated by opt-in per plan — authors skip
-   pairs they don't want enforced.
+3. **Least confident about going into review?** The `Reason: ${linked.reason}`
+   suffix in error messages. It's a new pattern — no existing error includes
+   user-provided text. If reason strings are very long, error output gets noisy.
+   No length cap was added.
 
 ## Prompt for Next Session
 
 ```
-Read docs/brainstorms/2026-03-15-linked-expectations-enforcement-brainstorm.md.
-Plan the implementation of linked_expectations enforcement in plan-gate.ts.
-Key files: src/plan-gate.ts, src/plan-gate.test.ts, docs/workflow-templates.md.
-Prior risk: bidirectional enforcement may be too strict for edge cases — address
-in the plan's "most likely way this plan is wrong" section.
+Read HANDOFF.md. Review branch feat/linked-expectations-enforcement (PR #14)
+against docs/plans/2026-03-15-feat-linked-expectations-enforcement-plan.md.
+Focus on: does the diff match the plan, shape validation insertion point safety,
+error message consistency, backward compatibility. Feed-Forward risk: the
+Reason suffix in error messages is a new pattern with no length cap.
 ```
