@@ -1,27 +1,24 @@
 # HANDOFF — Gig Lead Responder
 
-**Date:** 2026-03-11
+**Date:** 2026-03-15
 **Branch:** `main`
-**Phase:** Compound complete. Ready for next cycle.
+**Phase:** Brainstorm complete. Ready for Plan phase.
 
 ## Current State
 
-Security follow-up complete (commit bc41305). CSRF guard tightened for all
-authenticated POSTs (removed Basic Auth bypass), legacy routes retired via
-redirects, error output sanitized with `--verbose` restore, stale doc example
-fixed. 75 tests pass, 0 failures. Codex reviewed first, Claude Code applied
-findings and ran second review. Compound phase documented.
+Brainstorm for `linked_expectations` enforcement complete (commit c2036f7).
+Decided on: named pairs with reason (`{ files, reason }`), plan-time
+validation only (no git diff enforcement), per-plan definitions (no global
+registry). 75 tests pass, 0 failures.
 
 ## Key Artifacts
 
 | Phase | Location |
 |-------|----------|
-| Review | `docs/reviews/2026-03-12-security-follow-up/REVIEW-SUMMARY.md` |
-| Solution | `docs/solutions/architecture/2026-03-11-csrf-guard-legacy-route-error-sanitization.md` |
+| Brainstorm | `docs/brainstorms/2026-03-15-linked-expectations-enforcement-brainstorm.md` |
 
 ## Deferred Items
 
-- **Workflow automation phase 2** — `linked_expectations` enforcement (needs brainstorm+plan)
 - **LLM pipeline review** — prompt injection resilience never deeply reviewed
 - **Accessibility review** — never reviewed
 - **`npm audit`** — never run
@@ -32,21 +29,25 @@ findings and ran second review. Compound phase documented.
 
 ## Three Questions
 
-1. **Hardest decision?** The "surface inventory before hardening" pattern. The
-   CLI `--verbose` regression happened because error sanitization was applied
-   uniformly without classifying surfaces first.
+1. **Hardest decision in this session?** Entry format — simple pairs vs named
+   pairs vs directed dependencies. Named pairs (Option B) hit the sweet spot:
+   self-documenting errors without graph complexity.
 
-2. **What was rejected?** Documenting the `void err` TypeScript pattern — it's
-   a language idiom, not an architectural decision.
+2. **What did you reject, and why?** Global registry file — right long-term
+   but premature for 3-5 known pairs. Also directed dependencies (source →
+   dependents) — adds complexity we don't have concrete cases for yet.
 
-3. **Least confident about?** Production log detail being insufficient during
-   incidents. Flagged as residual risk but no fix prescribed — it's an
-   operational concern, not a code pattern.
+3. **Least confident about going into the next phase?** Whether bidirectional
+   enforcement ("if any file in group is in allowed_paths, all must be") is
+   too strict for edge cases. Mitigated by opt-in per plan — authors skip
+   pairs they don't want enforced.
 
 ## Prompt for Next Session
 
 ```
-Read HANDOFF.md for context. This is Gig Lead Responder, a lead-response pipeline
-for a gigging musician. Security follow-up complete, 75 tests passing. Next priority:
-linked_expectations enforcement (brainstorm+plan cycle) or pick from deferred items.
+Read docs/brainstorms/2026-03-15-linked-expectations-enforcement-brainstorm.md.
+Plan the implementation of linked_expectations enforcement in plan-gate.ts.
+Key files: src/plan-gate.ts, src/plan-gate.test.ts, docs/workflow-templates.md.
+Prior risk: bidirectional enforcement may be too strict for edge cases — address
+in the plan's "most likely way this plan is wrong" section.
 ```
