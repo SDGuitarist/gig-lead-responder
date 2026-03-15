@@ -1,4 +1,4 @@
-import { describe, it } from "node:test";
+import { describe, it, before, after } from "node:test";
 import assert from "node:assert/strict";
 import { writeFileSync, mkdirSync, rmSync } from "node:fs";
 import { join } from "node:path";
@@ -42,8 +42,8 @@ function contractBlock(overrides: Record<string, unknown> = {}): string {
 }
 
 describe("checkPlanGate", () => {
-  // Setup and teardown for the whole suite
-  it("setup", () => setup());
+  before(() => setup());
+  after(() => teardown());
 
   it("valid contract with auto_work_candidate: true → eligible", () => {
     const path = writePlan(
@@ -248,5 +248,4 @@ describe("checkPlanGate", () => {
     assert.equal(result.status, "manual_only");
   });
 
-  it("teardown", () => teardown());
 });
