@@ -1,7 +1,7 @@
 ---
 title: "feat: Enforce linked_expectations in plan gate"
 type: feat
-status: active
+status: completed
 date: 2026-03-15
 origin: docs/brainstorms/2026-03-15-linked-expectations-enforcement-brainstorm.md
 feed_forward:
@@ -280,17 +280,17 @@ To:
 
 ## Acceptance Criteria
 
-- [ ] `LinkedExpectation` interface added to `plan-gate.ts`
-- [ ] `linked_expectations` type changed from `string[]` to `LinkedExpectation[]`
-- [ ] Shape validation rejects: missing `files`/`reason`, `files.length < 2`, empty reason, non-string files, old-format string entries
-- [ ] Cross-field validation enforces: if any file covered by `allowed_paths`, all must be
-- [ ] Neither-file-touched case silently passes (no error, no warning)
-- [ ] Empty `linked_expectations: []` still valid
-- [ ] All 11 existing tests still pass
-- [ ] 6 new tests pass (per table in Step 3)
-- [ ] `docs/workflow-templates.md` updated with new format, description, and pass-through note
-- [ ] `npx tsc --noEmit` passes
-- [ ] `npm test` passes (all 17+ tests)
+- [x] `LinkedExpectation` interface added to `plan-gate.ts`
+- [x] `linked_expectations` type changed from `string[]` to `LinkedExpectation[]`
+- [x] Shape validation rejects: missing `files`/`reason`, `files.length < 2`, empty reason, non-string files, old-format string entries
+- [x] Cross-field validation enforces: if any file covered by `allowed_paths`, all must be
+- [x] Neither-file-touched case silently passes (no error, no warning)
+- [x] Empty `linked_expectations: []` still valid
+- [x] All 11 existing tests still pass
+- [x] 6 new tests pass (per table in Step 3)
+- [x] `docs/workflow-templates.md` updated with new format, description, and pass-through note
+- [x] `npx tsc --noEmit` passes
+- [x] `npm test` passes (all 17+ tests)
 
 ## How will we know it worked?
 
