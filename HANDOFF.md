@@ -1,54 +1,57 @@
 # HANDOFF — Gig Lead Responder
 
 **Date:** 2026-03-15
-**Branch:** `main` (PR #14 merged, commit 55f0b24)
-**Phase:** Compound complete. Ready for next cycle.
+**Branch:** `main`
+**Phase:** Brainstorm complete for LLM pipeline review. Ready for Plan phase.
 
 ## Current State
 
-`linked_expectations` enforcement complete — full cycle (brainstorm → plan →
-deepened plan → work → review → compound). PR #14 merged to main. 81 tests
-pass, 0 failures. Plan gate now enforces file-pair dependencies in automation
-contracts. Solution doc written, learnings propagated.
+Full session: linked_expectations enforcement (brainstorm → plan → deepened →
+work → review → compound → P3 bundle), npm audit fix (express-rate-limit CVE),
+and LLM pipeline prompt injection brainstorm. 79 tests pass, 0 vulnerabilities.
+
+## What Was Done This Session
+
+1. Committed leftover compound docs from prior session
+2. **linked_expectations enforcement** — full cycle, PR #14 merged
+3. **plan-gate P3 bundle** — 5 fixes (rename, export, type safety, --json, hooks), PR #15 merged
+4. **npm audit** — fixed 1 high CVE in express-rate-limit, PR #16 merged
+5. **LLM pipeline brainstorm** — audited all entry points, found 1 HIGH + 2 MEDIUM gaps
 
 ## Key Artifacts
 
 | Phase | Location |
 |-------|----------|
-| Brainstorm | `docs/brainstorms/2026-03-15-linked-expectations-enforcement-brainstorm.md` |
-| Plan | `docs/plans/2026-03-15-feat-linked-expectations-enforcement-plan.md` |
-| Review | `docs/reviews/feat-linked-expectations-enforcement/REVIEW-SUMMARY.md` |
-| Solution | `docs/solutions/workflow/2026-03-15-linked-expectations-enforcement.md` |
+| LLM Brainstorm | `docs/brainstorms/2026-03-15-llm-pipeline-prompt-injection-review-brainstorm.md` |
+| Linked Exp Solution | `docs/solutions/workflow/2026-03-15-linked-expectations-enforcement.md` |
 
 ## Deferred Items
 
-- **linked_expectations git diff enforcement** — plan-time only, no post-work verification
-- **linked_expectations global registry** — 15+ real pairs found, per-plan only for now
-- **plan-gate P3 bundle** — GateResult name collision, setup/teardown pattern, null cast, --json flag, type exports (6 P3s)
-- **LLM pipeline review** — prompt injection resilience never deeply reviewed
+- **LLM pipeline fixes** — brainstorm done, needs plan+work (1 HIGH, 2 MEDIUM gaps)
+- **linked_expectations git diff enforcement** — plan-time only
+- **linked_expectations global registry** — 15+ real pairs, per-plan only
 - **Accessibility review** — never reviewed
-- **`npm audit`** — never run
 - **External Basic Auth POST client verification** — rollout risk unverified
 
 ## Three Questions
 
-1. **Hardest decision?** The shape-before-semantic validation ordering. It's a
-   load-bearing detail — inserting at line 180 instead of 175 silently breaks
-   the validator on malformed inputs.
+1. **Hardest decision?** Whether SMS edit instruction injection is HIGH severity
+   when the attacker needs phone access. Rated HIGH because fix cost is ~2 lines
+   and defense-in-depth matters.
 
-2. **What was rejected?** The full list of 15+ real dependency pairs. Useful
-   but not actionable until a global registry is built. Would go stale as the
-   codebase evolves.
+2. **What was rejected?** Frontend XSS audit — drafts returned as JSON provide
+   natural escaping. Separate concern from LLM pipeline review.
 
-3. **Least confident about?** The interaction between plan-time enforcement and
-   runtime execution. A runner could pass the gate then edit only one file in a
-   linked pair. Git diff enforcement is the missing piece.
+3. **Least confident about?** Whether ReDoS tests will be meaningful without
+   crafting adversarial inputs specific to each regex pattern.
 
 ## Prompt for Next Session
 
 ```
-Read HANDOFF.md for context. This is Gig Lead Responder, a lead-response pipeline
-for a gigging musician. linked_expectations enforcement complete (PR #14), 81 tests
-passing. Next: pick from deferred items — plan-gate P3 bundle, LLM pipeline review,
-accessibility, or npm audit.
+Read docs/brainstorms/2026-03-15-llm-pipeline-prompt-injection-review-brainstorm.md.
+Plan the implementation of 3 fixes: (1) wrap SMS edit instructions with
+wrapUntrustedData, (2) truncate compressed_draft to 2000 chars, (3) add ReDoS
+regression tests for email parser regexes. Key files: src/pipeline/generate.ts,
+src/email-parser.ts, src/email-parser.test.ts. Prior risk: ReDoS tests need
+exact adversarial patterns per regex, not generic long strings.
 ```
