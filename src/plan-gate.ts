@@ -5,18 +5,18 @@ import { resolve, dirname } from "node:path";
 
 type Status = "eligible" | "manual_only" | "invalid";
 
-interface GateResult {
+export interface PlanGateResult {
   status: Status;
   reasons: string[];
   contract: AutomationContract | null;
 }
 
-interface LinkedExpectation {
+export interface LinkedExpectation {
   files: string[];
   reason: string;
 }
 
-interface AutomationContract {
+export interface AutomationContract {
   auto_work_candidate: boolean;
   human_signoff_required: boolean;
   risk_level: string;
@@ -71,12 +71,12 @@ function extractContractJson(markdown: string): string | null {
 function validateContract(
   raw: unknown,
   planDir: string
-): { contract: AutomationContract; errors: string[] } {
+): { contract: AutomationContract | null; errors: string[] } {
   const errors: string[] = [];
 
   if (typeof raw !== "object" || raw === null || Array.isArray(raw)) {
     return {
-      contract: null as unknown as AutomationContract,
+      contract: null,
       errors: ["Contract must be a JSON object."],
     };
   }
@@ -91,7 +91,7 @@ function validateContract(
   }
 
   if (errors.length > 0) {
-    return { contract: null as unknown as AutomationContract, errors };
+    return { contract: null, errors };
   }
 
   // Type checks
@@ -171,7 +171,7 @@ function validateContract(
   }
 
   if (errors.length > 0) {
-    return { contract: null as unknown as AutomationContract, errors };
+    return { contract: null, errors };
   }
 
   const contract = obj as unknown as AutomationContract;
@@ -224,7 +224,7 @@ function validateContract(
 
 // --- Main gate function ---
 
-export function checkPlanGate(planPath: string): GateResult {
+export function checkPlanGate(planPath: string): PlanGateResult {
   const resolvedPath = resolve(planPath);
 
   // Read the plan file
@@ -298,17 +298,23 @@ if (
   (process.argv[1].endsWith("plan-gate.ts") ||
     process.argv[1].endsWith("plan-gate.js"))
 ) {
-  const planPath = process.argv[2];
+  const args = process.argv.slice(2);
+  const jsonFlag = args.includes("--json");
+  const planPath = args.find((a) => !a.startsWith("--"));
   if (!planPath) {
-    console.error("Usage: tsx src/plan-gate.ts <path-to-plan.md>");
+    console.error("Usage: tsx src/plan-gate.ts [--json] <path-to-plan.md>");
     process.exit(1);
   }
 
   const result = checkPlanGate(planPath);
 
-  console.log(`Status: ${result.status}`);
-  for (const reason of result.reasons) {
-    console.log(`  - ${reason}`);
+  if (jsonFlag) {
+    console.log(JSON.stringify(result, null, 2));
+  } else {
+    console.log(`Status: ${result.status}`);
+    for (const reason of result.reasons) {
+      console.log(`  - ${reason}`);
+    }
   }
 
   if (result.status === "eligible") {
