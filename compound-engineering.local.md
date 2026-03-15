@@ -2,37 +2,36 @@
 
 ## Risk Chain
 
-**Brainstorm risk:** Skipped (security follow-up — inputs from Codex review with exact files and findings)
+**Brainstorm risk:** "Whether bidirectional enforcement ('if any → all') is too strict for edge cases where touching one file in a pair doesn't require touching the other."
 
-**Plan mitigation:** N/A (no formal plan — security fixes driven by review findings)
+**Plan mitigation:** Enforcement is opt-in per plan — authors omit pairs they don't want enforced. Bidirectional accepted for v1; upgrade to directed deps if friction appears.
 
-**Work risk (from Feed-Forward):** "Any external script or curl flow that posts with Basic Auth but without X-Requested-With: dashboard will now get a 403 and needs that header added explicitly."
+**Work risk (from Feed-Forward):** "Reason suffix in error messages is a new pattern with no length cap on user-provided text."
 
-**Review resolution:** 1 finding (P2 — CLI --verbose diagnostics lost). Fixed in-session by extracting `src/utils/cli-error.ts`. Rollout risk for external Basic Auth POST clients accepted as deployment verification item, not code bug. 75 tests pass.
+**Review resolution:** 0 P1, 0 P2, 6 P3 (4 pre-existing) from 6 agents. All P3s accepted or deferred. PR merged without fixes.
 
-**Compound resolution:** Solution doc written. Three patterns documented: unconditional CSRF guard, surface inventory before error hardening, generic-by-default + verbose-on-request CLI output.
+**Compound resolution:** Solution doc written. Four patterns documented: shape-before-semantic ordering, YAGNI on error enhancement, opt-in bidirectional enforcement, migration boundary tests.
 
 ## Files to Scrutinize
 
 | File | What changed | Risk area |
 |------|-------------|-----------|
-| `src/auth.ts` | Removed Basic Auth CSRF bypass | Any new auth method could re-introduce a bypass |
-| `src/app.ts` | Legacy route redirects before express.static | Redirect must stay before static middleware |
-| `src/claude.ts` | Generic parse error (no raw content) | Future debugging may need more detail |
-| `src/api.ts` | Generic error logs (`void err`) | Production incident diagnosis may lack detail |
-| `src/index.ts` | CLI errors use `logCliPipelineError` | `--verbose` flag must be threaded correctly |
-| `src/utils/cli-error.ts` | New — CLI error utility | Single place for CLI error formatting |
+| `src/plan-gate.ts` | LinkedExpectation type + shape/cross-field validation | Shape validation insertion point is load-bearing (must be before early return) |
+| `src/plan-gate.test.ts` | 6 new tests for linked expectations | Old-format migration test guards insertion ordering |
+| `docs/workflow-templates.md` | Updated template + field description | Pass-through semantics must be documented |
 
 ## Remaining Gaps (carried forward)
 
-- `linked_expectations` field reserved but not enforced — needs own brainstorm+plan
+- `linked_expectations` git diff enforcement — plan-time only, no post-work verification
+- `linked_expectations` global registry — 15+ real pairs, per-plan only for now
 - LLM pipeline behavior never reviewed (prompt injection resilience)
 - Accessibility never reviewed
 - `npm audit` never run
 - Side-effect-free router constraint has no lint enforcement
 - External Basic Auth POST clients unverified — deployment verification needed
 - Production log detail sufficiency unverified after genericization
+- plan-gate P3 bundle: GateResult name collision, setup/teardown pattern, null-as-unknown cast, --json flag, type exports
 
 ## Plan Reference
 
-N/A (security follow-up driven by review findings, not a formal plan)
+`docs/plans/2026-03-15-feat-linked-expectations-enforcement-plan.md`
