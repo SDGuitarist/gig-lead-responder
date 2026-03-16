@@ -154,10 +154,11 @@ export const GUT_CHECK_KEYS = [
   "past_date_acknowledged",
   "mariachi_pricing_format",
   "cultural_vocabulary_used",
+  "sounds_like_alex",
 ] as const;
 
-export const GUT_CHECK_TOTAL = GUT_CHECK_KEYS.length; // 14
-export const GUT_CHECK_THRESHOLD = GUT_CHECK_TOTAL - 2; // 12
+export const GUT_CHECK_TOTAL = GUT_CHECK_KEYS.length; // 15
+export const GUT_CHECK_THRESHOLD = GUT_CHECK_TOTAL - 2; // 13
 
 export interface GateResult {
   validation_line: string;
@@ -184,6 +185,7 @@ export interface GateResult {
     past_date_acknowledged: boolean;
     mariachi_pricing_format: boolean;
     cultural_vocabulary_used: boolean;
+    sounds_like_alex: boolean;
   };
   gate_status: "pass" | "fail";
   fail_reasons: string[];

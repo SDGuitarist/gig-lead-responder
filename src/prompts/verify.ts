@@ -64,6 +64,7 @@ Does the opening sentence reference a CONCRETE DETAIL from the classification? T
 - past_date_acknowledged: ${buildPastDateInstruction(classification)}
 - mariachi_pricing_format: ${buildMariachiPricingInstruction(classification)}
 - cultural_vocabulary_used: ${buildCulturalVocabInstruction(classification)}
+- sounds_like_alex: Does the draft sound like a real person wrote it, or like a polished vendor template? Check for: (1) contractions are present and natural (I'm, we're, I've, that's, we'll, not "I am," "we will," "it is"), (2) no sales vocabulary ("investment," "package," "opportunity," "solution," "offering," "elevated experience"), (3) register is peer-to-peer, not vendor-to-client, (4) sentences vary in length with some short fragments, (5) price is stated as "rate" not "investment." If the draft reads like a wedding vendor template or catering proposal, sounds_like_alex = false.
 
 ${classification.platform === "gigsalad"
     ? `### 8. Platform Policy Check — GigSalad (HARD GATE)
@@ -116,7 +117,8 @@ Return ONLY this JSON (no markdown fences, no explanation):
     "budget_acknowledged": boolean,
     "past_date_acknowledged": boolean,
     "mariachi_pricing_format": boolean,
-    "cultural_vocabulary_used": boolean
+    "cultural_vocabulary_used": boolean,
+    "sounds_like_alex": boolean
   },
   "gate_status": "pass" | "fail",
   "fail_reasons": ["specific fix instruction 1", "..."]
