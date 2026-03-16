@@ -20,6 +20,7 @@ function truncateArray(arr: string[]): string[] {
 export function sanitizeClassification(c: Classification): Classification {
   return {
     ...c,
+    client_first_name: c.client_first_name ? truncate(c.client_first_name) : c.client_first_name,
     format_requested: truncate(c.format_requested),
     stealth_premium_signals: c.stealth_premium_signals
       ? truncateArray(c.stealth_premium_signals)

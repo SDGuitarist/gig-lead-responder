@@ -71,9 +71,9 @@ Scan the ENTIRE draft for any phone number, email address, website URL, social m
 If ANY of the above appears anywhere in the draft → gate_status = "fail" with fail_reason: "GigSalad platform policy violation: response contains external contact information."
 This overrides all other checks — a draft that passes every other test but contains a URL still FAILS.
 `
-    : `### 8. Contact Block Check (HARD GATE)
-Verify the draft ends with a contact block containing a name ("Alex Guillen"), business name ("Pacific Flow Entertainment"), and a phone number. All three must be present.
-If the contact block is missing or incomplete → gate_status = "fail" with fail_reason: "Missing contact block: The Bash and direct leads must include Alex's contact information."
+    : `### 8. Sign-Off Check (HARD GATE)
+Verify the draft ends with "Alex Guillen" as a sign-off. No business name or phone number required — just the name.
+If "Alex Guillen" does not appear near the end of the draft → gate_status = "fail" with fail_reason: "Missing sign-off: draft must end with Alex Guillen."
 `}
 ### 9. Gate Status
 - "pass": All of the following must be true:
@@ -81,7 +81,7 @@ If the contact block is missing or incomplete → gate_status = "fail" with fail
   - competitor_test is false
   - All concern_traceability entries have non-empty draft_sentence
   - At least ${GUT_CHECK_THRESHOLD} of ${GUT_CHECK_TOTAL} gut_checks are true
-  - Platform check passes (${classification.platform === "gigsalad" ? "no contact info detected" : "contact block present with name, business, phone"})
+  - Platform check passes (${classification.platform === "gigsalad" ? "no contact info detected" : "sign-off present"})
 - "fail": Any of the above conditions not met
 
 ### 10. Fail Reasons

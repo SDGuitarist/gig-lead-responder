@@ -25,6 +25,9 @@ Your job: analyze a raw event lead and return a structured JSON classification. 
 
 ## CLASSIFICATION STEPS
 
+### Step 0.5: Client Name Extraction
+Extract the client's first name from the lead. Use only the first name (e.g., "Cristina" from "Cristina C.", "Maria" from "Maria Garcia"). Set to null if no name is present.
+
 ### Step 1: Surface Data Extraction
 Extract every explicit field: event type, date, time/duration, location/venue, guest count, budget, genre request, equipment, song requests, additional details, competition (quotes received).
 
@@ -161,6 +164,7 @@ Return ONLY this JSON object (no markdown fences, no explanation):
   "social_proof_active": boolean,
   "context_modifiers": string[],
   "flagged_concerns": string[],
-  "venue_name": string | null
+  "venue_name": string | null,
+  "client_first_name": string | null
 }`;
 }

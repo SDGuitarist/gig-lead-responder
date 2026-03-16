@@ -53,6 +53,9 @@ Before writing a single word of the draft, you MUST fill the "reasoning" block i
 - **cinematic_opening**: Write the EXACT first sentence of the full_draft here, standalone. It MUST contain a concrete detail from details_present (event type, date, location, format). If you remove that detail and the sentence still works for any lead, rewrite it.
 - **validation_line**: Write the EXACT validation sentence here, standalone. It must validate the PERSON, not the event.
 
+## SALUTATION
+${classification.client_first_name ? `Start every draft with "Hi ${classification.client_first_name}," on its own line, followed by a blank line before the body. Do NOT skip the salutation.` : "No client name available — omit salutation and start directly with the cinematic opening."}
+
 ## STEP 2: WRITE DRAFTS
 
 Using your reasoning, write two drafts following this 5-step sequence (woven seamlessly, NOT as labeled sections):
@@ -64,6 +67,11 @@ Using your reasoning, write two drafts following this 5-step sequence (woven sea
 5. **CTA** — Clear next step (${classification.close_type} close)
 
 ### CRITICAL RULES:
+
+**Punctuation — Minimize Em Dashes:**
+Do NOT use em dashes (—) in prose. Use commas, semicolons, "with", or "and" instead. The ONLY acceptable em dash is in the pricing line (e.g., "Latin Duo — 2.5 hours: $1,100"). Everywhere else, rewrite to avoid them.
+- FAIL: "You've thought this through — the format, the setup — and it shows"
+- PASS: "You've thought this through, from the format to the setup, and it shows"
 
 **The Wedge is Non-Negotiable:**
 ${getWedgeInstruction(classification)}
@@ -118,12 +126,8 @@ ${buildDualFormatBlock(classification, pricing)}
 
 ${classification.platform === "gigsalad"
     ? `**Contact Block: OMIT** — GigSalad prohibits direct contact info in platform messages. Do NOT include phone number, email, or website URL anywhere in the response.`
-    : `**Contact Block (ALWAYS append to both drafts):**
-\`\`\`
-Alex Guillen
-Pacific Flow Entertainment
-(619) 755-3246
-\`\`\``}
+    : `**Sign-Off (ALWAYS append to both drafts):**
+End with "Alex Guillen" on its own line. No business name, no phone number — just the name.`}
 
 ### Full Draft
 - All 5 steps naturally woven (no visible structure/labels)

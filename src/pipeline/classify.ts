@@ -38,5 +38,13 @@ export async function classifyLead(rawText: string, today: string): Promise<Clas
     result.venue_name = null;
   }
 
+  // Sanitize client_first_name — LLM may return empty string or omit entirely
+  if (result.client_first_name !== undefined && result.client_first_name !== null && result.client_first_name.trim() === "") {
+    result.client_first_name = null;
+  }
+  if (result.client_first_name === undefined) {
+    result.client_first_name = null;
+  }
+
   return result;
 }

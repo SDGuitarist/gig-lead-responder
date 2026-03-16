@@ -16,7 +16,7 @@ interface GenerateResponse {
   compressed_draft: string;
 }
 
-const CONTACT_BLOCK = `\nAlex Guillen\nPacific Flow Entertainment\n(619) 755-3246`;
+const SIGN_OFF = `\nAlex Guillen`;
 
 const validateGenerateResponse = (raw: unknown): GenerateResponse => {
   if (typeof raw !== "object" || raw === null || Array.isArray(raw)) throw new Error("Expected JSON object from LLM");
@@ -64,14 +64,14 @@ export async function generateResponse(
 
   // GigSalad prohibits direct contact info — suppress contact block
   const suppressContact = classification.platform === "gigsalad";
-  const fullDraft = suppressContact ? result.full_draft : ensureContactBlock(result.full_draft);
+  const fullDraft = suppressContact ? result.full_draft : ensureSignOff(result.full_draft);
 
   // Truncate compressed_draft BEFORE contact block so the block is never sliced off
   const MAX_COMPRESSED_LENGTH = 2000;
   const rawCompressed = result.compressed_draft.length > MAX_COMPRESSED_LENGTH
     ? result.compressed_draft.slice(0, MAX_COMPRESSED_LENGTH)
     : result.compressed_draft;
-  const compressedDraft = suppressContact ? rawCompressed : ensureContactBlock(rawCompressed);
+  const compressedDraft = suppressContact ? rawCompressed : ensureSignOff(rawCompressed);
 
   const compressedWordCount = countWords(compressedDraft);
 
@@ -82,9 +82,9 @@ export async function generateResponse(
   };
 }
 
-function ensureContactBlock(draft: string): string {
-  if (draft.includes("(619) 755-3246")) return draft;
-  return draft.trimEnd() + "\n\n" + CONTACT_BLOCK;
+function ensureSignOff(draft: string): string {
+  if (draft.includes("Alex Guillen")) return draft;
+  return draft.trimEnd() + "\n\n" + SIGN_OFF;
 }
 
 function countWords(text: string): number {

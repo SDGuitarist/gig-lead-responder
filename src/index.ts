@@ -1,4 +1,5 @@
 import "dotenv/config";
+import { execSync } from "node:child_process";
 import { runPipeline } from "./run-pipeline.js";
 import type { PipelineOutput } from "./types.js";
 import { logCliPipelineError } from "./utils/cli-error.js";
@@ -38,8 +39,16 @@ async function main() {
   });
 
   // --- Output ---
+  // Copy full draft to clipboard (macOS) regardless of output mode
+  try {
+    execSync("pbcopy", { input: output.drafts.full_draft });
+  } catch {
+    // pbcopy not available (non-macOS) — skip silently
+  }
+
   if (jsonMode) {
     console.log(JSON.stringify(output, null, 2));
+    console.error("📋 Full draft copied to clipboard.");
     return;
   }
 
@@ -114,6 +123,8 @@ async function main() {
   console.log(`Confidence:  ${confidence_score}/100`);
   console.log(`Timing: classify ${timing.classify}ms | price ${timing.price}ms | context ${timing.context}ms | generate+verify ${timing.generateAndVerify}ms | total ${timing.total}ms`);
   console.log("-".repeat(60));
+
+  console.log("\n📋 Full draft copied to clipboard.");
 }
 
 function capitalize(s: string): string {

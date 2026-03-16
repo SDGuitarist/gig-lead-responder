@@ -33,6 +33,7 @@ function makeClassification(overrides: Partial<Classification> = {}): Classifica
     event_energy: null,
     flagged_concerns: [],
     venue_name: null,
+    client_first_name: null,
     ...overrides,
   };
 }

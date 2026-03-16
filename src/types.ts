@@ -66,6 +66,9 @@ export interface Classification {
   // Venue — extracted from lead text, used to trigger PF-Intel lookup
   venue_name: string | null;
 
+  // Client name — extracted from lead text, used for salutation
+  client_first_name: string | null;
+
   // Platform — stamped post-classification, not AI-generated
   platform?: "gigsalad" | "thebash" | "direct";
 }
