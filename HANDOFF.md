@@ -26,6 +26,10 @@ Solution doc #39 written. All learning surfaces updated.
 - **linked_expectations global registry** — 15+ real pairs, per-plan only
 - **Accessibility review** — never reviewed
 - **External Basic Auth POST client verification** — rollout risk unverified
+- **Helmet security headers** — never landed on main (was in PR #3, closed as stale Mar 17)
+- **cookie-parser middleware** — same PR #3, never merged
+- **Error sanitization in server.ts/api.ts/twilio-webhook.ts/post-pipeline.ts** — same PR #3
+- **Layer 1 venue lookup integration** — PF-Intel endpoint deployed, gig-lead-responder side never built. Needs fresh brainstorm.
 
 ## Three Questions
 
