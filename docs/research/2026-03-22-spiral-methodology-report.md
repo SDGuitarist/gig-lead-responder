@@ -1,5 +1,5 @@
 # Teaching AI to Write With Your Voice
-## How 20 Knowledge Documents, 7 References, and 12 Tests Turned a Writing Tool Into a Lead Response System
+## How 20 Knowledge Documents, 8 References, and 17 Tests Turned a Writing Tool Into a Lead Response System
 
 **Alex Guillen**
 **Pacific Flow Entertainment**
@@ -11,7 +11,7 @@
 
 In a single working session, I transformed Spiral, an AI writing tool built by Every, into a domain-specific lead response system for my entertainment business. The system now handles cultural genre corrections, competition-calibrated pricing, voice-matched response drafting, and multi-format output, producing near-send-ready client responses in under 30 seconds.
 
-The process required 20 knowledge documents, 7 reference responses, a custom style guide with negative prompts, and 12 iterative tests across increasingly complex scenarios. By the final test, the system scored above 90% on 18 distinct capabilities.
+The process required 20 knowledge documents, 8 reference responses, a custom style guide with negative prompts, and 17 iterative tests across increasingly complex scenarios. By the final test, the system scored above 90% on 18 distinct capabilities.
 
 This report documents every step of that process: what was built, how it was tested, where it failed, and how each failure was fixed. It serves as both a methodology guide for training AI writing tools and a case study in compound engineering, where multiple AI tools each handle their specialized layer in a larger system.
 
@@ -41,7 +41,7 @@ Spiral is built by Every, the AI publication. It learns writing voice from refer
 
 ### Curating Reference Responses
 
-The style guide is only as good as the examples that train it. Seven reference responses were selected to cover the full range of the voice across different lead types, emotional registers, and compression levels.
+The style guide is only as good as the examples that train it. Eight reference responses were selected to cover the full range of the voice across different lead types, emotional registers, and compression levels.
 
 | # | Reference | Type | What It Teaches |
 |---|-----------|------|-----------------|
@@ -52,8 +52,9 @@ The style guide is only as good as the examples that train it. Seven reference r
 | 5 | Carlsbad Flamenco | Cultural heritage, system-drafted | Gift-Giver validation, juerga terminology, room-painting, flamenco trio hybrid |
 | 6 | Eilynn Memorial | Urgent, emotional weight, system-drafted | Tone shift for grief, no cinematic opening, calibration language |
 | 7 | Cuban Birthday | Sourced cultural duo, system-drafted | Pacific Flow coordinator voice, social proof technique, son cubano specificity |
+| 8 | Sparse Cocktail | Minimal-detail social, system-drafted | Differentiation on sparse leads, finding the "only you" line with almost no client details |
 
-Four responses were real client communications that converted to bookings. Three were system-drafted through the Claude project and verified through the full quality gate. One candidate (a wedding cocktail hour response) was excluded because it didn't match the voice established by the other six, demonstrating that quality control during reference selection matters as much as quantity.
+Four responses were real client communications that converted to bookings. Four were system-drafted through the Claude project and verified through the full quality gate. One candidate (a wedding cocktail hour response) was excluded because it didn't match the voice established by the other seven, demonstrating that quality control during reference selection matters as much as quantity.
 
 ### The Style Guide Spiral Generated
 
@@ -200,6 +201,17 @@ Direct lead, zero competition, La Jolla private home, 60 guests, mother born in 
 
 Spiral's reasoning explicitly verified: "This is NOT a mandatory mariachi correction, this is a Spanish family requesting flamenco. Flamenco trio is exactly right." Full juerga framing deployed. Draft 2 produced the strongest line across all twelve tests: "You're giving her something she probably stopped expecting to find here." Priced at $2,500 (T3D anchor, flamenco trio hybrid). Score: Genre Preservation 95%, Cultural Depth 95%, Pricing 95%.
 
+### Round 5: Extended Validation Tests (Tests 13-17)
+
+**Test 13: Dual Output Regression (Format Control)**
+The knowledge doc specified "produce full + compressed + reserve." Spiral followed it once, then reverted to three full-length variants. The same instruction placed in the style guide fixed it permanently. This test proved definitively that output format lives in the style guide, not the knowledge base.
+
+**Test 14: Persian Family Requesting Spanish Guitar (Genre Correction Control)**
+A Persian family requesting Spanish guitar for a private event. This was the second control test for the genre correction system: personal taste is not a cultural mismatch. Spiral correctly left the Spanish guitar request alone because the mandatory mariachi correction only fires for Mexican families requesting flamenco. Score: Genre Preservation 95%.
+
+**Tests 15-17: Differentiation Ceiling Tests**
+Differentiation was the hardest capability to push to 95%, and the only one where knowledge documents alone weren't enough. The Competitor Test doc explained how to find the "only you" line. Spiral understood the instruction but couldn't consistently produce those lines until Reference 8 (the sparse cocktail lead) was added, showing what differentiation looks like on a minimal-detail lead. The knowledge base can explain a principle. The reference corpus can demonstrate it. Demonstration consistently outperformed explanation. Score: Differentiation pushed from 80% to 95% with the addition of Reference 8.
+
 ---
 
 ## Section 5: Final Capability Scores
@@ -224,12 +236,13 @@ Spiral's reasoning explicitly verified: "This is NOT a mandatory mariachi correc
 | Venue Scene-Setting | N/A | 90% | Venue Scene-Setting Language doc |
 | Objection Handling | N/A | 95% | Objection Handling Playbook doc |
 | Follow-Up Sequence | N/A | 95% | Follow-Up Sequence doc with Day 2/5/10 arc |
+| Differentiation | 80% | 95% | Competitor Test doc + Reference 8 (sparse cocktail lead) |
 
 ---
 
 ## Section 6: The Complete Knowledge Architecture
 
-Twenty documents organized into four phases, plus a website link and seven reference responses. The total system represents the complete operational knowledge of the lead response business, translated into a format a writing tool can absorb and apply.
+Twenty documents organized into four phases, plus a website link and eight reference responses. The total system represents the complete operational knowledge of the lead response business, translated into a format a writing tool can absorb and apply.
 
 | Phase | Documents | Purpose |
 |-------|-----------|---------|
@@ -240,25 +253,43 @@ Twenty documents organized into four phases, plus a website link and seven refer
 
 ---
 
-## Section 7: The Methodology
+## Section 7: Seven Patterns for Training AI Writing Tools
 
 ### The Iterative Cycle
 
 Every capability improvement followed the same pattern: test with a scenario designed to stress a specific dimension, identify the failure mode, build a knowledge document that addresses the failure with explicit rules and examples, re-test with the same scenario to verify the fix, then test with a new scenario to verify the fix didn't break something else.
 
-This cycle ran four times across the session, with each round building on the previous one's results. The knowledge base grew from 4 to 20 documents, but each document was targeted at a specific, identified failure, never speculative.
+This cycle ran five times across the session, with each round building on the previous one's results. The knowledge base grew from 4 to 20 documents, but each document was targeted at a specific, identified failure, never speculative.
 
-### Key Methodological Insights
+Mapping the capability progression across all 17 tests revealed seven patterns. These are the insights that would apply to anyone training an AI writing tool for domain-specific work.
 
-**Style teaches voice. Knowledge teaches judgment.** The style guide and references gave Spiral 80% of the voice on the first attempt. But voice without domain knowledge produced mid-range prices, missed cultural corrections, and ignored budget mismatches. The knowledge documents closed that gap.
+### Pattern 1: Style teaches voice, knowledge teaches judgment.
 
-**Negative examples are as important as positive ones.** The negative prompt section ("What This Voice Never Does") prevented AI-slop language that the positive examples alone couldn't suppress.
+This was the single most important finding. The style guide and seven references gave Spiral 80% of the voice quality on the very first test. It sounded like you immediately. But it priced wrong, ignored budget gaps, missed genre corrections, and wrote 160 words against 7 competitors. Voice without judgment is a well-written bad answer. The knowledge documents closed the other 80% to 95% gap by teaching Spiral the domain logic that determines what the response should *say*, not just how it should *sound*.
 
-**Mandatory rules require mandatory language.** The genre correction for Mexican families requesting flamenco was present as a soft bridge in the knowledge base and Spiral chose to ignore it. Only when elevated to "MANDATORY" with explicit instructions not to validate the incorrect request did it fire consistently.
+### Pattern 2: Soft rules get ignored. Mandatory rules fire.
 
-**Writing tools can absorb operational logic.** The initial assumption was that pricing calibration, competition-driven compression, and quality verification were pipeline operations beyond a writing tool's capacity. Testing disproved this. Spiral's knowledge base is more powerful than expected, the reasoning process visibly walks through the logic before drafting.
+The genre correction for Mexican families requesting flamenco was present in the Musical Bridges doc as a soft bridge from the start. Spiral's reasoning explicitly identified the tension on the quinceañera test and chose to honor the client's stated preference instead. Only when the rule was elevated to "MANDATORY" with explicit language ("Do not validate the flamenco request and run with it") did it fire consistently. The same pattern held for stealth premium overrides. The lesson: when a rule must override the AI's natural instinct to agree with the client, the language has to be unambiguous. "Consider" and "worth noting" don't work. "MANDATORY" and "always" do.
 
-**Control tests matter.** Test 12 (the Sevillana mother's birthday) was designed to verify that the genre correction rule didn't over-fire. A system that corrects every flamenco request to mariachi is as broken as one that never corrects. The control test confirmed the rules are targeted, not blanket.
+### Pattern 3: Every fix needs a control test.
+
+Test 12 (the Sevillana mother's birthday) existed solely to verify that the mandatory mariachi correction didn't over-fire. A Spanish family requesting flamenco is correct, the rule should not activate. Without Test 12, we wouldn't know whether the genre correction was targeted or blanket. The same principle applied when we tested the Persian family lead (Test 14): Spiral correctly left the Spanish guitar request alone because personal taste isn't a cultural mismatch. Over-correction is as broken as under-correction, and you can only catch it with inverse test cases.
+
+### Pattern 4: The style guide controls format, the knowledge base controls content.
+
+The dual output regression proved this definitively. The knowledge doc said "produce full + compressed + reserve." Spiral followed it once, then reverted to three full-length variants. The same instruction in the style guide fixed it permanently. The pattern: output format (how many drafts, what structure) lives in the style guide. Domain decisions (what to price, when to correct, how to compress) live in the knowledge base. Putting format rules in the knowledge base is like putting a recipe on the refrigerator door: it gets seen but not followed.
+
+### Pattern 5: AI writing tools model rhetorical structure, not surface features.
+
+The em dash saga proved that Spiral wasn't copying punctuation marks from references. It was reading the underlying rhetorical move (scene-to-verdict pivot) and selecting the punctuation it thought best served that move. Removing dashes from references didn't work. Editing the style guide didn't work alone. Only a dedicated knowledge doc with "CRITICAL" prohibition, five before/after examples, and a scan instruction, plus the style guide reinforcement, finally killed them. And even then, en dashes persisted as a workaround until we explicitly banned those too. The implication: you can't fix surface-level output by changing surface-level inputs. You have to address the structural pattern the AI is modeling.
+
+### Pattern 6: Negative examples are as important as positive ones.
+
+The "What This Voice Never Does" section prevented failures that positive examples alone couldn't suppress. Without it, Spiral would occasionally produce "I'd be thrilled," "seamless experience," or a paragraph explaining why live music matters. These are default AI writing patterns that persist even when the reference corpus doesn't contain them, because they're baked into the underlying model's training. Negative prompts are the antibodies. They target the specific diseases your corpus can't prevent through positive example alone.
+
+### Pattern 7: The reference corpus defines the ceiling, not the knowledge base.
+
+Differentiation was the hardest capability to push to 95%, and it was the only one where the knowledge doc alone wasn't enough. The Competitor Test doc explained how to find the "only you" line. Spiral understood the instruction. But it couldn't consistently produce those lines until Reference 8 (the sparse cocktail lead) showed what one looks like on a minimal-detail lead. The knowledge base can explain a principle. The reference corpus can demonstrate it. Demonstration consistently outperformed explanation. The same pattern: the Eilynn memorial reference taught the grief register better than any amount of "match the emotional register" instruction could have. The Carlsbad flamenco reference taught juerga framing better than the cultural terminology doc. When a capability needs to be at 95%, add a reference that embodies it.
 
 ---
 
