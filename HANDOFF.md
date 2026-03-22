@@ -18,6 +18,25 @@ Solution doc #39 written. All learning surfaces updated.
 | Plan | `docs/plans/2026-03-15-fix-llm-pipeline-prompt-injection-plan.md` |
 | Solution | `docs/solutions/prompt-engineering/2026-03-15-llm-pipeline-prompt-injection-hardening.md` |
 
+## Next Major Initiative: Spiral Voice Integration
+
+The Spiral Gig Responder system is the most advanced lead response system built to date. 22 knowledge docs, 8 reference responses, 17 tests, 18/18 capabilities at 90%+. It produces higher-quality, more consistent responses than the pipeline's current generate stage. The goal is to integrate Spiral's response quality into this pipeline's automation.
+
+**What Spiral has that the pipeline doesn't:**
+- 8 real/verified reference responses that trained voice (pipeline loads RESPONSE_CRAFT.md as context, not trained on actual converted responses)
+- Three-layer reinforcement hierarchy: references (voice ceiling), style guide (format + prohibitions), knowledge docs (domain judgment)
+- 7 proven patterns for how rules must be structured to fire consistently (mandatory language, control tests, negative examples)
+- Differentiation capability pushed to 95% through reference demonstration, not instruction
+
+**Key integration questions (brainstorm these first):**
+- How does Spiral's three-layer reinforcement hierarchy map onto the pipeline's prompt architecture (classify/context/generate/verify)?
+- Where do the two systems' rules conflict or overlap? (e.g., pricing logic is deterministic code in the pipeline but LLM-interpreted in Spiral)
+- Should the 8 reference responses become few-shot examples in the generate prompt, or a separate context document?
+- Pattern 4 (style guide controls format, knowledge base controls content) has implications for how generate.ts structures its prompt
+- Pattern 2 (mandatory language) means the pipeline's prompt wording for genre correction and stealth premium must match Spiral's proven phrasing
+
+**Reference:** `docs/research/2026-03-22-spiral-methodology-report.md` (full methodology, all 17 tests, 7 patterns)
+
 ## Deferred Items
 
 - **full_draft length cap** — no max length on full_draft (deferred from review, add MAX_FULL_DRAFT_LENGTH)
