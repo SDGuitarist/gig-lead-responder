@@ -2,33 +2,32 @@
 
 ## Risk Chain
 
-**Brainstorm risk:** "Whether the `wrapUntrustedData()` XML delimiter defense is sufficient against sophisticated prompt injection."
+**Current initiative:** Spiral Voice Integration — bringing Spiral's response quality (22 knowledge docs, 8 references, 17 tests, 18/18 capabilities at 90%+) into the pipeline's automation.
 
-**Plan mitigation:** Analyzed each injection vector individually. Plan review caught that `wrapUntrustedData` was semantically wrong for edit instructions — created `wrapEditInstructions()` with edit-appropriate semantics. Also caught truncation ordering issue (before vs after contact block).
+**Key risk:** The pipeline's generate stage loads RESPONSE_CRAFT.md as context but was never trained on real converted responses. Spiral was trained on 8 real/verified references and produces higher-quality, more consistent output. The integration must preserve Spiral's voice quality while keeping the pipeline's deterministic pricing and automation.
 
-**Work risk (from Feed-Forward):** "Whether `wrapEditInstructions` wording will behave correctly with Claude in production. The XML delimiter defense is best-effort — no guarantee Claude won't follow injected instructions."
+**Seven patterns to apply during integration:**
+1. Style teaches voice, knowledge teaches judgment (references vs knowledge docs serve different purposes)
+2. Soft rules get ignored, mandatory rules fire (prompt wording matters for overrides)
+3. Every fix needs a control test (genre correction must not over-fire)
+4. Style guide controls format, knowledge base controls content (output structure vs domain logic)
+5. AI writing tools model rhetorical structure, not surface features (em dash saga)
+6. Negative examples are as important as positive ones (anti-patterns section needed)
+7. Reference corpus defines the ceiling, not the knowledge base (add references for 95% capabilities)
 
-**Review resolution:** 0 P1, 2 P2 (both documentation/deferred), 3 P3 (all accepted) from 3 agents. No code changes required. `wrapEditInstructions` semantic weakness documented as inherent LLM limitation. `full_draft` length cap deferred to follow-up.
-
-**Compound resolution:** Solution doc written. Key lesson: wrapper function semantics must match content type (data vs actionable input). Prevention checklist added for future LLM entry points.
+**Previous cycle resolution:** LLM pipeline injection hardening complete (PR #17). 0 P1, 2 P2 (documentation/deferred), 3 P3 (accepted). No code changes required.
 
 ## Files to Scrutinize
 
 | File | What changed | Risk area |
 |------|-------------|-----------|
-| `src/utils/sanitize.ts` | Added `wrapEditInstructions()` | Semantic correctness — must say "apply edits" not "ignore instructions" |
-| `src/pipeline/generate.ts` | 200-char truncation + wrapping + 2000-char compressed_draft cap | Truncation ordering — must be before `ensureContactBlock()` |
-| `src/email-parser.test.ts` | 5 ReDoS regression tests | Tests pass trivially (patterns safe by construction) — value is as regression guards |
+| `HANDOFF.md` | Added Spiral Voice Integration initiative | Integration questions and pattern references |
+| `docs/research/2026-03-22-spiral-methodology-report.md` | Full Spiral methodology report synced from every-outreach | Reference doc for integration work |
 
-## Remaining Gaps (carried forward)
+## Integration Reference
 
-- `full_draft` has no length cap (deferred — add MAX_FULL_DRAFT_LENGTH in follow-up)
-- Entry-point SMS length limit in `twilio-webhook.ts` (deferred — 200-char truncation sufficient)
-- `linked_expectations` git diff enforcement — plan-time only
-- `linked_expectations` global registry — 15+ real pairs, per-plan only
-- Accessibility never reviewed
-- External Basic Auth POST clients unverified
+`docs/research/2026-03-22-spiral-methodology-report.md` — full methodology, 17 tests, 7 patterns
 
 ## Plan Reference
 
-`docs/plans/2026-03-15-fix-llm-pipeline-prompt-injection-plan.md`
+No plan yet. Next step: brainstorm session for Spiral voice integration.
