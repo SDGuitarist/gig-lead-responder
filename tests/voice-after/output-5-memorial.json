@@ -1,0 +1,109 @@
+WARNING: PF_INTEL_API_URL or PF_INTEL_SERVER_API_KEY not set — venue context enrichment disabled
+{
+  "classification": {
+    "mode": "confirmation",
+    "action": "quote",
+    "vagueness": "clear",
+    "competition_level": "low",
+    "competition_quote_count": 1,
+    "stealth_premium": false,
+    "stealth_premium_signals": [],
+    "tier": "standard",
+    "rate_card_tier": "T2",
+    "lead_source_column": "D",
+    "price_point": "full_premium",
+    "format_requested": "classical guitar solo",
+    "format_recommended": "solo",
+    "duration_hours": 1,
+    "stated_budget": null,
+    "event_date_iso": "2026-04-05",
+    "timeline_band": "short",
+    "close_type": "direct",
+    "event_energy": "background",
+    "cultural_context_active": false,
+    "cultural_tradition": null,
+    "planner_effort_active": false,
+    "social_proof_active": false,
+    "context_modifiers": [
+      "celebration of life — emotionally sensitive context",
+      "client explicitly values presence over performance",
+      "personal family connection to guitar playing",
+      "meaningful outdoor location tied to deceased",
+      "strong emotional clarity signals confirmation mode"
+    ],
+    "flagged_concerns": [
+      "outdoor venue at Sunset Cliffs — wind and ambient noise may affect acoustic guitar projection",
+      "no budget stated — quote with care given emotional context",
+      "short timeline (11 days out)"
+    ],
+    "venue_name": null,
+    "client_first_name": null
+  },
+  "pricing": {
+    "format": "solo",
+    "duration_hours": 1,
+    "tier_key": "T2D",
+    "anchor": 595,
+    "floor": 550,
+    "quote_price": 595,
+    "competition_position": "at anchor",
+    "budget": {
+      "tier": "none"
+    }
+  },
+  "drafts": {
+    "full_draft": "A celebration of life at Sunset Cliffs on April 5 — the guitar there not to perform, but to hold the space while people remember. That distinction matters, and the fact that you're thinking about it this carefully, choosing a place that meant something to them and music that would have felt familiar, says everything about how much care is going into this.\n\nThe version of this that goes wrong is a musician who shows up and plays a polished set. What you need is someone who reads the room, scales back when the moment calls for quiet, and never once makes the music the center of attention. That's what I do.\n\nSunset Cliffs is open-air with real wind, so I bring a small, warm-sounding amplifier calibrated low enough to feel acoustic but present enough to carry without competing with the water or the silence. I'm fully self-contained and arrive early.\n\nClassical Guitar — 1 hour: $595\n\nApril 5 is 11 days out. I can hold the date today if you want to move forward.\n\nAlex Guillen\n(619) 755-3246",
+    "compressed_draft": "A celebration of life at Sunset Cliffs on April 5 — the guitar there to hold the space, not perform. The fact that you're choosing a place that meant something to them, and music that would have felt familiar, says everything.\n\nSunset Cliffs has real wind, so I bring a small amplifier calibrated to feel acoustic and carry without competing with the water. Fully self-contained, arrive early.\n\nClassical Guitar — 1 hour: $595\n\nApril 5 is 11 days out. Say the word and I'll hold it.\n\nAlex Guillen\n(619) 755-3246",
+    "compressed_word_count": 90
+  },
+  "gate": {
+    "validation_line": "The fact that you're thinking about it this carefully, choosing a place that meant something to them and music that would have felt familiar, says everything about how much care is going into this.",
+    "best_line": "What you need is someone who reads the room, scales back when the moment calls for quiet, and never once makes the music the center of attention.",
+    "concern_traceability": [
+      {
+        "concern": "outdoor venue at Sunset Cliffs — wind and ambient noise may affect acoustic guitar projection",
+        "draft_sentence": "Sunset Cliffs is open-air with real wind, so I bring a small, warm-sounding amplifier calibrated low enough to feel acoustic but present enough to carry without competing with the water or the silence."
+      },
+      {
+        "concern": "no budget stated — quote with care given emotional context",
+        "draft_sentence": "Classical Guitar — 1 hour: $595"
+      },
+      {
+        "concern": "short timeline (11 days out)",
+        "draft_sentence": "April 5 is 11 days out. I can hold the date today if you want to move forward."
+      }
+    ],
+    "scene_quote": "Sunset Cliffs is open-air with real wind, so I bring a small, warm-sounding amplifier calibrated low enough to feel acoustic but present enough to carry without competing with the water or the silence.",
+    "scene_type": "cinematic",
+    "competitor_test": false,
+    "gut_checks": {
+      "can_see_it": true,
+      "validated_them": true,
+      "named_fear": true,
+      "differentiated": true,
+      "preempted_questions": true,
+      "creates_relief": true,
+      "best_line_present": true,
+      "prose_flows": true,
+      "competitor_test": false,
+      "lead_specific_opening": true,
+      "budget_acknowledged": true,
+      "past_date_acknowledged": true,
+      "mariachi_pricing_format": true,
+      "cultural_vocabulary_used": true,
+      "sounds_like_alex": true
+    },
+    "gate_status": "pass",
+    "fail_reasons": []
+  },
+  "verified": true,
+  "timing": {
+    "classify": 6600,
+    "price": 0,
+    "context": 8,
+    "generateAndVerify": 29004,
+    "total": 35635
+  },
+  "confidence_score": 80
+}
+📋 Full draft copied to clipboard.

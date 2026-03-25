@@ -1,0 +1,114 @@
+WARNING: PF_INTEL_API_URL or PF_INTEL_SERVER_API_KEY not set — venue context enrichment disabled
+{
+  "classification": {
+    "mode": "evaluation",
+    "action": "one_question",
+    "vagueness": "vague",
+    "competition_level": "low",
+    "competition_quote_count": 0,
+    "stealth_premium": true,
+    "stealth_premium_signals": [
+      "affluent zip/area: Del Mar (92014)"
+    ],
+    "tier": "premium",
+    "rate_card_tier": "T3",
+    "lead_source_column": "D",
+    "price_point": "full_premium",
+    "format_requested": "music",
+    "format_recommended": "duo",
+    "duration_hours": 2,
+    "stated_budget": null,
+    "event_date_iso": "2026-06-07",
+    "timeline_band": "comfortable",
+    "close_type": "soft_hold",
+    "event_energy": "background",
+    "cultural_context_active": false,
+    "cultural_tradition": null,
+    "planner_effort_active": false,
+    "social_proof_active": false,
+    "context_modifiers": [
+      "Del Mar affluent area signal",
+      "no venue confirmed yet",
+      "no guest count provided"
+    ],
+    "flagged_concerns": [
+      "no budget stated",
+      "no guest count",
+      "no venue confirmed",
+      "genre request extremely vague"
+    ],
+    "venue_name": null,
+    "client_first_name": null
+  },
+  "pricing": {
+    "format": "duo",
+    "duration_hours": 2,
+    "tier_key": "T3D",
+    "anchor": 1700,
+    "floor": 1500,
+    "quote_price": 1700,
+    "competition_position": "at anchor",
+    "budget": {
+      "tier": "none"
+    }
+  },
+  "drafts": {
+    "full_draft": "A June evening in Del Mar, the kind of night where the light holds longer than anywhere else, and the guitar is already working the room before the first guest settles in.\n\nYou chose live music for this, which means you know the difference between a night that sounds right and one that just has sound.\n\nHere's what typically goes wrong with background music: a musician shows up, plays at whatever volume feels comfortable to them, and the room either strains to hear each other or turns down the conversation to accommodate the guitar. Neither is what you're after. What I do differently is read the room in real time, louder when the space fills and quieter when conversation peaks, so the music is always felt before it's heard.\n\nI don't have your venue or guest count yet, so I'm quoting based on a 2-hour duo with professional sound included. Once those details land, I can sharpen the recommendation.\n\nOne question: are you picturing something purely atmospheric in the background, or more of a featured moment people pause to take in?\n\nLatin Guitar Duo — 2 hours: $1,700\nIncludes professional sound, full setup and breakdown.\n\nI can hold June 7 while you finalize details.\n\nAlex Guillen\n(619) 755-3246",
+    "compressed_draft": "A June evening in Del Mar and the guitar already working the room before the first guest sits down. You chose live music, which means you know what a night that sounds right actually feels like.\n\nI'm quoting a 2-hour Latin Guitar Duo at $1,700, professional sound included. No venue or guest count yet, but I'll adjust once those details are in.\n\nOne question before I lock in the recommendation: purely atmospheric background, or something with a bit more presence people notice?\n\nI can hold June 7 now.\n\nAlex Guillen\n(619) 755-3246",
+    "compressed_word_count": 92
+  },
+  "gate": {
+    "validation_line": "You chose live music for this, which means you know the difference between a night that sounds right and one that just has sound.",
+    "best_line": "What I do differently is read the room in real time, louder when the space fills and quieter when conversation peaks, so the music is always felt before it's heard.",
+    "concern_traceability": [
+      {
+        "concern": "no budget stated",
+        "draft_sentence": "Latin Guitar Duo — 2 hours: $1,700"
+      },
+      {
+        "concern": "no guest count",
+        "draft_sentence": "I don't have your venue or guest count yet, so I'm quoting based on a 2-hour duo with professional sound included."
+      },
+      {
+        "concern": "no venue confirmed",
+        "draft_sentence": "I don't have your venue or guest count yet, so I'm quoting based on a 2-hour duo with professional sound included."
+      },
+      {
+        "concern": "genre request extremely vague",
+        "draft_sentence": "One question: are you picturing something purely atmospheric in the background, or more of a featured moment people pause to take in?"
+      }
+    ],
+    "scene_quote": "A June evening in Del Mar, the kind of night where the light holds longer than anywhere else, and the guitar is already working the room before the first guest settles in.",
+    "scene_type": "cinematic",
+    "competitor_test": false,
+    "gut_checks": {
+      "can_see_it": true,
+      "validated_them": true,
+      "named_fear": true,
+      "differentiated": true,
+      "preempted_questions": true,
+      "creates_relief": true,
+      "best_line_present": true,
+      "prose_flows": true,
+      "competitor_test": false,
+      "lead_specific_opening": true,
+      "budget_acknowledged": true,
+      "past_date_acknowledged": true,
+      "mariachi_pricing_format": true,
+      "cultural_vocabulary_used": true,
+      "sounds_like_alex": true
+    },
+    "gate_status": "pass",
+    "fail_reasons": []
+  },
+  "verified": true,
+  "timing": {
+    "classify": 7418,
+    "price": 0,
+    "context": 9,
+    "generateAndVerify": 30401,
+    "total": 37852
+  },
+  "confidence_score": 80
+}
+📋 Full draft copied to clipboard.

@@ -1,0 +1,102 @@
+WARNING: PF_INTEL_API_URL or PF_INTEL_SERVER_API_KEY not set — venue context enrichment disabled
+{
+  "classification": {
+    "mode": "evaluation",
+    "action": "quote",
+    "vagueness": "clear",
+    "competition_level": "low",
+    "competition_quote_count": 2,
+    "stealth_premium": true,
+    "stealth_premium_signals": [
+      "premium venue (The Lodge at Torrey Pines)",
+      "Saturday evening at named venue",
+      "private terrace with ocean view"
+    ],
+    "tier": "premium",
+    "rate_card_tier": "T3",
+    "lead_source_column": "D",
+    "price_point": "full_premium",
+    "format_requested": "Spanish guitar, classical",
+    "format_recommended": "solo",
+    "duration_hours": 3,
+    "stated_budget": null,
+    "event_date_iso": "2026-05-17",
+    "timeline_band": "comfortable",
+    "close_type": "soft_hold",
+    "event_energy": "background",
+    "cultural_context_active": false,
+    "cultural_tradition": null,
+    "planner_effort_active": false,
+    "social_proof_active": false,
+    "context_modifiers": [
+      "intimate milestone event",
+      "indoor/outdoor flow",
+      "ocean view terrace",
+      "cocktail and dinner coverage"
+    ],
+    "flagged_concerns": [
+      "no budget stated — premium venue warrants full_premium pricing; confirm client expectations"
+    ],
+    "venue_name": "The Lodge at Torrey Pines",
+    "client_first_name": null
+  },
+  "pricing": {
+    "format": "solo",
+    "duration_hours": 3,
+    "tier_key": "T3D",
+    "anchor": 1200,
+    "floor": 1000,
+    "quote_price": 1200,
+    "competition_position": "at anchor",
+    "budget": {
+      "tier": "none"
+    }
+  },
+  "drafts": {
+    "full_draft": "A private terrace at the Lodge at Torrey Pines on a May evening, the ocean out there beyond the pines, and Spanish guitar settling into the air before the first guest even picks up a glass. Choosing live music for something this intimate says something about how much this milestone matters to you.\n\nThe thing that goes wrong with background music at a dinner like this is a guitarist who locks into a volume and a mood at setup and never reads the room again. Cocktail hour sounds the same as the quietest moment between courses. What I do instead is treat the three hours as one long arc, lighter and open during arrivals, present through dinner conversation, warmer and slower as the evening winds down. The music shifts when the room shifts, and no one ever has to ask.\n\nThe Lodge terrace is a space I know. I'm fully self-contained with professional sound calibrated for outdoor flow, and I arrive early enough that everything is dialed before anyone arrives.\n\nSolo Spanish Guitar — $1,200\n3 hours | Professional sound, full setup and breakdown, repertoire shaped to your evening\n\nI can hold May 17th while you finalize the details. Just say the word.\n\nAlex Guillen\n(619) 755-3246",
+    "compressed_draft": "A private terrace at the Lodge at Torrey Pines on a May evening, Spanish guitar already in the air when the first guests arrive. Choosing live music for something this intimate says something about how much this milestone matters to you.\n\nI know this space, I'm self-contained with outdoor-ready sound, and I read the room through all three hours rather than setting a volume at soundcheck and leaving it there.\n\nSolo Spanish Guitar — $1,200\n3 hours | Professional sound, full setup and breakdown\n\nI can hold May 17th while you finalize. Just say the word.\n\nAlex Guillen\n(619) 755-3246",
+    "compressed_word_count": 100
+  },
+  "gate": {
+    "validation_line": "Choosing live music for something this intimate says something about how much this milestone matters to you.",
+    "best_line": "The music shifts when the room shifts, and no one ever has to ask.",
+    "concern_traceability": [
+      {
+        "concern": "no budget stated — premium venue warrants full_premium pricing; confirm client expectations",
+        "draft_sentence": "Solo Spanish Guitar — $1,200"
+      }
+    ],
+    "scene_quote": "A private terrace at the Lodge at Torrey Pines on a May evening, the ocean out there beyond the pines, and Spanish guitar settling into the air before the first guest even picks up a glass.",
+    "scene_type": "cinematic",
+    "competitor_test": false,
+    "gut_checks": {
+      "can_see_it": true,
+      "validated_them": true,
+      "named_fear": true,
+      "differentiated": true,
+      "preempted_questions": true,
+      "creates_relief": true,
+      "best_line_present": true,
+      "prose_flows": true,
+      "competitor_test": false,
+      "lead_specific_opening": true,
+      "budget_acknowledged": true,
+      "past_date_acknowledged": true,
+      "mariachi_pricing_format": true,
+      "cultural_vocabulary_used": true,
+      "sounds_like_alex": true
+    },
+    "gate_status": "pass",
+    "fail_reasons": []
+  },
+  "verified": true,
+  "timing": {
+    "classify": 5959,
+    "price": 0,
+    "context": 10,
+    "generateAndVerify": 30859,
+    "total": 36856
+  },
+  "confidence_score": 90
+}
+📋 Full draft copied to clipboard.

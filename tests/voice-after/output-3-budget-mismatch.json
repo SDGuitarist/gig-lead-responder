@@ -1,0 +1,116 @@
+WARNING: PF_INTEL_API_URL or PF_INTEL_SERVER_API_KEY not set — venue context enrichment disabled
+Gate FAILED (attempt 1/3). Reasons: Scene is structural ('A 25th anniversary dinner in La Jolla is exactly the kind of evening Spanish guitar was made for') — this tells the reader what kind of event it is, but puts no one in a moment. Rewrite with a specific cinematic detail: a specific sensory image (the sound of a nylon string chord drifting through an open window, candlelight, the two of them at the table).; Concern unaddressed: '5 competing quotes may anchor client to lower price expectations' — the draft says nothing to reframe the comparison or explain why the competing quotes at lower prices are not equivalent. Add a single sentence that acknowledges the client is likely gathering quotes and explains what the price difference actually represents.
+Rewriting with targeted instructions...
+Gate FAILED (attempt 2/3). Reasons: Concern unaddressed: '5 competing quotes may anchor client to lower price expectations' — no sentence in the draft speaks to the client having received other quotes at lower prices or reframes how to evaluate competing bids. Add a line that directly acknowledges the competitive quoting context, e.g., noting that lower quotes may reflect a different product and that the client should weigh what they're actually comparing.
+Rewriting with targeted instructions...
+Gate PASSED on attempt 3.
+{
+  "classification": {
+    "mode": "evaluation",
+    "action": "quote",
+    "vagueness": "clear",
+    "competition_level": "medium",
+    "competition_quote_count": 5,
+    "stealth_premium": true,
+    "stealth_premium_signals": [
+      "affluent zip: La Jolla (92037)"
+    ],
+    "tier": "qualification",
+    "rate_card_tier": "T3",
+    "lead_source_column": "P",
+    "price_point": "full_premium",
+    "format_requested": "Spanish guitar",
+    "format_recommended": "solo",
+    "duration_hours": 2,
+    "stated_budget": 250,
+    "event_date_iso": "2026-04-19",
+    "timeline_band": "short",
+    "close_type": "hesitant",
+    "event_energy": "background",
+    "cultural_context_active": false,
+    "cultural_tradition": null,
+    "planner_effort_active": false,
+    "social_proof_active": false,
+    "context_modifiers": [
+      "25th anniversary milestone",
+      "intimate private dinner",
+      "La Jolla private residence",
+      "romantic atmosphere requested"
+    ],
+    "flagged_concerns": [
+      "budget $250 is significantly below market for La Jolla private event",
+      "budget mismatch with stealth premium signals",
+      "5 competing quotes may anchor client to lower price expectations"
+    ],
+    "venue_name": null,
+    "client_first_name": null
+  },
+  "pricing": {
+    "format": "solo",
+    "duration_hours": 2,
+    "tier_key": "T3P",
+    "anchor": 795,
+    "floor": 750,
+    "quote_price": 795,
+    "competition_position": "at anchor, willing to flex",
+    "budget": {
+      "tier": "no_viable_scope",
+      "gap": 500
+    }
+  },
+  "drafts": {
+    "full_draft": "A 25th anniversary dinner in La Jolla deserves exactly what you're picturing — Spanish guitar, candlelight, someone who actually knows how to fill a room that small.\n\nChoosing live music for a moment like this instead of just hitting play on a speaker, that instinct is right.\n\nI want to be straight with you: my solo sets start at $500 for a single hour. If you've gotten quotes lower than that, they may reflect something different than what you have in mind, whether that's a shorter set, a different format, or someone still building their book. The floor for what I do is $500.\n\nIf your budget shifts, I'd genuinely love to help — April 19 in La Jolla for a 25th is exactly the kind of evening I'm built for. In the meantime, a curated Spotify playlist of classical Spanish guitar or a local DJ who works intimate settings could serve you well at that price point.\n\nAlex Guillen\n(619) 755-3246",
+    "compressed_draft": "A 25th anniversary dinner in La Jolla — Spanish guitar is the right call for that setting.\n\nChoosing live music for this milestone instead of a playlist, that instinct is right. I want to be honest: my solo sets start at $500. If other quotes came in lower, it's worth asking what's different. A curated Spanish guitar playlist or an intimate-setting DJ could work well at $250. If your budget shifts, I'd love to help with April 19.\n\nAlex Guillen\n(619) 755-3246",
+    "compressed_word_count": 82
+  },
+  "gate": {
+    "validation_line": "Choosing live music for a moment like this instead of just hitting play on a speaker, that instinct is right.",
+    "best_line": "If you've gotten quotes lower than that, they may reflect something different than what you have in mind, whether that's a shorter set, a different format, or someone still building their book.",
+    "concern_traceability": [
+      {
+        "concern": "budget $250 is significantly below market for La Jolla private event",
+        "draft_sentence": "I want to be straight with you: my solo sets start at $500 for a single hour."
+      },
+      {
+        "concern": "budget mismatch with stealth premium signals",
+        "draft_sentence": "April 19 in La Jolla for a 25th is exactly the kind of evening I'm built for."
+      },
+      {
+        "concern": "5 competing quotes may anchor client to lower price expectations",
+        "draft_sentence": "If you've gotten quotes lower than that, they may reflect something different than what you have in mind, whether that's a shorter set, a different format, or someone still building their book."
+      }
+    ],
+    "scene_quote": "A 25th anniversary dinner in La Jolla deserves exactly what you're picturing — Spanish guitar, candlelight, someone who actually knows how to fill a room that small.",
+    "scene_type": "cinematic",
+    "competitor_test": false,
+    "gut_checks": {
+      "can_see_it": true,
+      "validated_them": true,
+      "named_fear": true,
+      "differentiated": true,
+      "preempted_questions": true,
+      "creates_relief": true,
+      "best_line_present": true,
+      "prose_flows": true,
+      "competitor_test": false,
+      "lead_specific_opening": true,
+      "budget_acknowledged": true,
+      "past_date_acknowledged": true,
+      "mariachi_pricing_format": true,
+      "cultural_vocabulary_used": true,
+      "sounds_like_alex": true
+    },
+    "gate_status": "pass",
+    "fail_reasons": []
+  },
+  "verified": true,
+  "timing": {
+    "classify": 6650,
+    "price": 1,
+    "context": 11,
+    "generateAndVerify": 74487,
+    "total": 81172
+  },
+  "confidence_score": 90
+}
+📋 Full draft copied to clipboard.

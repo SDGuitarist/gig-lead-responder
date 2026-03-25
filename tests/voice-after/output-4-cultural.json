@@ -1,0 +1,118 @@
+WARNING: PF_INTEL_API_URL or PF_INTEL_SERVER_API_KEY not set — venue context enrichment disabled
+Gate FAILED (attempt 1/3). Reasons: named_fear is false: the draft never acknowledges what could go wrong (e.g., showing up with the wrong genre, a forgettable quinceañera moment, or having hired someone who underpromised) — add one sentence naming a concrete fear or past failure type the client may be holding
+Rewriting with targeted instructions...
+Gate PASSED on attempt 2.
+{
+  "classification": {
+    "mode": "evaluation",
+    "action": "quote",
+    "vagueness": "clear",
+    "competition_level": "medium",
+    "competition_quote_count": 4,
+    "stealth_premium": true,
+    "stealth_premium_signals": [
+      "Premium venue: Estancia La Jolla",
+      "Affluent zip: La Jolla (92037)",
+      "Guest count 120",
+      "Saturday evening at named venue"
+    ],
+    "tier": "qualification",
+    "rate_card_tier": "T3",
+    "lead_source_column": "P",
+    "price_point": "full_premium",
+    "format_requested": "Spanish guitar / flamenco",
+    "format_recommended": "mariachi_full",
+    "duration_hours": 3,
+    "stated_budget": 800,
+    "event_date_iso": "2025-04-26",
+    "timeline_band": "comfortable",
+    "close_type": "hesitant",
+    "event_energy": "performance",
+    "cultural_context_active": true,
+    "cultural_tradition": "spanish_latin",
+    "planner_effort_active": false,
+    "social_proof_active": false,
+    "context_modifiers": [
+      "Quinceañera milestone — high emotional significance",
+      "Mexican family requesting authentic cultural music",
+      "Budget likely underestimated for venue tier and guest count",
+      "Estancia La Jolla is a luxury boutique hotel — T3 venue"
+    ],
+    "flagged_concerns": [
+      "Stated budget of $800 is likely below market for a 3-hour mariachi performance at a luxury La Jolla venue",
+      "Budget mismatch: 120 guests at premium venue typically commands higher rates",
+      "Genre request (Spanish guitar/flamenco) does not align with stated cultural context — mariachi_full is more appropriate for quinceañera"
+    ],
+    "venue_name": "Estancia La Jolla",
+    "client_first_name": null,
+    "past_date_detected": true
+  },
+  "pricing": {
+    "format": "mariachi_full",
+    "duration_hours": 3,
+    "tier_key": "T3P",
+    "anchor": 2925,
+    "floor": 2800,
+    "quote_price": 2925,
+    "competition_position": "at anchor, willing to flex",
+    "budget": {
+      "tier": "no_viable_scope",
+      "gap": 2000
+    }
+  },
+  "drafts": {
+    "full_draft": "Quick note before anything else: your request mentions April 26, 2025, which has already passed — I'm guessing you mean April 26, 2026? Just flag it and I'll make sure the date is right when we talk.\n\nNow, the part I want to be straight with you about: for a quinceañera at Estancia La Jolla with 120 guests, Spanish guitar and flamenco aren't the right fit — and the family deserves better than a musician who shows up with the wrong sound for the most important birthday of her life. A quinceañera calls for mariachi. Las Mañanitas at her table, surrounded by three generations, the violins and trumpets filling that room — that's the moment she'll carry with her. Spanish guitar would feel off to your family the second it started, and no one would say why, but everyone would feel it.\n\nI have to be direct on budget: my mariachi sets start at $1,850 for two hours. At $800, I can't put the right ensemble in that room. A DJ or a curated playlist could work well for your venue and budget, and I'm happy to point you in the right direction. If the budget shifts as you get closer to the date, I'd genuinely love to help make that moment happen.\n\nAlex Guillen\n(619) 755-3246",
+    "compressed_draft": "Quick note: your request shows April 26, 2025, which has already passed — assuming you mean 2026?\n\nFor a quinceañera at Estancia La Jolla with 120 guests, you want mariachi, not Spanish guitar. A musician who shows up with the wrong sound for her quinceañera is the version of this no one forgives. My mariachi sets start at $1,850, and at $800 I can't put the right ensemble there. A DJ or curated playlist could serve your venue and budget well. If that changes, I'd love to help.\n\nAlex Guillen\n(619) 755-3246",
+    "compressed_word_count": 92
+  },
+  "gate": {
+    "validation_line": "the family deserves better than a musician who shows up with the wrong sound for the most important birthday of her life",
+    "best_line": "Spanish guitar would feel off to your family the second it started, and no one would say why, but everyone would feel it.",
+    "concern_traceability": [
+      {
+        "concern": "Stated budget of $800 is likely below market for a 3-hour mariachi performance at a luxury La Jolla venue",
+        "draft_sentence": "I have to be direct on budget: my mariachi sets start at $1,850 for two hours."
+      },
+      {
+        "concern": "Budget mismatch: 120 guests at premium venue typically commands higher rates",
+        "draft_sentence": "At $800, I can't put the right ensemble in that room."
+      },
+      {
+        "concern": "Genre request (Spanish guitar/flamenco) does not align with stated cultural context — mariachi_full is more appropriate for quinceañera",
+        "draft_sentence": "for a quinceañera at Estancia La Jolla with 120 guests, Spanish guitar and flamenco aren't the right fit — and the family deserves better than a musician who shows up with the wrong sound for the most important birthday of her life."
+      }
+    ],
+    "scene_quote": "Las Mañanitas at her table, surrounded by three generations, the violins and trumpets filling that room — that's the moment she'll carry with her.",
+    "scene_type": "cinematic",
+    "competitor_test": false,
+    "gut_checks": {
+      "can_see_it": true,
+      "validated_them": true,
+      "named_fear": true,
+      "differentiated": true,
+      "preempted_questions": true,
+      "creates_relief": true,
+      "best_line_present": true,
+      "prose_flows": true,
+      "competitor_test": false,
+      "lead_specific_opening": true,
+      "budget_acknowledged": true,
+      "past_date_acknowledged": true,
+      "mariachi_pricing_format": true,
+      "cultural_vocabulary_used": true,
+      "sounds_like_alex": true
+    },
+    "gate_status": "pass",
+    "fail_reasons": []
+  },
+  "verified": true,
+  "timing": {
+    "classify": 7873,
+    "price": 1,
+    "context": 10,
+    "generateAndVerify": 66569,
+    "total": 74475
+  },
+  "confidence_score": 100
+}
+📋 Full draft copied to clipboard.
