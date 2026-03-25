@@ -1,0 +1,118 @@
+WARNING: PF_INTEL_API_URL or PF_INTEL_SERVER_API_KEY not set — venue context enrichment disabled
+Gate FAILED (attempt 1/3). Reasons: Scene is structural ('A quinceañera at Estancia La Jolla with 120 guests is exactly the kind of moment that deserves the right music') — no sensory detail, no specific moment in time, no one can see anything. Rewrite with a cinematic image: e.g., 'The moment the trumpets start and her father turns to see her at the entrance, the whole room goes quiet — that's what Las Mañanitas does to a room.'; Flagged concern unaddressed: client requested Spanish guitar/flamenco but classification calls for mariachi_full. The draft never mentions the format they asked for, never explains why mariachi is the right call instead, and never frames the upgrade. Add a sentence that acknowledges the flamenco/Spanish guitar request and clearly explains why mariachi_full is the recommendation for a quinceañera of this size.; cultural_vocabulary_used = false: The draft mentions 'quinceañera' (which qualifies as cultural vocabulary) but contains no deeper cultural terminology — no 'Las Mañanitas,' no 'vals,' no 'brindis,' no 'serenata.' The deletion test fails: swap 'quinceañera' for 'milestone birthday' and the draft reads identically for any event. Add at least one piece of specific mariachi/Latin cultural terminology that only applies to this context.
+Rewriting with targeted instructions...
+Gate PASSED on attempt 2.
+{
+  "classification": {
+    "mode": "evaluation",
+    "action": "quote",
+    "vagueness": "clear",
+    "competition_level": "medium",
+    "competition_quote_count": 4,
+    "stealth_premium": true,
+    "stealth_premium_signals": [
+      "Premium venue: Estancia La Jolla",
+      "Affluent zip: La Jolla (92037)",
+      "Guest count 120",
+      "Saturday evening at named venue"
+    ],
+    "tier": "qualification",
+    "rate_card_tier": "T3",
+    "lead_source_column": "P",
+    "price_point": "full_premium",
+    "format_requested": "Spanish guitar / flamenco",
+    "format_recommended": "mariachi_full",
+    "duration_hours": 3,
+    "stated_budget": 800,
+    "event_date_iso": "2025-04-26",
+    "timeline_band": "comfortable",
+    "close_type": "hesitant",
+    "event_energy": "performance",
+    "cultural_context_active": true,
+    "cultural_tradition": "spanish_latin",
+    "planner_effort_active": false,
+    "social_proof_active": false,
+    "context_modifiers": [
+      "Quinceañera milestone event — elevated emotional significance",
+      "Mexican family requesting authentic Latin music",
+      "Estancia La Jolla is a luxury resort venue",
+      "Budget of $800 is likely below market for 3-hour mariachi_full at this venue — budget mismatch flag"
+    ],
+    "flagged_concerns": [
+      "Stated budget ($800) is likely well below full-premium mariachi pricing for 3 hours at a luxury venue — address value/ROI in quote",
+      "Client requested Spanish guitar/flamenco but event context calls for mariachi_full — recommend framing the upgrade clearly",
+      "Date is in 2025 (past relative to today 2026-03-25) — verify actual event year before quoting"
+    ],
+    "venue_name": "Estancia La Jolla",
+    "client_first_name": null,
+    "past_date_detected": true
+  },
+  "pricing": {
+    "format": "mariachi_full",
+    "duration_hours": 3,
+    "tier_key": "T3P",
+    "anchor": 2925,
+    "floor": 2800,
+    "quote_price": 2925,
+    "competition_position": "at anchor, willing to flex",
+    "budget": {
+      "tier": "no_viable_scope",
+      "gap": 2000
+    }
+  },
+  "drafts": {
+    "full_draft": "Quick note before anything else: your request mentions April 26, 2025, which has already passed. I'm guessing you mean April 26, 2026? Just want to make sure I'm quoting the right date.\n\nFor a quinceañera at Estancia La Jolla with 120 guests, the music that makes a room feel the way it should — when she walks in, when Las Mañanitas fills the hall and her family stops mid-conversation — that's a mariachi_full ensemble, not Spanish guitar or flamenco. Flamenco is a beautiful tradition, but it's Spanish, not Mexican, and it won't carry the cultural weight this celebration deserves. That distinction matters, especially in a room full of family.\n\nI want to be straight with you: my mariachi_full sets start at $1,850 for two hours. For three hours at Estancia La Jolla, you're looking at $2,925. That's a significant gap from the $800 you mentioned, and I don't want to waste your time pretending otherwise.\n\nIf the budget stays where it is, a professionally curated playlist or a DJ can absolutely serve the evening well. And if the number shifts as you finalize plans, I'd genuinely love to help make her vals and that first walk-in feel exactly right.\n\nAlex Guillen",
+    "compressed_draft": "Quick note: your request shows April 26, 2025, which has passed. I'm assuming you mean 2026?\n\nFor a quinceañera at Estancia La Jolla, the music that carries Las Mañanitas the way her family will feel it is a mariachi_full ensemble, not Spanish guitar or flamenco. Flamenco is a Spanish tradition; for a Mexican celebration with 120 guests, it won't land the same way.\n\nI have to be honest: my mariachi_full sets start at $1,850. For three hours, you're at $2,925 — well above the $800 you mentioned. If the budget stays there, a DJ or curated playlist can work well. If it shifts, I'd love to help.\n\nAlex Guillen",
+    "compressed_word_count": 109
+  },
+  "gate": {
+    "validation_line": "For a quinceañera at Estancia La Jolla with 120 guests, the music that makes a room feel the way it should — when she walks in, when Las Mañanitas fills the hall and her family stops mid-conversation — that's a mariachi_full ensemble, not Spanish guitar or flamenco.",
+    "best_line": "when she walks in, when Las Mañanitas fills the hall and her family stops mid-conversation — that's a mariachi_full ensemble, not Spanish guitar or flamenco.",
+    "concern_traceability": [
+      {
+        "concern": "Stated budget ($800) is likely well below full-premium mariachi pricing for 3 hours at a luxury venue — address value/ROI in quote",
+        "draft_sentence": "I want to be straight with you: my mariachi_full sets start at $1,850 for two hours. For three hours at Estancia La Jolla, you're looking at $2,925. That's a significant gap from the $800 you mentioned, and I don't want to waste your time pretending otherwise."
+      },
+      {
+        "concern": "Client requested Spanish guitar/flamenco but event context calls for mariachi_full — recommend framing the upgrade clearly",
+        "draft_sentence": "Flamenco is a beautiful tradition, but it's Spanish, not Mexican, and it won't carry the cultural weight this celebration deserves."
+      },
+      {
+        "concern": "Date is in 2025 (past relative to today 2026-03-25) — verify actual event year before quoting",
+        "draft_sentence": "Quick note before anything else: your request mentions April 26, 2025, which has already passed. I'm guessing you mean April 26, 2026? Just want to make sure I'm quoting the right date."
+      }
+    ],
+    "scene_quote": "when she walks in, when Las Mañanitas fills the hall and her family stops mid-conversation — that's a mariachi_full ensemble, not Spanish guitar or flamenco.",
+    "scene_type": "cinematic",
+    "competitor_test": false,
+    "gut_checks": {
+      "can_see_it": true,
+      "validated_them": true,
+      "named_fear": true,
+      "differentiated": true,
+      "preempted_questions": true,
+      "creates_relief": true,
+      "best_line_present": true,
+      "prose_flows": true,
+      "competitor_test": false,
+      "lead_specific_opening": true,
+      "budget_acknowledged": true,
+      "past_date_acknowledged": true,
+      "mariachi_pricing_format": true,
+      "cultural_vocabulary_used": true,
+      "sounds_like_alex": true
+    },
+    "gate_status": "pass",
+    "fail_reasons": []
+  },
+  "verified": true,
+  "timing": {
+    "classify": 8983,
+    "price": 0,
+    "context": 5,
+    "generateAndVerify": 73650,
+    "total": 82661
+  },
+  "confidence_score": 100
+}
+📋 Full draft copied to clipboard.

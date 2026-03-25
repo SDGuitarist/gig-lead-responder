@@ -1,0 +1,118 @@
+WARNING: PF_INTEL_API_URL or PF_INTEL_SERVER_API_KEY not set — venue context enrichment disabled
+Gate FAILED (attempt 1/3). Reasons: Concern 'no guest count' has no matching sentence — draft never acknowledges that guest count is unknown or asks for it; add a brief line asking for headcount so the recommendation can be properly sized.; Concern 'no venue' has no matching sentence — draft never acknowledges that venue hasn't been confirmed or asks for it; add a line noting that venue type or outdoor/indoor setup affects the sound configuration.; gut_check 'preempted_questions' is false — guest count and venue are unaddressed, leaving the reader without a complete picture before they'd feel comfortable replying; the draft handles price and format but skips logistics that would affect setup and sizing.
+Rewriting with targeted instructions...
+Gate PASSED on attempt 2.
+{
+  "classification": {
+    "mode": "evaluation",
+    "action": "one_question",
+    "vagueness": "vague",
+    "competition_level": "low",
+    "competition_quote_count": 0,
+    "stealth_premium": true,
+    "stealth_premium_signals": [
+      "affluent zip: Del Mar (92014)"
+    ],
+    "tier": "premium",
+    "rate_card_tier": "T3",
+    "lead_source_column": "D",
+    "price_point": "full_premium",
+    "format_requested": "music",
+    "format_recommended": "duo",
+    "duration_hours": 2,
+    "stated_budget": null,
+    "event_date_iso": "2026-06-07",
+    "timeline_band": "comfortable",
+    "close_type": "soft_hold",
+    "event_energy": "background",
+    "cultural_context_active": false,
+    "cultural_tradition": null,
+    "planner_effort_active": false,
+    "social_proof_active": false,
+    "context_modifiers": [
+      "Del Mar affluent area",
+      "no venue specified yet",
+      "no guest count provided",
+      "no budget provided"
+    ],
+    "flagged_concerns": [
+      "no guest count",
+      "no budget",
+      "no venue",
+      "genre too generic — needs clarification on style preference"
+    ],
+    "venue_name": null,
+    "client_first_name": null
+  },
+  "pricing": {
+    "format": "duo",
+    "duration_hours": 2,
+    "tier_key": "T3D",
+    "anchor": 1700,
+    "floor": 1500,
+    "quote_price": 1700,
+    "competition_position": "at anchor",
+    "budget": {
+      "tier": "none"
+    }
+  },
+  "drafts": {
+    "full_draft": "A June evening in Del Mar, guests settling in around the terrace or backyard, and the guitar is already doing what it does best before anyone thinks to notice it. The fact that you're planning this far ahead says something about how much this evening matters to you.\n\nHere's the thing about background music that most people only figure out the hard way: a musician who shows up, plays at whatever volume feels right to them, and never once reads the room will make your guests feel vaguely uncomfortable without knowing why. What I do is different. I adjust in real time, reading conversation volume and energy, so the music supports the room instead of competing with it.\n\nFor a June 7 evening at a Del Mar setting, I'd recommend a duo: fuller sound, more musical range, and the kind of presence that fills a space without crowding it. Two hours, professionally self-contained.\n\nAs for style, quick question: are you picturing something warm and ambient in the background, or more of a featured moment people stop to listen to?\n\nAlso, a headcount and whether the space is indoor or outdoor would help me size the sound configuration correctly. Both easy to share when you know.\n\nThe rate for a 2-hour duo is $1,700, and with June 7 a comfortable distance out, I can hold the date while you finalize details.\n\nAlex Guillen\n(619) 755-3246",
+    "compressed_draft": "A June evening in Del Mar, the guitar already working the room before anyone thinks to notice it. The fact that you're thinking this far ahead says something.\n\nFor June 7, I'd recommend a duo: fuller sound, right presence for a Del Mar setting, fully self-contained for two hours. Quick question on style: warm background ambiance, or something more featured? And if you know your headcount and whether it's indoor or outdoor, that helps me size the sound setup correctly.\n\nThe rate is $1,700 for a 2-hour duo. I can hold June 7 while you finalize.\n\nAlex Guillen\n(619) 755-3246",
+    "compressed_word_count": 100
+  },
+  "gate": {
+    "validation_line": "The fact that you're planning this far ahead says something about how much this evening matters to you.",
+    "best_line": "a musician who shows up, plays at whatever volume feels right to them, and never once reads the room will make your guests feel vaguely uncomfortable without knowing why.",
+    "concern_traceability": [
+      {
+        "concern": "no guest count",
+        "draft_sentence": "Also, a headcount and whether the space is indoor or outdoor would help me size the sound configuration correctly."
+      },
+      {
+        "concern": "no budget",
+        "draft_sentence": "The rate for a 2-hour duo is $1,700, and with June 7 a comfortable distance out, I can hold the date while you finalize details."
+      },
+      {
+        "concern": "no venue",
+        "draft_sentence": "Also, a headcount and whether the space is indoor or outdoor would help me size the sound configuration correctly."
+      },
+      {
+        "concern": "genre too generic — needs clarification on style preference",
+        "draft_sentence": "As for style, quick question: are you picturing something warm and ambient in the background, or more of a featured moment people stop to listen to?"
+      }
+    ],
+    "scene_quote": "A June evening in Del Mar, guests settling in around the terrace or backyard, and the guitar is already doing what it does best before anyone thinks to notice it.",
+    "scene_type": "cinematic",
+    "competitor_test": false,
+    "gut_checks": {
+      "can_see_it": true,
+      "validated_them": true,
+      "named_fear": true,
+      "differentiated": true,
+      "preempted_questions": true,
+      "creates_relief": true,
+      "best_line_present": true,
+      "prose_flows": true,
+      "competitor_test": false,
+      "lead_specific_opening": true,
+      "budget_acknowledged": true,
+      "past_date_acknowledged": true,
+      "mariachi_pricing_format": true,
+      "cultural_vocabulary_used": true,
+      "sounds_like_alex": true
+    },
+    "gate_status": "pass",
+    "fail_reasons": []
+  },
+  "verified": true,
+  "timing": {
+    "classify": 5434,
+    "price": 1,
+    "context": 9,
+    "generateAndVerify": 62721,
+    "total": 68188
+  },
+  "confidence_score": 80
+}
+📋 Full draft copied to clipboard.

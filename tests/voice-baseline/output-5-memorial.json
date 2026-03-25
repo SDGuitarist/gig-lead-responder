@@ -1,0 +1,110 @@
+WARNING: PF_INTEL_API_URL or PF_INTEL_SERVER_API_KEY not set — venue context enrichment disabled
+{
+  "classification": {
+    "mode": "confirmation",
+    "action": "quote",
+    "vagueness": "clear",
+    "competition_level": "low",
+    "competition_quote_count": 1,
+    "stealth_premium": false,
+    "stealth_premium_signals": [],
+    "tier": "standard",
+    "rate_card_tier": "T2",
+    "lead_source_column": "D",
+    "price_point": "full_premium",
+    "format_requested": "classical guitar solo",
+    "format_recommended": "solo",
+    "duration_hours": 1,
+    "stated_budget": null,
+    "event_date_iso": "2026-04-05",
+    "timeline_band": "short",
+    "close_type": "direct",
+    "event_energy": "background",
+    "cultural_context_active": false,
+    "cultural_tradition": null,
+    "planner_effort_active": false,
+    "social_proof_active": false,
+    "context_modifiers": [
+      "celebration_of_life",
+      "emotionally_sensitive_event",
+      "outdoor_venue_natural_setting",
+      "deceased_was_guitarist_himself",
+      "client_explicitly_wants_presence_not_performance",
+      "meaningful_location_tied_to_deceased"
+    ],
+    "flagged_concerns": [
+      "outdoor_amplification_may_be_needed_at_Sunset_Cliffs_wind_and_ambient_noise",
+      "no_budget_stated_handle_pricing_with_sensitivity_given_grief_context",
+      "short_timeline_11_days_out"
+    ],
+    "venue_name": null,
+    "client_first_name": null
+  },
+  "pricing": {
+    "format": "solo",
+    "duration_hours": 1,
+    "tier_key": "T2D",
+    "anchor": 595,
+    "floor": 550,
+    "quote_price": 595,
+    "competition_position": "at anchor",
+    "budget": {
+      "tier": "none"
+    }
+  },
+  "drafts": {
+    "full_draft": "A celebration of life at Sunset Cliffs on April 5 — a place that clearly meant something to him, and music that feels like it belongs to him rather than to the occasion. That distinction matters, and the fact that you're looking for presence rather than performance tells me you understand exactly what this moment needs.\n\nThe thing that goes wrong at gatherings like this is a musician who treats it like a gig: a setlist, a volume they picked in a parking lot, music that performs at people instead of moving through them. What I do is different. I listen to the space before I play. I calibrate to the wind, the voices, the pauses. The guitar sits underneath the moment, not on top of it.\n\nSunset Cliffs is exposed, and sea wind can swallow an unamplified instrument — so I bring a small, unobtrusive sound system that adds just enough carry without changing the feeling of the space. It'll still feel like a man playing guitar at the edge of the water.\n\nFor one hour of solo classical guitar, the rate is $595. April 5 is close, so if you'd like to confirm the date, I can hold it for you now.\n\nAlex Guillen\n(619) 755-3246",
+    "compressed_draft": "A celebration of life at Sunset Cliffs on April 5 — music that feels like it belongs to him, not to the occasion. The fact that you want presence rather than performance tells me you know exactly what this moment calls for.\n\nSunset Cliffs is exposed, so I bring a small, unobtrusive system that gives the guitar just enough carry against the wind without changing the feeling of the space. Still feels like a man playing at the edge of the water.\n\nOne hour of solo classical guitar: $595. April 5 is close — I can hold the date for you now if that helps.\n\nAlex Guillen\n(619) 755-3246",
+    "compressed_word_count": 109
+  },
+  "gate": {
+    "validation_line": "The fact that you're looking for presence rather than performance tells me you understand exactly what this moment needs.",
+    "best_line": "It'll still feel like a man playing guitar at the edge of the water.",
+    "concern_traceability": [
+      {
+        "concern": "outdoor_amplification_may_be_needed_at_Sunset_Cliffs_wind_and_ambient_noise",
+        "draft_sentence": "Sunset Cliffs is exposed, and sea wind can swallow an unamplified instrument — so I bring a small, unobtrusive sound system that adds just enough carry without changing the feeling of the space."
+      },
+      {
+        "concern": "no_budget_stated_handle_pricing_with_sensitivity_given_grief_context",
+        "draft_sentence": "For one hour of solo classical guitar, the rate is $595."
+      },
+      {
+        "concern": "short_timeline_11_days_out",
+        "draft_sentence": "April 5 is close, so if you'd like to confirm the date, I can hold it for you now."
+      }
+    ],
+    "scene_quote": "It'll still feel like a man playing guitar at the edge of the water.",
+    "scene_type": "cinematic",
+    "competitor_test": false,
+    "gut_checks": {
+      "can_see_it": true,
+      "validated_them": true,
+      "named_fear": true,
+      "differentiated": true,
+      "preempted_questions": true,
+      "creates_relief": true,
+      "best_line_present": true,
+      "prose_flows": true,
+      "competitor_test": false,
+      "lead_specific_opening": true,
+      "budget_acknowledged": true,
+      "past_date_acknowledged": true,
+      "mariachi_pricing_format": true,
+      "cultural_vocabulary_used": true,
+      "sounds_like_alex": true
+    },
+    "gate_status": "pass",
+    "fail_reasons": []
+  },
+  "verified": true,
+  "timing": {
+    "classify": 6835,
+    "price": 1,
+    "context": 7,
+    "generateAndVerify": 31000,
+    "total": 37868
+  },
+  "confidence_score": 80
+}
+📋 Full draft copied to clipboard.

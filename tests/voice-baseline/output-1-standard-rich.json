@@ -1,0 +1,102 @@
+WARNING: PF_INTEL_API_URL or PF_INTEL_SERVER_API_KEY not set — venue context enrichment disabled
+{
+  "classification": {
+    "mode": "evaluation",
+    "action": "quote",
+    "vagueness": "clear",
+    "competition_level": "low",
+    "competition_quote_count": 2,
+    "stealth_premium": true,
+    "stealth_premium_signals": [
+      "Premium venue: The Lodge at Torrey Pines (luxury resort)",
+      "Saturday evening at named venue",
+      "Private terrace overlooking golf course and ocean"
+    ],
+    "tier": "premium",
+    "rate_card_tier": "T3",
+    "lead_source_column": "D",
+    "price_point": "full_premium",
+    "format_requested": "Spanish guitar, classical",
+    "format_recommended": "solo",
+    "duration_hours": 3,
+    "stated_budget": null,
+    "event_date_iso": "2026-05-17",
+    "timeline_band": "comfortable",
+    "close_type": "soft_hold",
+    "event_energy": "background",
+    "cultural_context_active": false,
+    "cultural_tradition": null,
+    "planner_effort_active": false,
+    "social_proof_active": false,
+    "context_modifiers": [
+      "Luxury venue with scenic ocean and golf course backdrop",
+      "Indoor/outdoor flow requires portable setup flexibility",
+      "Intimate milestone event — daughter's rehearsal dinner",
+      "No budget stated — premium venue signals strong spend capacity"
+    ],
+    "flagged_concerns": [
+      "No budget stated — quote confidently at T3 rates without anchoring low"
+    ],
+    "venue_name": "The Lodge at Torrey Pines",
+    "client_first_name": null
+  },
+  "pricing": {
+    "format": "solo",
+    "duration_hours": 3,
+    "tier_key": "T3D",
+    "anchor": 1200,
+    "floor": 1000,
+    "quote_price": 1200,
+    "competition_position": "at anchor",
+    "budget": {
+      "tier": "none"
+    }
+  },
+  "drafts": {
+    "full_draft": "The night before your daughter's wedding, on the terrace at Torrey Pines with the ocean behind you and the last light fading over the golf course, the music needs to feel inevitable, like it was always going to be there.\n\nChoosing live Spanish guitar for this particular evening says something about you: you know the difference between music that fills silence and music that actually holds a room.\n\nHere's the version of this that goes wrong: a guitarist who shows up, sets a volume, and plays through the entire evening at the same level whether the room is quiet or buzzing. The toasts happen over him. Someone has to walk over and ask him to turn down. That's not what this night deserves. What I do is read the room in real time, drop into the background when conversation picks up, let the guitar come forward in the quieter moments, and pause completely when someone stands up to speak.\n\nThe Lodge's terrace is one of the most naturally beautiful settings in San Diego. I'm fully self-contained, so there's no dependency on house power or venue infrastructure. That also means we're flexible if the evening flows indoors as the night cools.\n\nFor 3 hours of solo Spanish and classical guitar:\n\nSolo Classical/Spanish Guitar — 3 hours: $1,200\nIncludes professional sound, full setup and breakdown, and real-time calibration for the space.\n\nI can hold May 17 while you finalize things on your end. Just reply here or call me directly.\n\nAlex Guillen\n(619) 755-3246",
+    "compressed_draft": "The night before your daughter's wedding, on that terrace at Torrey Pines, the music needs to feel like it belongs there, not like something you had to coordinate.\n\nChoosing live guitar for this evening says you know the difference, and I want to make sure you get the version that actually delivers on that.\n\nI read the room in real time, pull back when toasts are happening, adjust volume as the evening shifts, and stay self-contained so there's no friction with the venue.\n\nSolo Classical/Spanish Guitar — 3 hours: $1,200\nIncludes professional sound, setup, breakdown, and on-site calibration.\n\nI can hold May 17 while you confirm details. Reply here or call me directly.\n\nAlex Guillen\n(619) 755-3246",
+    "compressed_word_count": 117
+  },
+  "gate": {
+    "validation_line": "Choosing live Spanish guitar for this particular evening says something about you: you know the difference between music that fills silence and music that actually holds a room.",
+    "best_line": "The toasts happen over him. Someone has to walk over and ask him to turn down. That's not what this night deserves.",
+    "concern_traceability": [
+      {
+        "concern": "No budget stated — quote confidently at T3 rates without anchoring low",
+        "draft_sentence": "Solo Classical/Spanish Guitar — 3 hours: $1,200"
+      }
+    ],
+    "scene_quote": "The night before your daughter's wedding, on the terrace at Torrey Pines with the ocean behind you and the last light fading over the golf course, the music needs to feel inevitable, like it was always going to be there.",
+    "scene_type": "cinematic",
+    "competitor_test": false,
+    "gut_checks": {
+      "can_see_it": true,
+      "validated_them": true,
+      "named_fear": true,
+      "differentiated": true,
+      "preempted_questions": true,
+      "creates_relief": true,
+      "best_line_present": true,
+      "prose_flows": true,
+      "competitor_test": false,
+      "lead_specific_opening": true,
+      "budget_acknowledged": true,
+      "past_date_acknowledged": true,
+      "mariachi_pricing_format": true,
+      "cultural_vocabulary_used": true,
+      "sounds_like_alex": true
+    },
+    "gate_status": "pass",
+    "fail_reasons": []
+  },
+  "verified": true,
+  "timing": {
+    "classify": 6447,
+    "price": 1,
+    "context": 11,
+    "generateAndVerify": 31982,
+    "total": 38463
+  },
+  "confidence_score": 90
+}
+📋 Full draft copied to clipboard.

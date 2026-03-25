@@ -1,0 +1,112 @@
+WARNING: PF_INTEL_API_URL or PF_INTEL_SERVER_API_KEY not set — venue context enrichment disabled
+Gate FAILED (attempt 1/3). Reasons: Scene is structural — the opening names the event details but never puts the reader inside a sensory moment. Rewrite with a cinematic image: e.g., 'Guitar drifting through an open window at dusk, your guests settling into the first course — that's the evening you're building.' Give it a specific time, sound, or physical detail the reader can see and hear.; can_see_it is false: no sentence in the draft creates a visualizable moment. The scene check and this gut check must be fixed together with the cinematic rewrite above.
+Rewriting with targeted instructions...
+Gate FAILED (attempt 2/3). Reasons: named_fear is false — the draft never acknowledges what could go wrong or what may have burned this client before (e.g., hiring someone cheap and regretting it on a milestone anniversary, or feeling dismissed when a budget is low); add one sentence that names the real underlying fear before delivering the pricing reality
+Rewriting with targeted instructions...
+Gate PASSED on attempt 3.
+{
+  "classification": {
+    "mode": "evaluation",
+    "action": "quote",
+    "vagueness": "clear",
+    "competition_level": "medium",
+    "competition_quote_count": 5,
+    "stealth_premium": true,
+    "stealth_premium_signals": [
+      "affluent zip: La Jolla (92037)",
+      "Saturday evening at named venue"
+    ],
+    "tier": "qualification",
+    "rate_card_tier": "T3",
+    "lead_source_column": "P",
+    "price_point": "full_premium",
+    "format_requested": "Spanish guitar",
+    "format_recommended": "solo",
+    "duration_hours": 2,
+    "stated_budget": 250,
+    "event_date_iso": "2026-04-19",
+    "timeline_band": "comfortable",
+    "close_type": "hesitant",
+    "event_energy": "background",
+    "cultural_context_active": false,
+    "cultural_tradition": null,
+    "planner_effort_active": false,
+    "social_proof_active": false,
+    "context_modifiers": [
+      "25th anniversary milestone",
+      "romantic dinner setting",
+      "intimate guest count",
+      "budget mismatch with premium location"
+    ],
+    "flagged_concerns": [
+      "stated budget of $250 is well below market rate for La Jolla private residence",
+      "budget mismatch may require gentle education on realistic pricing"
+    ],
+    "venue_name": null,
+    "client_first_name": null
+  },
+  "pricing": {
+    "format": "solo",
+    "duration_hours": 2,
+    "tier_key": "T3P",
+    "anchor": 795,
+    "floor": 750,
+    "quote_price": 795,
+    "competition_position": "at anchor, willing to flex",
+    "budget": {
+      "tier": "no_viable_scope",
+      "gap": 500
+    }
+  },
+  "drafts": {
+    "full_draft": "A 25th anniversary dinner in La Jolla on a Saturday evening — Spanish guitar is exactly the right call for that kind of night. The fact that you're thinking about live music for this tells me you want it to feel like more than a nice dinner.\n\nI want to be straight with you, because this milestone deserves honesty: my solo sets start at $500, and at $250 there's a real risk of booking someone who shows up underprepared, plays through the whole evening at whatever volume suits them, and leaves the room feeling like a restaurant on a Tuesday. That's not what a 25th anniversary should be.\n\nIf the budget can't stretch to $500, a thoughtfully curated playlist through a good Bluetooth speaker — something built around Spanish guitar and flamenco — can genuinely work for an intimate dinner. Or a local DJ who specializes in background ambience might land closer to your range.\n\nIf your budget shifts, I'd love to make that evening something they're still talking about.\n\nAlex Guillen",
+    "compressed_draft": "A 25th anniversary in La Jolla deserves this kind of attention. I want to be straight with you: my solo sets start at $500. At $250, the risk is booking someone who plays at whatever volume they feel like and never reads the room — not the memory you want from this night.\n\nIf the budget can't move, a curated Spanish guitar playlist or a background-focused DJ could work well for an intimate dinner. If it shifts, I'd love to help make it memorable.\n\nAlex Guillen",
+    "compressed_word_count": 86
+  },
+  "gate": {
+    "validation_line": "The fact that you're thinking about live music for this tells me you want it to feel like more than a nice dinner.",
+    "best_line": "That's not what a 25th anniversary should be.",
+    "concern_traceability": [
+      {
+        "concern": "stated budget of $250 is well below market rate for La Jolla private residence",
+        "draft_sentence": "my solo sets start at $500, and at $250 there's a real risk of booking someone who shows up underprepared, plays through the whole evening at whatever volume suits them, and leaves the room feeling like a restaurant on a Tuesday."
+      },
+      {
+        "concern": "budget mismatch may require gentle education on realistic pricing",
+        "draft_sentence": "If the budget can't stretch to $500, a thoughtfully curated playlist through a good Bluetooth speaker — something built around Spanish guitar and flamenco — can genuinely work for an intimate dinner."
+      }
+    ],
+    "scene_quote": "plays through the whole evening at whatever volume suits them, and leaves the room feeling like a restaurant on a Tuesday.",
+    "scene_type": "cinematic",
+    "competitor_test": false,
+    "gut_checks": {
+      "can_see_it": true,
+      "validated_them": true,
+      "named_fear": true,
+      "differentiated": true,
+      "preempted_questions": true,
+      "creates_relief": true,
+      "best_line_present": true,
+      "prose_flows": true,
+      "competitor_test": false,
+      "lead_specific_opening": true,
+      "budget_acknowledged": true,
+      "past_date_acknowledged": true,
+      "mariachi_pricing_format": true,
+      "cultural_vocabulary_used": true,
+      "sounds_like_alex": true
+    },
+    "gate_status": "pass",
+    "fail_reasons": []
+  },
+  "verified": true,
+  "timing": {
+    "classify": 5555,
+    "price": 1,
+    "context": 10,
+    "generateAndVerify": 107298,
+    "total": 112887
+  },
+  "confidence_score": 90
+}
+📋 Full draft copied to clipboard.
