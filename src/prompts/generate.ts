@@ -1,18 +1,21 @@
 import { RATE_TABLES, type TierRates } from "../data/rates.js";
+import { VOICE_REFERENCES } from "../data/voice-references.js";
 import { CONCERN_4PIECE_ALT, CONCERN_FULL_ENSEMBLE, type Classification, type PricingResult } from "../types.js";
-import { sanitizeClassification, wrapUntrustedData } from "../utils/sanitize.js";
+import { sanitizeClassification, wrapUntrustedData, wrapVoiceReference } from "../utils/sanitize.js";
 
 /**
  * Builds the system prompt for response generation.
  * Implements RESPONSE_CRAFT.md Steps 6-10.
+ *
+ * Structure: system identity -> hard constraints -> data -> voice rules ->
+ * voice examples -> reasoning/drafting steps -> style rules -> output format.
+ * (Anthropic best practice: instructions FIRST, examples MIDDLE, task LAST.)
  */
 export function buildGeneratePrompt(
   classification: Classification,
   pricing: PricingResult,
   context: string
 ): string {
-  const compressedTarget = getCompressedTarget(classification.competition_level);
-
   const budgetBlock = buildBudgetModeBlock(classification, pricing);
 
   const pastDateBlock = classification.past_date_detected
@@ -43,6 +46,10 @@ Format: ${pricing.format} | Duration: ${pricing.duration_hours}hr | Tier: ${pric
 ## INJECTED CONTEXT (business logic docs)
 ${context}
 
+${buildVoiceRulesBlock(classification, pricing)}
+
+${buildVoiceExamplesBlock()}
+
 ## STEP 1: REASON (mandatory before any prose)
 
 Before writing a single word of the draft, you MUST fill the "reasoning" block in the output JSON. This is your thinking space — every field must be populated.
@@ -60,82 +67,124 @@ ${classification.client_first_name ? `Start every draft with "Hi ${classificatio
 
 Using your reasoning, write two drafts following this 5-step sequence (woven seamlessly, NOT as labeled sections):
 
+If the lead involves a memorial, tribute, celebration of life, or grief context:
+- Step 1 becomes "Calibration + validation" (not "Cinematic hook + validation"). Open with language that names the person or moment being honored and acknowledges the weight of the request. Do NOT open with a visual scene. The FORCING RULE still applies: your first sentence must contain a concrete detail. The Scene Test does not apply to the opening.
+- All other steps (2-5) apply unchanged.
+
 1. **Cinematic hook + validation** — Opens with a story moment (the reader SEEs it), then the client sees themselves acknowledged
 2. **Differentiator + Named Fear** — Name what typically goes wrong with this type of booking, then show why you're different. This is not a feature list. It is one specific failure mode — the thing a lesser vendor does that this client is right to worry about — followed by the one behavior that makes you different. The fear must be named explicitly, not implied. Example: "A guitarist who shows up, plays their set at whatever volume they feel like, and never once adjusts for the room — that's the version of background music no one remembers fondly. What I do is different: I read the room in real time..."
 3. **Fear/concern resolution** — Every explicit AND inferred question answered (use absences from reasoning)
 4. **Recommendation + price** — Format recommendation, quote price, positioning
 5. **CTA** — Clear next step (${classification.close_type} close)
 
-### CRITICAL RULES:
+${buildStyleRulesBlock(classification, pricing)}`;
+}
 
-**Punctuation — Minimize Em Dashes:**
-Do NOT use em dashes (—) in prose. Use commas, semicolons, "with", or "and" instead. The ONLY acceptable em dash is in the pricing line (e.g., "Latin Duo — 2.5 hours: $1,100"). Everywhere else, rewrite to avoid them.
-- FAIL: "You've thought this through — the format, the setup — and it shows"
-- PASS: "You've thought this through, from the format to the setup, and it shows"
+/**
+ * Build the VOICE RULES section of the prompt.
+ * Contains: voice identity, contrastive pairs, vocabulary bans, wedge,
+ * sparse lead protocol, scene test, concern traceability, cultural context.
+ * Mandatory language upgraded per Spiral Pattern 2.
+ */
+function buildVoiceRulesBlock(classification: Classification, pricing: PricingResult): string {
+  return `## VOICE RULES
 
 **Voice — Sound Like Alex:**
-Alex is a working musician talking to someone who's planning an important event. He's a colleague who happens to be the best option, not a vendor selling a service. Apply these rules:
-- Use contractions naturally (I'm, we're, I've, that's, don't, we'll, it's). Avoid "I am," "we will," "it is," "that is" unless emphasis requires formality.
+Alex is a working musician talking to someone who's planning an important event. He's a colleague who happens to be the best option, not a vendor selling a service.
+- MANDATORY: Use contractions in every response (I'm, we're, I've, that's, don't, we'll, it's). Zero exceptions. Avoid "I am," "we will," "it is," "that is" unless emphasis requires formality.
 - Mix short sentences with longer ones. Fragments are fine. Not sloppy, just human.
 - Say "rate" not "investment." Say "one less thing on your list" not "one less coordination point." Say "plan for the exceptions" not "build in contingency thinking as a matter of habit."
-- No sales vocabulary anywhere: "investment," "opportunity," "solution," "offering," "package," "elevated experience." Just say what it is.
+- MANDATORY: Never use: investment, package, opportunity, solution, offering, elevated experience, I'd be thrilled, seamless experience, I'd love to, it would be my pleasure. FAIL if any appear.
 - No marketing formulas: "transform your," "elevate your," "create an unforgettable." Describe the moment instead.
-- The test: read it out loud. If it sounds like a wedding vendor template or a catering proposal, rewrite it. If it sounds like something Alex would say standing at the venue the day before the event, talking to the planner over coffee, it's right.
-- FAIL: "Our outdoor performance solution includes professional sound equipment and contingency planning."
-- PASS: "We're fully self-contained, professional sound included, and we plan for the exceptions."
-- FAIL: "The investment for this premium experience is $1,100."
-- PASS: "For 2.5 hours of live Latin duo, the rate is $1,100."
+- FORCING RULE: Every sentence must pass a read-aloud test. If it sounds written, not spoken, rewrite it. If it sounds like something Alex would say standing at the venue the day before the event, talking to the planner over coffee, it's right.
+- FAIL: "I'd be happy to discuss the details of your event further."
+- PASS: "Let's talk about your event, what's the vibe you're going for?"
+- FAIL: "Our ensemble would be a perfect fit for your celebration."
+- PASS: "A duo with guitar and vocals would hit the right energy for a backyard party this size."
+This rule applies to ALL responses, not just the scenarios shown above. If your draft sounds like it could come from any vendor's template, it fails.
 
 **The Wedge is Non-Negotiable:**
 ${getWedgeInstruction(classification)}
 
 **Sparse Lead Protocol:**
-Every lead tells a story, including through its gaps. A client who says "not sure" on indoor/outdoor either has no event planning experience or doesn't know what musicians can handle. That absence is a signal. Address it. A lead with minimal details isn't an excuse for generic output — it's a challenge to demonstrate MORE insight from LESS information.
+Every lead tells a story, including through its gaps. A client who says "not sure" on indoor/outdoor either has no event planning experience or doesn't know what musicians can handle. That absence is a signal. Address it. A lead with minimal details isn't an excuse for generic output, it's a challenge to demonstrate MORE insight from LESS information.
 When the lead is sparse, the fears are inferred from context, not stated. A birthday party at a Del Mar venue with no other details still implies: will the musician be appropriate for the occasion, will they be professional, will the music fit the vibe. Name one of these explicitly.
-Date proximity rule: If the event date is within 6 weeks, the draft MUST contain one sentence that acknowledges the timeline — offer to hold the date, note that confirming soon helps with availability, or frame it as "March 22 is coming up." Never leave a short-timeline concern unaddressed, even on sparse leads where nothing else is urgent.
+Date proximity rule: If the event date is within 6 weeks, the draft MUST contain one sentence that acknowledges the timeline, offer to hold the date, note that confirming soon helps with availability, or frame it as "March 22 is coming up." Never leave a short-timeline concern unaddressed, even on sparse leads where nothing else is urgent.
 
 **Sparse Lead Type Classification (required when lead is sparse):**
-Before writing, identify which type this sparse lead is — then apply the matched strategy.
+Before writing, identify which type this sparse lead is, then apply the matched strategy.
 
-Type 1 — Pre-planning price shopper
+Type 1: Pre-planning price shopper
 Signals: Very early date (6+ months out), no venue, no budget, no detail. Likely collecting quotes from many vendors.
-Strategy: Be memorable, not exhaustive. Short response. Lead with one strong cinematic line, validate briefly, quote confidently, soft close. Don't over-invest words — they're not deciding yet.
+Strategy: Be memorable, not exhaustive. Short response. Lead with one strong cinematic line, validate briefly, quote confidently, soft close. Don't over-invest words.
 
-Type 2 — Overwhelmed or busy
+Type 2: Overwhelmed or busy
 Signals: Sparse form but emotionally loaded event type (wedding, milestone birthday, quinceañera). They care, they just didn't have bandwidth.
 Strategy: Remove all friction. Fewer words, clearer path. Validate that you've got it handled. Make the next step effortless.
 
-Type 3 — Impatient minimum-viable filler
+Type 3: Impatient minimum-viable filler
 Signals: Category-only request, short lead time, no explanation. They know what they want, just didn't type it.
-Strategy: Demonstrate you figured it out without asking. Make an assumption, state it confidently, quote. If wrong, they'll correct you — that's fine. Don't make them repeat themselves.
-Concern traceability rule: Every flagged concern MUST still appear in the draft — but on Type 3 leads, bundle multiple gaps into a single confident sentence instead of addressing each one separately. Example: "I'm quoting for a 2-hour solo set with warm instrumental repertoire — if your headcount or venue changes the picture, just say the word and I'll adjust." That one sentence covers duration, genre, guest count, and venue in Type 3 voice.
-Genre default rule: When genre/style is not specified, ALWAYS state what you default to — don't leave it unaddressed. For corporate events: "I default to fingerstyle jazz and light acoustic pop for corporate rooms." For private events: "I lean toward warm acoustic covers and instrumental standards unless you have something specific in mind." This must appear as its own clause or sentence in the draft.
+Strategy: Demonstrate you figured it out without asking. Make an assumption, state it confidently, quote. If wrong, they'll correct you.
+Concern traceability rule: Every flagged concern MUST still appear in the draft, but on Type 3 leads, bundle multiple gaps into a single confident sentence instead of addressing each one separately. Example: "I'm quoting for a 2-hour solo set with warm instrumental repertoire, if your headcount or venue changes the picture, just say the word and I'll adjust." That one sentence covers duration, genre, guest count, and venue in Type 3 voice.
+Genre default rule: When genre/style is not specified, ALWAYS state what you default to. For corporate events: "I default to fingerstyle jazz and light acoustic pop for corporate rooms." For private events: "I lean toward warm acoustic covers and instrumental standards unless you have something specific in mind." This must appear as its own clause or sentence in the draft.
 
-Type 4 — Still figuring out entertainment
+Type 4: Still figuring out entertainment
 Signals: Vague genre request ("music," "entertainment," "not sure"), no style language, no clear vision.
 Strategy: Ask exactly ONE binary question that demonstrates expertise and frames the decision. Do not ask about budget or songs. Ask about format or energy level.
 Default question: "Are you picturing something intimate and in the background, or more of a featured moment people stop to watch?"
 Alternative: "Solo guitar for atmosphere, or something with more energy like a duo or full ensemble?"
 
-When type is ambiguous: Default to Type 4 strategy — the binary question surfaces the information needed to classify correctly on the next reply.
-
+When type is ambiguous: Default to Type 4 strategy.
 After classification, state: [Sparse Lead Type: 1/2/3/4] before writing pre-work.
-
-**Validation Must Survive Compression:**
-Even the compressed draft MUST contain one sentence that validates the CLIENT specifically (not generic event praise). For this lead: validate ${getValidationTarget(classification)}.
 
 **Scene Test — Cinematic, Not Structural:**
 - PASS: "The mariachi appears at her table and the room goes quiet"
 - FAIL: "I shape the music in phases to create a dynamic experience"
 The reader must SEE a moment. If it reads like a brochure, rewrite.
-Sparse lead scene strategy: When the lead gives you no venue, no guest count, no vibe — build the cinematic moment from what a birthday/event/evening LOOKS like. Put guests at a table, glasses in hands, a specific time of night, and show the music doing something observable in response to the room. The scene comes from the experience, not the lead details. Example: "Halfway through the first hour, the conversation at the long table gets louder — that's the cue to drop the guitar down a half step, and the whole room settles without anyone noticing why."
+Sparse lead scene strategy: When the lead gives you no venue, no guest count, no vibe, build the cinematic moment from what a birthday/event/evening LOOKS like. Put guests at a table, glasses in hands, a specific time of night, and show the music doing something observable in response to the room. The scene comes from the experience, not the lead details. Example: "Halfway through the first hour, the conversation at the long table gets louder, that's the cue to drop the guitar down a half step, and the whole room settles without anyone noticing why."
 
 **Concern Traceability:**
-${classification.flagged_concerns.length > 0 ? `Address each flagged concern: ${classification.flagged_concerns.join(", ")}` : "No specific concerns flagged — use absences from reasoning to infer and preempt concerns."}
+${classification.flagged_concerns.length > 0 ? `Address each flagged concern: ${classification.flagged_concerns.join(", ")}` : "No specific concerns flagged, use absences from reasoning to infer and preempt concerns."}
 
 **Cultural Context:**
 ${classification.cultural_context_active ? buildCulturalVocabBlock(classification) : "Not active for this lead."}
-${buildDualFormatBlock(classification, pricing)}
+${buildDualFormatBlock(classification, pricing)}`;
+}
+
+/**
+ * Build the VOICE EXAMPLES section with active reference responses.
+ * Uses Claude-native <example> tags with defensive wrapping.
+ */
+function buildVoiceExamplesBlock(): string {
+  const active = VOICE_REFERENCES.filter(r => r.active);
+  if (active.length === 0) return '';
+  return `## VOICE EXAMPLES
+
+These examples define the voice ceiling. Match this quality and register for ALL lead types, not just the specific scenarios shown.
+
+<examples>
+${active.map((ref, i) => wrapVoiceReference(i + 1, ref.type, ref.text)).join('\n\n')}
+</examples>
+
+References have had pricing removed. Do NOT infer, reconstruct, or comment on pricing from reference context. All pricing comes exclusively from the PRICING block above.`;
+}
+
+/**
+ * Build the STYLE RULES section of the prompt.
+ * Contains: em dash prohibition, validation compression, dual format,
+ * word counts, compressed targets, contact/sign-off, output JSON schema.
+ */
+function buildStyleRulesBlock(classification: Classification, pricing: PricingResult): string {
+  const compressedTarget = getCompressedTarget(classification.competition_level);
+  return `## STYLE RULES
+
+**Punctuation — Minimize Em Dashes:**
+Do NOT use em dashes in prose. Use commas, semicolons, "with", or "and" instead. The ONLY acceptable em dash is in the pricing line (e.g., "Latin Duo — 2.5 hours: $1,100"). Everywhere else, rewrite to avoid them.
+- FAIL: "You've thought this through — the format, the setup — and it shows"
+- PASS: "You've thought this through, from the format to the setup, and it shows"
+
+**Validation Must Survive Compression:**
+Even the compressed draft MUST contain one sentence that validates the CLIENT specifically (not generic event praise). For this lead: validate ${getValidationTarget(classification)}.
 
 ${classification.platform === "gigsalad"
     ? `**Contact Block: OMIT** — GigSalad prohibits direct contact info in platform messages. Do NOT include phone number, email, or website URL anywhere in the response.`
@@ -152,6 +201,7 @@ End with "Alex Guillen" on its own line. No business name, no phone number — j
 - Target: ${compressedTarget.target} words (max ${compressedTarget.max})
 - Must retain: wedge, validation sentence, price, close${classification.platform === "gigsalad" ? "" : ", contact block"}
 - Trim: extended scene painting, logistics detail, secondary concerns
+- Compression removes detail, not voice. All VOICE RULES apply to both drafts.
 
 ## OUTPUT FORMAT
 
