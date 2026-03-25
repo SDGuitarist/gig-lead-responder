@@ -83,16 +83,17 @@ The 8 references described in the Spiral research report do NOT exist as text in
 - [ ] Select initial 3-5 references that are diverse in lead type but consistent in voice (Anthropic: "vary enough that Claude doesn't pick up unintended patterns"). Prioritize real converted responses. Put the strongest example last in the array (recency bias within examples).
 - [ ] Save all 8 to `src/data/voice-references.ts`; mark which 3-5 are active
 
-**0B. Measure token budget**
+**0B. Measure token budget -- COMPLETE**
 
-The repo has no tokenizer package. Use the Anthropic API's own token count instead:
-- [ ] Temporarily add `console.log(JSON.stringify(response.usage))` after the `callClaude` call in `src/claude.ts` (revert after measurement)
-- [ ] Run `npm run demo` with a worst-case lead (cultural + large-budget-gap + past-date + GigSalad) and read `usage.input_tokens` from the log output
-- [ ] That number is the current worst-case baseline (no references added yet)
-- [ ] Estimate delta for 3-5 references: count characters of the selected reference texts, divide by 4 for a rough token estimate, add ~150 tokens for XML wrapping and guard instructions
-- [ ] If projected worst-case (baseline + reference delta) exceeds 12K input tokens, reduce to 3 active references. This is a static reduction (fewer `active: true` entries), NOT dynamic per-lead selection.
-- [ ] Revert the temporary logging change in `src/claude.ts`
-- [ ] Performance estimate: current worst-case is ~11K tokens. 3-5 references add ~500 tokens average. Worst case with 5 refs: ~12.2K (borderline). Worst case with all 8: ~13.3K (exceeds threshold).
+Measured via temporary `console.log` of `response.usage` in `src/claude.ts`, reverted after measurement. Used quinceanera worst-case lead (all conditional blocks active).
+
+- [x] Worst-case generate prompt: **14,967 input tokens** (baseline, no references)
+- [x] Classify prompt: 2,479 tokens. Verify prompt: ~2,700 tokens.
+- [x] The prior estimate of ~11K was 35% low (word-to-token ratio ~1.7x, not 1.3x)
+- [x] Pipeline already works at ~15K tokens -- verify gate passed, output quality acceptable
+- [x] Adding 3-5 references (~300-650 tokens) is a 2-4% increase over an already-working baseline
+- [x] Temporary logging reverted. `src/claude.ts` is clean.
+- **Decision:** No static reduction needed. Start with 3-5 active references. Validate in Phase 3.
 
 **0C. Baseline voice quality**
 - [ ] Run 5 test leads (standard rich, cultural, sparse, budget mismatch, memorial)
@@ -304,19 +305,22 @@ If the lead involves a memorial, tribute, or grief context:
 
 ## Technical Considerations
 
-**Token budget (updated with performance analysis):**
+**Token budget (MEASURED -- Phase 0B complete):**
 
-| Scenario | Est. Tokens | Status |
+Actual measurement using `usage.input_tokens` from the Anthropic API on the quinceanera worst-case lead (cultural + budget mismatch + past date + GigSalad -- all conditional blocks active):
+
+| Scenario | Actual Tokens | Status |
 |---|---|---|
-| Current worst-case (all conditional blocks) | ~11,100 | Baseline |
-| + 3 references (~300 tokens) | ~11,700 | Under 12K |
-| + 5 references (~650 tokens) | ~12,250 | Borderline |
-| + 8 references (~1,300 tokens) | ~13,300 | **Exceeds 12K** |
-| + new prompt sections (~400 tokens) | +400 to above | Additional overhead |
+| **Current worst-case (measured)** | **14,967** | Baseline -- already well above the estimated ~11K |
+| + 3 references (~300 tokens) | ~15,267 | +2% over baseline |
+| + 5 references (~650 tokens) | ~15,617 | +4% over baseline |
+| + 8 references (~1,300 tokens) | ~16,267 | +9% over baseline |
 
-**Recommendation:** Start with 3-5 active references. Measure with `usage.input_tokens` from the API in Phase 0B. If 5 puts worst-case over 12K, reduce to 3 active (static `active` flag change). All 8 stored in corpus for future use if context docs are trimmed.
+The prior word-count estimates were 35% low (actual word-to-token ratio ~1.7x, not 1.3x). The pipeline already works at ~15K tokens on this worst-case lead (verify gate passed on retry, output quality acceptable). Adding 3-5 references is a marginal increase (~2-4%), not the step function the earlier estimates implied.
 
-**Future optimization:** After voice integration ships and is validated, audit RESPONSE_CRAFT.md (1,457 words) and PRINCIPLES.md (1,161 words) for redundancy with the reference examples. Could recover 500-1,000 tokens of headroom.
+**Revised recommendation:** The 12K threshold is moot -- the pipeline already exceeds it and produces good output. Start with 3-5 active references. If Phase 3 validation shows quality degradation on worst-case leads, reduce. The original concern about "silent quality degradation at 12K" does not apply since the baseline is already ~15K.
+
+**Future optimization still valuable:** Auditing RESPONSE_CRAFT.md (1,457 words) and PRINCIPLES.md (1,161 words) for redundancy with reference examples could recover 500-1,000 tokens. This becomes more important if references are increased to 8.
 
 **Cost/latency impact:** Negligible. +$0.007/call worst case. +0.5-1s TTFT on an async pipeline. No concern.
 
