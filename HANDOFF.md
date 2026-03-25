@@ -1,75 +1,94 @@
-# HANDOFF — Gig Lead Responder
+# HANDOFF -- Gig Lead Responder
 
-**Date:** 2026-03-15
+**Date:** 2026-03-25
 **Branch:** `main`
-**Phase:** Compound complete. Cycle done.
+**Phase:** Plan review applied. Ready for Work.
 
 ## Current State
 
-LLM pipeline prompt injection hardening cycle complete (brainstorm → plan →
-plan review → work → review → compound). PR #17 merged. 84 tests pass.
-Solution doc #39 written. All learning surfaces updated.
+Spiral Voice Integration plan revised after Codex-style review. Five
+contradictions resolved:
+
+1. **Memorial-lead conflict** -- Specified exactly which rules are exempted
+   (scene test, cinematic hook) and which still apply (wedge FORCING RULE,
+   word counts). Added rule-by-rule override table and implementation block.
+2. **Token-budget contradiction** -- Removed "matched per lead type" fallback.
+   Fallback is now static: reduce `active` flag count, no dynamic selection.
+   Dynamic selection stays in Deferred Items.
+3. **Token-counting path** -- Named the exact method: temporary `console.log`
+   of `response.usage` in `src/claude.ts`, read `usage.input_tokens` from
+   `npm run demo` output. No new dependency needed.
+4. **Prompt-size logging scope** -- Moved permanent logging to Deferred Items.
+   Phase 0B temporary logging covers this cycle.
+5. **Quality gate** -- Added risk row and acceptance criteria note: manual
+   5-lead review is a stopgap, not a replacement for automated voice-regression
+   detection. If results are positive, verify gate upgrades become next priority.
 
 ## Key Artifacts
 
+| Phase | Location |
+|-------|----------|
+| Brainstorm | `docs/brainstorms/2026-03-25-spiral-voice-integration-brainstorm.md` |
+| Plan (deepened + reviewed) | `docs/plans/2026-03-25-feat-spiral-voice-integration-plan.md` |
+| Research | `docs/research/2026-03-22-spiral-methodology-report.md` |
+
+### Previous Cycle (Prompt Injection Hardening)
 | Phase | Location |
 |-------|----------|
 | Brainstorm | `docs/brainstorms/2026-03-15-llm-pipeline-prompt-injection-review-brainstorm.md` |
 | Plan | `docs/plans/2026-03-15-fix-llm-pipeline-prompt-injection-plan.md` |
 | Solution | `docs/solutions/prompt-engineering/2026-03-15-llm-pipeline-prompt-injection-hardening.md` |
 
-## Next Major Initiative: Spiral Voice Integration
-
-The Spiral Gig Responder system is the most advanced lead response system built to date. 22 knowledge docs, 8 reference responses, 17 tests, 18/18 capabilities at 90%+. It produces higher-quality, more consistent responses than the pipeline's current generate stage. The goal is to integrate Spiral's response quality into this pipeline's automation.
-
-**What Spiral has that the pipeline doesn't:**
-- 8 real/verified reference responses that trained voice (pipeline loads RESPONSE_CRAFT.md as context, not trained on actual converted responses)
-- Three-layer reinforcement hierarchy: references (voice ceiling), style guide (format + prohibitions), knowledge docs (domain judgment)
-- 7 proven patterns for how rules must be structured to fire consistently (mandatory language, control tests, negative examples)
-- Differentiation capability pushed to 95% through reference demonstration, not instruction
-
-**Key integration questions (brainstorm these first):**
-- How does Spiral's three-layer reinforcement hierarchy map onto the pipeline's prompt architecture (classify/context/generate/verify)?
-- Where do the two systems' rules conflict or overlap? (e.g., pricing logic is deterministic code in the pipeline but LLM-interpreted in Spiral)
-- Should the 8 reference responses become few-shot examples in the generate prompt, or a separate context document?
-- Pattern 4 (style guide controls format, knowledge base controls content) has implications for how generate.ts structures its prompt
-- Pattern 2 (mandatory language) means the pipeline's prompt wording for genre correction and stealth premium must match Spiral's proven phrasing
-
-**Reference:** `docs/research/2026-03-22-spiral-methodology-report.md` (full methodology, all 17 tests, 7 patterns)
-
 ## Deferred Items
 
-- **full_draft length cap** — no max length on full_draft (deferred from review, add MAX_FULL_DRAFT_LENGTH)
-- **Entry-point SMS length limit** — twilio-webhook.ts has no SMS length guard (200-char truncation in generate.ts sufficient)
-- **linked_expectations git diff enforcement** — plan-time only, no post-work verification
-- **linked_expectations global registry** — 15+ real pairs, per-plan only
-- **Accessibility review** — never reviewed
-- **External Basic Auth POST client verification** — rollout risk unverified
-- **Helmet security headers** — never landed on main (was in PR #3, closed as stale Mar 17)
-- **cookie-parser middleware** — same PR #3, never merged
-- **Error sanitization in server.ts/api.ts/twilio-webhook.ts/post-pipeline.ts** — same PR #3
-- **Layer 1 venue lookup integration** — PF-Intel endpoint deployed, gig-lead-responder side never built. Needs fresh brainstorm.
+- **Verify gate voice upgrades** -- YAGNI for now. When pursued, `buildVerifyPrompt` needs third parameter `voiceContext?`. Follow no-op gut check pattern in `types.ts`.
+- **All-8-references mode** -- If context docs trimmed post-validation, re-evaluate all 8 under 12K.
+- **Dynamic reference selection by lead type** -- Only build if a future need arises; current scope uses static `active` flags.
+- **Permanent prompt size logging** -- Add to `src/pipeline/generate.ts` after this feature ships. Phase 0B temporary logging covers this cycle.
+- **full_draft length cap** -- no max length on full_draft
+- **Entry-point SMS length limit** -- twilio-webhook.ts has no SMS length guard
+- **linked_expectations git diff enforcement** -- plan-time only
+- **linked_expectations global registry** -- 15+ real pairs, per-plan only
+- **Accessibility review** -- never reviewed
+- **External Basic Auth POST client verification** -- rollout risk unverified
+- **Helmet security headers** -- never landed (PR #3 closed stale)
+- **cookie-parser middleware** -- same PR #3
+- **Error sanitization in server.ts/api.ts/twilio-webhook.ts/post-pipeline.ts** -- same PR #3
+- **Layer 1 venue lookup integration** -- PF-Intel endpoint deployed, gig-lead-responder side never built
 
-## Three Questions
+## Three Questions (Plan Review Phase)
 
-1. **Hardest pattern to extract?** The distinction between `wrapUntrustedData`
-   (for data) and `wrapEditInstructions` (for actionable input). Both use XML
-   delimiters, but the IMPORTANT suffix has different semantics.
+1. **Hardest decision in this session?** How much detail to specify for the
+   memorial-lead override. Too little and the implementer guesses; too much
+   and we're writing code in a plan doc. The rule-by-rule table with "still
+   applies / exempt / rewritten" is the right granularity.
 
-2. **What was left out?** A full taxonomy of prompt injection attack types.
-   Left out because it would be stale within months. The prevention checklist
-   is more durable.
+2. **What did you reject, and why?** Adding dynamic per-lead-type reference
+   selection to resolve the token-budget fallback. This would have been the
+   "correct" long-term solution but adds classification-aware logic to
+   `buildVoiceExamplesBlock`, changing its signature and adding test surface.
+   Static `active` flags are simpler and sufficient for this cycle.
 
-3. **What might future sessions miss?** New pipeline entry points that bypass
-   sanitize.ts utilities entirely. A lint rule checking that all `callClaude`
-   callers use a wrapper would be stronger than a checklist.
+3. **Least confident about going into the next phase?** Memorial-lead
+   detection. The plan says "inferred from classification fields" but there
+   is no explicit `is_memorial` boolean in the Classification type. The
+   implementer must decide how to detect memorial context from `event_type`,
+   `flagged_concerns`, and `context_modifiers`. This is the one place where
+   a design decision remains in the work phase.
 
 ## Prompt for Next Session
 
 ```
-Read HANDOFF.md for context. This is Gig Lead Responder, an LLM-powered lead
-response pipeline for a live music booking business. LLM pipeline injection
-hardening cycle just completed (PR #17). 84 tests pass, 39 solution docs.
-Pick from deferred items: full_draft length cap, accessibility review,
-linked_expectations git diff enforcement, or start a new feature.
+Read docs/plans/2026-03-25-feat-spiral-voice-integration-plan.md.
+Implement Phase 0 (prerequisites). Relevant files:
+- src/data/voice-references.ts (new, pure data)
+- src/utils/sanitize.ts (add wrapVoiceReference)
+- src/claude.ts (temporary logging for token measurement, revert after)
+
+Hard blocker: Alex must provide/approve the 8 reference response texts first.
+If references are not yet available, skip to Phase 0B (token measurement with
+placeholder text) and Phase 0C (baseline voice quality on current pipeline).
+
+Feed-Forward risk: optimal example count (3-5 vs more) not knowable until
+Phase 3 validation. Start with 3-5 active.
 ```
