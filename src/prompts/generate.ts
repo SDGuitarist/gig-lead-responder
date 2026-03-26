@@ -1,6 +1,6 @@
 import { RATE_TABLES, type TierRates } from "../data/rates.js";
 import { VOICE_REFERENCES } from "../data/voice-references.js";
-import { CONCERN_4PIECE_ALT, CONCERN_FULL_ENSEMBLE, type Classification, type PricingResult } from "../types.js";
+import { CONCERN_4PIECE_ALT, CONCERN_FULL_ENSEMBLE, GUT_CHECK_KEYS, GUT_CHECK_THRESHOLD, GUT_CHECK_TOTAL, type Classification, type PricingResult } from "../types.js";
 import { sanitizeClassification, wrapUntrustedData, wrapVoiceReference } from "../utils/sanitize.js";
 
 /**
@@ -77,7 +77,14 @@ If the lead involves a memorial, tribute, celebration of life, or grief context:
 4. **Recommendation + price** — Format recommendation, quote price, positioning
 5. **CTA** — Clear next step (${classification.close_type} close)
 
-${buildStyleRulesBlock(classification, pricing)}`;
+${buildStyleRulesBlock(classification, pricing)}
+
+## EVALUATOR CHECKLIST (what you will be graded on)
+
+Your draft will be evaluated on these ${GUT_CHECK_TOTAL} checks. At least ${GUT_CHECK_THRESHOLD} must pass:
+${GUT_CHECK_KEYS.map(k => `- ${k}`).join("\n")}
+
+Before finalizing, mentally scan your draft against this list.`;
 }
 
 /**

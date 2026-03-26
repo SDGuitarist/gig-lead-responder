@@ -1,6 +1,6 @@
 import { callClaude } from "../claude.js";
 import { buildVerifyPrompt } from "../prompts/verify.js";
-import { generateResponse } from "./generate.js";
+import { generateResponse, type PositiveSignals } from "./generate.js";
 import type { Classification, Drafts, GateResult, PricingResult } from "../types.js";
 
 const validateGateResult = (raw: unknown): GateResult => {
@@ -55,7 +55,11 @@ export async function runWithVerification(
     console.warn(`Gate FAILED (attempt ${attempt}/${maxRetries + 1}). Reasons: ${gate.fail_reasons.join("; ")}`);
     console.warn("Rewriting with targeted instructions...");
 
-    drafts = await generateResponse(classification, pricing, context, gate.fail_reasons);
+    const keepSignals: PositiveSignals = {
+      best_line: gate.best_line,
+      validation_line: gate.validation_line,
+    };
+    drafts = await generateResponse(classification, pricing, context, gate.fail_reasons, keepSignals);
     gate = await verifyGate(drafts, classification, pricing);
 
     if (gate.gate_status === "pass") {

@@ -37,6 +37,14 @@ export async function selectContext(
   const pricing = await readDoc("PRICING_TABLES.md", true);
   sections.push(`## PRICING REFERENCE\n\n${pricing}`);
 
+  // Venue intelligence from PF-Intel — placed high when it has real data
+  // because lead-specific context should get more attention weight than generic docs.
+  const formattedVenue = venueContext ? formatVenueContext(venueContext) : null;
+  if (formattedVenue) {
+    sections.push(formattedVenue
+      + "\n\n**How to use this:** Venue intel is your insider edge. If there are past events, reference the venue's track record in your cinematic opening or differentiator (e.g., \"I've played this room before\" or \"events at [venue] tend to...\"). If there are vendor policies (curfew, dB limits, setup rules), preempt logistics concerns by naming them before the client asks. If there are contacts, mention coordination will be smooth.");
+  }
+
   // Always include — optional
   const principles = await readDoc("PRINCIPLES.md", false);
   if (principles) {
@@ -55,15 +63,8 @@ export async function selectContext(
     }
   }
 
-  // Conditional: venue intelligence from PF-Intel
-  if (venueContext) {
-    const formatted = formatVenueContext(venueContext);
-    if (formatted) {
-      sections.push(formatted);
-    } else {
-      sections.push("## VENUE CONTEXT\n\nVenue identified but no actionable intelligence available yet.");
-    }
-  } else {
+  // No venue data — minimal note, no wasted tokens
+  if (!formattedVenue) {
     sections.push("## VENUE CONTEXT\n\nNo venue intelligence available for this lead.");
   }
 
