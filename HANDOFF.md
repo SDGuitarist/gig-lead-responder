@@ -1,28 +1,32 @@
 # HANDOFF -- Gig Lead Responder
 
-**Date:** 2026-03-25
+**Date:** 2026-03-29
 **Branch:** `main`
-**Phase:** Plan review applied. Ready for Work.
+**Phase:** Work in progress. Phase 3 validation outputs collected, awaiting Alex's voice quality ratings.
 
 ## Current State
 
-Spiral Voice Integration plan revised after Codex-style review. Five
-contradictions resolved:
+Spiral Voice Integration work phase nearly complete. Phases 0-2 done, Phase 3
+validation outputs generated. All 5 test leads pass gates, prices match exactly,
+no regressions. Waiting on Alex to rate before/after drafts 1-5 on voice quality.
 
-1. **Memorial-lead conflict** -- Specified exactly which rules are exempted
-   (scene test, cinematic hook) and which still apply (wedge FORCING RULE,
-   word counts). Added rule-by-rule override table and implementation block.
-2. **Token-budget contradiction** -- Removed "matched per lead type" fallback.
-   Fallback is now static: reduce `active` flag count, no dynamic selection.
-   Dynamic selection stays in Deferred Items.
-3. **Token-counting path** -- Named the exact method: temporary `console.log`
-   of `response.usage` in `src/claude.ts`, read `usage.input_tokens` from
-   `npm run demo` output. No new dependency needed.
-4. **Prompt-size logging scope** -- Moved permanent logging to Deferred Items.
-   Phase 0B temporary logging covers this cycle.
-5. **Quality gate** -- Added risk row and acceptance criteria note: manual
-   5-lead review is a stopgap, not a replacement for automated voice-regression
-   detection. If results are positive, verify gate upgrades become next priority.
+generate.ts has been modified since last session (evaluator checklist section
+added, GUT_CHECK imports from types.ts). This change is committed.
+
+### What's Done
+- Phase 0A: 8 voice references curated in `src/data/voice-references.ts` (5 active)
+- Phase 0B: Token measurement (14,967 baseline, 12K threshold moot)
+- Phase 0C: 5 baseline leads in `tests/voice-baseline/`
+- Phase 1: `wrapVoiceReference()` in `src/utils/sanitize.ts`
+- Phase 2: Prompt restructured (VOICE RULES / VOICE EXAMPLES / STYLE RULES)
+- Phase 3 outputs: 5 "after" leads in `tests/voice-after/`
+- Readable comparison: `tests/voice-comparison.txt`
+
+### What Remains
+1. Alex rates before/after drafts 1-5 (voice quality 1-5 scale)
+2. If no regressions: commit comparison file, update plan as complete
+3. Close work phase: update HANDOFF, generate Codex review handoff
+4. Next phase: Review (Codex first, then Claude Code)
 
 ## Key Artifacts
 
@@ -31,20 +35,17 @@ contradictions resolved:
 | Brainstorm | `docs/brainstorms/2026-03-25-spiral-voice-integration-brainstorm.md` |
 | Plan (deepened + reviewed) | `docs/plans/2026-03-25-feat-spiral-voice-integration-plan.md` |
 | Research | `docs/research/2026-03-22-spiral-methodology-report.md` |
-
-### Previous Cycle (Prompt Injection Hardening)
-| Phase | Location |
-|-------|----------|
-| Brainstorm | `docs/brainstorms/2026-03-15-llm-pipeline-prompt-injection-review-brainstorm.md` |
-| Plan | `docs/plans/2026-03-15-fix-llm-pipeline-prompt-injection-plan.md` |
-| Solution | `docs/solutions/prompt-engineering/2026-03-15-llm-pipeline-prompt-injection-hardening.md` |
+| Voice references | `src/data/voice-references.ts` |
+| Baseline outputs | `tests/voice-baseline/` |
+| After outputs | `tests/voice-after/` |
+| Comparison (readable) | `tests/voice-comparison.txt` |
 
 ## Deferred Items
 
 - **Verify gate voice upgrades** -- YAGNI for now. When pursued, `buildVerifyPrompt` needs third parameter `voiceContext?`. Follow no-op gut check pattern in `types.ts`.
 - **All-8-references mode** -- If context docs trimmed post-validation, re-evaluate all 8 under 12K.
 - **Dynamic reference selection by lead type** -- Only build if a future need arises; current scope uses static `active` flags.
-- **Permanent prompt size logging** -- Add to `src/pipeline/generate.ts` after this feature ships. Phase 0B temporary logging covers this cycle.
+- **Permanent prompt size logging** -- Add to `src/pipeline/generate.ts` after this feature ships.
 - **full_draft length cap** -- no max length on full_draft
 - **Entry-point SMS length limit** -- twilio-webhook.ts has no SMS length guard
 - **linked_expectations git diff enforcement** -- plan-time only
@@ -56,39 +57,35 @@ contradictions resolved:
 - **Error sanitization in server.ts/api.ts/twilio-webhook.ts/post-pipeline.ts** -- same PR #3
 - **Layer 1 venue lookup integration** -- PF-Intel endpoint deployed, gig-lead-responder side never built
 
-## Three Questions (Plan Review Phase)
+## Three Questions (Work Phase)
 
-1. **Hardest decision in this session?** How much detail to specify for the
-   memorial-lead override. Too little and the implementer guesses; too much
-   and we're writing code in a plan doc. The rule-by-rule table with "still
-   applies / exempt / rewritten" is the right granularity.
+1. **Hardest implementation decision in this session?** How to handle the
+   evaluator checklist addition to generate.ts that appeared between sessions.
+   It adds GUT_CHECK imports and a new section. Kept it as-is since it was
+   intentional and committed.
 
-2. **What did you reject, and why?** Adding dynamic per-lead-type reference
-   selection to resolve the token-budget fallback. This would have been the
-   "correct" long-term solution but adds classification-aware logic to
-   `buildVoiceExamplesBlock`, changing its signature and adding test surface.
-   Static `active` flags are simpler and sufficient for this cycle.
+2. **What did you consider changing but left alone, and why?** The Dang
+   reference (corporate, vendor-speak voice). Considered rewriting it in
+   Alex's voice but decided inactive status is sufficient. If corporate
+   coverage is needed later, generate a new reference.
 
-3. **Least confident about going into the next phase?** Memorial-lead
-   detection. The plan says "inferred from classification fields" but there
-   is no explicit `is_memorial` boolean in the Classification type. The
-   implementer must decide how to detect memorial context from `event_type`,
-   `flagged_concerns`, and `context_modifiers`. This is the one place where
-   a design decision remains in the work phase.
+3. **Least confident about going into review?** Whether the memorial lead
+   calibration override is robust enough. It fires correctly on the test
+   lead, but detection relies on keywords in classification fields rather
+   than an explicit `is_memorial` boolean. Edge cases (tributes that don't
+   use the word "memorial") could slip through.
 
 ## Prompt for Next Session
 
 ```
 Read docs/plans/2026-03-25-feat-spiral-voice-integration-plan.md.
-Implement Phase 0 (prerequisites). Relevant files:
-- src/data/voice-references.ts (new, pure data)
-- src/utils/sanitize.ts (add wrapVoiceReference)
-- src/claude.ts (temporary logging for token measurement, revert after)
+Review the voice quality comparison at tests/voice-comparison.txt.
+Rate each of the 5 lead pairs (before/after) 1-5 on voice quality.
+If no regressions, close the work phase and generate the Codex review
+handoff prompt. If regressions found, identify which leads and what
+specifically degraded.
 
-Hard blocker: Alex must provide/approve the 8 reference response texts first.
-If references are not yet available, skip to Phase 0B (token measurement with
-placeholder text) and Phase 0C (baseline voice quality on current pipeline).
-
-Feed-Forward risk: optimal example count (3-5 vs more) not knowable until
-Phase 3 validation. Start with 3-5 active.
+Key files changed: src/prompts/generate.ts, src/data/voice-references.ts,
+src/utils/sanitize.ts
+Plan doc: docs/plans/2026-03-25-feat-spiral-voice-integration-plan.md
 ```
