@@ -1,5 +1,18 @@
 # Review Context — Gig Lead Responder
 
+## Agent Team History
+
+| Date | Team | What | Result |
+|------|------|------|--------|
+| 2026-03-29 | Gig Lead Response | Heather Thomas birthday party lead (GigSalad) | Response drafted, QA'd, pricing recommended ($1,100-$1,400). PFE booking framing validated. Shared output doc gap discovered and fixed. |
+
+## Agent Team Learnings (for future lead response runs)
+- GigSalad emails have minimal data — don't assume the email has everything (confirmed earlier brainstorm lesson)
+- QA reviewer must check artist substitution framing (bait-and-switch risk when PFE books someone else)
+- Always check for scheduling conflicts before drafting response
+- PF-Intel has venue data for Temecula area (Wilson Creek, Danza del Sol)
+- Pricing strategist should reference Pricing_Architecture.md but note it explicitly excludes PFE coordination quotes
+
 ## Risk Chain
 
 **Current initiative:** Spiral Voice Integration — bringing Spiral's response quality (22 knowledge docs, 8 references, 17 tests, 18/18 capabilities at 90%+) into the pipeline's automation.

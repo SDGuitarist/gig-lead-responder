@@ -75,6 +75,26 @@ added, GUT_CHECK imports from types.ts). This change is committed.
    than an explicit `is_memorial` boolean. Edge cases (tributes that don't
    use the word "memorial") could slip through.
 
+## Active Leads
+
+### Heather Thomas — Birthday Party (GigSalad, received Mar 20)
+- **Event:** Birthday Party, April 25, 2026, 1-5 PM, Temecula, CA
+- **Status:** Response drafted (Mar 29), ready to send via GigSalad
+- **Key detail:** She asked "Can you extend videos of the duo?" — buying signal, wants more footage
+- **Conflict:** April 25 = Amplify workshop. Alex contracting via PFE, not performing himself.
+- **Response:** Copy-paste ready (in Alex's clipboard). Acknowledges delay, offers duo videos, asks 4 follow-up questions, no pricing yet.
+- **Pricing (internal):** $1,100-$1,400 range. Duo base $800-1,200 + travel $100-150 + PFE 15% commission.
+- **Next:** Send response ASAP. Identify duo + get their videos ready before Heather replies.
+- **Venue intel:** Wilson Creek Winery and Danza del Sol Winery found in PF-Intel for Temecula area.
+
+### Cyrus — Wedding Cocktail Hour (GigSalad, received Mar 26)
+- **Event:** Wedding Cocktail Hour, July 25, 2026, 6-7:30 PM, San Diego, CA
+- **Status:** Alex already replied
+
+## Railway Production Issue (Mar 29)
+
+Two "Deploy Crashed" emails from Railway for gig-lead-responder (1:32 AM and 6:03 AM on Mar 29). App is crashing in the `industrious-elegance` environment. **Not yet investigated.** Priority: check Railway deploy logs and restart.
+
 ## Prompt for Next Session
 
 ```
