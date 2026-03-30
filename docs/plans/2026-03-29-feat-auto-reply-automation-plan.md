@@ -1,7 +1,7 @@
 ---
 title: "feat: Auto-Reply Automation Layer"
 type: feat
-status: code-complete
+status: code-complete-pending-fixtures
 date: 2026-03-29
 deepened: 2026-03-29
 codex_review: 2026-03-29
@@ -250,8 +250,8 @@ Parse platform emails, enrich Yelp leads via portal, route to auto-send or hold.
 - [x] Create `src/automation/parsers/yelp.ts` — email parse only (truncated rawText, confidence: low)
 - [x] Create `src/automation/parsers/squarespace.ts` — uses Reply-To header for client email
 - [x] Create `src/automation/portals/yelp-client.ts` — shared Playwright client with `fetchLeadDetails()` + `submitReply()`
-- [ ] Save 2-3 real example emails per platform to `examples/emails/` (stripped of personal info)
-- [ ] Create fixture-based parser tests: `tests/parsers/` with captured real emails
+- [ ] Save 2-3 real example emails per platform to `examples/emails/` (stripped of personal info) — **blocked: need Gmail API credentials to capture**
+- [x] Create fixture-based parser tests: `tests/parsers/` with mock + real fixture scaffold (5 pass, 3 skip awaiting real fixtures)
 - [x] Create `src/automation/router.ts` — edge case detection with confidence + pricing guardrails
 
 #### Type-Safe ParsedLead (Codex fixes #4 and #5)
@@ -393,7 +393,7 @@ All send mechanisms plus the orchestrator that ties everything together.
 - [x] Create `src/automation/portals/gigsalad-client.ts` — Playwright portal submit
 - [x] Create `src/automation/senders/twilio-sms.ts` — thin Twilio wrapper
 - [x] Create `src/automation/orchestrator.ts` — full flow with Yelp enrichment step
-- [x] Create `src/automation/main.ts` — entry point: starts Express + Gmail watcher
+- [x] Create `src/automation/main.ts` — entry point: starts Gmail watcher (Express server runs separately via `npm run serve`)
 
 #### Gmail Reply Sender (Squarespace leads — Codex fix #5)
 

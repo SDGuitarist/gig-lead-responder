@@ -35,6 +35,29 @@ async function main() {
   console.log(`Budget threshold: $${config.edgeCaseBudgetThreshold}`);
   console.log("");
 
+  // In live mode, fail fast if critical services are missing.
+  // Hold/failure notifications depend on Twilio — without it, edge cases
+  // and errors would be silently swallowed.
+  // DRY_RUN is intentionally permissive (logs instead of sending).
+  if (!config.dryRun) {
+    if (!config.twilio.accountSid || !config.twilio.authToken || !config.twilio.toNumber) {
+      console.error("LIVE MODE requires Twilio credentials for hold/failure notifications.");
+      console.error("Set TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_FROM_NUMBER, TWILIO_TO_NUMBER in .env");
+      process.exit(1);
+    }
+    if (!config.portalCredentials.gigsalad.email || !config.portalCredentials.gigsalad.password) {
+      console.error("LIVE MODE requires GigSalad credentials for portal replies.");
+      console.error("Set GIGSALAD_EMAIL and GIGSALAD_PASSWORD in .env");
+      process.exit(1);
+    }
+    if (!config.portalCredentials.yelp.email || !config.portalCredentials.yelp.password) {
+      console.error("LIVE MODE requires Yelp credentials for portal replies.");
+      console.error("Set YELP_EMAIL and YELP_PASSWORD in .env");
+      process.exit(1);
+    }
+    console.log("Live mode credentials verified.");
+  }
+
   // Initialize Gmail auth
   let auth;
   try {
@@ -59,7 +82,15 @@ async function main() {
   });
 
   // Polling state
-  let lastPollTimestamp = Math.floor(Date.now() / 1000);
+  //
+  // RACE PREVENTION: We do NOT advance the watermark to Date.now() after processing.
+  // If a lead arrives while we're spending 30-60s processing a previous one,
+  // advancing to "now" would skip it. Instead, the watermark only advances to
+  // the timestamp of the newest message we actually fetched. The dedup layer
+  // (processed-ids.json) handles any overlap — the same message ID is never
+  // processed twice. A 5-minute overlap window ensures we never miss messages
+  // that arrived between the query and the fetch.
+  let lastPollTimestamp = Math.floor(Date.now() / 1000) - 300; // Start 5 min back
   let processing = false;
 
   console.log(`Starting poll loop...\n`);
@@ -87,7 +118,17 @@ async function main() {
         }
       }
 
-      lastPollTimestamp = Math.floor(Date.now() / 1000);
+      // Advance watermark to the newest message we actually saw, NOT to Date.now().
+      // This prevents skipping leads that arrive during long processing runs.
+      // The 5-minute overlap + dedup layer handles any re-fetched messages.
+      if (messages.length > 0) {
+        const newestDate = Math.max(
+          ...messages.map((m) => Math.floor(new Date(m.date).getTime() / 1000))
+        );
+        // Keep a 5-minute overlap — dedup prevents reprocessing
+        lastPollTimestamp = newestDate - 300;
+      }
+      // If no messages, do NOT advance — keep looking at the same window
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
 

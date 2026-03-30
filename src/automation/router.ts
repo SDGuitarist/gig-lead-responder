@@ -45,6 +45,14 @@ export function routeLead(
     reasons.push("Yelp lead not enriched from portal — truncated message");
   }
 
+  // Missing portalUrl for portal-based platforms — ALWAYS hold.
+  // Without the URL, the sender cannot submit the reply. Catch this
+  // at the routing layer so it doesn't silently fall through to a
+  // sender failure.
+  if ((lead.platform === "gigsalad" || lead.platform === "yelp") && !lead.portalUrl) {
+    reasons.push("Missing portal URL — cannot submit reply");
+  }
+
   // Gate failed after all retries
   if (!verified) {
     reasons.push("Verification gate failed after retries");

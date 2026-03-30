@@ -71,16 +71,49 @@ export class GigSaladPortalClient {
 
       await sendBtn.click();
 
-      // Wait for confirmation
-      await page.waitForTimeout(2000);
-
+      // Verify success — look for confirmation signal instead of blind sleep.
+      const confirmed = await this.verifySubmitSuccess(page);
       await context.close();
+
+      if (!confirmed) {
+        return { success: false, error: "No success confirmation detected after submit" };
+      }
+
       return { success: true };
     } catch (err) {
       await this.screenshotOnFailure(context, "gigsalad-submit");
       await context?.close();
       const message = err instanceof Error ? err.message : String(err);
       return { success: false, error: message };
+    }
+  }
+
+  /**
+   * After clicking submit, verify that the reply was actually sent.
+   */
+  private async verifySubmitSuccess(page: import("playwright").Page): Promise<boolean> {
+    try {
+      // Strategy 1: Look for success message / toast [VERIFY LIVE]
+      const hasSuccess = await page.locator(
+        "[role='alert']:has-text('sent'), .toast, .success-message, .alert-success"
+      ).count().catch(() => 0);
+      if (hasSuccess > 0) return true;
+
+      // Strategy 2: Wait and check if textarea was cleared
+      await page.waitForTimeout(2000);
+      const textarea = page.locator(
+        "textarea[name='message'], textarea[data-testid='quote-message']"
+      ).first();
+      const value = await textarea.inputValue().catch(() => null);
+      if (value === "") return true;
+
+      // Strategy 3: URL changed (redirected to confirmation page)
+      const url = page.url();
+      if (url.includes("success") || url.includes("confirm") || url.includes("sent")) return true;
+
+      return false;
+    } catch {
+      return false;
     }
   }
 
