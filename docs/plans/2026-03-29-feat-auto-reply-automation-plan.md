@@ -191,17 +191,17 @@ GMAIL_TOKEN_PATH=data/gmail-token.json
 Extract the shared pipeline runner, build the email watcher, config, logging, and dedup.
 
 **Tasks:**
-- [ ] Extract `runPipeline(rawText, hooks?)` into `src/pipeline/run.ts`
-- [ ] Refactor `src/server.ts` to call `runPipeline()` with SSE hooks — verify `/api/analyze` behavior is identical
-- [ ] Refactor `src/index.ts` to call `runPipeline()` — verify CLI behavior is identical
-- [ ] Create `scripts/gmail-auth.ts` — standalone OAuth bootstrap on port 3001
-- [ ] Create `src/automation/config.ts` — typed settings from `.env`
-- [ ] Create `src/automation/logger.ts` — structured JSON logger → `logs/leads.jsonl`
-- [ ] Create `src/automation/dedup.ts` — JSON file dedup
-- [ ] Create `src/automation/source-validator.ts` — exact sender allowlist + header checks
-- [ ] Create `src/automation/gmail-watcher.ts` — Gmail API poller (60-second interval)
-- [ ] Add `DRY_RUN=true` env variable (default true)
-- [ ] Update `.gitignore`: add `data/`, `logs/`, `credentials.json`, `token.json`
+- [x] Extract `runPipeline(rawText, hooks?)` into `src/pipeline/run.ts`
+- [x] Refactor `src/server.ts` to call `runPipeline()` with SSE hooks — verify `/api/analyze` behavior is identical
+- [x] Refactor `src/index.ts` to call `runPipeline()` — verify CLI behavior is identical
+- [x] Create `scripts/gmail-auth.ts` — standalone OAuth bootstrap on port 3001
+- [x] Create `src/automation/config.ts` — typed settings from `.env`
+- [x] Create `src/automation/logger.ts` — structured JSON logger → `logs/leads.jsonl`
+- [x] Create `src/automation/dedup.ts` — JSON file dedup
+- [x] Create `src/automation/source-validator.ts` — exact sender allowlist + header checks
+- [x] Create `src/automation/gmail-watcher.ts` — Gmail API poller (60-second interval)
+- [x] Add `DRY_RUN=true` env variable (default true)
+- [x] Update `.gitignore`: add `data/`, `logs/`, `credentials.json`, `token.json`
 
 #### Source Validation (Codex fix #6)
 

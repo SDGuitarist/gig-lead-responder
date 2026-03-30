@@ -3,3 +3,9 @@ dist/
 .env
 *.js
 !src/**
+
+# Automation data and secrets
+data/
+logs/
+credentials.json
+token.json
