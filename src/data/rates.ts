@@ -18,59 +18,111 @@ export interface FormatRates {
 }
 
 // --- Solo (Spanish Guitar / Latin) ---
-// Source: PRICING_TABLES.md — Solo rates use ranges, converted to anchor/floor
+// Source: Rate_Card_Solo_Duo.md (February 2026) — verified 2026-03-29
+// Note: 1hr uses "social" rates (ceremony rates are slightly different for T2P/T2D)
+// Note: 1.5hr rates interpolated from 1hr/2hr (2026-03-29)
 export const SOLO_RATES: FormatRates = {
   "1": {
-    T2P: { anchor: 450, floor: 400 },
-    T2D: { anchor: 500, floor: 450 },
-    T3P: { anchor: 600, floor: 550 },
-    T3D: { anchor: 650, floor: 600 },
+    T2P: { anchor: 495, floor: 450 },
+    T2D: { anchor: 550, floor: 495 },
+    T3P: { anchor: 595, floor: 550 },
+    T3D: { anchor: 650, floor: 595 },
+  },
+  "1.5": {
+    T2P: { anchor: 550, floor: 500 },
+    T2D: { anchor: 625, floor: 575 },
+    T3P: { anchor: 700, floor: 650 },
+    T3D: { anchor: 775, floor: 700 },
   },
   "2": {
-    T2P: { anchor: 500, floor: 400 },
-    T2D: { anchor: 550, floor: 500 },
-    T3P: { anchor: 650, floor: 550 },
-    T3D: { anchor: 700, floor: 650 },
+    T2P: { anchor: 595, floor: 550 },
+    T2D: { anchor: 700, floor: 650 },
+    T3P: { anchor: 795, floor: 750 },
+    T3D: { anchor: 895, floor: 795 },
   },
   "3": {
-    T2P: { anchor: 650, floor: 600 },
-    T2D: { anchor: 750, floor: 700 },
-    T3P: { anchor: 800, floor: 750 },
-    T3D: { anchor: 900, floor: 850 },
+    T2P: { anchor: 750, floor: 700 },
+    T2D: { anchor: 895, floor: 795 },
+    T3P: { anchor: 895, floor: 895 },
+    T3D: { anchor: 1200, floor: 1000 },
+  },
+  "4": {
+    T2P: { anchor: 950, floor: 900 },
+    T2D: { anchor: 1100, floor: 1000 },
+    T3P: { anchor: 1250, floor: 1100 },
+    T3D: { anchor: 1500, floor: 1400 },
   },
 };
 
-// --- Duo (Spanish Guitar / Latin) ---
-// Source: PRICING_TABLES.md
+// --- Duo (Guitar + Second Musician) ---
+// Source: Rate_Card_Solo_Duo.md (February 2026) — verified 2026-03-29
+// Note: 1.5hr rates interpolated from 1hr/2hr (2026-03-29)
 export const DUO_RATES: FormatRates = {
+  "1": {
+    T2P: { anchor: 950, floor: 850 },
+    T2D: { anchor: 1100, floor: 1000 },
+    T3P: { anchor: 1050, floor: 950 },
+    T3D: { anchor: 1200, floor: 1100 },
+  },
+  "1.5": {
+    T2P: { anchor: 1025, floor: 925 },
+    T2D: { anchor: 1200, floor: 1100 },
+    T3P: { anchor: 1275, floor: 1150 },
+    T3D: { anchor: 1450, floor: 1300 },
+  },
   "2": {
-    T2P: { anchor: 700, floor: 600 },
-    T2D: { anchor: 800, floor: 700 },
-    T3P: { anchor: 995, floor: 900 },
-    T3D: { anchor: 1200, floor: 995 },
+    T2P: { anchor: 1100, floor: 1000 },
+    T2D: { anchor: 1300, floor: 1200 },
+    T3P: { anchor: 1495, floor: 1325 },
+    T3D: { anchor: 1700, floor: 1500 },
   },
   "3": {
-    T2P: { anchor: 900, floor: 800 },
-    T2D: { anchor: 995, floor: 900 },
-    T3P: { anchor: 1100, floor: 995 },
-    T3D: { anchor: 1300, floor: 1100 },
+    T2P: { anchor: 1400, floor: 1275 },
+    T2D: { anchor: 1700, floor: 1500 },
+    T3P: { anchor: 1700, floor: 1575 },
+    T3D: { anchor: 2200, floor: 1900 },
+  },
+  "4": {
+    T2P: { anchor: 1750, floor: 1575 },
+    T2D: { anchor: 2100, floor: 1900 },
+    T3P: { anchor: 2200, floor: 1925 },
+    T3D: { anchor: 2800, floor: 2450 },
   },
 };
 
 // --- Flamenco Duo (Guitar + Cajón) ---
-// Source: PRICING_TABLES.md
+// Source: Rate_Card_Solo_Duo.md (February 2026) — verified 2026-03-29
+// Note: 1.5hr rates interpolated from 1hr/2hr (2026-03-29)
 export const FLAMENCO_DUO_RATES: FormatRates = {
+  "1": {
+    T2P: { anchor: 950, floor: 850 },
+    T2D: { anchor: 1100, floor: 1000 },
+    T3P: { anchor: 1200, floor: 1100 },
+    T3D: { anchor: 1400, floor: 1250 },
+  },
+  "1.5": {
+    T2P: { anchor: 1025, floor: 925 },
+    T2D: { anchor: 1225, floor: 1100 },
+    T3P: { anchor: 1400, floor: 1250 },
+    T3D: { anchor: 1650, floor: 1475 },
+  },
   "2": {
-    T2P: { anchor: 900, floor: 800 },
-    T2D: { anchor: 1000, floor: 900 },
-    T3P: { anchor: 1100, floor: 1000 },
-    T3D: { anchor: 1200, floor: 1100 },
+    T2P: { anchor: 1100, floor: 1000 },
+    T2D: { anchor: 1350, floor: 1200 },
+    T3P: { anchor: 1595, floor: 1400 },
+    T3D: { anchor: 1895, floor: 1700 },
   },
   "3": {
-    T2P: { anchor: 1100, floor: 1000 },
-    T2D: { anchor: 1200, floor: 1100 },
-    T3P: { anchor: 1300, floor: 1200 },
-    T3D: { anchor: 1400, floor: 1300 },
+    T2P: { anchor: 1400, floor: 1275 },
+    T2D: { anchor: 1700, floor: 1500 },
+    T3P: { anchor: 1895, floor: 1750 },
+    T3D: { anchor: 2400, floor: 2100 },
+  },
+  "4": {
+    T2P: { anchor: 1750, floor: 1575 },
+    T2D: { anchor: 2100, floor: 1900 },
+    T3P: { anchor: 2350, floor: 2100 },
+    T3D: { anchor: 2995, floor: 2650 },
   },
 };
 
