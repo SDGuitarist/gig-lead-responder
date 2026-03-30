@@ -1,7 +1,7 @@
 ---
 title: "feat: Auto-Reply Automation Layer"
 type: feat
-status: active
+status: code-complete
 date: 2026-03-29
 deepened: 2026-03-29
 codex_review: 2026-03-29
@@ -495,12 +495,12 @@ tests/
 Run as an always-on service on the old Mac.
 
 **Tasks:**
-- [ ] Create `ecosystem.config.cjs` for pm2 (points to `src/automation/main.ts`)
-- [ ] Create `scripts/setup-old-mac.sh` — install Node, clone repo, npm install, pm2 setup
-- [ ] Configure pm2 startup hook: `pm2 startup`
-- [ ] Set old Mac energy settings: Prevent automatic sleeping
-- [ ] Add heartbeat: if no email processed for 3 days, send SMS health check
-- [ ] Run `scripts/gmail-auth.ts` on the old Mac to authorize Gmail
+- [x] Create `ecosystem.config.cjs` for pm2 (points to `src/automation/main.ts`)
+- [x] Create `scripts/setup-old-mac.sh` — install Node, clone repo, npm install, pm2 setup
+- [x] Configure pm2 startup hook: `pm2 startup` (included in setup script)
+- [ ] Set old Mac energy settings: Prevent automatic sleeping (manual step)
+- [ ] Add heartbeat: if no email processed for 3 days, send SMS health check (defer to post-deploy)
+- [ ] Run `scripts/gmail-auth.ts` on the old Mac to authorize Gmail (requires credentials.json)
 
 **Success criteria:** Unplug old Mac, plug back in, lead responder auto-starts within 60 seconds.
 
