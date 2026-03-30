@@ -5,3 +5,6 @@ dist/
 !src/**
 /data/
 *.db
+logs/
+credentials.json
+token.json
