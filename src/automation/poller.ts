@@ -4,6 +4,8 @@
  * Non-fatal: if Gmail credentials aren't configured, logs a warning and returns.
  * The server keeps running for dashboard/webhooks regardless.
  */
+import { writeFileSync, existsSync, mkdirSync } from "node:fs";
+import { dirname } from "node:path";
 import { loadConfig } from "./config.js";
 import { setLogPath } from "./logger.js";
 import { loadAuthClient, pollForNewMessages } from "./gmail-watcher.js";
@@ -11,12 +13,32 @@ import { processLead } from "./orchestrator.js";
 import { YelpPortalClient } from "./portals/yelp-client.js";
 import { GigSaladPortalClient } from "./portals/gigsalad-client.js";
 
+/**
+ * Write Gmail credential files from env vars if the files don't already exist.
+ * This lets Railway store secrets as env vars while the Gmail client reads files.
+ */
+function bootstrapCredentialFiles(credPath: string, tokenPath: string): void {
+  if (!existsSync(credPath) && process.env.GMAIL_CREDENTIALS_JSON) {
+    mkdirSync(dirname(credPath), { recursive: true });
+    writeFileSync(credPath, process.env.GMAIL_CREDENTIALS_JSON);
+    console.log(`[gmail-poller] Wrote ${credPath} from GMAIL_CREDENTIALS_JSON env var`);
+  }
+  if (!existsSync(tokenPath) && process.env.GMAIL_TOKEN_JSON) {
+    mkdirSync(dirname(tokenPath), { recursive: true });
+    writeFileSync(tokenPath, process.env.GMAIL_TOKEN_JSON, { mode: 0o600 });
+    console.log(`[gmail-poller] Wrote ${tokenPath} from GMAIL_TOKEN_JSON env var`);
+  }
+}
+
 let interval: ReturnType<typeof setInterval> | null = null;
 let yelpClient: YelpPortalClient | null = null;
 
 export async function startGmailPoller(): Promise<void> {
   let config = loadConfig();
   setLogPath(config.logPath);
+
+  // Bootstrap credential files from env vars (Railway support)
+  bootstrapCredentialFiles(config.gmail.credentialsPath, config.gmail.tokenPath);
 
   // Try to load Gmail auth — if it fails, warn and skip (non-fatal)
   let auth;
