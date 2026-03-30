@@ -244,15 +244,15 @@ export function validateSource(fromHeader: string, authHeaders: GmailHeaders): V
 Parse platform emails, enrich Yelp leads via portal, route to auto-send or hold.
 
 **Tasks:**
-- [ ] Create `src/automation/types.ts` — ParsedLead discriminated union + RouterResult + ParseConfidence
-- [ ] Create `src/automation/parsers/index.ts` — router by validated platform
-- [ ] Create `src/automation/parsers/gigsalad.ts`
-- [ ] Create `src/automation/parsers/yelp.ts` — email parse only (truncated rawText, confidence: low)
-- [ ] Create `src/automation/parsers/squarespace.ts` — uses Reply-To header for client email
-- [ ] Create `src/automation/portals/yelp-client.ts` — shared Playwright client with `fetchLeadDetails()` + `submitReply()`
+- [x] Create `src/automation/types.ts` — ParsedLead discriminated union + RouterResult + ParseConfidence
+- [x] Create `src/automation/parsers/index.ts` — router by validated platform
+- [x] Create `src/automation/parsers/gigsalad.ts`
+- [x] Create `src/automation/parsers/yelp.ts` — email parse only (truncated rawText, confidence: low)
+- [x] Create `src/automation/parsers/squarespace.ts` — uses Reply-To header for client email
+- [x] Create `src/automation/portals/yelp-client.ts` — shared Playwright client with `fetchLeadDetails()` + `submitReply()`
 - [ ] Save 2-3 real example emails per platform to `examples/emails/` (stripped of personal info)
 - [ ] Create fixture-based parser tests: `tests/parsers/` with captured real emails
-- [ ] Create `src/automation/router.ts` — edge case detection with confidence + pricing guardrails
+- [x] Create `src/automation/router.ts` — edge case detection with confidence + pricing guardrails
 
 #### Type-Safe ParsedLead (Codex fixes #4 and #5)
 
