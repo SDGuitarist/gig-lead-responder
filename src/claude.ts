@@ -16,11 +16,16 @@ function stripCodeFences(text: string): string {
  * Call Claude and parse the response as JSON.
  * Strips code fences, parses JSON. On failure, retries once
  * with "return only valid JSON" reinforcement.
+ *
+ * @param validate — optional runtime validator. Receives the parsed JSON
+ *   and should throw if the shape is wrong. Returns the validated value.
+ *   If omitted, the raw JSON.parse result is returned (unsafe).
  */
 export async function callClaude<T>(
   systemPrompt: string,
   userMessage: string,
-  model: string = "claude-sonnet-4-6"
+  model: string = "claude-sonnet-4-6",
+  validate?: (raw: unknown) => T
 ): Promise<T> {
   const makeRequest = async (extraInstruction?: string): Promise<string> => {
     const finalUser = extraInstruction
@@ -45,10 +50,20 @@ export async function callClaude<T>(
   const rawResponse = await makeRequest();
   const cleaned = stripCodeFences(rawResponse);
 
+  const parseAndValidate = (raw: string): T => {
+    const parsed = JSON.parse(raw);
+    return validate ? validate(parsed) : parsed as T;
+  };
+
   try {
-    return JSON.parse(cleaned) as T;
-  } catch {
-    // Retry with reinforcement
+    return parseAndValidate(cleaned);
+  } catch (err) {
+    // If validation failed (not JSON parse), don't retry — the LLM returned wrong shape
+    if (cleaned !== rawResponse && err instanceof Error && !err.message.includes("JSON")) {
+      throw new Error(`Claude response failed validation: ${err.message}`);
+    }
+
+    // Retry with reinforcement for JSON parse failures
     console.warn("JSON parse failed on first attempt, retrying...");
     const retryResponse = await makeRequest(
       "IMPORTANT: Return ONLY valid JSON. No markdown code fences, no explanation, no prose. Just the raw JSON object."
@@ -56,34 +71,11 @@ export async function callClaude<T>(
     const retryCleaned = stripCodeFences(retryResponse);
 
     try {
-      return JSON.parse(retryCleaned) as T;
+      return parseAndValidate(retryCleaned);
     } catch {
       throw new Error(
-        `Failed to parse JSON after retry.\nRaw response:\n${retryResponse}`
+        `Failed to parse/validate JSON after retry.`
       );
     }
   }
-}
-
-/**
- * Call Claude and return raw text (no JSON parsing).
- * Used for generation where response is prose, not structured data.
- */
-export async function callClaudeText(
-  systemPrompt: string,
-  userMessage: string,
-  model: string = "claude-sonnet-4-6"
-): Promise<string> {
-  const response = await client.messages.create({
-    model,
-    max_tokens: 4096,
-    system: systemPrompt,
-    messages: [{ role: "user", content: userMessage }],
-  });
-
-  const block = response.content[0];
-  if (block.type !== "text") {
-    throw new Error(`Unexpected response type: ${block.type}`);
-  }
-  return block.text;
 }

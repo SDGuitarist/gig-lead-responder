@@ -14,7 +14,7 @@ export interface TierRates {
 }
 
 export interface FormatRates {
-  [durationKey: string]: TierRates;
+  [durationKey: string]: TierRates | undefined;
 }
 
 // --- Solo (Spanish Guitar / Latin) ---

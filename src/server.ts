@@ -27,6 +27,10 @@ app.post("/api/analyze", async (req, res) => {
     res.status(400).json({ error: "Missing 'text' field in request body" });
     return;
   }
+  if (text.length > 10_000) {
+    res.status(400).json({ error: "Text exceeds maximum length of 10,000 characters" });
+    return;
+  }
 
   // Set up SSE stream
   res.setHeader("Content-Type", "text/event-stream");
@@ -101,6 +105,6 @@ app.post("/api/analyze", async (req, res) => {
 });
 
 const PORT = parseInt(process.env.PORT || "3000", 10);
-app.listen(PORT, () => {
-  console.log(`Gig Lead Responder running at http://localhost:${PORT}`);
+app.listen(PORT, "127.0.0.1", () => {
+  console.log(`Gig Lead Responder running at http://127.0.0.1:${PORT}`);
 });
