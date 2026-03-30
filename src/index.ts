@@ -1,9 +1,5 @@
 import "dotenv/config";
-import { classifyLead } from "./pipeline/classify.js";
-import { lookupPrice } from "./pipeline/price.js";
-import { selectContext } from "./pipeline/context.js";
-import { runWithVerification } from "./pipeline/verify.js";
-import type { PipelineOutput } from "./types.js";
+import { runPipeline } from "./pipeline/run.js";
 
 // Validate API key on startup
 if (!process.env.ANTHROPIC_API_KEY) {
@@ -15,9 +11,6 @@ const verbose = process.argv.includes("--verbose");
 const jsonMode = process.argv.includes("--json");
 
 async function main() {
-  const totalStart = Date.now();
-  const timing: Record<string, number> = {};
-
   // Read lead from stdin
   const chunks: Buffer[] = [];
   for await (const chunk of process.stdin) {
@@ -31,45 +24,19 @@ async function main() {
     process.exit(1);
   }
 
-  // --- Stage 1: Classification ---
-  if (!jsonMode) console.log("\n[1/5] Classifying lead...");
-  let start = Date.now();
-  const classification = await classifyLead(rawText);
-  timing.classify = Date.now() - start;
-  if (verbose && !jsonMode) {
-    console.log(JSON.stringify(classification, null, 2));
-  }
+  const output = await runPipeline(rawText, verbose && !jsonMode ? {
+    onStageStart(stage, name) {
+      console.log(`[${stage}/5] ${name}...`);
+    },
+    onStageComplete(stage, name, ms, result) {
+      if (verbose) console.log(`  done (${ms}ms)`);
+    },
+  } : undefined);
 
-  // --- Stage 2: Pricing ---
-  if (!jsonMode) console.log("[2/5] Looking up pricing...");
-  start = Date.now();
-  const pricing = lookupPrice(classification);
-  timing.price = Date.now() - start;
-  if (verbose && !jsonMode) {
-    console.log(JSON.stringify(pricing, null, 2));
-  }
-
-  // --- Stage 3: Context Assembly ---
-  if (!jsonMode) console.log("[3/5] Assembling context...");
-  start = Date.now();
-  const context = await selectContext(classification);
-  timing.context = Date.now() - start;
-  if (verbose && !jsonMode) {
-    console.log(`Context assembled: ${context.length} characters`);
-  }
-
-  // --- Stage 4+5: Generate + Verify ---
-  if (!jsonMode) console.log("[4/5] Generating response drafts...");
-  if (!jsonMode) console.log("[5/5] Running verification gate...");
-  start = Date.now();
-  const { drafts, gate, verified } = await runWithVerification(classification, pricing, context);
-  timing.generateAndVerify = Date.now() - start;
-
-  timing.total = Date.now() - totalStart;
+  const { classification, pricing, drafts, gate, verified, timing } = output;
 
   // --- Output ---
   if (jsonMode) {
-    const output: PipelineOutput = { classification, pricing, drafts, gate, verified, timing };
     console.log(JSON.stringify(output, null, 2));
     return;
   }

@@ -2,19 +2,26 @@ import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import type { Classification } from "../types.js";
 
-const DOCS_DIR = join(process.cwd(), "docs");
+const DOCS_DIR = join(import.meta.dirname, "..", "..", "docs");
+
+// Cache docs in memory — they are static reference files (~93KB total)
+const docCache = new Map<string, string | null>();
 
 /**
- * Read a file from docs/ directory. Returns content or null if missing.
+ * Read a file from docs/ directory. Caches after first read.
  */
 async function readDoc(filename: string, required: boolean): Promise<string | null> {
+  if (docCache.has(filename)) return docCache.get(filename)!;
   try {
-    return await readFile(join(DOCS_DIR, filename), "utf-8");
+    const content = await readFile(join(DOCS_DIR, filename), "utf-8");
+    docCache.set(filename, content);
+    return content;
   } catch {
     if (required) {
       throw new Error(`Required file missing: docs/${filename}`);
     }
     console.warn(`Optional file missing: docs/${filename} — skipping`);
+    docCache.set(filename, null);
     return null;
   }
 }

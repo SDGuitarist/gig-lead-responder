@@ -1,10 +1,7 @@
 import "dotenv/config";
 import express from "express";
 import { join } from "node:path";
-import { classifyLead } from "./pipeline/classify.js";
-import { lookupPrice } from "./pipeline/price.js";
-import { selectContext } from "./pipeline/context.js";
-import { runWithVerification } from "./pipeline/verify.js";
+import { runPipeline } from "./pipeline/run.js";
 import type { PipelineOutput } from "./types.js";
 
 if (!process.env.ANTHROPIC_API_KEY) {
@@ -32,73 +29,40 @@ app.post("/api/analyze", async (req, res) => {
     return;
   }
 
-  // Set up SSE stream
+  // JSON mode: return single JSON response instead of SSE stream
+  const wantsJSON =
+    req.headers.accept === "application/json" || req.query.format === "json";
+
+  if (wantsJSON) {
+    try {
+      const output = await runPipeline(text.trim());
+      res.json(output);
+    } catch (err: unknown) {
+      console.error("Pipeline error:", err);
+      res.status(500).json({ error: "Analysis failed. Please try again." });
+    }
+    return;
+  }
+
+  // SSE mode: stream stage progress
   res.setHeader("Content-Type", "text/event-stream");
   res.setHeader("Cache-Control", "no-cache");
   res.setHeader("Connection", "keep-alive");
   res.flushHeaders();
 
-  const timing: Record<string, number> = {};
-  const totalStart = Date.now();
-
   try {
-    // --- Stage 1: Classification ---
-    sendSSE(res, "stage", { stage: 1, name: "classify", status: "running" });
-    let start = Date.now();
-    const classification = await classifyLead(text.trim());
-    timing.classify = Date.now() - start;
-    sendSSE(res, "stage", {
-      stage: 1, name: "classify", status: "done",
-      ms: timing.classify, result: classification,
+    const output = await runPipeline(text.trim(), {
+      onStageStart(stage, name) {
+        sendSSE(res, "stage", { stage, name, status: "running" });
+      },
+      onStageComplete(stage, name, ms, result) {
+        sendSSE(res, "stage", { stage, name, status: "done", ms, result });
+      },
     });
-
-    // --- Stage 2: Pricing ---
-    sendSSE(res, "stage", { stage: 2, name: "price", status: "running" });
-    start = Date.now();
-    const pricing = lookupPrice(classification);
-    timing.price = Date.now() - start;
-    sendSSE(res, "stage", {
-      stage: 2, name: "price", status: "done",
-      ms: timing.price, result: pricing,
-    });
-
-    // --- Stage 3: Context Assembly ---
-    sendSSE(res, "stage", { stage: 3, name: "context", status: "running" });
-    start = Date.now();
-    const context = await selectContext(classification);
-    timing.context = Date.now() - start;
-    sendSSE(res, "stage", {
-      stage: 3, name: "context", status: "done",
-      ms: timing.context, result: { length: context.length },
-    });
-
-    // --- Stage 4: Generate ---
-    sendSSE(res, "stage", { stage: 4, name: "generate", status: "running" });
-    // --- Stage 5: Verify ---
-    sendSSE(res, "stage", { stage: 5, name: "verify", status: "running" });
-    start = Date.now();
-    const { drafts, gate, verified } = await runWithVerification(
-      classification, pricing, context
-    );
-    timing.generateAndVerify = Date.now() - start;
-    sendSSE(res, "stage", {
-      stage: 4, name: "generate", status: "done",
-      ms: timing.generateAndVerify,
-    });
-    sendSSE(res, "stage", {
-      stage: 5, name: "verify", status: "done",
-      ms: timing.generateAndVerify,
-    });
-
-    timing.total = Date.now() - totalStart;
-
-    const output: PipelineOutput = {
-      classification, pricing, drafts, gate, verified, timing,
-    };
     sendSSE(res, "complete", output);
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : String(err);
-    sendSSE(res, "error", { error: message });
+    console.error("Pipeline error:", err);
+    sendSSE(res, "error", { error: "Analysis failed. Please try again." });
   } finally {
     res.end();
   }
