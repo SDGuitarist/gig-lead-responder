@@ -389,11 +389,11 @@ if (!clientEmail) {
 All send mechanisms plus the orchestrator that ties everything together.
 
 **Tasks:**
-- [ ] Create `src/automation/senders/gmail-sender.ts` — Gmail API send preserving thread context
-- [ ] Create `src/automation/portals/gigsalad-client.ts` — Playwright portal submit
-- [ ] Create `src/automation/senders/twilio-sms.ts` — thin Twilio wrapper
-- [ ] Create `src/automation/orchestrator.ts` — full flow with Yelp enrichment step
-- [ ] Create `src/automation/main.ts` — entry point: starts Express + Gmail watcher
+- [x] Create `src/automation/senders/gmail-sender.ts` — Gmail API send preserving thread context
+- [x] Create `src/automation/portals/gigsalad-client.ts` — Playwright portal submit
+- [x] Create `src/automation/senders/twilio-sms.ts` — thin Twilio wrapper
+- [x] Create `src/automation/orchestrator.ts` — full flow with Yelp enrichment step
+- [x] Create `src/automation/main.ts` — entry point: starts Express + Gmail watcher
 
 #### Gmail Reply Sender (Squarespace leads — Codex fix #5)
 
