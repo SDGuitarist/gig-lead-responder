@@ -86,6 +86,25 @@ export function initDb(): Database.Database {
     }
   }
 
+  // --- Orphan recovery: if leads_new exists from a failed rebuild, recover it ---
+  const orphan = db.prepare(
+    "SELECT 1 FROM sqlite_master WHERE type='table' AND name='leads_new'",
+  ).get();
+  if (orphan) {
+    const leadsExists = db.prepare(
+      "SELECT 1 FROM sqlite_master WHERE type='table' AND name='leads'",
+    ).get();
+    if (leadsExists) {
+      // Both exist — drop the incomplete new table (leads has the data)
+      console.warn("Migration recovery: dropping orphaned leads_new table (leads table intact).");
+      db.exec("DROP TABLE leads_new");
+    } else {
+      // Only leads_new exists — rename it to leads (crash after DROP but before RENAME)
+      console.warn("Migration recovery: renaming orphaned leads_new → leads.");
+      db.exec("ALTER TABLE leads_new RENAME TO leads");
+    }
+  }
+
   // --- Table rebuild: add 'replied' to follow_up_status CHECK constraint ---
   // SQLite cannot ALTER CHECK constraints. Existing production DBs have the old
   // 4-value CHECK. This rebuild adds 'replied' to the constraint.
