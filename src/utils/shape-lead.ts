@@ -9,8 +9,7 @@ function safeJsonParse(raw: string | null): Record<string, unknown> | null {
   }
 }
 
-export function shapeLead(lead: LeadRecord | undefined): LeadApiResponse | null {
-  if (!lead) return null;
+export function shapeLead(lead: LeadRecord): LeadApiResponse {
 
   const cl = safeJsonParse(lead.classification_json);
   const pr = safeJsonParse(lead.pricing_json);

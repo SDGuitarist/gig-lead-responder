@@ -95,7 +95,8 @@ export function approveFollowUp(leadId: number): LeadRecord | undefined {
       });
     }
 
-    const delay = computeFollowUpDelay(newCount as 0 | 1 | 2);
+    const safeCount = Math.min(newCount, 2) as 0 | 1 | 2;
+    const delay = computeFollowUpDelay(safeCount);
     const dueAt = new Date(Date.now() + delay).toISOString();
     return updateLead(leadId, {
       follow_up_count: newCount,

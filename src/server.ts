@@ -23,6 +23,15 @@ if (process.env.NODE_ENV === "production" || process.env.RAILWAY_ENVIRONMENT) {
     console.error("FATAL: COOKIE_SECRET must be set in production");
     process.exit(1);
   }
+  const MIN_SECRET_LEN = 16;
+  if (process.env.COOKIE_SECRET.length < MIN_SECRET_LEN) {
+    console.error(`FATAL: COOKIE_SECRET must be at least ${MIN_SECRET_LEN} characters`);
+    process.exit(1);
+  }
+  if (process.env.DASHBOARD_PASS!.length < 8) {
+    console.error("FATAL: DASHBOARD_PASS must be at least 8 characters");
+    process.exit(1);
+  }
 }
 
 // Initialize SQLite (creates tables if needed)
