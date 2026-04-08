@@ -7,7 +7,7 @@ import { isProcessed, markProcessed } from "./dedup.js";
 import { parseLeadEmail } from "./parsers/index.js";
 import { routeLead } from "./router.js";
 import { logLead } from "./logger.js";
-import { sendSms } from "./senders/twilio-sms.js";
+import { sendSmsSafe as sendSms } from "../sms.js";
 import { sendSquarespaceReply } from "./senders/gmail-sender.js";
 import { runPipeline } from "../run-pipeline.js";
 import { insertLead, updateLead } from "../db/leads.js";
