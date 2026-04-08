@@ -150,10 +150,10 @@ export function updateLead(
   return row ? normalizeLeadRow(row) : undefined;
 }
 
-/** Atomically set status to 'sending' if currently approvable. Returns true if claimed. */
+/** Atomically claim a new lead for first send. Only transitions from 'received'. */
 export function claimLeadForSending(id: number): boolean {
   const result = stmt(
-    "UPDATE leads SET status = 'sending', updated_at = @updated_at WHERE id = @id AND status IN ('received', 'sent')",
+    "UPDATE leads SET status = 'sending', updated_at = @updated_at WHERE id = @id AND status = 'received'",
   ).run({ id, updated_at: new Date().toISOString() });
   return result.changes > 0;
 }
