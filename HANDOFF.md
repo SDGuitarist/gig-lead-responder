@@ -2,37 +2,24 @@
 
 **Date:** 2026-04-07
 **Branch:** `main`
-**Phase:** Post-audit cleanup continued. 21/32 findings fixed (16 prior session + 5 this session).
+**Phase:** Post-audit cleanup. 24/32 findings fixed (16 session 1 + 5 session 2 + 3 session 3).
 
 ## Current State
 
-Continued fixing open audit findings from the full 9-agent codebase review. Five fixes applied this session, all passing (84 tests, 0 fail).
+Three more audit findings resolved this session. JSON.parse shape validation added, `void err` confirmed already fixed, follow-up scheduler draft-before-claim gap closed. 84 tests pass, 0 fail.
 
-### What Was Done (April 7 — Session 2)
+### What Was Done (April 7 — Session 3)
 
 | Commit | Description |
 |--------|-------------|
-| `a1ce772` | fix: unify Platform type — single source of truth in types.ts |
-| `dec2f7d` | fix: delete standalone automation/main.ts — poller.ts is canonical |
-| `ae4320a` | fix: consolidate dual SMS senders into src/sms.ts |
-| `f24fdee` | fix: prevent double-claim — claimLeadForSending only from 'received' |
-| `c4162f3` | fix: P3 cleanup — dedupe baseUrl, add getErrorMessage, move plan-gate |
+| `f607613` | fix: add runtime shape validation to JSON.parse in twilio-webhook |
+| `062d637` | fix: generate follow-up draft before claiming to close dashboard gap |
 
-### Details
-
-1. **Platform type unification (audit #8, #11)** — Single `Platform` type in `src/types.ts` covering all sources (gigsalad, thebash, direct, yelp, squarespace). `Classification.platform` now uses it. `source-validator.ts` exports `GmailPlatform` as a narrower subset for email validation.
-
-2. **Delete standalone main.ts (audit #14, #20)** — Removed `src/automation/main.ts` (176 lines) and `"auto"` script from package.json. `poller.ts` is the canonical polling entry point with Railway credential bootstrapping.
-
-3. **Consolidate dual SMS senders (audit #13, #19)** — Added `sendSmsSafe()` to `src/sms.ts` for automation use (dry-run support, config-based, no-throw). Orchestrator now imports from shared module. Deleted `automation/senders/twilio-sms.ts`.
-
-4. **Double-claim fix (audit #21)** — `claimLeadForSending` WHERE clause narrowed from `IN ('received', 'sent')` to `= 'received'`. Prevents concurrent approvals on already-sent leads causing double SMS.
-
-5. **P3 cleanup batch (audit #27, #29, #30, #31)** — Extracted `baseUrl()` and `getErrorMessage()` to `src/utils/helpers.ts`. Removed "No venue intelligence" LLM placeholder (saves tokens). Moved `plan-gate.ts` + test to `scripts/`.
+Also confirmed: `void err` in api.ts (audit #10) was already fixed in a prior session — both catch blocks now log the actual error object.
 
 ### Tests: 84 pass, 0 fail
 
-## Open Issues (Remaining from Audit — 11 of 32)
+## Open Issues (Remaining from Audit — 8 of 32)
 
 ### P2 — Dual Parser Systems (audit #12, #18)
 **Files:** `src/email-parser.ts` vs `src/automation/parsers/`
@@ -47,10 +34,6 @@ Continued fixing open audit findings from the full 9-agent codebase review. Five
 **File:** `src/db/migrate.ts:98-148`
 **Issue:** Crash between DROP and RENAME loses data.
 
-### P2 — Follow-up Scheduler Claim-Then-Generate Gap (audit #17, #23)
-**File:** `src/follow-up-scheduler.ts:43-62`
-**Issue:** Claims follow-up before generating draft. Dashboard shows "sent" with no draft.
-
 ### P2 — `postPipeline` Non-Atomic Write (audit #18, #24)
 **File:** `src/post-pipeline.ts:11-53`
 **Issue:** Crash between saving results and marking sent = stuck lead.
@@ -61,13 +44,6 @@ Continued fixing open audit findings from the full 9-agent codebase review. Five
 
 ### P2 — Stale `feat/gig-lead-pipeline` as GitHub Default Branch (audit #20, #26)
 **Issue:** 370 commits behind main. Confuses new clones.
-
-### P2 — Unsafe `as` Casts on JSON.parse (audit #9)
-**File:** `src/twilio-webhook.ts:143-146`
-**Issue:** `JSON.parse(classification_json)` cast to `Classification` without validation.
-
-### P2 — `void err` Swallows Error Context (audit #10)
-**File:** `src/api.ts:85,252`
 
 ### P3 — Remaining Minor Items
 - `shapeLead` accepts undefined but callers never pass it
@@ -85,11 +61,11 @@ Continued fixing open audit findings from the full 9-agent codebase review. Five
 
 ## Three Questions (Work Phase)
 
-1. **Hardest implementation decision in this session?** Whether `sendSmsSafe` should be a separate export or an overload of `sendSms`. Chose separate export because the return types differ (`void` vs `{success, error?}`) and the server-side callers depend on throw-on-failure semantics. Mixing both behaviors under one name would be confusing.
+1. **Hardest implementation decision in this session?** How much runtime validation to add for JSON.parse in twilio-webhook. Full schema validation (checking every field) would be overkill for data we wrote ourselves. Settled on checking one discriminating field per type (`mode` for Classification, `quote_price` for PricingResult) — enough to catch corrupt/missing data without over-validating internal writes.
 
-2. **What did you consider changing but left alone, and why?** Considered replacing all `err instanceof Error ? err.message : String(err)` occurrences with `getErrorMessage()` calls. Left most alone because each catch block also accesses `err.stack` or does other error-specific work — a simple function swap wouldn't meaningfully simplify them. The utility is available for new code.
+2. **What did you consider changing but left alone, and why?** Considered reordering the scheduler to also store the draft atomically with the claim (single transaction). Left it as separate steps because `storeFollowUpDraft` already has a WHERE guard on status, and wrapping the LLM call + DB write in a transaction would violate the async-SQLite boundary (documented in solution doc).
 
-3. **Least confident about going into the next session?** The `GmailPlatform` vs `Platform` split in source-validator.ts. `GmailPlatform` is a subset of `Platform` but isn't expressed as `Extract<Platform, ...>` — it's a separate literal union. If a new platform is added to `Platform` in types.ts, you'd also need to update `GmailPlatform` and `ALLOWED_SENDERS` separately. This is fine for now (both are small and explicit) but could drift.
+3. **Least confident about going into the next session?** The `postPipeline` non-atomic write and table rebuild crash-safety fixes both involve database operation ordering. The async-SQLite transaction boundary constraint means we can't just wrap things in a transaction — we need startup recovery for stuck states, which adds complexity. Need to check if `recoverStuckLeads()` in post-pipeline.ts already handles the failure modes.
 
 ## Prompt for Next Session
 
@@ -97,13 +73,13 @@ Continued fixing open audit findings from the full 9-agent codebase review. Five
 Read HANDOFF.md. Continue fixing remaining audit issues.
 
 Priority order:
-1. Unsafe `as` casts on JSON.parse in twilio-webhook.ts (audit #9)
-2. `void err` swallows error context in api.ts (audit #10)
-3. Follow-up scheduler claim-then-generate gap
-4. Data lifecycle management (retention policy)
-5. Remaining P3 items (shapeLead, computeFollowUpDelay, min secret length)
+1. postPipeline non-atomic write — check if recoverStuckLeads() covers it (src/post-pipeline.ts)
+2. Data lifecycle management — add retention policy for old leads/processed_emails
+3. Table rebuild crash-safety (src/db/migrate.ts:98-148)
+4. P3 items: shapeLead undefined, computeFollowUpDelay cast, min secret length
+5. Change GitHub default branch from feat/gig-lead-pipeline to main
 
 Audit findings: docs/reviews/main-full-audit/REVIEW-SUMMARY.md
-Key files: src/twilio-webhook.ts, src/api.ts, src/follow-up-scheduler.ts,
-src/db/migrate.ts, src/utils/shape-lead.ts, src/db/follow-ups.ts
+Key files: src/post-pipeline.ts, src/db/migrate.ts, src/utils/shape-lead.ts,
+src/db/follow-ups.ts, src/auth.ts, src/server.ts
 ```
