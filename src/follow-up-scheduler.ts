@@ -38,17 +38,17 @@ async function checkDueFollowUps(): Promise<void> {
 
   for (const lead of leads) {
     try {
-      // 1. Atomic claim: pending → sent (includes snoozed_until guard)
+      // 1. Generate draft BEFORE claiming — avoids "sent with no draft" gap on dashboard
+      const draft = lead.follow_up_draft || await generateFollowUpDraft(lead);
+      // 2. Atomic claim: pending → sent (includes snoozed_until guard)
       if (!claimFollowUpForSending(lead.id)) {
         console.warn(`[scheduler] lead #${lead.id} claim failed (snoozed or state changed)`);
         continue;
       }
-      // 2. Reuse existing draft if available (SMS failed on prior attempt), else generate new one
-      const draft = lead.follow_up_draft || await generateFollowUpDraft(lead);
-      // 3. Store draft in DB only if still in 'sent' status (guards against user skip/reply race)
+      // 3. Store draft in DB (claim succeeded, so status is 'sent')
       if (!lead.follow_up_draft) {
         if (!storeFollowUpDraft(lead.id, draft)) {
-          console.warn(`[scheduler] lead #${lead.id} status changed during draft generation — skipping`);
+          console.warn(`[scheduler] lead #${lead.id} status changed during draft store — skipping`);
           continue;
         }
       }
