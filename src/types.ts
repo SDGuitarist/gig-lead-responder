@@ -2,6 +2,9 @@
 export const CONCERN_4PIECE_ALT = "mention_4piece_alternative" as const;
 export const CONCERN_FULL_ENSEMBLE = "mention_full_ensemble_upgrade" as const;
 
+// Platform — single source of truth for all lead sources
+export type Platform = "gigsalad" | "thebash" | "direct" | "yelp" | "squarespace";
+
 // Valid format strings — must match rate table keys exactly
 export type Format =
   | "solo"
@@ -76,7 +79,7 @@ export interface Classification {
   client_first_name: string | null;
 
   // Platform — stamped post-classification, not AI-generated
-  platform?: "gigsalad" | "thebash" | "direct";
+  platform?: Platform;
 }
 
 // --- PF-Intel Venue Context types (cross-repo contract) ---
@@ -332,7 +335,7 @@ export interface SnoozeRequestBody { until: string; }
 // --- Email parser types (Chunk 2) ---
 
 export interface ParsedLead {
-  platform: "gigsalad" | "thebash";
+  platform: "gigsalad" | "thebash"; // webhook parser only handles these two
   external_id: string;
   event_type: string;
   event_date: string;

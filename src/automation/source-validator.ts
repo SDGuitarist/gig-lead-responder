@@ -4,9 +4,10 @@
  * Gmail SPF/DKIM header checks to prevent spoofing.
  */
 
-export type Platform = "gigsalad" | "yelp" | "squarespace";
+/** Platforms that can arrive via Gmail (subset of the shared Platform type in types.ts). */
+export type GmailPlatform = "gigsalad" | "yelp" | "squarespace";
 
-const ALLOWED_SENDERS: Record<Platform, RegExp> = {
+const ALLOWED_SENDERS: Record<GmailPlatform, RegExp> = {
   gigsalad: /^(leads|noreply|notifications)@gigsalad\.com$/i,
   yelp: /^(no-reply|biz-alerts)@yelp\.com$/i,
   squarespace: /^(form-submission|noreply)@squarespace\.(com|info)$/i,
@@ -14,7 +15,7 @@ const ALLOWED_SENDERS: Record<Platform, RegExp> = {
 
 export interface ValidationResult {
   valid: boolean;
-  platform?: Platform;
+  platform?: GmailPlatform;
   reason?: string;
 }
 
@@ -55,11 +56,11 @@ export function validateSource(
       if (authenticationResults && !checkAuthHeaders(authenticationResults)) {
         return {
           valid: false,
-          platform: platform as Platform,
+          platform: platform as GmailPlatform,
           reason: `Sender ${email} matched ${platform} but SPF/DKIM check failed — possible spoofing`,
         };
       }
-      return { valid: true, platform: platform as Platform };
+      return { valid: true, platform: platform as GmailPlatform };
     }
   }
 
