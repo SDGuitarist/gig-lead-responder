@@ -33,8 +33,14 @@ export function lookupPrice(classification: Classification): PricingResult {
   // T1 has no P/D split — it's just "T1"
   const tierKey = rate_card_tier === "T1" ? "T1" : `${rate_card_tier}${lead_source_column}`;
 
-  // 4. Look up anchor and floor
-  const rates = durationRates[tierKey as keyof TierRates];
+  // 4. Look up anchor and floor (fall back to T2P if T1 is missing for this format)
+  let rates = durationRates[tierKey as keyof TierRates];
+  let effectiveTierKey = tierKey;
+  if (!rates && tierKey === "T1" && durationRates.T2P) {
+    rates = durationRates.T2P;
+    effectiveTierKey = "T2P";
+    console.warn(`No T1 rates for ${format_recommended}/${durationKey} — falling back to T2P`);
+  }
   if (!rates) {
     const available = Object.keys(durationRates).join(", ");
     throw new Error(`No rates for tier key "${tierKey}" in ${format_recommended}/${durationKey}. Available: ${available}`);
@@ -68,7 +74,7 @@ export function lookupPrice(classification: Classification): PricingResult {
   return {
     format: format_recommended,
     duration_hours,
-    tier_key: tierKey,
+    tier_key: effectiveTierKey,
     anchor,
     floor,
     quote_price,

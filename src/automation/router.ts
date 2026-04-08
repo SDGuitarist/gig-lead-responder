@@ -7,9 +7,10 @@ import type { ParsedLead, AutoSendResult, HoldResult, RouterResult } from "./typ
  */
 const FORMAT_FAMILIES: Record<string, readonly Format[]> = {
   solo: ["solo", "duo"],
-  flamenco: ["flamenco_duo", "flamenco_trio"],
+  flamenco: ["flamenco_duo", "flamenco_trio", "flamenco_trio_full"],
   mariachi: ["mariachi_4piece", "mariachi_full"],
   bolero: ["bolero_trio"],
+  sourced: ["sourced_cultural_solo", "sourced_cultural_duo", "sourced_cultural_trio", "sourced_cultural_quartet", "sourced_cultural_5piece"],
 };
 
 function getFormatFamily(format: Format): string {
@@ -64,14 +65,6 @@ export function routeLead(
   if (pricing.quote_price > budgetThreshold) {
     reasons.push(`Quote $${pricing.quote_price} exceeds threshold $${budgetThreshold}`);
   }
-
-  // Unverified solo/duo rates — hold until confirmed (Codex fix #7)
-  // NOTE: Remove this guardrail once solo/duo rates are verified against rate card
-  // Rates were verified 2026-03-29 — this guardrail can now be removed
-  // Keeping commented out as reference:
-  // if (classification.format_recommended === "solo" || classification.format_recommended === "duo") {
-  //   reasons.push("Solo/duo rates — verify against rate card before auto-send");
-  // }
 
   // --- Classification-based holds ---
 

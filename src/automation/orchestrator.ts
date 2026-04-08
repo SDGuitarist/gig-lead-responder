@@ -10,6 +10,7 @@ import { logLead } from "./logger.js";
 import { sendSms } from "./senders/twilio-sms.js";
 import { sendSquarespaceReply } from "./senders/gmail-sender.js";
 import { runPipeline } from "../run-pipeline.js";
+import { insertLead, updateLead } from "../db/leads.js";
 import { YelpPortalClient } from "./portals/yelp-client.js";
 import { GigSaladPortalClient } from "./portals/gigsalad-client.js";
 
@@ -53,6 +54,16 @@ export async function processLead(
   // 3. Parse
   let lead: ParsedLead = parseLeadEmail(msg, platform);
 
+  // 3b. Persist to SQLite (so lead appears on dashboard immediately)
+  const dbLead = insertLead({
+    raw_email: lead.rawText,
+    source_platform: platform,
+    mailgun_message_id: msg.id,
+    client_name: lead.clientName ?? null,
+    event_date: lead.eventDate ?? null,
+  });
+  const leadId = dbLead.id;
+
   // 4. Yelp enrichment — read full message from portal
   if (lead.platform === "yelp" && !lead.enriched) {
     console.log("Yelp lead detected — enriching via portal...");
@@ -71,7 +82,8 @@ export async function processLead(
 
   // 5. Low confidence → skip pipeline, hold immediately
   if (lead.parseConfidence === "low") {
-    const holdMsg = `HOLD: ${platform} lead — low parse confidence. Check logs.`;
+    const holdMsg = `HOLD: Lead #${leadId} ${platform} — low parse confidence. Check dashboard.`;
+    updateLead(leadId, { status: "failed", error_message: "Low parse confidence — held for review" });
     if (!config.dryRun) {
       await sendSms(config, holdMsg);
     } else {
@@ -99,8 +111,9 @@ export async function processLead(
   } catch (err) {
     const error = err instanceof Error ? err.message : String(err);
     console.error(`Pipeline failed: ${error}`);
+    updateLead(leadId, { status: "failed", error_message: error, pipeline_completed_at: new Date().toISOString() });
     if (!config.dryRun) {
-      await sendSms(config, `FAIL: ${platform} lead — pipeline error. Check logs.`);
+      await sendSms(config, `FAIL: Lead #${leadId} ${platform} — pipeline error. Check dashboard.`);
     }
     logLead({
       timestamp: new Date().toISOString(),
@@ -116,12 +129,30 @@ export async function processLead(
     return;
   }
 
+  // 6b. Save pipeline results to DB
+  const now = new Date().toISOString();
+  updateLead(leadId, {
+    classification_json: JSON.stringify(output.classification),
+    pricing_json: JSON.stringify(output.pricing),
+    full_draft: output.drafts.full_draft,
+    compressed_draft: output.drafts.compressed_draft,
+    gate_passed: output.gate.gate_status === "pass",
+    gate_json: JSON.stringify(output.gate),
+    confidence_score: output.confidence_score,
+    pipeline_completed_at: now,
+    client_name: output.classification.client_first_name ?? undefined,
+    venue: output.classification.venue_name ?? undefined,
+    event_type: output.classification.format_requested ?? undefined,
+    event_date: output.classification.event_date_iso ?? undefined,
+  });
+
   // 7. Route
   const result = routeLead(lead, output, config.edgeCaseBudgetThreshold);
 
   if (result.action === "hold") {
     const reasonSummary = result.reasons.slice(0, 2).join("; ");
-    const holdMsg = `HOLD: ${platform} lead — ${reasonSummary}. Check logs.`;
+    const holdMsg = `HOLD: Lead #${leadId} ${platform} — ${reasonSummary}. Check dashboard.`;
+    updateLead(leadId, { status: "sent" });
     if (!config.dryRun) {
       await sendSms(config, holdMsg);
     } else {
@@ -167,9 +198,12 @@ export async function processLead(
     durationMs: Date.now() - startTime,
   });
 
-  // If send failed, notify via SMS
-  if (sendResult.status === "failed" && !config.dryRun) {
-    await sendSms(config, `FAIL: ${platform} reply failed — ${sendResult.error}. Check logs.`);
+  // Update DB with send result
+  if (sendResult.status === "sent") {
+    updateLead(leadId, { status: "done", done_reason: `auto-sent via ${platform}`, sms_sent_at: new Date().toISOString() });
+  } else if (sendResult.status === "failed" && !config.dryRun) {
+    updateLead(leadId, { status: "failed", error_message: `Reply send failed: ${sendResult.error}` });
+    await sendSms(config, `FAIL: Lead #${leadId} ${platform} reply failed. Check dashboard.`);
   }
 
   markProcessed(msg.id);

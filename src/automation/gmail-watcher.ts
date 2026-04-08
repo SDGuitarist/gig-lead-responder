@@ -9,11 +9,6 @@ import { OAuth2Client } from "google-auth-library";
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import type { AutomationConfig } from "./config.js";
 
-const SCOPES = [
-  "https://www.googleapis.com/auth/gmail.readonly",
-  "https://www.googleapis.com/auth/gmail.send",
-];
-
 /**
  * Load OAuth2 client from stored credentials and token.
  * Token auto-refreshes via the googleapis library.
