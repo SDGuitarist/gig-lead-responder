@@ -32,8 +32,10 @@ function bootstrapCredentialFiles(credPath: string, tokenPath: string): void {
 
 let interval: ReturnType<typeof setInterval> | null = null;
 let yelpClient: YelpPortalClient | null = null;
+let authFailed = false;
 
 export async function startGmailPoller(): Promise<void> {
+  authFailed = false;
   let config = loadConfig();
   setLogPath(config.logPath);
 
@@ -74,7 +76,7 @@ export async function startGmailPoller(): Promise<void> {
   let processing = false;
 
   async function poll(): Promise<void> {
-    if (processing) return;
+    if (processing || authFailed) return;
     processing = true;
 
     try {
@@ -101,7 +103,12 @@ export async function startGmailPoller(): Promise<void> {
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       if (msg.includes("invalid_grant") || msg.includes("401")) {
-        console.error("[gmail-poller] Gmail auth token expired — run: npx tsx scripts/gmail-auth.ts");
+        console.error("[gmail-poller] Gmail auth token expired — stopping poller. Run: npx tsx scripts/gmail-auth.ts");
+        authFailed = true;
+        if (interval) {
+          clearInterval(interval);
+          interval = null;
+        }
       } else {
         console.error(`[gmail-poller] Poll error: ${msg}`);
       }
