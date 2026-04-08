@@ -10,7 +10,6 @@
     "start": "tsx src/index.ts",
     "demo": "tsx src/index.ts < examples/quinceanera-lead.txt",
     "serve": "tsx src/server.ts",
-    "auto": "tsx src/automation/main.ts",
     "test": "node --import tsx --test src/*.test.ts",
     "plan:check": "tsx src/plan-gate.ts"
   },
