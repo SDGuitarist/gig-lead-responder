@@ -63,10 +63,7 @@ export async function selectContext(
     }
   }
 
-  // No venue data — minimal note, no wasted tokens
-  if (!formattedVenue) {
-    sections.push("## VENUE CONTEXT\n\nNo venue intelligence available for this lead.");
-  }
+  // No venue data — omit the section entirely (no need to tell the LLM about absent data)
 
   const quickRef = await readDoc("QUICK_REFERENCE.md", false);
   if (quickRef) {

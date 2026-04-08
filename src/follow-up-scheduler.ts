@@ -2,17 +2,13 @@ import { getLeadsDueForFollowUp, updateLead, claimFollowUpForSending, storeFollo
 import { generateFollowUpDraft } from "./pipeline/follow-up-generate.js";
 import { sendSms } from "./sms.js";
 import type { LeadRecord } from "./types.js";
+import { baseUrl } from "./utils/helpers.js";
 
 const INTERVAL_MS = 15 * 60 * 1_000; // 15 minutes
 const MAX_SCHEDULER_RETRIES = 3;
 let schedulerHandle: ReturnType<typeof setTimeout> | null = null;
 const retryFailures = new Map<number, number>(); // leadId → consecutive failure count
 const RETRY_MAP_CAP = 50; // safety valve against unbounded growth
-
-/** Strip trailing slashes from BASE_URL. */
-function baseUrl(): string {
-  return (process.env.BASE_URL || "").replace(/\/+$/, "");
-}
 
 /**
  * Format the follow-up notification SMS.

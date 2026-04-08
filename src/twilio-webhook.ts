@@ -6,6 +6,7 @@ import { sendSms } from "./sms.js";
 import { runEditPipeline } from "./run-pipeline.js";
 import { webhookLimiter } from "./rate-limit.js";
 import type { Classification, LeadRecord, PricingResult } from "./types.js";
+import { baseUrl } from "./utils/helpers.js";
 
 const router = Router();
 
@@ -22,11 +23,6 @@ const FOLLOWUP_SEND_PATTERN = /^send$/i;
 const MAX_EDIT_ROUNDS = 3;
 
 // --- Helpers ---
-
-/** Strip trailing slashes from BASE_URL. */
-function baseUrl(): string {
-  return (process.env.BASE_URL || "").replace(/\/+$/, "");
-}
 
 /** Send empty TwiML response (Twilio requires XML). */
 function emptyTwiml(res: Response): void {
