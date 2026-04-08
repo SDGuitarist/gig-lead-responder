@@ -1,12 +1,12 @@
 // Allowed imports: ./migrate.js, ./leads.js, ../types.js only
 // NEVER import from ./index.js (circular dependency risk)
 
-import type Database from "better-sqlite3";
 import type { LeadRecord, LeadStatus, LeadOutcome, AnalyticsResponse, BookingCycleEntry, MonthlyTrendEntry, RevenueByTypeEntry, FollowUpEffectivenessEntry, LossReasonEntry, LossReason } from "../types.js";
 import { LOSS_REASONS } from "../types.js";
 import { initDb } from "./migrate.js";
 import { normalizeLeadRow, setLeadOutcome } from "./leads.js";
 import { skipFollowUp } from "./follow-ups.js";
+import { stmt } from "./stmt-cache.js";
 
 /** Fill missing months between first and last in a DESC-sorted trends array. Returns chronological order. */
 function fillMonthlyGaps(rows: Array<{ month: string; received: number; booked: number }>): Array<{ month: string; received: number; booked: number }> {
@@ -28,28 +28,13 @@ function fillMonthlyGaps(rows: Array<{ month: string; received: number; booked: 
   return filled;
 }
 
-// stmt() pattern also in leads.ts, follow-ups.ts — keep in sync
-let cachedDb: Database.Database | undefined;
-const stmtCache = new Map<string, Database.Statement>();
-function stmt(sql: string): Database.Statement {
-  const db = initDb();
-  if (db !== cachedDb) {
-    stmtCache.clear();
-    cachedDb = db;
-  }
-  let s = stmtCache.get(sql);
-  if (!s) {
-    s = db.prepare(sql);
-    stmtCache.set(sql, s);
-  }
-  return s;
-}
-
 // --- Dashboard queries ---
 
 export interface ListLeadsFilteredOpts {
   status?: LeadStatus;
   sort?: "date" | "score" | "event";
+  limit?: number;
+  offset?: number;
 }
 
 export function listLeadsFiltered(opts: ListLeadsFilteredOpts = {}): LeadRecord[] {
@@ -74,6 +59,12 @@ export function listLeadsFiltered(opts: ListLeadsFilteredOpts = {}): LeadRecord[
     default:
       sql += " ORDER BY created_at DESC";
   }
+
+  const limit = opts.limit ?? 50;
+  const offset = opts.offset ?? 0;
+  sql += " LIMIT @limit OFFSET @offset";
+  params.limit = limit;
+  params.offset = offset;
 
   // Dynamic SQL — bypass stmt cache (same pattern as updateLead)
   const rows = initDb().prepare(sql).all(params) as LeadRecord[];

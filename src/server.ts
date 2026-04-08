@@ -3,6 +3,7 @@ import { initDb } from "./db/index.js";
 import { createApp } from "./app.js";
 import { startFollowUpScheduler, stopFollowUpScheduler } from "./follow-up-scheduler.js";
 import { startGmailPoller, stopGmailPoller } from "./automation/poller.js";
+import { recoverStuckLeads } from "./post-pipeline.js";
 
 if (!process.env.ANTHROPIC_API_KEY) {
   console.error("Error: ANTHROPIC_API_KEY not set in .env file");
@@ -18,6 +19,10 @@ if (process.env.NODE_ENV === "production" || process.env.RAILWAY_ENVIRONMENT) {
     console.error("FATAL: DASHBOARD_USER and DASHBOARD_PASS must be set in production");
     process.exit(1);
   }
+  if (!process.env.COOKIE_SECRET) {
+    console.error("FATAL: COOKIE_SECRET must be set in production");
+    process.exit(1);
+  }
 }
 
 // Initialize SQLite (creates tables if needed)
@@ -30,6 +35,7 @@ const server = app.listen(PORT, "::", () => {
   console.log(`Gig Lead Responder running at http://localhost:${PORT}`);
   startFollowUpScheduler();
   startGmailPoller();
+  recoverStuckLeads().catch(err => console.error("Stuck lead recovery failed:", err));
 });
 
 process.on("SIGTERM", () => {

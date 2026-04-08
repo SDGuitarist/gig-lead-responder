@@ -36,7 +36,10 @@ router.get("/api/leads", (req: Request, res: Response) => {
     ? (req.query.sort as "date" | "score" | "event")
     : undefined;
 
-  const leads = listLeadsFiltered({ status, sort });
+  const limit = typeof req.query.limit === "string" ? Math.min(Math.max(parseInt(req.query.limit, 10) || 50, 1), 200) : 50;
+  const offset = typeof req.query.offset === "string" ? Math.max(parseInt(req.query.offset, 10) || 0, 0) : 0;
+
+  const leads = listLeadsFiltered({ status, sort, limit, offset });
   res.json(leads.map(shapeLead));
 });
 
@@ -82,9 +85,8 @@ router.post("/api/leads/:id/approve", approveLimiter, csrfGuard, asyncHandler(as
   } catch (err) {
     // Revert to previous status on SMS failure
     updateLead(id, { status: lead.status });
-    void err;
-    console.error("SMS delivery failed");
-    res.status(500).json({ error: "SMS delivery failed. Check server logs." });
+    console.error(`Lead ${id}: SMS send failed:`, err);
+    res.status(500).json({ error: "SMS delivery failed" });
     return;
   }
 
@@ -243,16 +245,20 @@ router.post("/api/analyze", analyzeLimiter, csrfGuard, async (req: Request, res:
   res.setHeader("Connection", "keep-alive");
   res.flushHeaders();
 
+  const heartbeat = setInterval(() => {
+    res.write(":heartbeat\n\n");
+  }, 15_000);
+
   try {
     const output = await runPipeline(text.trim(), (event) => {
       sendSSE(res, "stage", event);
     });
     sendSSE(res, "complete", output);
   } catch (err: unknown) {
-    void err;
-    console.error("Pipeline error");
-    sendSSE(res, "error", { error: "Pipeline processing failed. Check server logs." });
+    console.error("Analyze pipeline failed:", err);
+    sendSSE(res, "error", { error: "Analysis failed — check server logs" });
   } finally {
+    clearInterval(heartbeat);
     res.end();
   }
 });

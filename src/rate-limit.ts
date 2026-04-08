@@ -43,3 +43,11 @@ export const followUpActionLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
 });
+
+export const webhookLimiter = rateLimit({
+  windowMs: WINDOW_MS,
+  limit: 30,
+  handler,
+  standardHeaders: true,
+  legacyHeaders: false,
+});

@@ -11,8 +11,7 @@ const COOKIE_MAX_AGE_MS = COOKIE_MAX_AGE_S * 1000;
 function getCookieSecret(): string {
   if (process.env.COOKIE_SECRET) return process.env.COOKIE_SECRET;
   if (process.env.NODE_ENV === "production" || process.env.RAILWAY_ENVIRONMENT) {
-    console.error("FATAL: COOKIE_SECRET must be set in production");
-    process.exit(1);
+    throw new Error("COOKIE_SECRET must be set in production");
   }
   console.warn("WARNING: Using random COOKIE_SECRET — sessions won't survive restarts");
   return randomBytes(32).toString("hex");
@@ -151,8 +150,9 @@ export function sessionAuth(req: Request, res: Response, next: NextFunction): vo
 }
 
 /**
- * CSRF guard for state-changing dashboard requests.
+ * CSRF guard for cookie-authenticated POST requests.
  * Requires X-Requested-With: dashboard header on POSTs.
+ * Skips check if the request uses Basic Auth (not auto-attached by browsers).
  */
 export function csrfGuard(req: Request, res: Response, next: NextFunction): void {
   // Only check POST/PUT/DELETE (state-changing methods)
@@ -161,6 +161,13 @@ export function csrfGuard(req: Request, res: Response, next: NextFunction): void
     return;
   }
 
+  // Skip if authenticated via Basic Auth header (not auto-attached by browsers)
+  if (req.headers.authorization?.startsWith("Basic ")) {
+    next();
+    return;
+  }
+
+  // For cookie-authenticated requests: require custom header
   if (req.headers["x-requested-with"] === "dashboard") {
     next();
     return;

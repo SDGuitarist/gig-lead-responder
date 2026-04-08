@@ -20,7 +20,7 @@ import { GigSaladPortalClient } from "./portals/gigsalad-client.js";
 function bootstrapCredentialFiles(credPath: string, tokenPath: string): void {
   if (!existsSync(credPath) && process.env.GMAIL_CREDENTIALS_JSON) {
     mkdirSync(dirname(credPath), { recursive: true });
-    writeFileSync(credPath, process.env.GMAIL_CREDENTIALS_JSON);
+    writeFileSync(credPath, process.env.GMAIL_CREDENTIALS_JSON, { mode: 0o600 });
     console.log(`[gmail-poller] Wrote ${credPath} from GMAIL_CREDENTIALS_JSON env var`);
   }
   if (!existsSync(tokenPath) && process.env.GMAIL_TOKEN_JSON) {

@@ -53,14 +53,14 @@ export function createApp() {
 
   // Serve dashboard.html with per-request CSP nonce injected into <script> tags
   const dashboardHtml = readFileSync(join(import.meta.dirname, "..", "public", "dashboard.html"), "utf-8");
-  app.get("/dashboard.html", (_req, res) => {
+  app.get("/dashboard.html", sessionAuth, (_req, res) => {
     const nonce = res.locals.cspNonce as string;
     const html = dashboardHtml.replace(/<script(?=[\s>])/gi, `<script nonce="${nonce}"`);
     res.type("html").send(html);
   });
 
   // Retire the legacy analyzer entry points in favor of the dashboard.
-  app.get(["/", "/index.html"], (_req, res) => {
+  app.get(["/", "/index.html"], sessionAuth, (_req, res) => {
     res.redirect("/dashboard.html");
   });
 

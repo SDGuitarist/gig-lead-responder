@@ -1,6 +1,8 @@
 import { getLead, updateLead } from "./db/index.js";
+import { stmt } from "./db/stmt-cache.js";
+import { normalizeLeadRow } from "./db/leads.js";
 import { sendSms } from "./sms.js";
-import type { PipelineOutput } from "./types.js";
+import type { LeadRecord, PipelineOutput } from "./types.js";
 
 /**
  * Handle successful pipeline completion:
@@ -72,15 +74,51 @@ export async function postPipelineError(
     pipeline_completed_at: now,
   });
 
-  // Step 2 — Send alert SMS
-  const truncated = message.length > 100 ? message.slice(0, 100) + "…" : message;
+  // Step 2 — Send generic alert SMS (no raw error details over SMS)
   const smsBody = [
     `Lead #${leadId} — REVIEW NEEDED`,
-    `Pipeline failed: ${truncated}`,
-    "Check dashboard for details.",
+    "Pipeline failed. Check dashboard for details.",
   ].join("\n");
 
   await sendSms(smsBody);
 
-  console.error(`Lead #${leadId}: pipeline failed — ${message}`);
+  console.error(`Lead #${leadId}: pipeline failed —`, err);
+}
+
+/**
+ * Startup recovery: find leads stuck in "received" with pipeline results
+ * (pipeline_completed_at set but status never advanced to "sent").
+ * Re-attempts the SMS + status transition.
+ */
+export async function recoverStuckLeads(): Promise<void> {
+  const rows = stmt(
+    "SELECT * FROM leads WHERE status = 'received' AND pipeline_completed_at IS NOT NULL",
+  ).all() as LeadRecord[];
+
+  if (rows.length === 0) return;
+
+  console.log(`Recovery: found ${rows.length} stuck lead(s) — re-attempting SMS...`);
+
+  for (const row of rows) {
+    const lead = normalizeLeadRow(row);
+    try {
+      const lines: string[] = [];
+      lines.push(`Lead #${lead.id} — ${lead.event_type || "Unknown event"} on ${lead.event_date || "TBD"}`);
+      if (lead.venue) lines.push(lead.venue);
+      lines.push("");
+      lines.push(lead.compressed_draft || "(no draft)");
+      lines.push("");
+      lines.push("Reply YES to send, or send edits.");
+
+      await sendSms(lines.join("\n"));
+
+      updateLead(lead.id, {
+        status: "sent",
+        sms_sent_at: new Date().toISOString(),
+      });
+      console.log(`Recovery: Lead #${lead.id} — SMS sent, status updated to "sent"`);
+    } catch (err) {
+      console.error(`Recovery: Lead #${lead.id} — SMS retry failed:`, err);
+    }
+  }
 }

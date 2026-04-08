@@ -4,6 +4,7 @@ import type { Request, Response } from "express";
 import { getLead, getLeadsByStatus, updateLead, completeApproval, approveFollowUp, skipFollowUp, getLeadAwaitingFollowUp, getLeadWithActiveFollowUp } from "./db/index.js";
 import { sendSms } from "./sms.js";
 import { runEditPipeline } from "./run-pipeline.js";
+import { webhookLimiter } from "./rate-limit.js";
 import type { Classification, LeadRecord, PricingResult } from "./types.js";
 
 const router = Router();
@@ -140,10 +141,17 @@ async function handleEdit(leadId: number | null, instructions: string): Promise<
     return;
   }
 
-  const classification: Classification = JSON.parse(lead.classification_json);
+  let classification: Classification;
+  let pricing: PricingResult;
+  try {
+    classification = JSON.parse(lead.classification_json);
+    pricing = JSON.parse(lead.pricing_json);
+  } catch {
+    await sendSms(`Lead #${lead.id} has corrupt stored data. Check dashboard.`);
+    return;
+  }
   // Re-stamp platform from DB (not stored in classification JSON)
   classification.platform = (lead.source_platform as Classification["platform"]) ?? undefined;
-  const pricing: PricingResult = JSON.parse(lead.pricing_json);
 
   // Re-run context → generate (with instructions) → verify
   const { drafts, gate } = await runEditPipeline(classification, pricing, instructions);
@@ -217,7 +225,7 @@ async function handleFollowUpSkip(): Promise<void> {
 
 // --- Route ---
 
-router.post("/webhook/twilio", (req: Request, res: Response) => {
+router.post("/webhook/twilio", webhookLimiter, (req: Request, res: Response) => {
   // Signature validation
   if (!verifyTwilioSignature(req)) {
     console.warn("Twilio webhook signature validation failed");
@@ -230,7 +238,7 @@ router.post("/webhook/twilio", (req: Request, res: Response) => {
 
   // Only accept messages from Alex's phone
   if (from !== process.env.ALEX_PHONE) {
-    console.warn(`Twilio webhook from unknown number: ${from}`);
+    console.warn(`Twilio webhook from unknown number: ***${from.slice(-4)}`);
     emptyTwiml(res);
     return;
   }

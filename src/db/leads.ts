@@ -2,26 +2,9 @@
 // NEVER import from ./index.js (circular dependency risk)
 
 import { types } from "node:util";
-import type Database from "better-sqlite3";
 import type { LeadRecord, LeadStatus, LeadOutcome, LossReason } from "../types.js";
 import { initDb } from "./migrate.js";
-
-// stmt() pattern also in follow-ups.ts, queries.ts — keep in sync
-let cachedDb: Database.Database | undefined;
-const stmtCache = new Map<string, Database.Statement>();
-function stmt(sql: string): Database.Statement {
-  const db = initDb();
-  if (db !== cachedDb) {
-    stmtCache.clear();
-    cachedDb = db;
-  }
-  let s = stmtCache.get(sql);
-  if (!s) {
-    s = db.prepare(sql);
-    stmtCache.set(sql, s);
-  }
-  return s;
-}
+import { stmt } from "./stmt-cache.js";
 
 // --- Venue miss logging ---
 
