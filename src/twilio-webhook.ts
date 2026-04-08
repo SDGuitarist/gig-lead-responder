@@ -140,8 +140,16 @@ async function handleEdit(leadId: number | null, instructions: string): Promise<
   let classification: Classification;
   let pricing: PricingResult;
   try {
-    classification = JSON.parse(lead.classification_json);
-    pricing = JSON.parse(lead.pricing_json);
+    const rawC = JSON.parse(lead.classification_json);
+    const rawP = JSON.parse(lead.pricing_json);
+    if (typeof rawC !== "object" || rawC === null || typeof rawC.mode !== "string") {
+      throw new Error("invalid classification shape");
+    }
+    if (typeof rawP !== "object" || rawP === null || typeof rawP.quote_price !== "number") {
+      throw new Error("invalid pricing shape");
+    }
+    classification = rawC as Classification;
+    pricing = rawP as PricingResult;
   } catch {
     await sendSms(`Lead #${lead.id} has corrupt stored data. Check dashboard.`);
     return;
