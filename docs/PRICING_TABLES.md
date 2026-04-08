@@ -12,10 +12,11 @@ Price data by tier and format. Tier determination happens in CORE_METHODOLOGY.md
 ## Pricing Rules
 
 1. **Quote full hours only.** No 30-minute increments.
-2. **Premium leads get single confident numbers** (e.g., "$995"), not ranges.
-3. **Standard leads can receive ranges** during qualification (e.g., "$400-500").
-4. **Wedding is a pricing modifier**, not a response tier. Apply Wedding prices when wedding indicators present.
-5. **Never quote until performer availability is confirmed** (operational—Alex handles this).
+2. **$500 minimum booking floor.** No booking under $500 regardless of tier, duration, or configuration.
+3. **Premium leads get single confident numbers** (e.g., "$995"), not ranges.
+4. **Standard leads can receive ranges** during qualification (e.g., "$500-595").
+5. **Wedding is a pricing modifier**, not a response tier. Apply Wedding prices when wedding indicators present.
+6. **Never quote until performer availability is confirmed** (operational—Alex handles this).
 
 </pricing_rules>
 
@@ -29,11 +30,12 @@ Price data by tier and format. Tier determination happens in CORE_METHODOLOGY.md
 
 | Tier | Duration | Price |
 |------|----------|-------|
-| Standard | 1-2 hours | $400-500 |
-| Premium | 1-2 hours | $550-650 |
-| Premium | 3 hours | $750 |
-| Wedding | 1 hour | $500 |
-| Wedding | 2 hours | $650 |
+| Standard | 1 hour | $550-595 |
+| Standard | 2 hours | $595-700 |
+| Premium | 1-2 hours | $600-895 |
+| Premium | 3 hours | $895-1,200 |
+| Wedding | 1 hour | $550-600 |
+| Wedding | 2 hours | $700-895 |
 
 ### Duo (with or without Vocals)
 
@@ -123,7 +125,7 @@ Price data by tier and format. Tier determination happens in CORE_METHODOLOGY.md
 ## Budget Qualification Language
 
 ### Solo (Standard)
-"For a solo Spanish guitarist with vocals, that typically runs around $400-500 for the first couple hours. Does that range work for what you're planning?"
+"For a solo Spanish guitarist with vocals, that typically runs around $500-600 for the first couple hours. Does that range work for what you're planning?"
 
 ### Duo (Standard)
 "A Latin duo with vocals usually runs $600-700 for a 2-hour set. Does that fit your budget?"

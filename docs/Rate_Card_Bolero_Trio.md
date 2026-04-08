@@ -1,7 +1,8 @@
 # Rate Card — Bolero Trio
 
 **Purpose:** Pricing reference for authentic Mexican bolero trio programming  
-**Last Updated:** February 2026 | Confidential
+**Last Updated:** April 2026 | Confidential
+**April 2026 Update:** $500 minimum booking floor enforced system-wide. All bolero trio prices already clear this threshold — no rate changes required.
 
 **Format:** All prices shown as Anchor / Floor  
 **Note:** Bolero trios are scarce specialty programming. Use positioning from Bolero_Trio_Negotiation_Playbook when quoting.

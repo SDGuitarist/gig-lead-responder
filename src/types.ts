@@ -8,9 +8,15 @@ export type Format =
   | "duo"
   | "flamenco_duo"
   | "flamenco_trio"
+  | "flamenco_trio_full"
   | "mariachi_4piece"
   | "mariachi_full"
-  | "bolero_trio";
+  | "bolero_trio"
+  | "sourced_cultural_solo"
+  | "sourced_cultural_duo"
+  | "sourced_cultural_trio"
+  | "sourced_cultural_quartet"
+  | "sourced_cultural_5piece";
 
 export interface Classification {
   // Mode & action
@@ -37,7 +43,7 @@ export interface Classification {
   format_recommended: Format; // Corrected format for pricing lookup
 
   // Duration — extracted from lead text
-  duration_hours: 1 | 1.5 | 2 | 3 | 4;
+  duration_hours: 1 | 1.5 | 2 | 3 | 3.5 | 4;
 
   // Budget — extracted as number from lead text (null if not mentioned)
   stated_budget: number | null;

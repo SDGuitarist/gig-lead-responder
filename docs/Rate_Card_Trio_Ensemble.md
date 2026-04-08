@@ -1,7 +1,8 @@
 # Rate Card — Trio & Ensemble
 
 **Purpose:** Pricing reference for trio and larger ensemble configurations  
-**Last Updated:** February 2026 | Confidential
+**Last Updated:** April 2026 | Confidential
+**April 2026 Update:** $500 minimum booking floor enforced system-wide. All trio/ensemble prices already clear this threshold — no rate changes required.
 
 **Format:** All prices shown as Anchor / Floor  
 **Note:** Bolero Trio has separate rate card (Rate_Card_Bolero_Trio.md)

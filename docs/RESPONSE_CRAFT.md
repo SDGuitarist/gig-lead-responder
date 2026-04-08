@@ -1,13 +1,41 @@
 # RESPONSE_CRAFT.md
-## Pacific Flow Entertainment — Response Writing Execution
+## Pacific Flow Entertainment — Pre-Draft Analysis (Steps 6-8)
 
-**Purpose:** How to write the response after classification. Execute Steps 6-10 after completing PROTOCOL.md.
+**Purpose:** Evaluate layers, address concerns, and find the wedge BEFORE writing. Execute after PROTOCOL.md classification (Steps 0-5).
 
-**Line count target:** ~180 lines
+---
+
+## ⚠️ MANDATORY SEQUENCE — YOU ARE HERE: FILE 1 OF 3
+
+```
+PROTOCOL.md (Steps 0-5) ........... Classification
+→ RESPONSE_CRAFT.md (Steps 6-8) ... Pre-Draft Analysis ◄ YOU ARE HERE
+→ DRAFT_METHOD.md (Step 9) ........ Writing Execution
+→ VERIFICATION.md (Steps 10-11) ... Quality Gate + Output
+```
+
+**Do not skip to DRAFT_METHOD.md without completing Steps 6-8 here first.**
+**Do not produce any draft text until DRAFT_METHOD.md is loaded.**
 
 ---
 
 ## Step 6: Evaluate Layers
+
+### Sourced Delivery Layer
+
+**Triggers:** Delivery Mode = "Alex Sources" or "Hybrid" (from PROTOCOL.md → Step 0.5)
+
+**When active, this layer affects every subsequent step.** The response voice shifts from first-person performer to confident curator. Transparency about sourcing is required. The differentiator shifts from personal performance credibility to network quality and cultural authenticity.
+
+**If Sourced Delivery active:**
+→ Apply Sourced Voice Rules (see DRAFT_METHOD.md → Sourced Lead Drafting)
+→ Apply Sourced Concern Patterns (Step 7 below)
+→ Include Sourced Wedge options in Step 8
+
+**Sourced Delivery Layer interacts with other layers:**
+- **Sourced + Cultural Context:** Common combination. Mariachi, bolero trio, and cultural traditions are almost always sourced. Cultural Context takes priority for emotional framing; Sourced Delivery governs voice and transparency.
+- **Sourced + Planner Effort:** Validate their planning AND signal that you'll handle the coordination complexity they can't see.
+- **Sourced + Social Proof:** Social Proof works well with sourced leads because "most clients for events like yours go with [configuration]" naturally frames your curation role.
 
 ### Cultural Context Layer
 
@@ -52,7 +80,7 @@ Weave validation throughout response:
 - Instead of: "I'd recommend a duo."
 - Use: "For events like yours, most clients go with a duo—[benefit]. Does that match what you're picturing?"
 
-**State:** [Cultural: Y/N] [Planner Effort: Y/N] [Social Proof: Y/N]
+**State:** [Sourced Delivery: Y/N] [Cultural: Y/N] [Planner Effort: Y/N] [Social Proof: Y/N]
 
 ---
 
@@ -79,8 +107,101 @@ Every flagged concern requires **integrated proof**—concern, experience, and s
 | Small space | "A [format] is perfect for that space—full sound without crowding your guests." |
 | COI / insurance | "I carry liability insurance ($1M/$2M) and can provide COI within a few days of booking." |
 | Noise restrictions | "I calibrate volume during setup to stay within limits while still filling the space." |
+| Indoor/outdoor uncertain | "I'm fully self-contained and battery-powered for outdoor—and if you end up moving inside, I adapt on the spot. Either way, I'm covered." |
 
-→ For complete patterns: See LOGISTICAL_SOLUTIONS.md
+### Sourced Delivery Concern Patterns
+
+**When Delivery Mode = Alex Sources or Hybrid, these additional concerns exist — whether the client states them or not. Address proactively.**
+
+| Concern | What the Client Fears | Integrated Response Pattern |
+|---------|----------------------|----------------------------|
+| **Who are these musicians?** | Hiring a stranger who hires other strangers | "I work with a small group of musicians I know personally — artists I've performed alongside and trust to deliver at the level my clients expect." |
+| **Will they be professional?** | No-show, late arrival, wrong attire, wrong vibe | "Every musician in my network has performed at [venue type] events. I handle all coordination — arrival time, dress code, setup, sound — so you don't have to." |
+| **Is this authentic?** | Getting generic "Latin" musicians covering boleros, not real bolero artists | "These aren't session musicians covering [tradition]. They inherited this music — it's part of their cultural heritage. That authenticity is what makes the experience powerful." |
+| **Who's accountable?** | If something goes wrong, who do I call? | "I'm your single point of contact from booking through performance. If anything needs adjusting, you call me — not a random musician." |
+| **Why is Alex not performing?** | Did I get bait-and-switched? | Only address if client specifically requested Alex. Otherwise, don't raise it. If needed: "For [configuration], I coordinate rather than perform — but I personally select every musician, manage every detail, and I'm available by phone throughout." |
+
+**The Sourced Transparency Rule:**
+
+Transparency about sourcing must be **confident and structural, never apologetic.** Alex's role as curator is a feature, not a downgrade. The language positions coordination as expertise:
+
+| Wrong (Apologetic) | Right (Confident) |
+|---|---|
+| "I won't actually be performing, but I can arrange musicians..." | "I work with a small group of musicians I know personally and trust." |
+| "I'd need to hire a mariachi group for this..." | "I coordinate San Diego's premier traditional mariachi ensemble." |
+| "I can try to find someone who plays bolero..." | "Authentic bolero trios are one of the rarest ensembles in San Diego. I work with one of the only groups who specialize in traditional Mexican romantic repertoire." |
+| "I'm more of a coordinator for this type of event..." | "I've been curating culturally authentic entertainment in San Diego for over 30 years." |
+
+**When to be transparent vs. when not to raise it:**
+- **Always transparent:** When the lead arrived through a PFE channel, when the configuration clearly requires multiple musicians Alex doesn't play with, when the client asks "will you be performing?"
+- **Don't raise it unprompted:** When the client is shopping a category ("mariachi for our party") and hasn't asked about the specific performer. They're hiring Pacific Flow for the result, not asking who plays which instrument.
+- **The test:** Would a client feel misled after the event? If yes, be transparent earlier. If no, focus on the experience they're buying.
+
+### Reading Absent Information
+
+**Every lead tells a story, including through its gaps.**
+
+Missing fields are signals about the client, not just missing data. Reason about what each absence reveals before drafting.
+
+| What's Missing | What It Signals | How to Respond |
+|----------------|-----------------|----------------|
+| Indoor/outdoor: "not sure" | No event planning experience, or doesn't know what musicians can handle | Reassure proactively: you're flexible and self-contained for either |
+| Guest count: blank | Early planning stage, or first-time event host | Don't ask—assume a range and quote accordingly |
+| Budget: blank | Either unaware of market rates, or intentionally withholding | Quote your anchor; don't fish for their number |
+| Genre: vague ("music") | They know they want something but haven't defined it | Use their event type and emotional tone to infer and recommend |
+| Venue: "TBD" | Still exploring options | Speak to the type of setting, not a specific address |
+| Very sparse form overall | Busy person, trusts you to figure it out, or early-stage shopper | Don't punish the sparseness—use what's there, infer the rest |
+
+**The rule:** Never treat a sparse lead as permission to go generic. A lead with three words still has an event type, a person behind it, and a moment being created. Find it.
+
+### Sparse Lead Type Classification
+
+When a lead is sparse, classify it before choosing a response strategy. The type determines the approach.
+
+| Type | Signals | Response Strategy |
+|------|---------|-------------------|
+| **1 — Pre-planning price shopper** | 6+ months out, no venue, no budget, collecting quotes | Short, memorable. One cinematic line, confident quote, soft close. Don't over-invest — they're not deciding yet. |
+| **2 — Overwhelmed or busy** | Sparse form but emotionally loaded event (wedding, milestone birthday, quinceañera) | Remove all friction. Fewer words, clearest path. Validate that you've got it handled. Make the next step effortless. |
+| **3 — Impatient minimum-viable filler** | Category-only request, short lead time, no explanation | Demonstrate you figured it out without asking. Make an assumption, state it confidently, quote. Don't make them repeat themselves. |
+| **4 — Still figuring out entertainment** | Vague genre ("music," "entertainment," "not sure"), no style language, no vision | Ask exactly ONE binary question that demonstrates expertise and frames the decision. Not budget. Not songs. Format or energy level. |
+
+**Default binary questions for Type 4:**
+- "Are you picturing something intimate and in the background, or more of a featured moment people stop to watch?"
+- "Solo guitar for atmosphere, or something with more energy like a duo or full ensemble?"
+
+**When type is ambiguous:** Default to Type 4 — the binary question surfaces what's needed to classify correctly on the next reply.
+
+**Cinematic strategy for sparse leads (Types 1–3):** When no venue, guest count, or vibe details exist, write the scene from inside the client's perspective at the moment they're reaching out — not from inside the event. What are they feeling right now? What are they hoping for? The sparseness itself is the detail.
+
+> "You didn't give me much — which means you're either still figuring it out, or you've learned to trust the people you hire to figure it out. Either way: here's what March 22 should feel like..."
+
+**Sparse lead scene strategy:** When even the client's perspective feels thin, build the cinematic moment from what the experience looks like — guests at a table, glasses in hand, a specific time of night, and the music doing something observable in response to the room. The scene comes from the experience, not from the lead details. Example: "Halfway through the first hour, the conversation at the long table gets louder — that's the cue to drop the guitar down a half step, and the whole room settles without anyone noticing why."
+
+**Type 3 concern bundling:** Every flagged concern must still appear in the draft, but on Type 3 leads, bundle multiple gaps into a single confident sentence instead of addressing each one separately. Example: "I'm quoting for a 2-hour solo set with fingerstyle jazz and light acoustic pop — if your headcount or venue changes the picture, just say the word and I'll adjust." That one sentence covers duration, genre, guest count, and venue in Type 3 voice.
+
+**Genre default rule:** When genre/style is not specified, always state what you default to — don't leave it unaddressed. For corporate events: "I default to fingerstyle jazz and light acoustic pop for corporate rooms." For private events: "I lean toward warm acoustic covers and instrumental standards unless you have something specific in mind." This must appear as its own clause or sentence in the draft.
+
+**Date proximity rule:** If the event date is within 6 weeks, the draft must contain one sentence that acknowledges the timeline — offer to hold the date, note that confirming soon helps with availability, or frame it as "[date] is coming up." Never leave a short-timeline concern unaddressed, even on sparse leads where nothing else feels urgent.
+
+### Long-Format Expertise (3+ Hours)
+
+For events 3+ hours, demonstrate arc-of-evening knowledge. This is the expertise proof that separates you from vendors quoting hours.
+
+**Pattern:**
+> "For a [X]-hour evening like this, I shape the music in phases—[phase 1], [phase 2], [phase 3]."
+
+**Arc Patterns by Event Type:**
+
+| Event Type | Arc Pattern |
+|------------|-------------|
+| **Pre-wedding dinner** | "Lighter and ambient during cocktails on the patio as the sun sets, present but unobtrusive through dinner, then warmer and more intimate as the evening winds down and toasts happen." |
+| **Corporate reception** | "Background energy during arrival and networking, pull back during any remarks, then more present as it becomes purely social." |
+| **Private celebration** | "Welcoming and upbeat as guests arrive, stepping back for dinner conversation, more present as the celebration peaks, then intimate for the close." |
+| **House party** | "Set the tone early while people are still arriving, read the room energy through dinner, then match whatever direction the evening takes." |
+
+**Why this works:** Competitors quote hours. You demonstrate you've thought about *their* evening—how energy flows, where transitions happen, what each phase needs. This is expertise proof that can't be faked.
+
+**Sourced arc patterns:** When Delivery Mode = Alex Sources, the arc language shifts from first-person ("I shape the music") to curation voice ("The ensemble opens with...", "The musicians transition from..."). The expertise is in programming the experience, not in performing it. Example: "The trio opens with boleros during cocktails — intimate, conversational. As dinner settles, they shift to trova — poetic, quieter. When toasts happen, they pull back entirely. Then for the close, the requinto comes forward and the room goes still."
 
 **State:** [List concerns and how each will be addressed]
 
@@ -94,14 +215,32 @@ It lands in your first 1-2 sentences.
 
 ### Wedge Sources
 
-| Source | Example |
-|--------|---------|
-| Demonstrated Understanding | Translating their imprecise language into the real need |
-| Named Fear | Acknowledging what burned them before |
-| Venue-Specific Credibility | Insider knowledge that proves experience |
-| Cultural Recognition | Understanding what this moment means to their family |
-| Taste Alignment | "I know exactly what you mean about Ed Sheeran" |
-| Reframe | Positioning your recommendation as better than what they asked for |
+| Source | Example | Works For |
+|--------|---------|-----------|
+| Demonstrated Understanding | Translating their imprecise language into the real need | All delivery modes |
+| Named Fear | Acknowledging what burned them before | All delivery modes |
+| Absence as Signal | Reading what their missing detail reveals about them | All delivery modes |
+| Venue-Specific Credibility | Insider knowledge that proves experience | Alex Performs (strongest), Hybrid |
+| Cultural Recognition | Understanding what this moment means to their family | All — especially strong for Sourced + Cultural |
+| Taste Alignment | "I know exactly what you mean about Ed Sheeran" | Alex Performs |
+| Reframe | Positioning your recommendation as better than what they asked for | All delivery modes |
+| **Curation Expertise** | Knowing what configuration, tradition, and musicians fit THIS event | **Sourced leads** |
+| **Scarcity / Access** | You have access to rare ensembles they can't find elsewhere | **Sourced leads (bolero, specialty traditions)** |
+| **Cultural Insider Knowledge** | Understanding the tradition deeply enough to recommend what they didn't know to ask for | **Sourced + Cultural leads** |
+
+### Sourced-Specific Wedge Patterns
+
+**Curation Expertise wedge:**
+> "You asked for mariachi — but for a 40-person anniversary dinner, a 4-piece on a weekday evening will fill the room better than a full ensemble that overwhelms the space. I know the right group."
+
+**Scarcity/Access wedge:**
+> "Authentic bolero trios are one of the rarest ensembles in San Diego. I work with one of maybe two groups who actually specialize in traditional Mexican romantic repertoire — not generic Latin musicians covering boleros."
+
+**Cultural Insider wedge:**
+> "When you say 'romantic Latin music for the anniversary,' I hear bolero — the songs your family has loved for generations. That's a different warmth than generic Latin jazz standards."
+
+**Configuration Recommendation wedge:**
+> "You said 'flamenco group' — what you're describing is actually a trio: guitarist, cajón, and dancer. The dancer is what turns background music into the moment your Spanish guests have been waiting for."
 
 → For Demonstrated Understanding framework: See PRINCIPLES.md → Principle 2
 
@@ -109,157 +248,15 @@ It lands in your first 1-2 sentences.
 
 Could another vendor write this opening? If yes, it's not a wedge—it's generic.
 
+**Sourced wedge test (additional):** Could a random booking agency write this opening? If yes, you're not demonstrating curation expertise — you're just dispatching musicians. The wedge must show that Alex's knowledge of the tradition, the musicians, or the configuration is what the client is actually paying for.
+
 **State:** [The Wedge in one sentence]
 
 ---
 
-## Step 9: Draft Response
+## ⚠️ Steps 6-8 complete. PROCEED TO DRAFT_METHOD.md (Step 9).
 
-### The 7-Component Framework
-
-Every response contains these seven components:
-
-| # | Component | What It Actually Is |
-|---|-----------|---------------------|
-| 1 | **Hook** | Grabs attention—often the wedge, or the opening image |
-| 2 | **Validation** | Affirm THEM for making this choice (not their vision—their decision to care) |
-| 3 | **Being in the Picture** | Put them IN the scene—time, sensory detail, they're there |
-| 4 | **Creating an Emotion** | Let the feeling emerge from the moment (don't tell them how to feel) |
-| 5 | **Differentiation** | Demonstrate understanding they couldn't articulate themselves |
-| 6 | **Answer Everything** | Price, logistics, flagged concerns—no follow-up needed |
-| 7 | **Close** | Clear next step (Direct Close, Soft Hold, or Hesitant) |
-
-### The Standard: One Continuous Movement
-
-**This is writing, not assembly.**
-
-Components flow into each other poetically and viscerally. No seams. No visible structure. The reader experiences one continuous movement from opening to close.
-
-**Wrong:** Slot components into structure → manufactured response with visible joints
-**Right:** Write until it flows → check that all seven components are present
-
-**The invisibility test:** Can you identify where one component ends and another begins? If yes, rewrite until you can't.
-
-### How Components Flow
-
-Validation can live inside the picture. Emotion emerges from the scene. Differentiation connects back to what they're feeling. The components aren't sequential steps—they're threads woven together.
-
-**Example of flow:**
-> "7:15. The light's going golden over your backyard. Thirty-five people who've watched your marriage unfold are finally together... **[Being in Picture]** You're the one who decided music would make this feel like more than dinner. **[Validation]** The guitar's there in the quiet moments. Someone catches your eye across the table and raises a glass. They'll remember how this evening felt, even if they never think about why. **[Emotion + Differentiation]**"
-
-One paragraph. Four components. No seams.
-
-### Dual Output Requirement
-
-**Produce TWO drafts:**
-
-**A. Full Draft**
-- All components present, naturally woven
-- Shows complete thinking
-- Word count: 100-125 (Standard), 145-165 (Premium + Cultural)
-
-**B. Compressed Draft**
-- Send-ready, competition-calibrated
-- Core elements only: Wedge, Price, Close, Contact
-
-**Compressed Word Count Targets:**
-
-| Competition | Target | Maximum |
-|-------------|--------|---------|
-| Low (0-3) | 100 | 125 |
-| Medium (4-5) | 80 | 100 |
-| High (6-10) | 60 | 80 |
-| Extreme (11+) | 50 | 60 |
-
-→ For full reference table: See QUICK_REFERENCE.md
-
-### Qualification Responses
-
-When Tier = Qualification (budget mismatch or vague request):
-
-1. **Brief validation** — Acknowledge their vision without overcommitting
-2. **Reframe** — Position the right solution as BETTER, not cheaper
-3. **ONE strategic question** (only if low competition) — Binary, demonstrates expertise
-4. **Warm indication** — Signal you'll recommend once you understand
-
-→ See PRINCIPLES.md → "Reframe, Don't Downgrade"
-
-### Close Types
-
-| Type | When to Use | Pattern |
-|------|-------------|---------|
-| **Direct Close** | Urgent, ready-to-book | "I'm available [date]—want me to lock it in?" |
-| **Soft Hold** | Needs approval, planning timeline | "I can hold [date] while you finalize details." |
-| **Hesitant** | Non-committal signals | "Happy to answer questions if it helps you decide." |
-
-### Contact Block (Always Include)
-
-```
-Alex Guillen
-Pacific Flow Entertainment
-(619) 755-3246
-```
-
----
-
-## Step 10: The Gut Check
-
-**Before delivering, verify these four checks:**
-
-| Check | Pass | Fail |
-|-------|------|------|
-| Can they SEE it? | A moment they can visualize | Adjective list |
-| Named the fear? | Said what burned them before | Implied understanding |
-| Differentiated? | Line only you would write | Could be any vendor |
-| Creates relief? | "Thank god, this person gets it" | "This one's professional too" |
-
-**If ANY check fails → Rewrite before delivering.**
-
-→ Full explanation: See PRINCIPLES.md → "Quality Standard"
-
----
-
-## Strategic Reserve
-
-**Bank unused insights for follow-up ammunition:**
-
-| Insight Type | Deploy When |
-|--------------|-------------|
-| Emotional landscape details | They hesitate—validate the stakes |
-| Deeper wedge angles | They engage but don't commit |
-| Inferred details about honoree | They ask questions |
-| Cultural depth (if not used) | Follow-up to deepen connection |
-
-**Follow-up now has fresh angles, not "just checking in."**
-
-**State:** [2-3 reserve insights for follow-up]
-
----
-
-## Output Format
-
-After completing Steps 6-10, deliver:
-
-```
----
-## FULL DRAFT ([X] words)
-
-[Full response with all components]
-
----
-
-## COMPRESSED DRAFT ([X] words — [Competition Level])
-
-[Send-ready response calibrated to competition]
-
----
-
-## STRATEGIC RESERVE (for follow-up)
-
-- [Insight 1]
-- [Insight 2]
-- [Insight 3]
-```
+**Do not write any draft text without loading DRAFT_METHOD.md first.** That file contains the reasoning-first method, five-part draft sequence, validation requirements, dual output rules, and sourced lead drafting guidance. Skipping it produces unstructured drafts that fail the Verification Gate.
 
 ---
 
@@ -267,13 +264,18 @@ After completing Steps 6-10, deliver:
 
 | Need | Location |
 |------|----------|
-| Quality Standard (4 checks explained) | PRINCIPLES.md → "Quality Standard" |
-| Demonstrated Understanding framework | PRINCIPLES.md → Principle 2 |
+| Classification (Steps 0-5) | PROTOCOL.md |
+| Delivery Mode assessment | PROTOCOL.md → Step 0.5 |
+| Writing execution (Step 9) | **DRAFT_METHOD.md ← NEXT** |
+| Sourced lead drafting rules | DRAFT_METHOD.md → Sourced Lead Drafting |
+| Quality gate + output (Steps 10-11) | VERIFICATION.md |
+| Core principles | PRINCIPLES.md |
 | Word count targets | QUICK_REFERENCE.md |
-| Close type selection | QUICK_REFERENCE.md |
 | Cultural framework | CULTURAL_CORE.md |
 | Tradition-specific patterns | CULTURAL_[region].md |
+| Venue classification | VENUE_INTEL.md |
+| Bolero negotiation strategy | Bolero_Trio_Negotiation_Playbook.md |
 
 ---
 
-*This file handles writing. For classification, see PROTOCOL.md. For principles, see PRINCIPLES.md.*
+*Pre-draft analysis only. For writing execution, proceed to DRAFT_METHOD.md. For quality gate, proceed to VERIFICATION.md.*

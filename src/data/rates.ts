@@ -18,31 +18,31 @@ export interface FormatRates {
 }
 
 // --- Solo (Spanish Guitar / Latin) ---
-// Source: Rate_Card_Solo_Duo.md — ceremony rates used for 1hr
+// Source: Rate_Card_Solo_Duo.md — April 2026 ($500 floor enforced)
 export const SOLO_RATES: FormatRates = {
   "1": {
-    T1: { anchor: 400, floor: 400 },
-    T2P: { anchor: 500, floor: 450 },
+    T1: { anchor: 500, floor: 500 },
+    T2P: { anchor: 550, floor: 500 },
     T2D: { anchor: 595, floor: 550 },
-    T3P: { anchor: 550, floor: 500 },
+    T3P: { anchor: 600, floor: 550 },
     T3D: { anchor: 650, floor: 595 },
   },
   "2": {
-    T1: { anchor: 400, floor: 400 },
+    T1: { anchor: 500, floor: 500 },
     T2P: { anchor: 595, floor: 550 },
     T2D: { anchor: 700, floor: 650 },
     T3P: { anchor: 795, floor: 750 },
     T3D: { anchor: 895, floor: 795 },
   },
   "3": {
-    T1: { anchor: 400, floor: 400 },
+    T1: { anchor: 500, floor: 500 },
     T2P: { anchor: 750, floor: 700 },
     T2D: { anchor: 895, floor: 795 },
     T3P: { anchor: 895, floor: 895 },
     T3D: { anchor: 1200, floor: 1000 },
   },
   "4": {
-    T1: { anchor: 400, floor: 400 },
+    T1: { anchor: 500, floor: 500 },
     T2P: { anchor: 950, floor: 900 },
     T2D: { anchor: 1100, floor: 1000 },
     T3P: { anchor: 1250, floor: 1100 },
@@ -224,13 +224,167 @@ export const BOLERO_TRIO_RATES: FormatRates = {
   },
 };
 
+// --- Flamenco Trio Full (Guitar + Cajón + Dancer entire duration) ---
+// Source: Rate_Card_Trio_Ensemble.md — B2C Full pricing
+export const FLAMENCO_TRIO_FULL_RATES: FormatRates = {
+  "1": {
+    T1: { anchor: 1200, floor: 1200 },
+    T2P: { anchor: 1500, floor: 1400 },
+    T2D: { anchor: 1700, floor: 1500 },
+    T3P: { anchor: 1700, floor: 1575 },
+    T3D: { anchor: 1900, floor: 1750 },
+  },
+  "2": {
+    T1: { anchor: 1200, floor: 1200 },
+    T2P: { anchor: 1800, floor: 1600 },
+    T2D: { anchor: 2100, floor: 1900 },
+    T3P: { anchor: 2200, floor: 2000 },
+    T3D: { anchor: 2495, floor: 2200 },
+  },
+  "3": {
+    T1: { anchor: 1200, floor: 1200 },
+    T2P: { anchor: 2200, floor: 2000 },
+    T2D: { anchor: 2600, floor: 2300 },
+    T3P: { anchor: 2600, floor: 2400 },
+    T3D: { anchor: 3000, floor: 2700 },
+  },
+  "3.5": {
+    T1: { anchor: 1200, floor: 1200 },
+    T2P: { anchor: 2400, floor: 2200 },
+    T2D: { anchor: 2800, floor: 2500 },
+    T3P: { anchor: 2800, floor: 2600 },
+    T3D: { anchor: 3300, floor: 2900 },
+  },
+};
+
+// --- Sourced Cultural Solo (any tradition, $200/hr musician cost) ---
+// Source: Rate_Card_Solo_Duo.md — Sourced Cultural Music section
+export const SOURCED_CULTURAL_SOLO_RATES: FormatRates = {
+  "1": {
+    T2P: { anchor: 550, floor: 500 },
+    T2D: { anchor: 600, floor: 550 },
+    T3P: { anchor: 650, floor: 575 },
+    T3D: { anchor: 700, floor: 625 },
+  },
+  "2": {
+    T2P: { anchor: 595, floor: 550 },
+    T2D: { anchor: 700, floor: 650 },
+    T3P: { anchor: 750, floor: 695 },
+    T3D: { anchor: 895, floor: 795 },
+  },
+  "3": {
+    T2P: { anchor: 850, floor: 775 },
+    T2D: { anchor: 950, floor: 875 },
+    T3P: { anchor: 1050, floor: 950 },
+    T3D: { anchor: 1200, floor: 1100 },
+  },
+};
+
+// --- Sourced Cultural Duo (any tradition, $400/hr musician cost) ---
+// Source: Rate_Card_Solo_Duo.md — Sourced Cultural Music section
+export const SOURCED_CULTURAL_DUO_RATES: FormatRates = {
+  "1": {
+    T2P: { anchor: 600, floor: 550 },
+    T2D: { anchor: 700, floor: 650 },
+    T3P: { anchor: 750, floor: 700 },
+    T3D: { anchor: 895, floor: 800 },
+  },
+  "2": {
+    T2P: { anchor: 1150, floor: 1050 },
+    T2D: { anchor: 1300, floor: 1200 },
+    T3P: { anchor: 1400, floor: 1275 },
+    T3D: { anchor: 1600, floor: 1450 },
+  },
+  "3": {
+    T2P: { anchor: 1650, floor: 1500 },
+    T2D: { anchor: 1850, floor: 1700 },
+    T3P: { anchor: 1995, floor: 1825 },
+    T3D: { anchor: 2295, floor: 2100 },
+  },
+};
+
+// --- Sourced Cultural Trio (any tradition, $600/hr musician cost) ---
+// Source: Rate_Card_Trio_Ensemble.md — Sourced Cultural Music section
+export const SOURCED_CULTURAL_TRIO_RATES: FormatRates = {
+  "1": {
+    T2P: { anchor: 850, floor: 775 },
+    T2D: { anchor: 950, floor: 875 },
+    T3P: { anchor: 1000, floor: 900 },
+    T3D: { anchor: 1100, floor: 1000 },
+  },
+  "2": {
+    T2P: { anchor: 1595, floor: 1450 },
+    T2D: { anchor: 1750, floor: 1600 },
+    T3P: { anchor: 1800, floor: 1650 },
+    T3D: { anchor: 2000, floor: 1850 },
+  },
+  "3": {
+    T2P: { anchor: 2300, floor: 2100 },
+    T2D: { anchor: 2500, floor: 2300 },
+    T3P: { anchor: 2600, floor: 2400 },
+    T3D: { anchor: 2895, floor: 2650 },
+  },
+};
+
+// --- Sourced Cultural Quartet (any tradition, $800/hr musician cost) ---
+// Source: Rate_Card_Trio_Ensemble.md — Sourced Cultural Music section
+export const SOURCED_CULTURAL_QUARTET_RATES: FormatRates = {
+  "1": {
+    T2P: { anchor: 1100, floor: 1000 },
+    T2D: { anchor: 1250, floor: 1150 },
+    T3P: { anchor: 1350, floor: 1250 },
+    T3D: { anchor: 1500, floor: 1375 },
+  },
+  "2": {
+    T2P: { anchor: 2100, floor: 1925 },
+    T2D: { anchor: 2400, floor: 2200 },
+    T3P: { anchor: 2500, floor: 2300 },
+    T3D: { anchor: 2895, floor: 2650 },
+  },
+  "3": {
+    T2P: { anchor: 3100, floor: 2825 },
+    T2D: { anchor: 3400, floor: 3100 },
+    T3P: { anchor: 3600, floor: 3300 },
+    T3D: { anchor: 4100, floor: 3750 },
+  },
+};
+
+// --- Sourced Cultural 5-Piece (any tradition, $1000/hr musician cost) ---
+// Source: Rate_Card_Trio_Ensemble.md — Sourced Cultural Music section
+export const SOURCED_CULTURAL_5PIECE_RATES: FormatRates = {
+  "1": {
+    T2P: { anchor: 1395, floor: 1275 },
+    T2D: { anchor: 1500, floor: 1375 },
+    T3P: { anchor: 1600, floor: 1475 },
+    T3D: { anchor: 1800, floor: 1650 },
+  },
+  "2": {
+    T2P: { anchor: 2695, floor: 2450 },
+    T2D: { anchor: 2895, floor: 2650 },
+    T3P: { anchor: 3100, floor: 2850 },
+    T3D: { anchor: 3495, floor: 3200 },
+  },
+  "3": {
+    T2P: { anchor: 3895, floor: 3550 },
+    T2D: { anchor: 4200, floor: 3850 },
+    T3P: { anchor: 4500, floor: 4100 },
+    T3D: { anchor: 4995, floor: 4550 },
+  },
+};
+
 // --- Master lookup: format string → rate table ---
 export const RATE_TABLES: Record<Format, FormatRates> = {
   solo: SOLO_RATES,
   duo: DUO_RATES,
   flamenco_duo: FLAMENCO_DUO_RATES,
   flamenco_trio: FLAMENCO_TRIO_RATES,
+  flamenco_trio_full: FLAMENCO_TRIO_FULL_RATES,
   mariachi_4piece: MARIACHI_4PIECE_RATES,
   mariachi_full: MARIACHI_FULL_RATES,
   bolero_trio: BOLERO_TRIO_RATES,
+  sourced_cultural_solo: SOURCED_CULTURAL_SOLO_RATES,
+  sourced_cultural_duo: SOURCED_CULTURAL_DUO_RATES,
+  sourced_cultural_trio: SOURCED_CULTURAL_TRIO_RATES,
+  sourced_cultural_quartet: SOURCED_CULTURAL_QUARTET_RATES,
+  sourced_cultural_5piece: SOURCED_CULTURAL_5PIECE_RATES,
 };
