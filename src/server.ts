@@ -11,7 +11,7 @@ if (!process.env.ANTHROPIC_API_KEY) {
 }
 
 if (process.env.NODE_ENV === "production" || process.env.RAILWAY_ENVIRONMENT) {
-  if (process.env.DISABLE_TWILIO_VALIDATION || process.env.DISABLE_MAILGUN_VALIDATION) {
+  if (process.env.DISABLE_TWILIO_VALIDATION === "true" || process.env.DISABLE_MAILGUN_VALIDATION === "true") {
     console.error("FATAL: webhook validation bypass enabled in production");
     process.exit(1);
   }
