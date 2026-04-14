@@ -141,7 +141,8 @@ Every question they have to ask is friction. Anticipate what they'll need to kno
 
 A response can hit every structural element and still lose because it doesn't create the feeling of "finally, someone who actually gets it."
 
-Before delivering any response, verify:
+The pipeline enforces a 15-check verification gate automatically. These 4 are
+the most critical — a quick mental scan before sending:
 
 | Check | Pass | Fail |
 |-------|------|------|
@@ -150,14 +151,12 @@ Before delivering any response, verify:
 | Differentiated? | Line only you would write | Could be any vendor with find-replace |
 | Creates relief? | "Thank god, this person gets it" | "This one seems professional too" |
 
-If any check fails, rewrite before delivering.
-
 ---
 
 ## Cross-References
 
 - For decision flow and lead classification → PROTOCOL.md
-- For drafting execution and 6-component structure → RESPONSE_CRAFT.md
+- For pre-draft analysis → RESPONSE_CRAFT.md
 - For competition matrix and word counts → QUICK_REFERENCE.md
 - For cultural layer application → CULTURAL_CORE.md
 

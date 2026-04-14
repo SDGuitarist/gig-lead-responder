@@ -64,7 +64,7 @@
 
 ### Qualification (ANY ONE)
 - Budget mismatch (low budget + big request)
-- Vague request + low competition
+- Vague request + key details missing + low competition
 - Placeholder numbers
 
 ### Standard
@@ -143,23 +143,10 @@
 
 ---
 
-## The 7-Component Framework
+## The 4 Core Checks (Quick Gut Test)
 
-| # | Component | What It Actually Is |
-|---|-----------|---------------------|
-| 1 | **Hook** | Grabs attention—often the wedge or opening image |
-| 2 | **Validation** | Affirm THEM for making this choice (not their vision—their decision to care) |
-| 3 | **Being in the Picture** | Put them IN the scene—time, sensory detail, they're there |
-| 4 | **Creating an Emotion** | Let feeling emerge from the moment (don't tell them how to feel) |
-| 5 | **Differentiation** | Demonstrate understanding they couldn't articulate themselves |
-| 6 | **Answer Everything** | Price, logistics, concerns—no follow-up needed |
-| 7 | **Close** | Clear next step |
-
-**Standard:** One continuous movement. No seams. Components invisible.
-
----
-
-## The Gut Check (4 Checks)
+These are the 4 most critical checks from the full 15-check verification gate.
+Use as a quick mental scan; the pipeline enforces the full gate automatically.
 
 | Check | Pass | Fail |
 |-------|------|------|
@@ -167,8 +154,6 @@
 | Named the fear? | Said what burned them before | Implied understanding |
 | Differentiated? | Line only you would write | Could be any vendor |
 | Creates relief? | "Thank god, this person gets it" | "This one's professional too" |
-
-**If ANY fails → Rewrite.**
 
 ---
 
@@ -184,13 +169,10 @@
 
 ---
 
-## Contact Block
+## Sign-Off
 
-```
-Alex Guillen
-Pacific Flow Entertainment
-(619) 755-3246
-```
+End drafts with "Alex Guillen" on its own line. No business name, no phone
+number in the draft. (Pipeline adds contact info separately when appropriate.)
 
 ---
 

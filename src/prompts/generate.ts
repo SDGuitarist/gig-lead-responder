@@ -200,7 +200,7 @@ End with "Alex Guillen" on its own line. No business name, no phone number — j
 
 ### Full Draft
 - All 5 steps naturally woven (no visible structure/labels)
-- Word count: ${classification.tier === "premium" || classification.cultural_context_active ? "145-165" : "100-125"} words (before contact block)
+- Word count: ${classification.cultural_context_active ? "145-165" : classification.tier === "premium" ? "125-145" : "100-125"} words (before contact block)
 - One continuous movement — no bullet points, no headers
 
 ### Compressed Draft

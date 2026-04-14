@@ -65,6 +65,9 @@ Does the opening sentence reference a CONCRETE DETAIL from the classification? T
 - mariachi_pricing_format: ${buildMariachiPricingInstruction(classification)}
 - cultural_vocabulary_used: ${buildCulturalVocabInstruction(classification)}
 - sounds_like_alex: Does the draft sound like a real person wrote it, or like a polished vendor template? Check for: (1) contractions are present and natural (I'm, we're, I've, that's, we'll, not "I am," "we will," "it is"), (2) no sales vocabulary ("investment," "package," "opportunity," "solution," "offering," "elevated experience"), (3) register is peer-to-peer, not vendor-to-client, (4) sentences vary in length with some short fragments, (5) price is stated as "rate" not "investment." If the draft reads like a wedding vendor template or catering proposal, sounds_like_alex = false.
+- genre_default_stated: ${buildGenreDefaultInstruction(classification)}
+- timeline_acknowledged: ${buildTimelineInstruction(classification)}
+- compressed_validation_present: Extract a validation sentence from the COMPRESSED DRAFT specifically. If no client-specific validation exists in the compressed version, compressed_validation_present = false. The compressed draft must retain at least one sentence that validates the CLIENT (not the event).
 
 ${classification.platform === "gigsalad"
     ? `### 8. Platform Policy Check — GigSalad (HARD GATE)
@@ -118,7 +121,10 @@ Return ONLY this JSON (no markdown fences, no explanation):
     "past_date_acknowledged": boolean,
     "mariachi_pricing_format": boolean,
     "cultural_vocabulary_used": boolean,
-    "sounds_like_alex": boolean
+    "sounds_like_alex": boolean,
+    "genre_default_stated": boolean,
+    "timeline_acknowledged": boolean,
+    "compressed_validation_present": boolean
   },
   "gate_status": "pass" | "fail",
   "fail_reasons": ["specific fix instruction 1", "..."]
@@ -190,4 +196,31 @@ function buildCulturalVocabInstruction(classification: Classification): string {
     return "Always true — no cultural context active.";
   }
   return 'Draft must use specific cultural terminology (e.g., "Nochebuena" not "Christmas Eve", "Las Mañanitas" not "birthday song"). Deletion test: swap the cultural term for a generic English equivalent — does the sentence still work? If yes → false.';
+}
+
+/**
+ * Build the genre_default_stated gut check instruction.
+ * No-op (always true) when the lead specified a clear genre/format.
+ */
+function buildGenreDefaultInstruction(classification: Classification): string {
+  const hasVagueFormat = classification.flagged_concerns.some(
+    (c) => c.toLowerCase().includes("vague") && c.toLowerCase().includes("format"),
+  );
+  const isVague = classification.vagueness === "vague";
+
+  if (!hasVagueFormat && !isVague) {
+    return "Always true — lead specified a clear genre or format.";
+  }
+  return 'The lead did not specify a clear genre. Draft must contain a sentence stating what music style or genre will be played (e.g., "I default to fingerstyle jazz and light acoustic pop" or "warm acoustic covers and instrumental standards"). If the draft recommends a format without stating the genre/style, genre_default_stated = false.';
+}
+
+/**
+ * Build the timeline_acknowledged gut check instruction.
+ * No-op (always true) when timeline is comfortable.
+ */
+function buildTimelineInstruction(classification: Classification): string {
+  if (classification.timeline_band === "comfortable") {
+    return "Always true — comfortable timeline (6+ weeks out).";
+  }
+  return `Timeline is "${classification.timeline_band}" — draft must contain language acknowledging the timeline: offering to hold the date, noting that confirming soon helps with availability, or framing the date as approaching. Deletion test: remove the timeline sentence — does the draft still work for an event 6 months away? If yes → false.`;
 }

@@ -5,17 +5,10 @@
 
 ---
 
-## ⚠️ MANDATORY SEQUENCE — YOU ARE HERE: FILE 1 OF 3
+## Purpose
 
-```
-PROTOCOL.md (Steps 0-5) ........... Classification
-→ RESPONSE_CRAFT.md (Steps 6-8) ... Pre-Draft Analysis ◄ YOU ARE HERE
-→ DRAFT_METHOD.md (Step 9) ........ Writing Execution
-→ VERIFICATION.md (Steps 10-11) ... Quality Gate + Output
-```
-
-**Do not skip to DRAFT_METHOD.md without completing Steps 6-8 here first.**
-**Do not produce any draft text until DRAFT_METHOD.md is loaded.**
+Pre-draft analysis: evaluate layers, address concerns, and find the wedge
+BEFORE the pipeline's generate stage writes any draft text.
 
 ---
 
@@ -150,9 +143,9 @@ Missing fields are signals about the client, not just missing data. Reason about
 | Budget: blank | Either unaware of market rates, or intentionally withholding | Quote your anchor; don't fish for their number |
 | Genre: vague ("music") | They know they want something but haven't defined it | Use their event type and emotional tone to infer and recommend |
 | Venue: "TBD" | Still exploring options | Speak to the type of setting, not a specific address |
-| Very sparse form overall | Busy person, trusts you to figure it out, or early-stage shopper | Don't punish the sparseness—use what's there, infer the rest |
+| Very sparse form overall | Busy person, trusts you to figure it out, or early-stage shopper | Use what's there, infer the rest, demonstrate insight from less information |
 
-**The rule:** Never treat a sparse lead as permission to go generic. A lead with three words still has an event type, a person behind it, and a moment being created. Find it.
+**The rule:** Every lead has enough signal for a compelling response. A lead with three words still has an event type, a person behind it, and a moment being created. Build from those three anchors.
 
 ### Sparse Lead Type Classification
 
@@ -254,28 +247,20 @@ Could another vendor write this opening? If yes, it's not a wedge—it's generic
 
 ---
 
-## ⚠️ Steps 6-8 complete. PROCEED TO DRAFT_METHOD.md (Step 9).
-
-**Do not write any draft text without loading DRAFT_METHOD.md first.** That file contains the reasoning-first method, five-part draft sequence, validation requirements, dual output rules, and sourced lead drafting guidance. Skipping it produces unstructured drafts that fail the Verification Gate.
-
 ---
 
 ## Cross-References
 
 | Need | Location |
 |------|----------|
-| Classification (Steps 0-5) | PROTOCOL.md |
-| Delivery Mode assessment | PROTOCOL.md → Step 0.5 |
-| Writing execution (Step 9) | **DRAFT_METHOD.md ← NEXT** |
-| Sourced lead drafting rules | DRAFT_METHOD.md → Sourced Lead Drafting |
-| Quality gate + output (Steps 10-11) | VERIFICATION.md |
+| Classification | PROTOCOL.md |
 | Core principles | PRINCIPLES.md |
 | Word count targets | QUICK_REFERENCE.md |
 | Cultural framework | CULTURAL_CORE.md |
 | Tradition-specific patterns | CULTURAL_[region].md |
-| Venue classification | VENUE_INTEL.md |
 | Bolero negotiation strategy | Bolero_Trio_Negotiation_Playbook.md |
 
 ---
 
-*Pre-draft analysis only. For writing execution, proceed to DRAFT_METHOD.md. For quality gate, proceed to VERIFICATION.md.*
+*Pre-draft analysis. Draft generation and verification are handled by the
+pipeline's generate and verify stages (src/prompts/generate.ts, src/prompts/verify.ts).*

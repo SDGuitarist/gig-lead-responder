@@ -153,17 +153,15 @@ Sometimes the request doesn't match the event. Show them the connection they did
 
 ## Cultural Response Flow
 
-When Cultural Context is active, the 7 components carry different weight:
+When Cultural Context is active, the pipeline's 5-step draft sequence shifts:
 
-| Component | Cultural Shift |
-|-----------|----------------|
-| **Hook** | Cultural wedge (heritage-aware) |
-| **Validation** | Affirm the GIFT they're giving |
-| **Being in Picture** | The room when music starts—who feels what |
-| **Creating Emotion** | Let the CULTURAL emotion emerge |
-| **Differentiation** | Understanding the TRADITION they couldn't articulate |
-| **Answer Everything** | Price, logistics, cultural configuration |
-| **Close** | Same |
+| Step | Cultural Shift |
+|------|----------------|
+| **1. Cinematic hook + validation** | Cultural wedge (heritage-aware) + affirm the GIFT they're giving |
+| **2. Differentiator + Named Fear** | Understanding the TRADITION they couldn't articulate |
+| **3. Fear/concern resolution** | Cultural configuration concerns (authenticity, who performs) |
+| **4. Recommendation + price** | Price, logistics, cultural configuration |
+| **5. CTA** | Same |
 
 The structure is the same. The depth is different.
 
