@@ -69,6 +69,10 @@ export function lookupPrice(classification: Classification): PricingResult {
       quote_price = floor;
       competition_position = "at floor";
       break;
+    default:
+      console.warn(`Unknown competition_level "${competition_level}" — defaulting to anchor`);
+      quote_price = anchor;
+      competition_position = "at anchor (fallback)";
   }
 
   return {

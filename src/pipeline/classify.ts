@@ -3,13 +3,38 @@ import { buildClassifyPrompt } from "../prompts/classify.js";
 import { wrapUntrustedData } from "../utils/sanitize.js";
 import type { Classification } from "../types.js";
 
+const VALID_COMPETITION = new Set(["low", "medium", "high", "extreme"]);
+const VALID_TIERS = new Set(["premium", "standard", "qualification"]);
+const VALID_RATE_TIERS = new Set(["T1", "T2", "T3"]);
+const VALID_ACTIONS = new Set(["quote", "assume_and_quote", "one_question"]);
+
 const validateClassification = (raw: unknown): Classification => {
   if (typeof raw !== "object" || raw === null || Array.isArray(raw)) throw new Error("Expected JSON object from LLM");
   const obj = raw as Record<string, unknown>;
+  // Required fields
   if (!obj.format_recommended) throw new Error("Classification missing format_recommended");
   if (!obj.duration_hours) throw new Error("Classification missing duration_hours");
   if (!obj.rate_card_tier) throw new Error("Classification missing rate_card_tier");
   if (!obj.lead_source_column) throw new Error("Classification missing lead_source_column");
+  // Branching-critical fields — invalid values cause silent wrong behavior downstream
+  if (!VALID_COMPETITION.has(obj.competition_level as string)) {
+    throw new Error(`Classification invalid competition_level: "${obj.competition_level}"`);
+  }
+  if (!VALID_TIERS.has(obj.tier as string)) {
+    throw new Error(`Classification invalid tier: "${obj.tier}"`);
+  }
+  if (!VALID_RATE_TIERS.has(obj.rate_card_tier as string)) {
+    throw new Error(`Classification invalid rate_card_tier: "${obj.rate_card_tier}"`);
+  }
+  if (!VALID_ACTIONS.has(obj.action as string)) {
+    throw new Error(`Classification invalid action: "${obj.action}"`);
+  }
+  if (typeof obj.duration_hours !== "number" || obj.duration_hours <= 0) {
+    throw new Error(`Classification invalid duration_hours: "${obj.duration_hours}"`);
+  }
+  if (obj.stated_budget !== null && typeof obj.stated_budget !== "number") {
+    throw new Error(`Classification invalid stated_budget: expected number or null, got "${typeof obj.stated_budget}"`);
+  }
   return raw as Classification;
 };
 
