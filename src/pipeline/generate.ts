@@ -1,4 +1,5 @@
 import { callClaude } from "../claude.js";
+import { GenerationError } from "../errors.js";
 import { buildGeneratePrompt } from "../prompts/generate.js";
 import type { Classification, Drafts, GateResult, PricingResult } from "../types.js";
 import { wrapEditInstructions } from "../utils/sanitize.js";
@@ -25,13 +26,13 @@ interface GenerateResponse {
 const SIGN_OFF = `\nAlex Guillen`;
 
 const validateGenerateResponse = (raw: unknown): GenerateResponse => {
-  if (typeof raw !== "object" || raw === null || Array.isArray(raw)) throw new Error("Expected JSON object from LLM");
+  if (typeof raw !== "object" || raw === null || Array.isArray(raw)) throw new GenerationError("Expected JSON object from LLM");
   const obj = raw as Record<string, unknown>;
   if (typeof obj.full_draft !== "string" || !obj.full_draft) {
-    throw new Error("LLM response missing full_draft");
+    throw new GenerationError("LLM response missing full_draft");
   }
   if (typeof obj.compressed_draft !== "string" || !obj.compressed_draft) {
-    throw new Error("LLM response missing compressed_draft");
+    throw new GenerationError("LLM response missing compressed_draft");
   }
   return raw as GenerateResponse;
 };

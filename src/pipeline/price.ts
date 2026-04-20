@@ -1,4 +1,5 @@
 import { RATE_TABLES, type TierRates } from "../data/rates.js";
+import { PricingError } from "../errors.js";
 import type { Classification, Format, PricingResult, BudgetGapResult, ScopedAlternative } from "../types.js";
 
 const BUDGET_GAP_SMALL_THRESHOLD = 75;  // exclusive: gap < 75 is "small"
@@ -16,7 +17,7 @@ export function lookupPrice(classification: Classification): PricingResult {
   const rateTable = RATE_TABLES[format_recommended];
   if (!rateTable) {
     const available = Object.keys(RATE_TABLES).join(", ");
-    throw new Error(`No rate table for format "${format_recommended}". Available: ${available}`);
+    throw new PricingError(`No rate table for format "${format_recommended}". Available: ${available}`);
   }
 
   // 2. Find duration entry (snap to nearest valid if classifier returns e.g. 2.5)
@@ -26,7 +27,7 @@ export function lookupPrice(classification: Classification): PricingResult {
   const durationRates = rateTable[durationKey];
   if (!durationRates) {
     const available = Object.keys(rateTable).join(", ");
-    throw new Error(`No rates for duration "${durationKey}" in ${format_recommended}. Available: ${available}`);
+    throw new PricingError(`No rates for duration "${durationKey}" in ${format_recommended}. Available: ${available}`);
   }
 
   // 3. Build tier+source key
@@ -43,7 +44,7 @@ export function lookupPrice(classification: Classification): PricingResult {
   }
   if (!rates) {
     const available = Object.keys(durationRates).join(", ");
-    throw new Error(`No rates for tier key "${tierKey}" in ${format_recommended}/${durationKey}. Available: ${available}`);
+    throw new PricingError(`No rates for tier key "${tierKey}" in ${format_recommended}/${durationKey}. Available: ${available}`);
   }
 
   const { anchor, floor } = rates;

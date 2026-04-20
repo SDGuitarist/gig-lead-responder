@@ -1,5 +1,6 @@
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
+import { ContextError } from "../errors.js";
 import type { Classification, VenueContext } from "../types.js";
 import { formatVenueContext } from "./format-venue-context.js";
 
@@ -13,7 +14,7 @@ async function readDoc(filename: string, required: boolean): Promise<string | nu
     return await readFile(join(DOCS_DIR, filename), "utf-8");
   } catch {
     if (required) {
-      throw new Error(`Required file missing: docs/${filename}`);
+      throw new ContextError(`Required file missing: docs/${filename}`);
     }
     console.warn(`Optional file missing: docs/${filename} — skipping`);
     return null;

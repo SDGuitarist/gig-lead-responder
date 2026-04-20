@@ -1,19 +1,20 @@
 import { callClaude } from "../claude.js";
+import { VerificationError } from "../errors.js";
 import { buildVerifyPrompt } from "../prompts/verify.js";
 import { generateResponse, type PositiveSignals } from "./generate.js";
 import type { Classification, Drafts, GateResult, PricingResult } from "../types.js";
 
 const validateGateResult = (raw: unknown): GateResult => {
-  if (typeof raw !== "object" || raw === null || Array.isArray(raw)) throw new Error("Expected JSON object from LLM");
+  if (typeof raw !== "object" || raw === null || Array.isArray(raw)) throw new VerificationError("Expected JSON object from LLM");
   const obj = raw as Record<string, unknown>;
   if (obj.gate_status !== "pass" && obj.gate_status !== "fail") {
-    throw new Error(`LLM response invalid gate_status: ${obj.gate_status}`);
+    throw new VerificationError(`LLM response invalid gate_status: ${obj.gate_status}`);
   }
   if (!Array.isArray(obj.fail_reasons)) {
-    throw new Error("LLM response missing fail_reasons array");
+    throw new VerificationError("LLM response missing fail_reasons array");
   }
   if (!Array.isArray(obj.concern_traceability)) {
-    throw new Error("LLM response missing concern_traceability array");
+    throw new VerificationError("LLM response missing concern_traceability array");
   }
   return raw as GateResult;
 };
