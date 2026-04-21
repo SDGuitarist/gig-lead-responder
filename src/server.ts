@@ -43,8 +43,12 @@ const PORT = parseInt(process.env.PORT || "3000", 10);
 const server = app.listen(PORT, "::", () => {
   console.log(`Gig Lead Responder running at http://localhost:${PORT}`);
   startFollowUpScheduler();
-  startGmailPoller();
-  recoverStuckLeads().catch(err => console.error("Stuck lead recovery failed:", err));
+  startGmailPoller().catch(err => {
+    console.error("[startup] Gmail poller failed (non-fatal):", err instanceof Error ? err.message : err);
+  });
+  recoverStuckLeads().catch(err => {
+    console.error("[startup] Stuck lead recovery failed (non-fatal):", err instanceof Error ? err.message : err);
+  });
 });
 
 process.on("SIGTERM", () => {
