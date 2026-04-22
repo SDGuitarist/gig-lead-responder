@@ -139,6 +139,7 @@ export interface PricingResult {
   quote_price: number;
   competition_position: string; // e.g., "at anchor, willing to flex"
   budget: BudgetGapResult;
+  travel?: TravelComponent | null;
 }
 
 export interface Drafts {
@@ -395,4 +396,44 @@ export interface LeadRecord {
   snoozed_until: string | null;
   created_at: string;
   updated_at: string;
+}
+
+// ============================================================================
+// Travel Fee Types
+// ============================================================================
+// Append these to the end of src/types.ts.
+// These support the travel-fee.ts lookup module.
+
+export type TravelBand =
+  | "Local"
+  | "Near"
+  | "Regional"
+  | "Far"
+  | "Very Far"
+  | "Overnight";
+
+export interface TravelFeeData {
+  zip: string;
+  miles: number;
+  band: TravelBand;
+  solo_fee: number;
+  duo_fee: number;
+  duo_musician_stipend: number;
+  trio_starting: number;
+  quartet_starting: number;
+  custom_quote_required: boolean;
+}
+
+export type TravelFeeResult =
+  | { type: "hit"; data: TravelFeeData }
+  | { type: "miss"; zip: string }
+  | { type: "error"; reason: string };
+
+export interface TravelComponent {
+  fee: number;
+  band: TravelBand;
+  miles: number;
+  zip: string;
+  musician_stipend: number;
+  custom_quote_required: boolean;
 }

@@ -41,18 +41,18 @@ const MOCK_GENERATION = {
     absences: [],
     emotional_core: "excitement",
     cinematic_opening: "What a celebration",
-    validation_line: "your special day",
+    validation_line: "You've planned something special",
   },
-  full_draft: "Hi Sarah, I'd love to perform. Alex Guillen",
-  compressed_draft: "Hi Sarah, let's go. Alex Guillen",
+  full_draft: "Hi Sarah, your evening is going to be something people remember. Alex Guillen",
+  compressed_draft: "Hi Sarah, I'm available. Want me to hold the date? Alex Guillen",
 };
 
 const MOCK_GATE_PASS = {
   gate_status: "pass",
   fail_reasons: [],
   concern_traceability: [],
-  best_line: "I'd love to perform",
-  validation_line: "your special day",
+  best_line: "something people remember",
+  validation_line: "You've planned something special",
 };
 
 function mockClaude(responses: unknown[]) {

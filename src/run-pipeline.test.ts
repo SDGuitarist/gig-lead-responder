@@ -41,26 +41,26 @@ const MOCK_GENERATION = {
     absences: [],
     emotional_core: "excitement about their event",
     cinematic_opening: "What a wonderful celebration",
-    validation_line: "I'd love to be part of your special day",
+    validation_line: "You've got a great eye for what this evening needs",
   },
-  full_draft: "Hi Sarah, I'd love to perform at your event. Alex Guillen",
-  compressed_draft: "Hi Sarah, let's make it happen. Alex Guillen",
+  full_draft: "Hi Sarah, your evening is going to be something special. I'm available and ready to hold the date. Alex Guillen",
+  compressed_draft: "Hi Sarah, I'm available for your event. Want me to hold the date? Alex Guillen",
 };
 
 const MOCK_GATE_PASS = {
   gate_status: "pass",
   fail_reasons: [],
   concern_traceability: [],
-  best_line: "I'd love to perform",
-  validation_line: "your special day",
+  best_line: "your evening is going to be something special",
+  validation_line: "You've got a great eye for what this evening needs",
 };
 
 const MOCK_GATE_FAIL = {
   gate_status: "fail",
   fail_reasons: ["Missing pricing mention"],
   concern_traceability: [],
-  best_line: "I'd love to perform",
-  validation_line: "your special day",
+  best_line: "your evening is going to be something special",
+  validation_line: "You've got a great eye for what this evening needs",
 };
 
 let callCount = 0;

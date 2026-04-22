@@ -42,6 +42,7 @@ Quote price: $${pricing.quote_price}
 Anchor: $${pricing.anchor} | Floor: $${pricing.floor}
 Position: ${pricing.competition_position}
 Format: ${pricing.format} | Duration: ${pricing.duration_hours}hr | Tier: ${pricing.tier_key}
+${buildTravelBlock(pricing)}
 
 ## INJECTED CONTEXT (business logic docs)
 ${context}
@@ -367,6 +368,32 @@ Tone: warm, respectful, not dismissive. No cinematic opening. No wedge instructi
 
 Word count: 50-75 words.
 `;
+}
+
+/**
+ * Build the travel fee block injected into the PRICING section.
+ * Returns empty string when no travel component exists.
+ */
+function buildTravelBlock(pricing: PricingResult): string {
+  const { travel } = pricing;
+  if (!travel) return "";
+
+  if (travel.custom_quote_required) {
+    return `
+## TRAVEL — CUSTOM QUOTE REQUIRED
+Distance: ${travel.miles} mi from San Diego (${travel.band} band, ZIP ${travel.zip})
+This ensemble size and distance requires a custom travel quote. Do NOT calculate a travel fee. In the draft, state the base performance rate and note that travel pricing will be provided separately after confirming logistics. Example: "Travel to [city] for this ensemble is quoted separately — I'll have that number for you once we confirm the date."`;
+  }
+
+  if (travel.band === "Local") return "";
+
+  const total = pricing.quote_price + travel.fee;
+  return `
+## TRAVEL FEE
+Distance: ${travel.miles} mi from San Diego (${travel.band} band, ZIP ${travel.zip})
+Travel fee: $${travel.fee}
+Total (performance + travel): $${total}
+Present ONE total number ($${total}) to the client. Do NOT itemize the travel fee separately unless the client asks. The travel fee is baked into the quote.`;
 }
 
 /**

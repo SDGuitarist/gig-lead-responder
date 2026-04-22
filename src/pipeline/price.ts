@@ -1,16 +1,58 @@
 import { RATE_TABLES, type TierRates } from "../data/rates.js";
 import { PricingError } from "../errors.js";
-import type { Classification, Format, PricingResult, BudgetGapResult, ScopedAlternative } from "../types.js";
+import type { Classification, Format, PricingResult, BudgetGapResult, ScopedAlternative, TravelFeeData, TravelComponent } from "../types.js";
 
 const BUDGET_GAP_SMALL_THRESHOLD = 75;  // exclusive: gap < 75 is "small"
 const BUDGET_GAP_LARGE_THRESHOLD = 200; // inclusive: gap <= 200 is "large"
 const NEAR_MISS_TOLERANCE = 75;         // scoped alt floor can exceed budget by up to this amount
 
+// --- Travel fee: format-to-column mapping (matches TRAVEL_FEES.md) ---
+
+type TravelColumn = "solo_fee" | "duo_fee" | "trio_starting" | "quartet_starting";
+
+// Maps each performance format to the correct travel fee column.
+const FORMAT_TRAVEL_COLUMN: Record<Format, TravelColumn> = {
+  solo:                     "solo_fee",
+  duo:                      "duo_fee",
+  flamenco_duo:             "duo_fee",
+  flamenco_trio:            "trio_starting",
+  flamenco_trio_full:       "trio_starting",
+  mariachi_4piece:          "quartet_starting",
+  mariachi_full:            "quartet_starting",  // overridden to custom quote
+  bolero_trio:              "trio_starting",
+  sourced_cultural_solo:    "solo_fee",
+  sourced_cultural_duo:     "duo_fee",
+  sourced_cultural_trio:    "trio_starting",
+  sourced_cultural_quartet: "quartet_starting",
+  sourced_cultural_5piece:  "quartet_starting",  // overridden to custom quote
+};
+
+// These formats ALWAYS require a custom travel quote regardless of distance band.
+// Per TRAVEL_FEES.md: "Mariachi full ensemble (8 players): always custom quote"
+// and "5+ musicians: always custom quote (do not use table)".
+const CUSTOM_QUOTE_FORMATS: ReadonlySet<Format> = new Set([
+  "mariachi_full",
+  "sourced_cultural_5piece",
+]);
+
+// Duo formats get the musician travel stipend (fair split per TRAVEL_FEES.md).
+const DUO_FORMATS: ReadonlySet<Format> = new Set([
+  "duo",
+  "flamenco_duo",
+  "sourced_cultural_duo",
+]);
+
 /**
  * Stage 2: Look up pricing from rate cards.
  * Pure function — no API calls.
+ *
+ * @param travelData - Optional travel fee data from ZIP lookup.
+ *   When provided, a TravelComponent is attached to the result.
  */
-export function lookupPrice(classification: Classification): PricingResult {
+export function lookupPrice(
+  classification: Classification,
+  travelData?: TravelFeeData | null,
+): PricingResult {
   const { format_recommended, duration_hours, rate_card_tier, lead_source_column, competition_level } = classification;
 
   // 1. Find rate table for this format
@@ -76,6 +118,9 @@ export function lookupPrice(classification: Classification): PricingResult {
       competition_position = "at anchor (fallback)";
   }
 
+  // Build travel component when ZIP lookup returned data
+  const travel = travelData ? buildTravelComponent(travelData, format_recommended) : null;
+
   return {
     format: format_recommended,
     duration_hours,
@@ -85,6 +130,7 @@ export function lookupPrice(classification: Classification): PricingResult {
     quote_price,
     competition_position,
     budget: { tier: "none" },
+    travel,
   };
 }
 
@@ -164,5 +210,44 @@ function findScopedAlternative(
   return {
     duration_hours: shorterDuration,
     price: shorterRates.floor, // floor, not anchor — gives client a real yes
+  };
+}
+
+// --- Travel fee helpers ---
+
+/**
+ * Read the fee for a given format from the TravelFeeData columns.
+ * Type-safe switch avoids dynamic property access.
+ */
+function getTravelFeeForColumn(data: TravelFeeData, column: TravelColumn): number {
+  switch (column) {
+    case "solo_fee":        return data.solo_fee;
+    case "duo_fee":         return data.duo_fee;
+    case "trio_starting":   return data.trio_starting;
+    case "quartet_starting": return data.quartet_starting;
+  }
+}
+
+/**
+ * Build a TravelComponent from ZIP lookup data and the recommended format.
+ *
+ * Rules (from TRAVEL_FEES.md):
+ * - Mariachi full + sourced 5-piece → always custom_quote_required
+ * - Duo formats get musician_stipend (fair split)
+ * - All others: look up fee from the format's column in the fee matrix
+ */
+function buildTravelComponent(data: TravelFeeData, format: Format): TravelComponent {
+  const customQuote = data.custom_quote_required || CUSTOM_QUOTE_FORMATS.has(format);
+  const column = FORMAT_TRAVEL_COLUMN[format];
+  const fee = customQuote ? 0 : getTravelFeeForColumn(data, column);
+  const musicianStipend = DUO_FORMATS.has(format) ? data.duo_musician_stipend : 0;
+
+  return {
+    fee,
+    band: data.band,
+    miles: data.miles,
+    zip: data.zip,
+    musician_stipend: musicianStipend,
+    custom_quote_required: customQuote,
   };
 }
