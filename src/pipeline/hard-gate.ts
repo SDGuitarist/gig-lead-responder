@@ -149,10 +149,11 @@ export function checkHardGate(
   // --- Check 3: Capability alias map (positive-list check) ---
   // Only runs when Check 1 passed (format not in NON_ALEX_FORMATS).
   // Uses substring matching, same approach as NON_ALEX_FORMATS check above.
+  // Sorted longest-first so "mariachi ensemble" matches before "ensemble".
   if (fail_reasons.length === 0 && requested) {
-    const matched = Object.entries(ALEX_ALIAS_MAP).find(
-      ([alias]) => requested.includes(alias)
-    );
+    const matched = Object.entries(ALEX_ALIAS_MAP)
+      .sort(([a], [b]) => b.length - a.length)
+      .find(([alias]) => requested.includes(alias));
     if (matched) {
       if (matched[1] === "ESCALATE") {
         flags.push("ambiguous_capability");

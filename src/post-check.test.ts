@@ -55,6 +55,15 @@ describe("postCheckDrafts — soft refusal detection", () => {
     assert.ok(result.violations.some((v) => v.startsWith("soft_refusal_full")));
   });
 
+  it("catches both soft refusal AND banned phrase in same draft", () => {
+    const result = postCheckDrafts(
+      "Ukulele is not really my specialty, but I'd be happy to help.",
+      CLEAN_DRAFT,
+    );
+    assert.ok(result.violations.some((v) => v.startsWith("soft_refusal_full")));
+    assert.ok(result.violations.some((v) => v.startsWith("banned_phrase_full")));
+  });
+
   // False-positive guards
   it("does NOT flag 'A solo ukulele set for your ceremony'", () => {
     const result = postCheckDrafts(CLEAN_DRAFT, CLEAN_DRAFT);

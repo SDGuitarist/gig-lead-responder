@@ -122,6 +122,35 @@ describe("checkHardGate — capability alias map", () => {
     assert.ok(result.flags.includes("unknown_capability"));
   });
 
+  it("passes with no flags for 'mariachi ensemble' (longer alias wins over 'ensemble' ESCALATE)", () => {
+    const result = checkHardGate(
+      makeClassification({ format_requested: "mariachi ensemble" }),
+      "Need mariachi ensemble for wedding",
+    );
+    assert.equal(result.pass, true);
+    assert.ok(!result.flags.includes("ambiguous_capability"));
+    assert.ok(!result.flags.includes("unknown_capability"));
+  });
+
+  it("passes with no flags for uppercase 'SPANISH GUITAR' (case insensitive)", () => {
+    const result = checkHardGate(
+      makeClassification({ format_requested: "SPANISH GUITAR" }),
+      "Looking for Spanish guitar",
+    );
+    assert.equal(result.pass, true);
+    assert.ok(!result.flags.includes("unknown_capability"));
+  });
+
+  it("passes with no capability flags when format_requested is empty", () => {
+    const result = checkHardGate(
+      makeClassification({ format_requested: "" }),
+      "Some lead text",
+    );
+    assert.equal(result.pass, true);
+    assert.ok(!result.flags.includes("unknown_capability"));
+    assert.ok(!result.flags.includes("ambiguous_capability"));
+  });
+
   // Regression: existing behavior unchanged
   it("still fails hard gate for 'DJ' (existing behavior)", () => {
     const result = checkHardGate(
