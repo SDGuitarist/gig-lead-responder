@@ -34,6 +34,19 @@ const BANNED_PHRASES = [
   "offering",
 ];
 
+// --- Soft refusal / fit-undermining patterns ---
+// Catches AI drafts that undermine Alex's capability for an eligible format.
+// These should never appear — the LR voice rules prohibit vendor-speak.
+// Ships 6 tight patterns; 2 broader ones deferred (false-positive risk).
+const SOFT_REFUSAL_PATTERNS: RegExp[] = [
+  /\bnot (?:really )?my (?:main |primary )?(?:specialty|instrument|focus)\b/i,
+  /\bmay not be the best fit\b/i,
+  /\bif you're set on\b/i,
+  /\bnot (?:really )?(?:something|what) (?:I|we) (?:typically |usually )?(?:do|offer|play)\b/i,
+  /\byou might (?:want to |be better off )(?:look|search|try)\b/i,
+  /\bi(?:'d| would) recommend (?:looking|searching|trying) elsewhere\b/i,
+];
+
 // --- Price format checks ---
 
 // Matches price ranges like "$800-$1,000" or "$800 - $1,000" or "$800 to $1,000"
@@ -80,6 +93,16 @@ export function postCheckDrafts(
     }
     if (regex.test(cleanedCompressed)) {
       violations.push(`banned_phrase_compressed: "${phrase}"`);
+    }
+  }
+
+  // --- Check: soft refusal / fit-undermining language ---
+  for (const pattern of SOFT_REFUSAL_PATTERNS) {
+    if (pattern.test(cleanedFull)) {
+      violations.push(`soft_refusal_full: "${pattern.source}"`);
+    }
+    if (pattern.test(cleanedCompressed)) {
+      violations.push(`soft_refusal_compressed: "${pattern.source}"`);
     }
   }
 
