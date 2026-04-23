@@ -27,6 +27,49 @@ const NON_ALEX_FORMATS = [
   "bagpipe",
 ];
 
+// Positive capability alias map — maps messy lead language to KNOWN or ESCALATE.
+// Source: Alex's known instruments and formats. Keep in sync with rate cards.
+// See also: guessFormatFamily() in src/router.ts (overlapping keyword matching
+// for a different purpose — format family routing vs capability gating).
+const ALEX_ALIAS_MAP: Record<string, "KNOWN" | "ESCALATE"> = {
+  // Guitar variants
+  "guitar":             "KNOWN",
+  "acoustic guitar":    "KNOWN",
+  "guitarist":          "KNOWN",
+  "spanish guitar":     "KNOWN",
+  "classical guitar":   "KNOWN",
+  "nylon string":       "KNOWN",
+  "flamenco":           "KNOWN",
+  "flamenco guitar":    "KNOWN",
+
+  // Ukulele (maps to solo format for pricing)
+  "ukulele":            "KNOWN",
+  "uke":                "KNOWN",
+  "ukulele player":     "KNOWN",
+
+  // Ensembles Alex sources
+  "mariachi":           "KNOWN",
+  "mariachi band":      "KNOWN",
+  "mariachi ensemble":  "KNOWN",
+  "bolero":             "KNOWN",
+  "bolero trio":        "KNOWN",
+  "trio":               "KNOWN",
+
+  // Generic terms that are fine
+  "solo":               "KNOWN",
+  "duo":                "KNOWN",
+  "musician":           "KNOWN",
+  "live music":         "KNOWN",
+  "background music":   "KNOWN",
+
+  // Ambiguous — escalate, don't guess
+  "latin band":         "ESCALATE",
+  "spanish music":      "ESCALATE",
+  "hawaiian music":     "ESCALATE",
+  "latin music":        "ESCALATE",
+  "ensemble":           "ESCALATE",
+};
+
 // Red flag keywords in raw lead text (trigger flag, not auto-decline).
 // These get attached to classification.flagged_concerns.
 const RED_FLAG_PATTERNS: Array<{ pattern: RegExp; flag: string }> = [
@@ -100,6 +143,23 @@ export function checkHardGate(
   for (const { pattern, flag } of RED_FLAG_PATTERNS) {
     if (pattern.test(rawText)) {
       flags.push(flag);
+    }
+  }
+
+  // --- Check 3: Capability alias map (positive-list check) ---
+  // Only runs when Check 1 passed (format not in NON_ALEX_FORMATS).
+  // Uses substring matching, same approach as NON_ALEX_FORMATS check above.
+  if (fail_reasons.length === 0 && requested) {
+    const matched = Object.entries(ALEX_ALIAS_MAP).find(
+      ([alias]) => requested.includes(alias)
+    );
+    if (matched) {
+      if (matched[1] === "ESCALATE") {
+        flags.push("ambiguous_capability");
+      }
+      // "KNOWN" — no flag needed
+    } else {
+      flags.push("unknown_capability");
     }
   }
 
