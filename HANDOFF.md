@@ -1,49 +1,73 @@
 # HANDOFF -- Gig Lead Responder
 
-**Date:** 2026-04-19
+**Date:** 2026-04-22
 **Branch:** `main`
-**Phase:** Cross-Pollination Phase 2 COMPLETE — Exception Hierarchy + Test Backfill
+**Phase:** Review COMPLETE -- Capability Hardening (Alias Map + Soft Refusal Detection)
 
 ## Current State
 
-Exception hierarchy added (`LeadResponderError` + 8 subclasses). All 5 pipeline stages wired to typed errors. Sanitization audit confirmed 3-layer defense already complete. Tests backfilled from 84 → 153 (+69). All pass.
+Three commits shipped. 176 tests passing (153 existing + 23 new). Review phase found and fixed an alias map ordering bug. No interface changes, no architectural changes.
 
 ## What Changed This Session
 
-| Change | Files |
-|--------|-------|
-| Exception hierarchy | `src/errors.ts` (new) |
-| Pipeline stages use typed errors | `src/pipeline/classify.ts`, `price.ts`, `context.ts`, `generate.ts`, `verify.ts` |
-| Error hierarchy tests (8) | `src/errors.test.ts` (new) |
-| Pipeline validator tests (31) | `src/pipeline-validators.test.ts` (new) |
-| Pipeline integration tests (10) | `src/run-pipeline.test.ts` (new) |
-| Confidence + edit pipeline tests (11) | `src/confidence.test.ts` (new) |
-| Claude JSON parsing tests (8) | `src/claude-extended.test.ts` (new) |
-| Date utility tests (4) | `src/dates.test.ts` (new) |
-| Solution doc | `docs/solutions/2026-04-19-cross-pollination-phase2-hardening.md` |
+| Commit | Change | Files |
+|--------|--------|-------|
+| `aded0a7` | Alias map (ALEX_ALIAS_MAP) + Check 3 in hard gate | `src/pipeline/hard-gate.ts`, `src/hard-gate.test.ts` (new) |
+| `e8d4378` | Soft refusal detection (6 patterns, dual-draft) | `src/pipeline/post-check.ts`, `src/post-check.test.ts` (new) |
+| `bdc3944` | Review fix: sort alias longest-first + 4 test cases | `src/pipeline/hard-gate.ts`, `src/hard-gate.test.ts`, `src/post-check.test.ts` |
+
+### What the alias map does
+
+- KNOWN capabilities (guitar, ukulele, mariachi, etc.) pass with no flag
+- ESCALATE capabilities (latin band, spanish music, etc.) pass with "ambiguous_capability" flag
+- Unknown instruments (charango, mandolin, vihuela) pass with "unknown_capability" flag
+- Sorted longest-first so "mariachi ensemble" matches before "ensemble"
+
+### What soft refusal detection does
+
+- 6 regex patterns catch AI drafts that undermine Alex's capability
+- Checks both full_draft and compressed_draft
+- Triggers gate_status: "fail" via existing violations mechanism
+
+### Review findings (3 agents: security, performance, correctness)
+
+| Finding | Severity | Resolution |
+|---------|----------|------------|
+| Alias map ordering bug (.find() is insertion-dependent) | P2 | Fixed: sort longest-first (commit bdc3944) |
+| Missing test: "mariachi ensemble" ordering | P2 | Added (commit bdc3944) |
+| Missing test: empty format_requested | P2 | Added (commit bdc3944) |
+| Missing test: uppercase input | P2 | Added (commit bdc3944) |
+| Missing test: dual violation (banned + soft refusal) | P2 | Added (commit bdc3944) |
+| XSS in index.html kvHTML (no escaping) | P2 | Deferred -- pre-existing, not our change |
+| "drum" substring in NON_ALEX_FORMATS | P1 | Deferred -- pre-existing Check 1, not our change |
+| sanitizeClassification() before hard gate | P2 | Deferred -- architectural, separate session |
+| ReDoS in soft refusal patterns | None | All 6 patterns confirmed safe |
 
 ## Deferred Items
 
 | Item | Reason |
 |------|--------|
-| Wire ClaudeApiError into claude.ts | claude.ts has its own retry logic, generic errors work there |
-| Wire EmailParseError into email-parser.ts | Separate cycle |
-| Zod webhook validation | Larger refactor, own cycle |
-| 3 P2 design decisions (from prior audit) | Dual parser, data lifecycle, portal boilerplate |
+| XSS in index.html kvHTML | Pre-existing. dashboard.html already has esc(). Add same to index.html. |
+| "drum" substring match in NON_ALEX_FORMATS | Pre-existing. Needs word-boundary regex like RED_FLAG_PATTERNS uses. |
+| sanitizeClassification() earlier in pipeline | Pre-existing. Move call before hard gate in run-pipeline.ts. |
+| Unify ALEX_ALIAS_MAP with guessFormatFamily() | Overlapping keyword lists, separate purposes. |
+| 2 deferred soft refusal patterns | "primarily focus" and "while X isn't my main" -- add from production data. |
+| Fuzzy alias matching (Levenshtein) | Start with substring, upgrade if unknown_capability fires too often. |
+| makeClassification test helper dedup | Cosmetic. Extract to src/test-helpers.ts when more files need it. |
 
 ## Three Questions
 
-1. **Hardest implementation decision?** Whether to wire typed errors into `claude.ts` and `email-parser.ts` now or defer. Deferred — the hierarchy is for pipeline stages where type matters. `claude.ts` retry logic works fine with generic errors.
-2. **What did you consider changing but left alone?** The `callClaude` function's retry logic. It catches generic errors and retries, which works. Changing it to throw `ClaudeApiError` would require updating the retry predicate and all callers. Not worth it pre-hackathon.
-3. **Least confident about going into review?** Whether 153 tests adequately covers a production LLM pipeline. Happy paths and typed error paths are covered, but the generate→verify→rewrite loop with realistic responses isn't exercised. Real Claude calls would catch prompt regression but are expensive.
+1. **Hardest judgment call in this review?** Whether the XSS in index.html kvHTML is in-scope. It's pre-existing and our changes only slightly increase the attack surface (format_requested was already embedded in fail_reasons by Check 1). Deferred because fixing it properly requires handling the Status row's intentional raw HTML separately.
+2. **What did you consider flagging but chose not to?** Pattern 4 (`not something I typically do`) has a theoretical false-positive ("there's not something I usually do differently"). In practice, the AI draft follows a strict system prompt and won't produce this construction. Acceptable risk.
+3. **What might this review have missed?** Whether the 6 soft refusal patterns are sufficient. They catch obvious hedging, but an LLM could invent new refusal language. Monitoring production drafts is the real safety net.
 
 ### Prompt for Next Session
 
 ```
-Read ~/projects/docs/plans/2026-04-19-cross-pollination-hardening-plan.md.
-Phase 2 (gig-lead-responder) complete — 153 tests, exception hierarchy added.
-Execute Phase 3: liverequest test harness + foundational tests. Key files:
-~/projects/liverequest/package.json, app/, lib/.
-Scope: install Vitest, foundational API route tests, type validation tests.
-Target: 40-80 tests from 0.
+Read docs/plans/2026-04-22-feat-capability-hardening-plan.md and HANDOFF.md.
+Review phase complete -- 3 commits, 176 tests passing.
+Next: Compound phase. Write solution doc in docs/solutions/ capturing:
+(1) positive alias map pattern, (2) soft refusal detection pattern,
+(3) longest-first sort lesson, (4) review finding about pre-existing XSS.
+Then run /update-learnings.
 ```
