@@ -30,6 +30,12 @@ const validateClassification = (raw: unknown): Classification => {
   if (!VALID_ACTIONS.has(obj.action as string)) {
     throw new ClassificationError(`Classification invalid action: "${obj.action}"`);
   }
+  if (
+    obj.format_recommended !== "unresolved" &&
+    typeof obj.format_recommended !== "string"
+  ) {
+    throw new ClassificationError(`Classification invalid format_recommended: "${obj.format_recommended}"`);
+  }
   if (typeof obj.duration_hours !== "number" || obj.duration_hours <= 0) {
     throw new ClassificationError(`Classification invalid duration_hours: "${obj.duration_hours}"`);
   }
@@ -70,6 +76,11 @@ export async function classifyLead(rawText: string, today: string): Promise<Clas
   }
   if (result.client_first_name === undefined) {
     result.client_first_name = null;
+  }
+
+  // Clarification-first leads may intentionally defer format selection.
+  if (result.action === "one_question" && result.vagueness === "vague" && result.format_recommended === "unresolved") {
+    return result;
   }
 
   return result;

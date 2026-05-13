@@ -16,6 +16,7 @@ export function buildGeneratePrompt(
   pricing: PricingResult,
   context: string
 ): string {
+  const clarificationMode = classification.action === "one_question" && classification.format_recommended === "unresolved";
   const budgetBlock = buildBudgetModeBlock(classification, pricing);
 
   const pastDateBlock = classification.past_date_detected
@@ -37,12 +38,17 @@ Do not include any phone numbers, email addresses, website URLs, or social media
     : ""}
 ${wrapUntrustedData("lead_classification", JSON.stringify(sanitizeClassification(classification), null, 2))}
 
-## PRICING
+${clarificationMode
+    ? `## PRICING
+No quote yet. The format is unresolved. Your job is to ask exactly one binary clarifying question before pricing.
+`
+    : `## PRICING
 Quote price: $${pricing.quote_price}
 Anchor: $${pricing.anchor} | Floor: $${pricing.floor}
 Position: ${pricing.competition_position}
 Format: ${pricing.format} | Duration: ${pricing.duration_hours}hr | Tier: ${pricing.tier_key}
 ${buildTravelBlock(pricing)}
+`}
 
 ## INJECTED CONTEXT (business logic docs)
 ${context}
@@ -75,8 +81,8 @@ If the lead involves a memorial, tribute, celebration of life, or grief context:
 1. **Cinematic hook + validation** — Opens with a story moment (the reader SEEs it), then the client sees themselves acknowledged
 2. **Differentiator + Named Fear** — Name what typically goes wrong with this type of booking, then show why you're different. This is not a feature list. It is one specific failure mode — the thing a lesser vendor does that this client is right to worry about — followed by the one behavior that makes you different. The fear must be named explicitly, not implied. Example: "A guitarist who shows up, plays their set at whatever volume they feel like, and never once adjusts for the room — that's the version of background music no one remembers fondly. What I do is different: I read the room in real time..."
 3. **Fear/concern resolution** — Every explicit AND inferred question answered (use absences from reasoning)
-4. **Recommendation + price** — Format recommendation, quote price, positioning
-5. **CTA** — Clear next step (${classification.close_type} close)
+4. **Recommendation + price** — Format recommendation, quote price, positioning${clarificationMode ? " (SKIP in clarification mode)" : ""}
+5. **CTA** — Clear next step (${classification.close_type} close)${clarificationMode ? " and the CTA is the single binary clarifying question" : ""}
 
 ${buildStyleRulesBlock(classification, pricing)}
 
@@ -183,6 +189,7 @@ References have had pricing removed. Do NOT infer, reconstruct, or comment on pr
  * word counts, compressed targets, contact/sign-off, output JSON schema.
  */
 function buildStyleRulesBlock(classification: Classification, pricing: PricingResult): string {
+  const clarificationMode = classification.action === "one_question" && classification.format_recommended === "unresolved";
   const compressedTarget = getCompressedTarget(classification.competition_level);
   return `## STYLE RULES
 
@@ -193,6 +200,17 @@ Do NOT use em dashes in prose. Use commas, semicolons, "with", or "and" instead.
 
 **Validation Must Survive Compression:**
 Even the compressed draft MUST contain one sentence that validates the CLIENT specifically (not generic event praise). For this lead: validate ${getValidationTarget(classification)}.
+
+${clarificationMode
+    ? `**Clarification Mode (HARD CONSTRAINT):**
+- Ask exactly ONE binary clarifying question.
+- Do NOT state a price, rate, anchor, floor, or package.
+- Do NOT pretend the format is settled.
+- The question must narrow the musical direction, not gather admin details.
+- Good: "Are you picturing something intimate and in the background, or more of a featured moment people stop to watch?"
+- Bad: "What is your budget?" "What songs do you want?" "Can you send more details?"
+`
+    : ""}
 
 ${classification.platform === "gigsalad"
     ? `**Contact Block: OMIT** — GigSalad prohibits direct contact info in platform messages. Do NOT include phone number, email, or website URL anywhere in the response.`
@@ -316,6 +334,10 @@ function buildBudgetModeBlock(
   classification: Classification,
   pricing: PricingResult,
 ): string {
+  if (classification.action === "one_question" && classification.format_recommended === "unresolved") {
+    return "";
+  }
+
   const { budget } = pricing;
   if (budget.tier === "none") return "";
 

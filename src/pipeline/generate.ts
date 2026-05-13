@@ -24,6 +24,7 @@ interface GenerateResponse {
 }
 
 const SIGN_OFF = `\nAlex Guillen`;
+const PRICE_SIGNAL_PATTERN = /\$\s?\d|\brate\b|\bquote\b|\banchor\b|\bfloor\b|\binvestment\b/i;
 
 const validateGenerateResponse = (raw: unknown): GenerateResponse => {
   if (typeof raw !== "object" || raw === null || Array.isArray(raw)) throw new GenerationError("Expected JSON object from LLM");
@@ -90,11 +91,27 @@ export async function generateResponse(
 
   const compressedWordCount = countWords(compressedDraft);
 
+  if (classification.action === "one_question" && classification.format_recommended === "unresolved") {
+    enforceClarificationDraft("full_draft", fullDraft);
+    enforceClarificationDraft("compressed_draft", compressedDraft);
+  }
+
   return {
     full_draft: fullDraft,
     compressed_draft: compressedDraft,
     compressed_word_count: compressedWordCount,
   };
+}
+
+function enforceClarificationDraft(field: "full_draft" | "compressed_draft", draft: string): void {
+  const questionMarks = (draft.match(/\?/g) ?? []).length;
+  if (questionMarks !== 1) {
+    throw new GenerationError(`Clarification mode ${field} must contain exactly one question`);
+  }
+
+  if (PRICE_SIGNAL_PATTERN.test(draft)) {
+    throw new GenerationError(`Clarification mode ${field} must not include pricing language`);
+  }
 }
 
 function ensureSignOff(draft: string): string {

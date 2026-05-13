@@ -1,4 +1,5 @@
 import { classifyLead } from "./pipeline/classify.js";
+import { verifyClassificationHeuristics } from "./pipeline/classify-verify.js";
 import { lookupPrice, detectBudgetGap } from "./pipeline/price.js";
 import { enrichClassification } from "./pipeline/enrich.js";
 import { getTodayISO } from "./utils/dates.js";
@@ -23,6 +24,23 @@ export interface StageEvent {
 
 /** Optional callback for streaming stage progress (SSE, console, etc.) */
 export type OnStage = (event: StageEvent) => void;
+
+function isClarificationLead(classification: Classification): boolean {
+  return classification.action === "one_question" && classification.format_recommended === "unresolved";
+}
+
+function createClarificationPricingResult(classification: Classification): PricingResult {
+  return {
+    format: "unresolved",
+    duration_hours: classification.duration_hours,
+    tier_key: "clarify",
+    anchor: 0,
+    floor: 0,
+    quote_price: 0,
+    competition_position: "clarify before quoting",
+    budget: { tier: "none" },
+  };
+}
 
 /**
  * Compute a 0-100 confidence score based on how much pipeline intelligence
@@ -86,19 +104,20 @@ export async function runPipeline(
   let start = Date.now();
   const classification = await classifyLead(rawText, today);
   if (platform) classification.platform = platform;
+  const verifiedClassification = verifyClassificationHeuristics(rawText, classification).classification;
   timing.classify = Date.now() - start;
   onStage?.({
     stage: 1, name: "classify", status: "done",
-    ms: timing.classify, result: classification,
+    ms: timing.classify, result: verifiedClassification,
   });
 
   // --- Hard gate (deterministic checks — format mismatch, red flags) ---
-  const hardGate = checkHardGate(classification, rawText);
+  const hardGate = checkHardGate(verifiedClassification, rawText);
 
   // Attach red flag warnings to classification so downstream stages see them
   if (hardGate.flags.length > 0) {
-    classification.flagged_concerns = [
-      ...classification.flagged_concerns,
+    verifiedClassification.flagged_concerns = [
+      ...verifiedClassification.flagged_concerns,
       ...hardGate.flags,
     ];
   }
@@ -108,10 +127,10 @@ export async function runPipeline(
     timing.total = Date.now() - totalStart;
     const declineText = hardGate.decline_draft || "This lead requires manual review.";
     return {
-      classification,
+      classification: verifiedClassification,
       pricing: {
-        format: classification.format_recommended,
-        duration_hours: classification.duration_hours,
+        format: verifiedClassification.format_recommended,
+        duration_hours: verifiedClassification.duration_hours,
         tier_key: "T2P",
         anchor: 0,
         floor: 0,
@@ -164,24 +183,34 @@ export async function runPipeline(
   // --- Stage 2: Pricing + Budget Gap ---
   onStage?.({ stage: 2, name: "price", status: "running" });
   start = Date.now();
-  let pricing = lookupPrice(classification, travelData);
+  const initialFormat = verifiedClassification.format_recommended;
+  let pricing = isClarificationLead(verifiedClassification)
+    ? createClarificationPricingResult(verifiedClassification)
+    : lookupPrice(verifiedClassification, travelData);
   // Detect budget gap and attach to pricing result
-  pricing.budget = detectBudgetGap(
-    classification.stated_budget,
-    pricing.floor,
-    pricing.format,
-    pricing.duration_hours,
-    pricing.tier_key,
-  );
+  if (!isClarificationLead(verifiedClassification) && initialFormat !== "unresolved") {
+    pricing.budget = detectBudgetGap(
+      verifiedClassification.stated_budget,
+      pricing.floor,
+      initialFormat,
+      pricing.duration_hours,
+      pricing.tier_key,
+    );
+  }
   // Enrich classification (may override format, tier, close_type)
-  const enriched = enrichClassification(classification, pricing, today);
+  const enriched = enrichClassification(verifiedClassification, pricing, today);
   // Re-price if enrichment changed the format (e.g., mariachi_4piece → mariachi_full)
-  if (enriched.format_recommended !== classification.format_recommended) {
+  const enrichedFormat = enriched.format_recommended;
+  if (
+    !isClarificationLead(enriched) &&
+    enrichedFormat !== "unresolved" &&
+    enriched.format_recommended !== verifiedClassification.format_recommended
+  ) {
     pricing = lookupPrice(enriched, travelData);
     pricing.budget = detectBudgetGap(
       enriched.stated_budget,
       pricing.floor,
-      pricing.format,
+      enrichedFormat,
       pricing.duration_hours,
       pricing.tier_key,
     );

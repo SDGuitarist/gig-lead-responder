@@ -32,6 +32,10 @@ export function enrichClassification(
   }
 
   // Format routing override (mariachi weekday/weekend rules)
+  if (classification.format_recommended === "unresolved") {
+    return enriched;
+  }
+
   const routing = resolveFormatRouting(enriched);
   if (routing) {
     enriched = { ...enriched, format_recommended: routing.format_recommended };

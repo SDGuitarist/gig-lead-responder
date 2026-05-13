@@ -1,5 +1,6 @@
+import { VOICE_REFERENCES } from "../data/voice-references.js";
 import { CONCERN_4PIECE_ALT, CONCERN_FULL_ENSEMBLE, GUT_CHECK_THRESHOLD, GUT_CHECK_TOTAL, type Classification, type PricingResult } from "../types.js";
-import { sanitizeClassification, wrapUntrustedData } from "../utils/sanitize.js";
+import { sanitizeClassification, wrapUntrustedData, wrapVoiceReference } from "../utils/sanitize.js";
 
 /**
  * Builds the verification gate prompt.
@@ -11,11 +12,22 @@ export function buildVerifyPrompt(
   pricing: Pick<PricingResult, "budget">,
 ): string {
   const budget = pricing.budget;
+  const clarificationMode = classification.action === "one_question" && classification.format_recommended === "unresolved";
+  const voiceReferences = VOICE_REFERENCES
+    .filter((reference) => reference.active && (reference.name === "Patterson" || reference.name === "Sparse Cocktail"))
+    .map((reference, index) => `Reference: ${reference.name}\n${wrapVoiceReference(index + 1, reference.type, reference.text)}`)
+    .join("\n\n");
   return `You are a quality gate for Pacific Flow Entertainment response drafts.
 
 Your job: evaluate a draft response against the classification and return structured evidence. You must extract EXACT QUOTES from the draft — not paraphrases.
 
 ${wrapUntrustedData("lead_classification", JSON.stringify(sanitizeClassification(classification), null, 2))}
+
+## VOICE CALIBRATION REFERENCES
+
+These are real or validated examples of Alex's target voice. Use them as the calibration target for the sounds_like_alex check.
+
+${voiceReferences}
 
 ## EVALUATION CRITERIA
 
@@ -54,18 +66,18 @@ Does the opening sentence reference a CONCRETE DETAIL from the classification? T
 - validated_them: Draft validates the person, not just the event
 - named_fear: Draft acknowledges what could go wrong or what burned them before
 - differentiated: At least one line only THIS vendor would write
-- preempted_questions: Price, logistics, format all addressed
+- preempted_questions: ${clarificationMode ? "For clarification mode: the draft narrows the decision with one smart binary question instead of trying to answer price, logistics, and format prematurely." : "Price, logistics, format all addressed"}
 - creates_relief: Reader would think "this person gets it"
 - best_line_present: There's a genuinely strong line
 - prose_flows: Reads as one continuous movement, not assembled sections
 - competitor_test: false means PASS (no competitor would write this)
 - lead_specific_opening: First sentence references a concrete detail from the classification (not generic)
-- budget_acknowledged: ${buildBudgetInstruction(budget, classification)}
+- budget_acknowledged: ${clarificationMode ? "Always true — clarification mode does not quote yet." : buildBudgetInstruction(budget, classification)}
 - past_date_acknowledged: ${buildPastDateInstruction(classification)}
 - mariachi_pricing_format: ${buildMariachiPricingInstruction(classification)}
 - cultural_vocabulary_used: ${buildCulturalVocabInstruction(classification)}
-- sounds_like_alex: Does the draft sound like a real person wrote it, or like a polished vendor template? Check for: (1) contractions are present and natural (I'm, we're, I've, that's, we'll, not "I am," "we will," "it is"), (2) no sales vocabulary ("investment," "package," "opportunity," "solution," "offering," "elevated experience"), (3) register is peer-to-peer, not vendor-to-client, (4) sentences vary in length with some short fragments, (5) price is stated as "rate" not "investment." If the draft reads like a wedding vendor template or catering proposal, sounds_like_alex = false.
-- genre_default_stated: ${buildGenreDefaultInstruction(classification)}
+- sounds_like_alex: Does the draft sound like a real person wrote it, or like a polished vendor template? Compare it to the voice calibration references above. Check for: (1) contractions are present and natural (I'm, we're, I've, that's, we'll, not "I am," "we will," "it is"), (2) no sales vocabulary ("investment," "package," "opportunity," "solution," "offering," "elevated experience"), (3) register is peer-to-peer, not vendor-to-client, (4) sentences vary in length with some short fragments, (5) price is stated as "rate" not "investment." If the draft reads like a wedding vendor template or catering proposal, sounds_like_alex = false.
+- genre_default_stated: ${clarificationMode ? "Always true — the draft may defer genre commitment while narrowing the direction with one binary question." : buildGenreDefaultInstruction(classification)}
 - timeline_acknowledged: ${buildTimelineInstruction(classification)}
 - compressed_validation_present: Extract a validation sentence from the COMPRESSED DRAFT specifically. If no client-specific validation exists in the compressed version, compressed_validation_present = false. The compressed draft must retain at least one sentence that validates the CLIENT (not the event).
 

@@ -1,0 +1,85 @@
+openapi: 3.1.0
+info:
+  title: Gig Lead Responder API
+  version: 1.0.0
+  description: Dashboard and agent-facing API for lead analysis, review, and follow-up actions.
+servers:
+  - url: /
+components:
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+  schemas:
+    ErrorResponse:
+      type: object
+      required: [code, error]
+      properties:
+        code:
+          type: string
+        error:
+          type: string
+security:
+  - basicAuth: []
+paths:
+  /api/openapi.yaml:
+    get:
+      summary: Get the API spec
+      responses:
+        "200":
+          description: OpenAPI YAML
+  /api/leads:
+    get:
+      summary: List leads
+      responses:
+        "200":
+          description: Lead list
+  /api/leads/{id}:
+    get:
+      summary: Get a single lead
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Single lead
+        "400":
+          description: Invalid ID
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Lead not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/stats:
+    get:
+      summary: Get dashboard stats
+      responses:
+        "200":
+          description: Stats payload
+  /api/analytics:
+    get:
+      summary: Get analytics summary
+      responses:
+        "200":
+          description: Analytics payload
+  /api/analyze:
+    post:
+      summary: Analyze raw lead text
+      parameters:
+        - in: query
+          name: format
+          schema:
+            type: string
+            enum: [json]
+          description: Use JSON instead of SSE when set to `json`.
+      responses:
+        "200":
+          description: Pipeline output in JSON or SSE stream

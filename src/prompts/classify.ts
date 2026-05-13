@@ -63,6 +63,12 @@ Decision gate:
 - Vague + Low → "one_question"
 - Vague + Medium/High/Extreme → "assume_and_quote"
 
+SPECIAL CASE:
+When the request is a vague category with no defensible format recommendation yet (examples: "Latin band", "music", "entertainment" with no style/energy clarity), set:
+- action = "one_question"
+- format_recommended = "unresolved"
+This means: do NOT force a quote yet. Ask one binary clarifying question first.
+
 ### Step 2.75: Stealth Premium Check
 Check for hidden wealth signals. ANY ONE present = stealth_premium: true:
 - Premium venue (luxury hotels, estates, country clubs, resorts)
@@ -110,7 +116,7 @@ You must determine the RECOMMENDED format, which may differ from what the client
 - Generic "Spanish guitar" or "Latin music" → **solo** (background) or **duo** (cocktail/dinner)
 - Bolero, romantic Mexican trio → **bolero_trio**
 
-Valid format values (use EXACTLY one): solo, duo, flamenco_duo, flamenco_trio, mariachi_4piece, mariachi_full, bolero_trio
+Valid format values (use EXACTLY one): solo, duo, flamenco_duo, flamenco_trio, mariachi_4piece, mariachi_full, bolero_trio, unresolved
 
 ## DURATION EXTRACTION
 
@@ -151,7 +157,7 @@ Return ONLY this JSON object (no markdown fences, no explanation):
   "lead_source_column": "P" | "D",
   "price_point": "full_premium" | "slight_premium" | "at_market" | "below_market",
   "format_requested": string,
-  "format_recommended": "solo" | "duo" | "flamenco_duo" | "flamenco_trio" | "mariachi_4piece" | "mariachi_full" | "bolero_trio",
+  "format_recommended": "solo" | "duo" | "flamenco_duo" | "flamenco_trio" | "mariachi_4piece" | "mariachi_full" | "bolero_trio" | "unresolved",
   "duration_hours": 1 | 1.5 | 2 | 3 | 4,
   "stated_budget": number | null,
   "event_date_iso": "YYYY-MM-DD" | null,

@@ -54,6 +54,9 @@ export function lookupPrice(
   travelData?: TravelFeeData | null,
 ): PricingResult {
   const { format_recommended, duration_hours, rate_card_tier, lead_source_column, competition_level } = classification;
+  if (format_recommended === "unresolved") {
+    throw new PricingError('Cannot look up pricing for unresolved format');
+  }
 
   // 1. Find rate table for this format
   const rateTable = RATE_TABLES[format_recommended];

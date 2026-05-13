@@ -168,4 +168,38 @@ describe("runPipeline", () => {
     const result = await runPipeline("Lead text");
     assert.equal(result.classification.venue_name, null);
   });
+
+  it("adds classification verification warnings for obvious raw-text mismatches", async () => {
+    const mismatch = { ...MOCK_CLASSIFICATION, format_recommended: "solo", flagged_concerns: [] };
+    mockClaudeForPipeline([mismatch, MOCK_GENERATION, MOCK_GATE_PASS]);
+    const result = await runPipeline("Need a mariachi band for Saturday.");
+    assert.ok(
+      result.classification.flagged_concerns.some((warning) => warning.includes("mentions mariachi")),
+    );
+  });
+
+  it("supports clarification-first leads with unresolved format", async () => {
+    const clarificationClassification = {
+      ...MOCK_CLASSIFICATION,
+      action: "one_question",
+      vagueness: "vague",
+      format_recommended: "unresolved",
+    };
+    const clarificationGeneration = {
+      reasoning: {
+        details_present: ["Latin band", "birthday"],
+        absences: ["No clear format yet"],
+        emotional_core: "They want the right energy without boxing themselves into the wrong setup",
+        cinematic_opening: "A birthday changes the second the music shifts the room from polite to alive.",
+        validation_line: "You knew this needed more than a generic playlist.",
+      },
+      full_draft: "Hi Sarah, a birthday changes the second the music shifts the room from polite to alive. You knew this needed more than a generic playlist. Before I point you toward the right setup, are you picturing something intimate and in the background, or more of a featured moment people stop to watch? Alex Guillen",
+      compressed_draft: "Hi Sarah, before I point you toward the right setup, are you picturing something intimate and in the background, or more of a featured moment people stop to watch? Alex Guillen",
+    };
+    mockClaudeForPipeline([clarificationClassification, clarificationGeneration, MOCK_GATE_PASS]);
+    const result = await runPipeline("Looking for a Latin band for a birthday.");
+    assert.equal(result.classification.format_recommended, "unresolved");
+    assert.equal(result.pricing.quote_price, 0);
+    assert.equal(result.pricing.competition_position, "clarify before quoting");
+  });
 });

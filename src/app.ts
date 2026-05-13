@@ -83,7 +83,7 @@ export function createApp() {
 
   // 404 catch-all — after all routes, before error handler
   app.use((_req: Request, res: Response) => {
-    res.status(404).json({ error: "Not found" });
+    res.status(404).json({ code: "not_found", error: "Not found" });
   });
 
   // Global error handler — must be registered last, must have 4 parameters

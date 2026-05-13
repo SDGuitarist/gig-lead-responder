@@ -27,5 +27,8 @@ export const errorHandler = (err: unknown, req: Request, res: Response, _next: N
       ? message
       : "Internal server error";
 
-  res.status(status).json({ error: clientMessage });
+  res.status(status).json({
+    code: status === 500 ? "internal_server_error" : "request_error",
+    error: clientMessage,
+  });
 };

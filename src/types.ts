@@ -21,6 +21,8 @@ export type Format =
   | "sourced_cultural_quartet"
   | "sourced_cultural_5piece";
 
+export type RecommendedFormat = Format | "unresolved";
+
 export interface Classification {
   // Mode & action
   mode: "confirmation" | "evaluation";
@@ -43,7 +45,7 @@ export interface Classification {
 
   // Format — BOTH the client's request AND the corrected recommendation
   format_requested: string; // What the client asked for (raw)
-  format_recommended: Format; // Corrected format for pricing lookup
+  format_recommended: RecommendedFormat; // Corrected format for pricing lookup, or unresolved for clarification-first leads
 
   // Duration — extracted from lead text
   duration_hours: 1 | 1.5 | 2 | 3 | 3.5 | 4;
@@ -131,7 +133,7 @@ export type BudgetGapResult =
   | { tier: "no_viable_scope"; gap: number };
 
 export interface PricingResult {
-  format: Format;
+  format: RecommendedFormat;
   duration_hours: number;
   tier_key: string; // e.g., "T3P"
   anchor: number;

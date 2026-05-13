@@ -1,8 +1,14 @@
-import { describe, it } from "node:test";
+import { afterEach, describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { enrichClassification } from "./pipeline/enrich.js";
+import { setClaudeRequesterForTests } from "./claude.js";
+import { generateResponse } from "./pipeline/generate.js";
 import { buildGeneratePrompt } from "./prompts/generate.js";
 import type { Classification, PricingResult } from "./types.js";
+
+afterEach(() => {
+  setClaudeRequesterForTests();
+});
 
 // Minimal classification fixture for testing
 function makeClassification(overrides: Partial<Classification> = {}): Classification {
@@ -185,5 +191,157 @@ describe("buildGeneratePrompt — budget mode", () => {
     const budgetIdx = prompt.indexOf("BUDGET MODE");
     const classIdx = prompt.indexOf("<lead_classification>");
     assert.ok(budgetIdx < classIdx, "Budget block must appear before classification");
+  });
+
+  it("clarification mode says not to quote and asks for one binary question", () => {
+    const c = makeClassification({
+      action: "one_question",
+      vagueness: "vague",
+      format_recommended: "unresolved",
+    });
+    const p = makePricing({
+      format: "unresolved",
+      quote_price: 0,
+      anchor: 0,
+      floor: 0,
+      competition_position: "clarify before quoting",
+      tier_key: "clarify",
+    });
+    const prompt = buildGeneratePrompt(c, p, "some context");
+    assert.ok(prompt.includes("No quote yet. The format is unresolved."));
+    assert.ok(prompt.includes("Ask exactly ONE binary clarifying question."));
+    assert.ok(prompt.includes("Do NOT state a price, rate, anchor, floor, or package."));
+  });
+});
+
+describe("generateResponse — clarification mode", () => {
+  const vagueLatinBandLead = "Looking for a Latin band for a birthday party, not sure if I want background music or something more lively.";
+
+  function makeClarificationClassification(): Classification {
+    return makeClassification({
+      action: "one_question",
+      vagueness: "vague",
+      format_requested: "Latin band",
+      format_recommended: "unresolved",
+      flagged_concerns: ["vague format request"],
+      client_first_name: "Alondra",
+    });
+  }
+
+  function makeClarificationPricing(): PricingResult {
+    return makePricing({
+      format: "unresolved",
+      anchor: 0,
+      floor: 0,
+      quote_price: 0,
+      competition_position: "clarify before quoting",
+      tier_key: "clarify",
+    });
+  }
+
+  it("accepts a single-question clarification draft with no pricing", async () => {
+    setClaudeRequesterForTests(async () => ({
+      id: "msg-test",
+      type: "message" as const,
+      role: "assistant" as const,
+      content: [{
+        type: "text" as const,
+        text: JSON.stringify({
+          reasoning: {
+            details_present: [vagueLatinBandLead],
+            absences: ["No clear format yet"],
+            emotional_core: "They want the right energy without overcommitting",
+            cinematic_opening: "A birthday party changes completely once the music locks the room in.",
+            validation_line: "You knew this needed more than a generic playlist.",
+          },
+          full_draft: "Hi Alondra,\n\nA birthday party changes completely once the music locks the room in. You knew this needed more than a generic playlist. Before I point you toward the right setup, are you picturing something intimate and in the background, or more of a featured moment people stop to watch?\n\nAlex Guillen",
+          compressed_draft: "Hi Alondra, before I point you toward the right setup, are you picturing something intimate and in the background, or more of a featured moment people stop to watch?\n\nAlex Guillen",
+        }),
+      }],
+      model: "claude-sonnet-4-6",
+      stop_reason: "end_turn" as const,
+      stop_sequence: null,
+      usage: { input_tokens: 10, output_tokens: 10 },
+    }) as any);
+
+    const drafts = await generateResponse(
+      makeClarificationClassification(),
+      makeClarificationPricing(),
+      "some context",
+    );
+    assert.equal((drafts.full_draft.match(/\?/g) ?? []).length, 1);
+    assert.equal((drafts.compressed_draft.match(/\?/g) ?? []).length, 1);
+    assert.ok(!/\$\s?\d|\brate\b/i.test(drafts.full_draft));
+    assert.ok(!/\$\s?\d|\brate\b/i.test(drafts.compressed_draft));
+  });
+
+  it("rejects clarification drafts that include pricing", async () => {
+    setClaudeRequesterForTests(async () => ({
+      id: "msg-test",
+      type: "message" as const,
+      role: "assistant" as const,
+      content: [{
+        type: "text" as const,
+        text: JSON.stringify({
+          reasoning: {
+            details_present: [vagueLatinBandLead],
+            absences: ["No clear format yet"],
+            emotional_core: "They want the right energy without overcommitting",
+            cinematic_opening: "A birthday party changes completely once the music locks the room in.",
+            validation_line: "You knew this needed more than a generic playlist.",
+          },
+          full_draft: "Hi Alondra,\n\nA birthday party changes completely once the music locks the room in. My rate starts at $1200. Are you picturing something intimate and in the background, or more of a featured moment people stop to watch?\n\nAlex Guillen",
+          compressed_draft: "Hi Alondra, my rate starts at $1200. Are you picturing something intimate and in the background, or more of a featured moment people stop to watch?\n\nAlex Guillen",
+        }),
+      }],
+      model: "claude-sonnet-4-6",
+      stop_reason: "end_turn" as const,
+      stop_sequence: null,
+      usage: { input_tokens: 10, output_tokens: 10 },
+    }) as any);
+
+    await assert.rejects(
+      () => generateResponse(
+        makeClarificationClassification(),
+        makeClarificationPricing(),
+        "some context",
+      ),
+      /must not include pricing language/,
+    );
+  });
+
+  it("rejects clarification drafts that do not contain exactly one question", async () => {
+    setClaudeRequesterForTests(async () => ({
+      id: "msg-test",
+      type: "message" as const,
+      role: "assistant" as const,
+      content: [{
+        type: "text" as const,
+        text: JSON.stringify({
+          reasoning: {
+            details_present: [vagueLatinBandLead],
+            absences: ["No clear format yet"],
+            emotional_core: "They want the right energy without overcommitting",
+            cinematic_opening: "A birthday party changes completely once the music locks the room in.",
+            validation_line: "You knew this needed more than a generic playlist.",
+          },
+          full_draft: "Hi Alondra,\n\nA birthday party changes completely once the music locks the room in. You knew this needed more than a generic playlist. Tell me more about what you want.\n\nAlex Guillen",
+          compressed_draft: "Hi Alondra, tell me more about what you want.\n\nAlex Guillen",
+        }),
+      }],
+      model: "claude-sonnet-4-6",
+      stop_reason: "end_turn" as const,
+      stop_sequence: null,
+      usage: { input_tokens: 10, output_tokens: 10 },
+    }) as any);
+
+    await assert.rejects(
+      () => generateResponse(
+        makeClarificationClassification(),
+        makeClarificationPricing(),
+        "some context",
+      ),
+      /must contain exactly one question/,
+    );
   });
 });
