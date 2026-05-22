@@ -1,26 +1,24 @@
-# Review Context — Gig Lead Responder
+# Review Context -- Gig Lead Responder
 
 ## Risk Chain
 
-**Audit trigger:** 21 reviewed fixes stranded on unmerged branches + Gmail persistence crash investigation
+**Brainstorm risk:** "LR draft quality is now the ceiling for gate-passed responses. No agent voice polish. Monitor for degradation."
 
-**Audit methodology:** 9 agents across 3 batches. Cross-agent consensus (3+ agents) = always real.
+**Plan mitigation:** Evaluated 4 options. Chose Option 4 (accept + monitor) with targeted hardening: alias map for unknown capabilities, soft refusal patterns for AI draft quality. Rejected full Stage 1/Stage 2 refactor as wrong target (bug was in expert-pipeline, not LR).
 
-**Work risk (from Feed-Forward):** "GmailPlatform vs Platform split could drift if new platforms added"
+**Work risk (from Feed-Forward):** "Whether the alias map needs fuzzy matching or if substring matches are sufficient."
 
-**Review resolution:** 32 findings (6 P1, 17 P2, 9 P3). 29 resolved. 3 deferred P2s need brainstorm (dual parsers, data lifecycle, portal boilerplate).
+**Review resolution:** 3 agents (security, performance, correctness). Found and fixed alias map ordering bug (longest-first sort). 4 test cases added from review. Pre-existing XSS in index.html deferred. 176 tests passing.
 
 ## Files to Scrutinize
 
 | File | What changed | Risk area |
 |------|-------------|-----------|
-| `src/types.ts` | Added shared `Platform` union type | Type drift if `GmailPlatform` not updated when new platform added |
-| `src/sms.ts` | Added `sendSmsSafe()` for automation | Two interfaces in one module — callers must pick correct one |
-| `src/db/migrate.ts` | Orphan table recovery at startup | Runs before rebuild check — ordering matters |
-| `src/db/leads.ts` | `claimLeadForSending` narrowed to `= 'received'` | Any caller expecting claim from 'sent' would silently fail |
-| `src/follow-up-scheduler.ts` | Draft generation moved before claim | Race: user could skip lead during LLM call |
-| `src/server.ts` | Min secret length enforcement | Only in production — dev can still use short secrets |
+| `src/pipeline/hard-gate.ts` | ALEX_ALIAS_MAP + Check 3 + longest-first sort | Substring matching order, guessFormatFamily overlap |
+| `src/pipeline/post-check.ts` | SOFT_REFUSAL_PATTERNS (6 patterns) + dual-draft check | False positives on valid Alex sentences |
+| `src/hard-gate.test.ts` | 14 test cases for alias map | Coverage of edge cases (empty input, case, ordering) |
+| `src/post-check.test.ts` | 9 test cases for soft refusal | Dual-violation test, false-positive guards |
 
 ## Plan Reference
 
-No plan doc — executed directly from `docs/reviews/main-full-audit/REVIEW-SUMMARY.md`
+`docs/plans/2026-04-22-feat-capability-hardening-plan.md`
