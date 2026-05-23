@@ -1,6 +1,7 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { checkHardGate } from "./pipeline/hard-gate.js";
+import { sanitizeClassification } from "./utils/sanitize.js";
 import type { Classification } from "./types.js";
 
 function makeClassification(overrides: Partial<Classification> = {}): Classification {
@@ -250,6 +251,46 @@ describe("checkHardGate — drum regex (word-boundary)", () => {
       "",
     );
     assert.equal(result.pass, true);
+    assert.ok(!result.flags.includes("unknown_capability"));
+  });
+});
+
+// ── A4: sanitizeClassification before hard gate ──
+
+describe("checkHardGate — sanitize before gate", () => {
+  it("under-200-char format_requested is behaviorally unchanged", () => {
+    const sanitized = sanitizeClassification(
+      makeClassification({ format_requested: "flamenco guitar" }),
+    );
+    const result = checkHardGate(sanitized, "");
+    assert.ok(!result.flags.includes("unknown_capability"));
+  });
+
+  it("truncation does not turn a valid alias into unknown_capability", () => {
+    const sanitized = sanitizeClassification(
+      makeClassification({ format_requested: "acoustic guitar" }),
+    );
+    assert.equal(sanitized.format_requested, "acoustic guitar");
+    const result = checkHardGate(sanitized, "");
+    assert.ok(!result.flags.includes("unknown_capability"));
+  });
+
+  it("200+ char format_requested of non-alias text flags unknown_capability", () => {
+    const stuffed = "x".repeat(201);
+    const sanitized = sanitizeClassification(
+      makeClassification({ format_requested: stuffed }),
+    );
+    const result = checkHardGate(sanitized, "");
+    assert.ok(result.flags.includes("unknown_capability"));
+  });
+
+  it("alias at start of 200+ char input is preserved after truncation", () => {
+    const longFormat = "acoustic guitar " + "x".repeat(200);
+    const sanitized = sanitizeClassification(
+      makeClassification({ format_requested: longFormat }),
+    );
+    // "acoustic guitar" is at the start (15 chars) — within the 200 char limit
+    const result = checkHardGate(sanitized, "");
     assert.ok(!result.flags.includes("unknown_capability"));
   });
 });

@@ -10,6 +10,7 @@ import { lookupVenueContext } from "./venue-lookup.js";
 import { extractZipFromAddress, lookupTravelFee } from "./travel-fee.js";
 import { checkHardGate } from "./pipeline/hard-gate.js";
 import { postCheckDrafts } from "./pipeline/post-check.js";
+import { sanitizeClassification } from "./utils/sanitize.js";
 import { logVenueMiss } from "./db/index.js";
 import type { Classification, Drafts, GateResult, PipelineOutput, PricingResult, TravelFeeData, VenueContext } from "./types.js";
 
@@ -106,18 +107,23 @@ export async function runPipeline(
   if (platform) classification.platform = platform;
   const verifiedClassification = verifyClassificationHeuristics(rawText, classification).classification;
   timing.classify = Date.now() - start;
+
+  // Sanitize free-text classification fields before hard gate (truncates to 200 chars).
+  // Belt-and-suspenders: prompt builders also call sanitizeClassification() independently.
+  const sanitized = sanitizeClassification(verifiedClassification);
+
   onStage?.({
     stage: 1, name: "classify", status: "done",
-    ms: timing.classify, result: verifiedClassification,
+    ms: timing.classify, result: sanitized,
   });
 
   // --- Hard gate (deterministic checks — format mismatch, red flags) ---
-  const hardGate = checkHardGate(verifiedClassification, rawText);
+  const hardGate = checkHardGate(sanitized, rawText);
 
   // Attach red flag warnings to classification so downstream stages see them
   if (hardGate.flags.length > 0) {
-    verifiedClassification.flagged_concerns = [
-      ...verifiedClassification.flagged_concerns,
+    sanitized.flagged_concerns = [
+      ...sanitized.flagged_concerns,
       ...hardGate.flags,
     ];
   }
@@ -127,10 +133,10 @@ export async function runPipeline(
     timing.total = Date.now() - totalStart;
     const declineText = hardGate.decline_draft || "This lead requires manual review.";
     return {
-      classification: verifiedClassification,
+      classification: sanitized,
       pricing: {
-        format: verifiedClassification.format_recommended,
-        duration_hours: verifiedClassification.duration_hours,
+        format: sanitized.format_recommended,
+        duration_hours: sanitized.duration_hours,
         tier_key: "T2P",
         anchor: 0,
         floor: 0,
@@ -183,14 +189,14 @@ export async function runPipeline(
   // --- Stage 2: Pricing + Budget Gap ---
   onStage?.({ stage: 2, name: "price", status: "running" });
   start = Date.now();
-  const initialFormat = verifiedClassification.format_recommended;
-  let pricing = isClarificationLead(verifiedClassification)
-    ? createClarificationPricingResult(verifiedClassification)
-    : lookupPrice(verifiedClassification, travelData);
+  const initialFormat = sanitized.format_recommended;
+  let pricing = isClarificationLead(sanitized)
+    ? createClarificationPricingResult(sanitized)
+    : lookupPrice(sanitized, travelData);
   // Detect budget gap and attach to pricing result
-  if (!isClarificationLead(verifiedClassification) && initialFormat !== "unresolved") {
+  if (!isClarificationLead(sanitized) && initialFormat !== "unresolved") {
     pricing.budget = detectBudgetGap(
-      verifiedClassification.stated_budget,
+      sanitized.stated_budget,
       pricing.floor,
       initialFormat,
       pricing.duration_hours,
@@ -198,13 +204,13 @@ export async function runPipeline(
     );
   }
   // Enrich classification (may override format, tier, close_type)
-  const enriched = enrichClassification(verifiedClassification, pricing, today);
+  const enriched = enrichClassification(sanitized, pricing, today);
   // Re-price if enrichment changed the format (e.g., mariachi_4piece → mariachi_full)
   const enrichedFormat = enriched.format_recommended;
   if (
     !isClarificationLead(enriched) &&
     enrichedFormat !== "unresolved" &&
-    enriched.format_recommended !== verifiedClassification.format_recommended
+    enriched.format_recommended !== sanitized.format_recommended
   ) {
     pricing = lookupPrice(enriched, travelData);
     pricing.budget = detectBudgetGap(
