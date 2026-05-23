@@ -1,6 +1,10 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { validateSource } from "./automation/source-validator.js";
+import {
+  validateSource,
+  getRejectedEmailCount,
+  incrementRejectedEmailCount,
+} from "./automation/source-validator.js";
 
 describe("validateSource — SPF/DKIM mandatory", () => {
   it("rejects matching sender with empty authenticationResults", () => {
@@ -65,5 +69,20 @@ describe("validateSource — SPF/DKIM mandatory", () => {
     );
     assert.equal(result.valid, false);
     assert.ok(result.reason?.includes("Unknown sender"));
+  });
+});
+
+describe("rejection counter", () => {
+  it("incrementRejectedEmailCount increases getRejectedEmailCount", () => {
+    const before = getRejectedEmailCount();
+    incrementRejectedEmailCount();
+    assert.equal(getRejectedEmailCount(), before + 1);
+  });
+
+  it("counter increments are cumulative", () => {
+    const before = getRejectedEmailCount();
+    incrementRejectedEmailCount();
+    incrementRejectedEmailCount();
+    assert.equal(getRejectedEmailCount(), before + 2);
   });
 });

@@ -1,7 +1,11 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 
-// Mirrors browser esc() from index.html — keep in sync manually
+// Mirrors browser esc() from public/index.html — keep in sync manually.
+// The browser version uses DOM-based escaping (textContent → innerHTML).
+// This test version uses regex replacement, which is strictly MORE conservative
+// (escapes &, <, >, " — a superset of what the DOM escaper produces).
+// If index.html's esc() changes, update this function to match.
 function esc(s: string): string {
   return s.replace(/&/g, '&amp;').replace(/</g, '&lt;')
           .replace(/>/g, '&gt;').replace(/"/g, '&quot;');

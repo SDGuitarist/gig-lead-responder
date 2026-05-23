@@ -215,8 +215,8 @@
 
     var _escDiv = document.createElement('div');
     function esc(s) {
-      if (!s) return '';
-      _escDiv.textContent = s;
+      if (s == null) return '';
+      _escDiv.textContent = String(s);
       return _escDiv.innerHTML;
     }
 

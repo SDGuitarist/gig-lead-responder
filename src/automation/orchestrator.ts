@@ -6,10 +6,11 @@ import { validateSource, incrementRejectedEmailCount } from "./source-validator.
 import { isProcessed, markProcessed } from "./dedup.js";
 import { parseLeadEmail } from "./parsers/index.js";
 import { routeLead } from "./router.js";
-import { logLead } from "./logger.js";
+import { logLead, type LeadLogEntry } from "./logger.js";
 import { sendSmsSafe as sendSms } from "../sms.js";
 import { sendSquarespaceReply } from "./senders/gmail-sender.js";
 import { runPipeline } from "../run-pipeline.js";
+import type { PipelineOutput } from "../types.js";
 import { insertLead, updateLead } from "../db/leads.js";
 import { YelpPortalClient } from "./portals/yelp-client.js";
 import { GigSaladPortalClient } from "./portals/gigsalad-client.js";
@@ -176,62 +177,18 @@ export async function processLead(
   }
 
   // 8. Auto-send (or review-only override)
-  if (config.autoSendEnabled) {
-    // Real auto-send path
-    const replyText = output.drafts.compressed_draft;
-    let sendResult: SendResult;
-
-    if (config.dryRun) {
-      console.log(`[DRY-RUN] Would auto-send ${platform} reply:\n${replyText.slice(0, 200)}...`);
-      sendResult = { status: "sent", platform, timestamp: new Date() };
-    } else {
-      sendResult = await dispatchReply(lead, replyText, auth, config, yelpClient, gigsaladClient);
-    }
-
-    logLead({
-      timestamp: new Date().toISOString(),
-      gmailMessageId: msg.id,
-      platform,
-      parseConfidence: lead.parseConfidence,
-      classification: output.classification.format_recommended,
-      quotePrice: output.pricing.quote_price,
-      edgeCase: false,
-      status: config.dryRun ? "dry-run" : sendResult.status,
-      error: sendResult.status === "failed" ? sendResult.error : undefined,
-      durationMs: Date.now() - startTime,
-    });
-
-    // Update DB with send result
-    if (sendResult.status === "sent") {
-      updateLead(leadId, { status: "done", done_reason: `auto-sent via ${platform}`, sms_sent_at: new Date().toISOString() });
-    } else if (sendResult.status === "failed" && !config.dryRun) {
-      updateLead(leadId, { status: "failed", error_message: `Reply send failed: ${sendResult.error}` });
-      await sendSms(config, `FAIL: Lead #${leadId} ${platform} reply failed. Check dashboard.`);
-    }
-  } else {
-    // Review-only mode: log what would happen, don't send
-    console.log(`[review-only] Would auto-send ${platform} reply for lead #${leadId}`);
-    updateLead(leadId, {
-      status: "sent",
-      done_reason: `review-only: would-auto-send via ${platform}`,
-    });
-    if (!config.dryRun) {
-      await sendSms(config, `REVIEW: Lead #${leadId} ${platform} — auto-send suppressed. Check dashboard.`);
-    } else {
-      console.log(`[DRY-RUN] REVIEW: Lead #${leadId} ${platform} — auto-send suppressed`);
-    }
-    logLead({
-      timestamp: new Date().toISOString(),
-      gmailMessageId: msg.id,
-      platform,
-      parseConfidence: lead.parseConfidence,
-      classification: output.classification.format_recommended,
-      quotePrice: output.pricing.quote_price,
-      edgeCase: false,
-      status: config.dryRun ? "dry-run" : "review-only",
-      durationMs: Date.now() - startTime,
-    });
-  }
+  await handleAutoSendDecision({
+    config,
+    leadId,
+    platform,
+    msgId: msg.id,
+    output,
+    lead,
+    startTime,
+    auth,
+    yelpClient,
+    gigsaladClient,
+  });
 
   markProcessed(msg.id);
 }
@@ -266,5 +223,100 @@ async function dispatchReply(
       }
       return { status: "failed", platform: "yelp", error: result.error || "Unknown", timestamp: new Date() };
     }
+  }
+}
+
+/** Side-effect callbacks — injectable for testing. */
+export interface AutoSendDeps {
+  updateLead: (id: number, fields: Record<string, unknown>) => void;
+  sendSms: (config: AutomationConfig, msg: string) => Promise<void>;
+  logLead: (entry: LeadLogEntry) => void;
+  dispatchReply: (
+    lead: ParsedLead, text: string, auth: OAuth2Client,
+    config: AutomationConfig, yelpClient: YelpPortalClient,
+    gigsaladClient: GigSaladPortalClient
+  ) => Promise<SendResult>;
+}
+
+/**
+ * Handle the auto-send or review-only decision after routing.
+ * Extracted from processLead() for testability.
+ *
+ * When autoSendEnabled=true:  dispatches the reply via the platform sender.
+ * When autoSendEnabled=false: stores the lead as "sent" with a review-only
+ *   done_reason and sends a REVIEW SMS instead of dispatching.
+ */
+export async function handleAutoSendDecision(
+  opts: {
+    config: AutomationConfig;
+    leadId: number;
+    platform: string;
+    msgId: string;
+    output: PipelineOutput;
+    lead: ParsedLead;
+    startTime: number;
+    auth: OAuth2Client;
+    yelpClient: YelpPortalClient;
+    gigsaladClient: GigSaladPortalClient;
+  },
+  deps: AutoSendDeps = { updateLead, sendSms, logLead, dispatchReply },
+): Promise<void> {
+  const { config, leadId, platform, msgId, output, lead, startTime, auth, yelpClient, gigsaladClient } = opts;
+
+  if (config.autoSendEnabled) {
+    // Real auto-send path
+    const replyText = output.drafts.compressed_draft;
+    let sendResult: SendResult;
+
+    if (config.dryRun) {
+      console.log(`[DRY-RUN] Would auto-send ${platform} reply:\n${replyText.slice(0, 200)}...`);
+      sendResult = { status: "sent", platform, timestamp: new Date() };
+    } else {
+      sendResult = await deps.dispatchReply(lead, replyText, auth, config, yelpClient, gigsaladClient);
+    }
+
+    deps.logLead({
+      timestamp: new Date().toISOString(),
+      gmailMessageId: msgId,
+      platform,
+      parseConfidence: lead.parseConfidence,
+      classification: output.classification.format_recommended,
+      quotePrice: output.pricing.quote_price,
+      edgeCase: false,
+      status: config.dryRun ? "dry-run" : sendResult.status,
+      error: sendResult.status === "failed" ? sendResult.error : undefined,
+      durationMs: Date.now() - startTime,
+    });
+
+    // Update DB with send result
+    if (sendResult.status === "sent") {
+      deps.updateLead(leadId, { status: "done", done_reason: `auto-sent via ${platform}`, sms_sent_at: new Date().toISOString() });
+    } else if (sendResult.status === "failed" && !config.dryRun) {
+      deps.updateLead(leadId, { status: "failed", error_message: `Reply send failed: ${sendResult.error}` });
+      await deps.sendSms(config, `FAIL: Lead #${leadId} ${platform} reply failed. Check dashboard.`);
+    }
+  } else {
+    // Review-only mode: log what would happen, don't send
+    console.log(`[review-only] Would auto-send ${platform} reply for lead #${leadId}`);
+    deps.updateLead(leadId, {
+      status: "sent",
+      done_reason: `review-only: would-auto-send via ${platform}`,
+    });
+    if (!config.dryRun) {
+      await deps.sendSms(config, `REVIEW: Lead #${leadId} ${platform} — auto-send suppressed. Check dashboard.`);
+    } else {
+      console.log(`[DRY-RUN] REVIEW: Lead #${leadId} ${platform} — auto-send suppressed`);
+    }
+    deps.logLead({
+      timestamp: new Date().toISOString(),
+      gmailMessageId: msgId,
+      platform,
+      parseConfidence: lead.parseConfidence,
+      classification: output.classification.format_recommended,
+      quotePrice: output.pricing.quote_price,
+      edgeCase: false,
+      status: config.dryRun ? "dry-run" : "review-only",
+      durationMs: Date.now() - startTime,
+    });
   }
 }

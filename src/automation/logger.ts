@@ -10,7 +10,7 @@ export interface LeadLogEntry {
   quotePrice?: number;
   edgeCase: boolean;
   edgeCaseReasons?: string[];
-  status: "sent" | "held" | "failed" | "dry-run";
+  status: "sent" | "held" | "failed" | "dry-run" | "review-only";
   error?: string;
   durationMs?: number;
 }
