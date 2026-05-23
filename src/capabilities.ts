@@ -11,8 +11,8 @@ export interface CapabilityEntry {
 
 export const CAPABILITIES = [
   {
-    aliases: ["guitar", "acoustic guitar", "guitarist", "spanish guitar",
-              "classical guitar", "nylon string",
+    aliases: ["guitar", "acoustic guitar", "guitarist", "guitarists",
+              "spanish guitar", "classical guitar", "nylon string",
               "acoustic", "classical"],  // standalone — preserves guessFormatFamily regex behavior
     status: "KNOWN",
     formatFamily: "solo",
@@ -23,7 +23,7 @@ export const CAPABILITIES = [
     formatFamily: "flamenco",
   },
   {
-    aliases: ["ukulele", "uke", "ukulele player"],
+    aliases: ["ukulele", "ukuleles", "uke", "ukulele player"],
     status: "KNOWN",
     formatFamily: "solo",  // maps to solo for pricing
   },
@@ -53,7 +53,7 @@ export const CAPABILITIES = [
     formatFamily: "solo",  // duo is in solo family
   },
   {
-    aliases: ["musician", "live music", "background music"],
+    aliases: ["musician", "musicians", "live music", "background music"],
     status: "KNOWN",
     formatFamily: null,  // too generic to determine family
   },

@@ -171,3 +171,47 @@ describe("checkHardGate — capability alias map", () => {
     assert.ok(!result.flags.includes("ambiguous_capability"));
   });
 });
+
+// ── A2: Normalization + plural aliases ──
+
+describe("checkHardGate — normalization + plurals", () => {
+  it("matches double-spaced input via hard gate", () => {
+    const result = checkHardGate(
+      makeClassification({ format_requested: "acoustic  guitar" }),
+      "",
+    );
+    assert.ok(!result.flags.includes("unknown_capability"));
+  });
+
+  it("matches plural alias 'guitarists'", () => {
+    const result = checkHardGate(
+      makeClassification({ format_requested: "guitarists" }),
+      "",
+    );
+    assert.ok(!result.flags.includes("unknown_capability"));
+  });
+
+  it("matches plural alias 'musicians'", () => {
+    const result = checkHardGate(
+      makeClassification({ format_requested: "musicians" }),
+      "",
+    );
+    assert.ok(!result.flags.includes("unknown_capability"));
+  });
+
+  it("matches plural alias 'ukuleles'", () => {
+    const result = checkHardGate(
+      makeClassification({ format_requested: "ukuleles" }),
+      "",
+    );
+    assert.ok(!result.flags.includes("unknown_capability"));
+  });
+
+  it("double-spaced 'rock  band' still declines", () => {
+    const result = checkHardGate(
+      makeClassification({ format_requested: "rock  band" }),
+      "",
+    );
+    assert.equal(result.pass, false);
+  });
+});
