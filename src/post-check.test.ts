@@ -78,3 +78,43 @@ describe("postCheckDrafts — soft refusal detection", () => {
     assert.ok(!result.violations.some((v) => v.includes("soft_refusal")));
   });
 });
+
+// ── A5: New soft-refusal patterns ──
+
+describe("postCheckDrafts — A5 soft refusal patterns", () => {
+  // VIOLATIONS
+  const SHOULD_VIOLATE = [
+    "I primarily focus on other styles",
+    "I primarily specialize in different genres",
+    "while drums isn't my main instrument",
+    "while this style isn't my primary focus",
+  ];
+
+  for (const text of SHOULD_VIOLATE) {
+    it(`flags: "${text}"`, () => {
+      const result = postCheckDrafts(text, text);
+      assert.ok(
+        result.violations.some((v) => v.includes("soft_refusal")),
+        `Expected soft_refusal violation for: "${text}"`,
+      );
+    });
+  }
+
+  // NO VIOLATION
+  const SHOULD_NOT_VIOLATE = [
+    "I primarily focus on creating the perfect atmosphere",
+    "I focus primarily on Spanish guitar",
+    "My primary focus is live acoustic music",
+    "I bring a unique focus to every event",
+  ];
+
+  for (const text of SHOULD_NOT_VIOLATE) {
+    it(`does not flag: "${text}"`, () => {
+      const result = postCheckDrafts(text, text);
+      assert.ok(
+        !result.violations.some((v) => v.includes("soft_refusal")),
+        `Unexpected soft_refusal violation for: "${text}"`,
+      );
+    });
+  }
+});

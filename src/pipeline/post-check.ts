@@ -45,6 +45,8 @@ const SOFT_REFUSAL_PATTERNS: RegExp[] = [
   /\bnot (?:really )?(?:something|what) (?:I|we) (?:typically |usually )?(?:do|offer|play)\b/i,
   /\byou might (?:want to |be better off )(?:look|search|try)\b/i,
   /\bi(?:'d| would) recommend (?:looking|searching|trying) elsewhere\b/i,
+  /\bprimarily (?:focus|specialize)(?:s)? (?:on|in) (?:other|different)\b/i,
+  /\bwhile\b.{1,30}\bisn't my (?:main|primary)\b/i,
 ];
 
 // --- Price format checks ---
