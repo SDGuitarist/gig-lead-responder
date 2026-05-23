@@ -10,6 +10,7 @@ import apiRouter from "./api.js";
 import followUpApiRouter from "./follow-up-api.js";
 import { sessionAuth, csrfGuard, logout } from "./auth.js";
 import { errorHandler } from "./utils/error-handler.js";
+import { getRejectedEmailCount } from "./automation/source-validator.js";
 
 /**
  * Build the Express app with all middleware and routes.
@@ -48,7 +49,7 @@ export function createApp() {
 
   // Healthcheck for Railway (before any auth middleware)
   app.get("/health", (_req, res) => {
-    res.json({ status: "ok" });
+    res.json({ status: "ok", rejectedEmails: getRejectedEmailCount() });
   });
 
   // Serve dashboard.html with per-request CSP nonce injected into <script> tags

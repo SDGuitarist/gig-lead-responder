@@ -2,6 +2,21 @@ import "dotenv/config";
 
 export interface AutomationConfig {
   readonly dryRun: boolean;
+  /**
+   * When true, the orchestrator sends replies automatically via the platform.
+   * When false (default), leads that would auto-send are held for review.
+   *
+   * Env: AUTO_SEND_ENABLED=true
+   * Phase 1: always false (review-only mode)
+   * Phase 2: flip to true after monitoring review-only leads
+   *
+   * dryRun x autoSendEnabled interaction:
+   *   dryRun=true,  autoSendEnabled=true  → Dry-run: log send result, no actual dispatch
+   *   dryRun=true,  autoSendEnabled=false → Dry-run: log review-only, no SMS
+   *   dryRun=false, autoSendEnabled=true  → Real auto-send
+   *   dryRun=false, autoSendEnabled=false → Review-only: SMS fires, lead stored as "sent"
+   */
+  readonly autoSendEnabled: boolean;
   readonly gmail: {
     readonly credentialsPath: string;
     readonly tokenPath: string;
@@ -34,6 +49,7 @@ function optional(key: string, fallback: string): string {
 export function loadConfig(): AutomationConfig {
   return {
     dryRun: process.env.DRY_RUN !== "false", // default true — safe
+    autoSendEnabled: process.env.AUTO_SEND_ENABLED === "true", // default false — review-only
     gmail: {
       credentialsPath: optional("GMAIL_CREDENTIALS_PATH", "credentials.json"),
       tokenPath: optional("GMAIL_TOKEN_PATH", "data/gmail-token.json"),
