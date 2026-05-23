@@ -215,3 +215,41 @@ describe("checkHardGate — normalization + plurals", () => {
     assert.equal(result.pass, false);
   });
 });
+
+// ── A3: Drum word-boundary regex ──
+
+describe("checkHardGate — drum regex (word-boundary)", () => {
+  // Positive matches — should trigger decline
+  for (const input of ["drum", "drums", "drummer", "drumline", "drum circle"]) {
+    it(`declines "${input}"`, () => {
+      const result = checkHardGate(
+        makeClassification({ format_requested: input }),
+        "",
+      );
+      assert.equal(result.pass, false);
+    });
+  }
+
+  // Negative matches — should NOT trigger decline
+  for (const input of ["eardrum", "conundrum"]) {
+    it(`does not decline "${input}"`, () => {
+      const result = checkHardGate(
+        makeClassification({ format_requested: input }),
+        "",
+      );
+      // These should pass the hard gate (no drum match)
+      // They'll get unknown_capability flag, but pass is true
+      assert.equal(result.pass, true);
+    });
+  }
+
+  // Existing format should still pass
+  it("acoustic guitar is unaffected by drum regex", () => {
+    const result = checkHardGate(
+      makeClassification({ format_requested: "acoustic guitar" }),
+      "",
+    );
+    assert.equal(result.pass, true);
+    assert.ok(!result.flags.includes("unknown_capability"));
+  });
+});

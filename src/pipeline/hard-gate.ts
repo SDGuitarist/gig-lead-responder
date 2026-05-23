@@ -23,9 +23,14 @@ const NON_ALEX_FORMATS = [
   "pianist", "piano player",
   "violinist", "violin player", "string quartet",
   "harpist", "harp player",
-  "drummer", "drum",
   "brass", "trumpet", "saxophone", "sax player",
   "bagpipe",
+];
+
+// Word-boundary patterns for formats that were false-positive-prone as substrings.
+// "drum" removed from NON_ALEX_FORMATS to avoid matching "eardrum", "conundrum".
+const NON_ALEX_PATTERNS: Array<{ pattern: RegExp; flag: string }> = [
+  { pattern: /\bdrum(?:s|mer|line)?\b/iu, flag: "drum" },
 ];
 
 // Red flag keywords in raw lead text (trigger flag, not auto-decline).
@@ -90,10 +95,18 @@ export function checkHardGate(
       fail_reasons.push(`format_mismatch: client requested "${requested}" — band format not offered`);
       decline_draft = DECLINE_TEMPLATES.format_band(clientName);
     }
-    // Other non-Alex instruments
+    // Other non-Alex instruments (substring match)
     else if (NON_ALEX_FORMATS.some((f) => requested.includes(f))) {
       fail_reasons.push(`instrument_mismatch: client requested "${requested}" — not in Alex's instrument set`);
       decline_draft = DECLINE_TEMPLATES.format_other_instrument(clientName);
+    }
+    // Word-boundary patterns (e.g., drum/drums/drummer/drumline — but not "eardrum")
+    else {
+      const patternMatch = NON_ALEX_PATTERNS.find(({ pattern }) => pattern.test(requested));
+      if (patternMatch) {
+        fail_reasons.push(`instrument_mismatch: client requested "${requested}" — not in Alex's instrument set`);
+        decline_draft = DECLINE_TEMPLATES.format_other_instrument(clientName);
+      }
     }
   }
 
