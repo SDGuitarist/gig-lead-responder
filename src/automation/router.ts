@@ -1,5 +1,6 @@
 import type { PipelineOutput, Format } from "../types.js";
 import type { ParsedLead, AutoSendResult, HoldResult, RouterResult } from "./types.js";
+import { guessFormatFamily } from "../capabilities.js";
 
 /**
  * Format families — same-family corrections are NOT edge cases.
@@ -99,16 +100,4 @@ export function routeLead(
   return { action: "auto-send", lead, pipelineOutput: output } satisfies AutoSendResult;
 }
 
-/**
- * Best-effort guess at format family from the raw format_requested string.
- * This is free-text from the client, so it may not match any known format.
- */
-function guessFormatFamily(requested: string): string | null {
-  const lower = requested.toLowerCase();
-  if (/mariachi/i.test(lower)) return "mariachi";
-  if (/flamenco/i.test(lower)) return "flamenco";
-  if (/bolero/i.test(lower)) return "bolero";
-  if (/solo|guitar|acoustic|classical/i.test(lower)) return "solo";
-  if (/duo|pair|two/i.test(lower)) return "solo"; // duo is in solo family
-  return null; // Unknown — can't determine family
-}
+// guessFormatFamily is now imported from capabilities.ts (unified source)
