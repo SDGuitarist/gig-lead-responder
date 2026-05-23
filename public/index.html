@@ -213,9 +213,16 @@
       }
     }
 
+    var _escDiv = document.createElement('div');
+    function esc(s) {
+      if (!s) return '';
+      _escDiv.textContent = s;
+      return _escDiv.innerHTML;
+    }
+
     function kvHTML(pairs) {
       return pairs.map(([label, value]) =>
-        `<div class="kv"><span class="kv-label">${label}</span><span class="kv-value">${value}</span></div>`
+        `<div class="kv"><span class="kv-label">${esc(label)}</span><span class="kv-value">${esc(value)}</span></div>`
       ).join("");
     }
 
@@ -246,15 +253,23 @@
 
       const g = data.gate;
       const passed = Object.values(g.gut_checks).filter(Boolean).length;
-      document.getElementById("gate-kv").innerHTML = kvHTML([
-        ["Status", `<span class="${g.gate_status === 'pass' ? 'gate-pass' : 'gate-fail'}">${g.gate_status.toUpperCase()}</span>${data.verified ? '' : ' (unverified — best attempt)'}`],
-        ["Validation", `"${g.validation_line}"`],
-        ["Best Line", `"${g.best_line}"`],
-        ["Scene", `${g.scene_type} — "${g.scene_quote}"`],
+      const gateEl = document.getElementById("gate-kv");
+      // Render KV pairs first (all values escaped by kvHTML)
+      gateEl.innerHTML = kvHTML([
+        ["Validation", '"' + g.validation_line + '"'],
+        ["Best Line", '"' + g.best_line + '"'],
+        ["Scene", g.scene_type + ' — "' + g.scene_quote + '"'],
         ["Competitor Test", g.competitor_test ? "FAIL — could be any vendor" : "PASS — unique"],
-        ["Gut Checks", `${passed}/9 passed`],
+        ["Gut Checks", passed + "/9 passed"],
         ...(g.fail_reasons.length ? [["Fail Reasons", g.fail_reasons.join("; ")]] : []),
       ]);
+      // Prepend status with controlled HTML structure (gate_status text is escaped)
+      var statusClass = g.gate_status === 'pass' ? 'gate-pass' : 'gate-fail';
+      var statusHTML = '<div class="kv"><span class="kv-label">Status</span>'
+        + '<span class="kv-value"><span class="' + statusClass + '">'
+        + esc(g.gate_status.toUpperCase()) + '</span>'
+        + (data.verified ? '' : ' (unverified — best attempt)') + '</span></div>';
+      gateEl.insertAdjacentHTML('afterbegin', statusHTML);
 
       document.getElementById("results").style.display = "block";
     }
