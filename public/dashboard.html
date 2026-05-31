@@ -349,6 +349,21 @@
     return html;
   }
 
+  function formatDoneReason(reason) {
+    if (!reason) return '';
+    if (reason.startsWith('auto-sent')) return 'auto-sent';
+    if (reason.startsWith('review-only')) return 'review-only';
+    if (reason === 'approved_dashboard') return 'approved';
+    if (reason === 'approved') return 'approved (SMS)';
+    if (reason === 'max_edits') return 'max edits';
+    if (reason === 'pipeline_error') return 'error';
+    return reason;
+  }
+
+  function shouldShowDoneReason(l) {
+    return l.done_reason && (l.status === 'done' || l.status === 'failed' || l.status === 'sent');
+  }
+
   function findLead(id) {
     for (var i = 0; i < currentLeads.length; i++) {
       if (currentLeads[i].id === id) return currentLeads[i];
@@ -511,6 +526,11 @@
       }
     }
 
+    // Done reason (full provenance — abbreviated label shown in table/mobile)
+    if (shouldShowDoneReason(l)) {
+      html += '<div class="done-reason-detail">' + esc(l.done_reason) + '</div>';
+    }
+
     // Draft grid
     if (l.full_draft || l.compressed_draft) {
       html += '<div class="draft-grid">';
@@ -627,7 +647,7 @@
       '<td>' + (sc != null
         ? '<span class="score ' + scoreClass(sc) + '">' + sc + '</span>'
         : '<span class="text-muted">\u2014</span>') + '</td>' +
-      '<td><span class="status-badge ' + st.css + '">' + st.label + '</span>' + outcomeBadgeHTML(l) + '</td>' +
+      '<td><span class="status-badge ' + st.css + '">' + st.label + '</span>' + outcomeBadgeHTML(l) + (shouldShowDoneReason(l) ? '<span class="done-reason-badge">' + esc(formatDoneReason(l.done_reason)) + '</span>' : '') + '</td>' +
       '<td></td>' +
     '</tr>';
 
@@ -652,7 +672,7 @@
           '<div class="lead-event-name">' + (esc(l.event_type) || 'Unknown') + '</div>' +
           '<div class="lead-event-sub">' + esc(l.client_name) + '</div>' +
         '</div>' +
-        '<span class="status-badge ' + st.css + '">' + st.label + '</span>' + outcomeBadgeHTML(l) +
+        '<span class="status-badge ' + st.css + '">' + st.label + '</span>' + outcomeBadgeHTML(l) + (shouldShowDoneReason(l) ? '<span class="done-reason-badge">' + esc(formatDoneReason(l.done_reason)) + '</span>' : '') +
       '</div>' +
       '<div class="mobile-card-meta">' +
         '<span>' + fmtDate(l.event_date) + '</span>' +
