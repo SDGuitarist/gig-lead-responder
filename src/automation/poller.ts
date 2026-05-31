@@ -23,7 +23,7 @@ function bootstrapCredentialFiles(credPath: string, tokenPath: string): void {
     writeFileSync(credPath, process.env.GMAIL_CREDENTIALS_JSON, { mode: 0o600 });
     console.log(`[gmail-poller] Wrote ${credPath} from GMAIL_CREDENTIALS_JSON env var`);
   }
-  if (!existsSync(tokenPath) && process.env.GMAIL_TOKEN_JSON) {
+  if (process.env.GMAIL_TOKEN_JSON) {
     mkdirSync(dirname(tokenPath), { recursive: true });
     writeFileSync(tokenPath, process.env.GMAIL_TOKEN_JSON, { mode: 0o600 });
     console.log(`[gmail-poller] Wrote ${tokenPath} from GMAIL_TOKEN_JSON env var`);
