@@ -335,6 +335,7 @@ export interface LeadApiResponse {
   follow_up_due_at: string | null;
   follow_up_draft: string | null;
   snoozed_until: string | null;
+  done_reason: string | null;
 }
 
 // --- Follow-up V2 request/response types ---
