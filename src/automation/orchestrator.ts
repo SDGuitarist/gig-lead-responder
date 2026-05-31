@@ -12,6 +12,7 @@ import { sendSquarespaceReply } from "./senders/gmail-sender.js";
 import { runPipeline } from "../run-pipeline.js";
 import type { PipelineOutput } from "../types.js";
 import { insertLead, updateLead } from "../db/leads.js";
+import { completeApproval } from "../db/follow-ups.js";
 import { YelpPortalClient } from "./portals/yelp-client.js";
 import { GigSaladPortalClient } from "./portals/gigsalad-client.js";
 
@@ -236,6 +237,7 @@ export interface AutoSendDeps {
     config: AutomationConfig, yelpClient: YelpPortalClient,
     gigsaladClient: GigSaladPortalClient
   ) => Promise<SendResult>;
+  completeApproval: (leadId: number, doneReason: string, smsSentAt?: string) => unknown;
 }
 
 /**
@@ -259,7 +261,7 @@ export async function handleAutoSendDecision(
     yelpClient: YelpPortalClient;
     gigsaladClient: GigSaladPortalClient;
   },
-  deps: AutoSendDeps = { updateLead, sendSms, logLead, dispatchReply },
+  deps: AutoSendDeps = { updateLead, sendSms, logLead, dispatchReply, completeApproval },
 ): Promise<void> {
   const { config, leadId, platform, msgId, output, lead, startTime, auth, yelpClient, gigsaladClient } = opts;
 
@@ -288,9 +290,9 @@ export async function handleAutoSendDecision(
       durationMs: Date.now() - startTime,
     });
 
-    // Update DB with send result
+    // Update DB with send result + schedule follow-up atomically
     if (sendResult.status === "sent") {
-      deps.updateLead(leadId, { status: "done", done_reason: `auto-sent via ${platform}`, sms_sent_at: new Date().toISOString() });
+      deps.completeApproval(leadId, `auto-sent via ${platform}`, new Date().toISOString());
     } else if (sendResult.status === "failed" && !config.dryRun) {
       deps.updateLead(leadId, { status: "failed", error_message: `Reply send failed: ${sendResult.error}` });
       await deps.sendSms(config, `FAIL: Lead #${leadId} ${platform} reply failed. Check dashboard.`);
