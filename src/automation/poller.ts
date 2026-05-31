@@ -122,7 +122,8 @@ export async function startGmailPoller(): Promise<void> {
   interval = setInterval(poll, config.pollIntervalMs);
 
   const mode = config.dryRun ? "DRY RUN" : "LIVE";
-  console.log(`[gmail-poller] Started (${mode}, every ${config.pollIntervalMs / 1000}s)`);
+  const sendMode = config.autoSendEnabled ? "auto-send ENABLED" : "review-only";
+  console.log(`[gmail-poller] Started (${mode}, ${sendMode}, every ${config.pollIntervalMs / 1000}s)`);
 }
 
 export async function stopGmailPoller(): Promise<void> {
