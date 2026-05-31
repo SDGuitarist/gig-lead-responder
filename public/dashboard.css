@@ -1094,3 +1094,23 @@
   .text-scheduled { color: #8a7e6d; font-style: italic; }
   .edit-btn-row { margin-top: 10px; display: flex; gap: 8px; }
   .mobile-card-muted { opacity: 0.7; }
+
+  /* Done reason labels */
+  .done-reason-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 10px;
+    font-weight: 600;
+    background: #f0ece5;
+    color: #8a7e6d;
+    margin-left: 6px;
+    white-space: nowrap;
+  }
+  .done-reason-detail {
+    font-size: 0.75rem;
+    color: #8a7e6d;
+    margin-top: 0.25rem;
+    overflow-wrap: break-word;
+    max-width: 100%;
+  }

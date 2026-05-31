@@ -119,6 +119,7 @@ function createSpyDeps() {
   const smsCalls: string[] = [];
   const logLeadCalls: LeadLogEntry[] = [];
   let dispatchReplyCalled = false;
+  const completeApprovalCalls: Array<{ leadId: number; doneReason: string; smsSentAt?: string }> = [];
 
   const deps: AutoSendDeps = {
     updateLead: (id, fields) => { updateLeadCalls.push({ id, fields }); },
@@ -128,9 +129,12 @@ function createSpyDeps() {
       dispatchReplyCalled = true;
       return { status: "sent", platform: "gigsalad", timestamp: new Date() } as SendResult;
     },
+    completeApproval: (leadId, doneReason, smsSentAt) => {
+      completeApprovalCalls.push({ leadId, doneReason, smsSentAt });
+    },
   };
 
-  return { deps, updateLeadCalls, smsCalls, logLeadCalls, isDispatchCalled: () => dispatchReplyCalled };
+  return { deps, updateLeadCalls, smsCalls, logLeadCalls, completeApprovalCalls, isDispatchCalled: () => dispatchReplyCalled };
 }
 
 function baseOpts(configOverrides: Partial<AutomationConfig> = {}) {
@@ -227,17 +231,16 @@ describe("handleAutoSendDecision — auto-send mode", () => {
     assert.equal(isDispatchCalled(), true);
   });
 
-  it('stores lead with status "done" after successful dispatch', async () => {
-    const { deps, updateLeadCalls } = createSpyDeps();
+  it("calls completeApproval with auto-sent done_reason after successful dispatch", async () => {
+    const { deps, completeApprovalCalls } = createSpyDeps();
     await handleAutoSendDecision(
       baseOpts({ autoSendEnabled: true, dryRun: false }),
       deps,
     );
-    assert.equal(updateLeadCalls.length, 1);
-    assert.equal(updateLeadCalls[0].fields.status, "done");
-    assert.ok(
-      (updateLeadCalls[0].fields.done_reason as string).includes("auto-sent via"),
-    );
+    assert.equal(completeApprovalCalls.length, 1);
+    assert.equal(completeApprovalCalls[0].leadId, 42);
+    assert.ok(completeApprovalCalls[0].doneReason.includes("auto-sent via"));
+    assert.ok(completeApprovalCalls[0].smsSentAt); // timestamp provided
   });
 
   it("does NOT call dispatchReply when dryRun=true", async () => {

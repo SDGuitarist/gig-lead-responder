@@ -68,5 +68,6 @@ export function shapeLead(lead: LeadRecord): LeadApiResponse {
     follow_up_due_at: lead.follow_up_due_at,
     follow_up_draft: lead.follow_up_draft,
     snoozed_until: lead.snoozed_until,
+    done_reason: lead.done_reason ?? null,
   };
 }
