@@ -2,12 +2,13 @@
 
 **Date:** 2026-06-25 (docs reconciliation — see note below)
 **Branch:** `main`
-**Phase:** Phase 2 work SHIPPED to main; compound (solution doc) outstanding
+**Phase:** Phase 2 COMPLETE — compound doc written 2026-06-25. Only open thread is the auto-send enablement ops call.
 
 > **Reconciliation note (2026-06-25):** Phase 2 was implemented and merged on
-> 2026-05-31 but the HANDOFF was never updated past Phase 1, leaving a false
-> impression that Phase 2 hadn't started. This update corrects the record from
-> verified git history. No code changed in this update.
+> 2026-05-31 but the HANDOFF/plan/compound all drifted, leaving a false
+> impression that Phase 2 hadn't started. Reconciled from verified git history:
+> HANDOFF + plan status corrected (PR #20), and the skipped compound doc written
+> + learnings propagated (this cycle). No production code changed.
 
 ## Current State
 
@@ -26,8 +27,8 @@
 
 | Item | Notes |
 |------|-------|
-| **Phase 2 compound / solution doc** | The compound phase was skipped — no `docs/solutions/` doc for Gmail Phase 2. Run `/workflows:compound` then `/update-learnings` to close the cycle. |
 | **Enable auto-send in production** | Operational call: flip Railway `AUTO_SEND_ENABLED=true` after the review-only monitoring period confirms draft quality. |
+| **Production-lessons addendum** | Once auto-send runs live, add an addendum to the Phase 2 solution doc (reply quality, false-auto-send rate, follow-up behavior). The solution doc marks production validation as PENDING. |
 
 ## Key Artifacts
 
@@ -36,7 +37,7 @@
 | Phase 1 Plan | `docs/plans/2026-05-22-feat-p3-batch-gmail-intake-plan.md` |
 | Phase 1 Solution | `docs/solutions/architecture/2026-05-22-p3-batch-gmail-intake-phase1-hardening.md` |
 | Phase 2 Plan | `docs/plans/2026-05-31-feat-gmail-intake-phase2-auto-send-plan.md` (status: completed) |
-| Phase 2 Solution | _none yet — outstanding_ |
+| Phase 2 Solution | `docs/solutions/architecture/2026-05-31-gmail-intake-phase2-auto-send-done-reason.md` (production lessons PENDING) |
 
 ## Deferred Items (still open from Phase 1)
 
