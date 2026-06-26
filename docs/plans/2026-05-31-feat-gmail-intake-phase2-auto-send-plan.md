@@ -1,7 +1,7 @@
 ---
 title: "Gmail Intake Phase 2: Enable Auto-Send + Dashboard done_reason"
 type: feat
-status: active
+status: completed
 date: 2026-05-31
 predecessor: docs/plans/2026-05-22-feat-p3-batch-gmail-intake-plan.md
 feed_forward:

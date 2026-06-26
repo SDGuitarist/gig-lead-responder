@@ -1,28 +1,47 @@
 # HANDOFF -- Gig Lead Responder
 
-**Date:** 2026-05-22
+**Date:** 2026-06-25 (docs reconciliation — see note below)
 **Branch:** `main`
-**Phase:** Compound COMPLETE — cycle finished
+**Phase:** Phase 2 work SHIPPED to main; compound (solution doc) outstanding
+
+> **Reconciliation note (2026-06-25):** Phase 2 was implemented and merged on
+> 2026-05-31 but the HANDOFF was never updated past Phase 1, leaving a false
+> impression that Phase 2 hadn't started. This update corrects the record from
+> verified git history. No code changed in this update.
 
 ## Current State
 
-P3 Batch + Gmail Intake Phase 1 fully complete: brainstorm → plan (8-agent deepening) → work (8 commits, 7 steps + review fix) → review (Codex + self-review) → compound (solution doc + learnings propagated). 293 tests passing, 0 failures.
+**Phase 1** (P3 Batch + Gmail Intake) — complete: brainstorm → plan → work → review → compound. 293 tests passing at that baseline.
 
-Gmail automation is wired but review-only (`autoSendEnabled: false`). SPF/DKIM mandatory. No code has been pushed or deployed.
+**Phase 2** (Gmail Intake: Enable Auto-Send + Dashboard done_reason) — **implemented, Codex-reviewed, and merged to `main` via PR #19 on 2026-05-31.** Delivered:
+- **P0 fix:** auto-send path calls `completeApproval()` (`src/automation/orchestrator.ts:295`) so auto-sent leads schedule follow-ups atomically.
+- **P1:** `autoSendEnabled` mode logged at startup (`9c97fd5`); guards against stale Railway env vars.
+- **done_reason** rendered on lead cards (`2d0dd3e`, `public/dashboard.html`) and threaded through orchestrator + DB layer.
+
+`main` is up to date with `origin/main` (pushed). Test count not re-verified in this reconciliation pass.
+
+**Auto-send is NOT live.** `autoSendEnabled` defaults to `false` (review-only). Enabling is a one-way operational change via Railway env `AUTO_SEND_ENABLED=true` — deliberately gated behind a draft-quality monitoring period per the Phase 2 plan's `feed_forward.risk`. This is an operational decision for Alex, not unfinished code.
+
+## Outstanding
+
+| Item | Notes |
+|------|-------|
+| **Phase 2 compound / solution doc** | The compound phase was skipped — no `docs/solutions/` doc for Gmail Phase 2. Run `/workflows:compound` then `/update-learnings` to close the cycle. |
+| **Enable auto-send in production** | Operational call: flip Railway `AUTO_SEND_ENABLED=true` after the review-only monitoring period confirms draft quality. |
 
 ## Key Artifacts
 
 | Phase | Location |
 |-------|----------|
-| Brainstorm | `docs/brainstorms/2026-05-22-p3-batch-gmail-intake-brainstorm.md` |
-| Plan | `docs/plans/2026-05-22-feat-p3-batch-gmail-intake-plan.md` |
-| Solution | `docs/solutions/architecture/2026-05-22-p3-batch-gmail-intake-phase1-hardening.md` |
+| Phase 1 Plan | `docs/plans/2026-05-22-feat-p3-batch-gmail-intake-plan.md` |
+| Phase 1 Solution | `docs/solutions/architecture/2026-05-22-p3-batch-gmail-intake-phase1-hardening.md` |
+| Phase 2 Plan | `docs/plans/2026-05-31-feat-gmail-intake-phase2-auto-send-plan.md` (status: completed) |
+| Phase 2 Solution | _none yet — outstanding_ |
 
-## Deferred Items
+## Deferred Items (still open from Phase 1)
 
 | Item | Reason |
 |------|--------|
-| done_reason in dashboard (LeadApiResponse + shapeLead) | Phase 2 when auto-send enabled |
 | Extract shared esc() to public/shared.js | Two-file duplication (index.html + dashboard.html) |
 | Levenshtein fuzzy matching | Not justified by production data |
 | OAuth token refresh persistence on Railway | Accepted for Phase 1 |
@@ -32,11 +51,7 @@ Gmail automation is wired but review-only (`autoSendEnabled: false`). SPF/DKIM m
 | Broader soft-refusal patterns | No production data yet |
 | Unicode normalization in normalizeFormatText | No production data yet |
 
-## Three Questions
-
-1. **Hardest decision?** The FAMILY_ONLY_ALIASES separation — encoding the semantic distinction between quantity words (pair/two) and capability descriptions so routing hold behavior is preserved.
-2. **What was rejected?** Adding a new LeadStatus for review-only leads; quarantine path for SPF/DKIM failures; experimental `--experimental-test-module-mocks` flag for testing.
-3. **Least confident about?** Unicode normalization gap in `normalizeFormatText()` — handles whitespace but not precomposed vs decomposed accented characters.
+_(done_reason in dashboard — completed in Phase 2, removed from this list.)_
 
 ## Prompt for Next Session
 
@@ -44,12 +59,13 @@ Gmail automation is wired but review-only (`autoSendEnabled: false`). SPF/DKIM m
 Read HANDOFF.md for context. This is gig-lead-responder, a production
 Node/TypeScript Express app deployed on Railway.
 
-P3 Batch Phase 1 cycle is complete (compound done). 293 tests passing.
-Code is on main but not pushed/deployed.
+Phase 2 (auto-send capability + dashboard done_reason) is shipped on main
+(PR #19, 2026-05-31). main is pushed.
 
-Options:
-1. Push + deploy to Railway
-2. Start Phase 2 (auto-send enabled, dashboard done_reason)
-3. Pick up a deferred item
-4. Start a new feature cycle
+Most likely next steps:
+1. Close the Phase 2 cycle: run /workflows:compound to write the Phase 2
+   solution doc, then /update-learnings.
+2. Decide whether to enable auto-send in production (Railway
+   AUTO_SEND_ENABLED=true) after a review-only monitoring period.
+3. Pick up a deferred item, or start a new feature cycle.
 ```
