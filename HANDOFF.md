@@ -54,6 +54,13 @@
 
 _(done_reason in dashboard — completed in Phase 2, removed from this list.)_
 
+## Cross-project reference — FilmCon dashboard patterns (2026-07-18)
+
+The archived FilmCon dashboard (`~/Projects/filmcon/docs/solutions/2026-07-18-filmcon-dashboard-unshipped-patterns.md`, code at git tag `filmcon-dashboard-archived`) generalized two patterns that came *from here* and loop back to open work here:
+
+- **Audit-first, success-only atomic write** is the generalized form of *this project's own* Phase 2 P0 fix — the auto-send path calling `completeApproval()` (`src/automation/orchestrator.ts:295`) so the state change and its follow-up/audit land atomically. When adding any **new state-changing path**, route it through the one canonical atomic function; never re-implement inline (that was the original bug).
+- **Deploy fail-open + unenforced-gate + stale-env** lessons speak directly to the **`AUTO_SEND_ENABLED` Railway gating**. Before flipping auto-send live: enforce the safety gate *in code/CI*, not by remembering to check it; log the resolved flag at startup (already done — keep it); and verify the live Railway env with a real check, not an assumption (the "guards against stale Railway env vars" note here is the same class as FilmCon's fail-open-because-ENVIRONMENT-never-wired P0).
+
 ## Prompt for Next Session
 
 ```
