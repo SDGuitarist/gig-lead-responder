@@ -5,32 +5,33 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>GigLead — Lead Queue</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/dashboard.css?v=2">
+<link rel="stylesheet" href="/dashboard.css?v=5">
 </head>
 <body>
 
-<!-- Approve flash overlay (Chunk 4) -->
-<div class="approve-flash" id="approveFlash">
-  <svg viewBox="0 0 40 40"><polyline points="10,22 18,30 30,12"/></svg>
-</div>
+<a class="skip-link" href="#mainContent">Skip to workspace</a>
+<div class="toast-region" id="toastRegion" role="status" aria-live="polite" aria-atomic="true"></div>
 
 <div class="app-shell">
 
   <!-- ── Top Bar ──────────────────────────────────────────── -->
   <header class="top-bar">
     <div class="logo serif">Gig<span>Lead</span></div>
-    <nav class="tab-nav">
-      <button class="tab-btn active" data-tab="queue">Queue</button>
-      <button class="tab-btn" data-tab="all">All Leads</button>
-      <button class="tab-btn" data-tab="analyze">Analyze</button>
-      <button class="tab-btn" data-tab="insights">Insights</button>
-      <button class="tab-btn" data-tab="followups">Follow-Ups</button>
+    <nav class="tab-nav" aria-label="Workspace" role="tablist">
+      <button class="tab-btn active" id="tab-queue" data-tab="queue" role="tab" tabindex="0" aria-selected="true" aria-controls="panel-leads">Queue <span class="tab-count" id="queueTabCount" hidden></span></button>
+      <button class="tab-btn" id="tab-all" data-tab="all" role="tab" tabindex="-1" aria-selected="false" aria-controls="panel-leads">All Leads</button>
+      <button class="tab-btn" id="tab-analyze" data-tab="analyze" role="tab" tabindex="-1" aria-selected="false" aria-controls="panel-analyze">Analyze</button>
+      <button class="tab-btn" id="tab-insights" data-tab="insights" role="tab" tabindex="-1" aria-selected="false" aria-controls="panel-insights">Insights</button>
+      <button class="tab-btn" id="tab-followups" data-tab="followups" role="tab" tabindex="-1" aria-selected="false" aria-controls="panel-followups">Follow-Ups <span class="tab-count" id="followUpTabCount" hidden></span></button>
     </nav>
     <button class="refresh-btn" onclick="loadStats(); currentOffset = 0; loadLeads();" title="Refresh leads and stats">&#x21bb; Refresh</button>
   </header>
 
   <!-- ══════════════════ LEADS PANEL ════════════════════════ -->
-  <div class="tab-panel active" id="panel-leads">
+  <main id="mainContent">
+  <div class="tab-panel active" id="panel-leads" role="tabpanel" aria-labelledby="tab-queue">
+
+    <div class="queue-alert" id="queueFollowUpAlert" hidden aria-live="polite"></div>
 
     <!-- Page Header -->
     <div class="page-header">
@@ -72,6 +73,7 @@
         <button class="filter-pill" data-filter="failed">Failed</button>
       </div>
       <select class="sort-select" id="sortSelect">
+        <option value="priority" selected>Priority</option>
         <option value="">Most Recent</option>
         <option value="date">Event Date</option>
         <option value="score">Score: High to Low</option>
@@ -111,7 +113,7 @@
   </div><!-- /panel-leads -->
 
   <!-- ══════════════════ ANALYZE TAB ═══════════════════════ -->
-  <div class="tab-panel" id="panel-analyze">
+  <div class="tab-panel" id="panel-analyze" role="tabpanel" aria-labelledby="tab-analyze">
     <div class="analyze-container">
 
       <div class="page-header">
@@ -119,11 +121,17 @@
         <p>Paste a lead message and run it through the 5-stage AI pipeline</p>
       </div>
 
-      <textarea class="analyze-textarea" id="analyzeInput" placeholder="Paste the lead text here..."></textarea>
-      <p class="analyze-hint">Ctrl+Enter to submit</p>
-      <button class="btn btn-primary mt-10" id="analyzeBtn">Analyze</button>
+      <label class="form-label" for="analyzeInput">Lead message</label>
+      <textarea class="analyze-textarea" id="analyzeInput" placeholder="Paste the inquiry, venue details, date, budget, and any client notes..."></textarea>
+      <div class="analyze-input-meta"><p class="analyze-hint">The original message stays in this workspace. Press Ctrl+Enter to analyze.</p><span id="analyzeCharCount">0 characters</span></div>
+      <div class="analyze-actions"><button class="btn btn-primary" id="analyzeBtn">Analyze</button><button class="btn btn-outline" id="sampleLeadBtn">Use sample lead</button><button class="btn btn-ghost" id="clearAnalyzeBtn">Clear</button></div>
 
-      <div class="analyze-stages" id="analyzeStages">
+      <div class="analyze-progress" id="analyzeProgress" hidden>
+        <div class="analyze-progress-copy"><strong id="analyzeProgressLabel">Preparing analysis…</strong><span id="analyzeEstimate">Usually under a minute</span></div>
+        <div class="analyze-progress-track" aria-hidden="true"><div class="analyze-progress-fill" id="analyzeProgressFill"></div></div>
+      </div>
+
+      <div class="analyze-stages" id="analyzeStages" aria-live="polite">
         <div class="analyze-stage-row" data-stage="1"><span class="stage-dot"></span> 1. Classify Lead <span class="stage-time"></span></div>
         <div class="analyze-stage-row" data-stage="2"><span class="stage-dot"></span> 2. Look Up Pricing <span class="stage-time"></span></div>
         <div class="analyze-stage-row" data-stage="3"><span class="stage-dot"></span> 3. Assemble Context <span class="stage-time"></span></div>
@@ -131,7 +139,7 @@
         <div class="analyze-stage-row" data-stage="5"><span class="stage-dot"></span> 5. Verify &amp; Gate <span class="stage-time"></span></div>
       </div>
 
-      <div class="analyze-error" id="analyzeError"></div>
+      <div class="analyze-error" id="analyzeError" role="alert"></div>
 
       <div class="analyze-results" id="analyzeResults">
         <div class="analyze-section">
@@ -165,7 +173,7 @@
   </div>
 
   <!-- ══════════════════ INSIGHTS TAB ═══════════════════════ -->
-  <div class="tab-panel" id="panel-insights">
+  <div class="tab-panel" id="panel-insights" role="tabpanel" aria-labelledby="tab-insights">
     <div class="insights-container">
       <div class="page-header">
         <h1 class="serif">Insights</h1>
@@ -178,13 +186,14 @@
   </div>
 
   <!-- ══════════════════ FOLLOW-UPS PANEL ═══════════════════ -->
-  <div class="tab-panel" id="panel-followups">
+  <div class="tab-panel" id="panel-followups" role="tabpanel" aria-labelledby="tab-followups">
     <div class="page-header">
       <h1 class="serif">Follow-Ups</h1>
       <p>Manage pending and scheduled follow-up messages</p>
     </div>
     <div id="followUpCards"></div>
   </div>
+  </main>
 
   <!-- Follow-up flash message -->
   <div class="fu-flash" id="fuFlash">Done</div>
@@ -282,7 +291,7 @@
 
   var PAGE_SIZE = 50;
   var activeFilter = 'pending';
-  var activeSort = '';
+  var activeSort = 'priority';
   var currentOffset = 0;
   var authHeader = null;
   var currentLeads = [];
@@ -371,6 +380,65 @@
     return null;
   }
 
+  function showToast(message, type) {
+    var region = document.getElementById('toastRegion');
+    region.innerHTML = '<div class="toast ' + esc(type || 'success') + '">' + esc(message) + '</div>';
+    clearTimeout(showToast.timer);
+    showToast.timer = setTimeout(function () { region.innerHTML = ''; }, 4200);
+  }
+
+  function getPriorityMeta(l) {
+    var score = 0;
+    var label = 'Standard';
+    var reason = 'Ready in normal order';
+    if (l.status === 'failed' || l.error_message) {
+      return { score: 1000, label: 'Fix now', css: 'critical', reason: 'Pipeline needs attention' };
+    }
+    if (l.status !== 'received') return { score: 0, label: label, css: 'standard', reason: reason };
+
+    if (l.event_date) {
+      var days = Math.ceil((new Date(l.event_date + 'T12:00:00').getTime() - Date.now()) / 86400000);
+      if (days <= 7) {
+        score += 500;
+        label = days < 0 ? 'Past date' : 'Due soon';
+        reason = days < 0 ? 'Event date has passed' : 'Event is within 7 days';
+      }
+    }
+    var ageHours = l.created_at ? (Date.now() - new Date(l.created_at).getTime()) / 3600000 : 0;
+    if (ageHours >= 6) {
+      score += 200;
+      if (label === 'Standard') { label = 'Waiting'; reason = 'Lead is over 6 hours old'; }
+    }
+    if (l.confidence_score != null && l.confidence_score < 75) {
+      score += 120;
+      if (label === 'Standard') { label = 'Review'; reason = 'Confidence needs a closer look'; }
+    }
+    score += Math.max(0, 100 - (l.confidence_score || 0));
+    return { score: score, label: label, css: score >= 500 ? 'urgent' : (score >= 120 ? 'review' : 'standard'), reason: reason };
+  }
+
+  function sortByPriority(leads) {
+    return leads.slice().sort(function (a, b) {
+      var diff = getPriorityMeta(b).score - getPriorityMeta(a).score;
+      if (diff) return diff;
+      return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
+    });
+  }
+
+  function confidenceMeta(l) {
+    var score = l.confidence_score;
+    if (score == null) return { title: 'Not scored yet', body: 'The pipeline is still assembling this recommendation.' };
+    var failed = (l.failed_checks || []).map(function (key) { return CHECK_NAMES[key] || key.replace(/_/g, ' '); });
+    if (score >= 85) return { title: 'Ready for review', body: 'Strong verification result' + (l.gut_check_total ? ' with ' + l.gut_check_passed + ' of ' + l.gut_check_total + ' checks passing.' : '.') };
+    if (score >= 70) return { title: 'Review one concern', body: failed.length ? 'Check ' + failed[0] + ' before approving.' : 'Read the opening and pricing position once before approving.' };
+    return { title: 'Human review recommended', body: failed.length ? 'Start with ' + failed.slice(0, 2).join(' and ') + '.' : 'The model found uncertainty in this draft.' };
+  }
+
+  function priorityChipHTML(l) {
+    var p = getPriorityMeta(l);
+    return '<span class="priority-chip ' + p.css + '">' + esc(p.label) + '</span><span class="priority-reason">' + esc(p.reason) + '</span>';
+  }
+
   /* ── Auth-aware fetch ────────────────────────────────────── */
 
   function apiFetch(url) {
@@ -436,6 +504,9 @@
       document.getElementById('stat-sent').textContent = s.sent;
       document.getElementById('stat-score').textContent = s.avg_score != null ? s.avg_score : '\u2014';
       document.getElementById('stat-month').textContent = s.this_month;
+      var queueCount = document.getElementById('queueTabCount');
+      queueCount.textContent = s.pending;
+      queueCount.hidden = s.pending === 0;
 
       var g = document.getElementById('pageGreeting');
       if (s.pending === 0) {
@@ -445,6 +516,23 @@
       }
     }).catch(function (e) {
       console.error('Stats load failed:', e);
+      showToast('Stats could not be refreshed.', 'error');
+    });
+  }
+
+  function updateFollowUpSummary(leads) {
+    var count = leads.length;
+    var badge = document.getElementById('followUpTabCount');
+    badge.textContent = count;
+    badge.hidden = count === 0;
+    var alertBox = document.getElementById('queueFollowUpAlert');
+    alertBox.hidden = count === 0;
+    alertBox.innerHTML = count ? '<div><strong>' + count + ' follow-up' + (count !== 1 ? 's' : '') + ' need attention</strong><span>Keep warm leads moving without leaving the queue.</span></div><button class="btn btn-outline" data-empty-action="followups">Review follow-ups</button>' : '';
+  }
+
+  function loadFollowUpSummary() {
+    apiFetch('/api/leads?follow_up=active').then(updateFollowUpSummary).catch(function () {
+      document.getElementById('followUpTabCount').hidden = true;
     });
   }
 
@@ -456,7 +544,7 @@
       var apiStatus = FILTER_TO_API[activeFilter];
       if (apiStatus) params.push('status=' + apiStatus);
     }
-    if (activeSort) params.push('sort=' + activeSort);
+    if (activeSort && activeSort !== 'priority') params.push('sort=' + activeSort);
     params.push('limit=' + PAGE_SIZE);
     params.push('offset=' + currentOffset);
 
@@ -465,13 +553,19 @@
     apiFetch('/api/leads' + qs).then(function (leads) {
       if (append) {
         currentLeads = currentLeads.concat(leads);
-        appendTable(leads);
-        appendMobile(leads);
+        if (activeSort === 'priority') {
+          currentLeads = sortByPriority(currentLeads);
+          renderTable(currentLeads);
+          renderMobile(currentLeads);
+        } else {
+          appendTable(leads);
+          appendMobile(leads);
+        }
       } else {
-        currentLeads = leads;
+        currentLeads = activeSort === 'priority' ? sortByPriority(leads) : leads;
         expandedId = null;
-        renderTable(leads);
-        renderMobile(leads);
+        renderTable(currentLeads);
+        renderMobile(currentLeads);
       }
       // Show "Load More" only if we got a full page
       document.getElementById('loadMoreWrap').style.display =
@@ -480,9 +574,9 @@
       console.error('Leads load failed:', e);
       if (!append) {
         document.getElementById('tableBody').innerHTML =
-          '<tr><td colspan="7" class="error-text">Failed to load leads</td></tr>';
+          '<tr><td colspan="7" class="error-text">Failed to load leads. <button class="btn btn-outline" data-retry="leads">Try again</button></td></tr>';
         document.getElementById('mobileCards').innerHTML =
-          '<div class="error-text">Failed to load leads</div>';
+          '<div class="error-text">Failed to load leads. <button class="btn btn-outline" data-retry="leads">Try again</button></div>';
       }
       document.getElementById('loadMoreWrap').style.display = 'none';
     });
@@ -505,7 +599,13 @@
       '</div>';
     }
 
-    var html = '<div class="detail-inner">';
+    var priority = getPriorityMeta(l);
+    var confidence = confidenceMeta(l);
+    var html = '<div class="detail-inner review-shell">' +
+      '<div class="review-header"><div>' + priorityChipHTML(l) +
+      '<h2 class="serif">Review ' + esc(l.client_name || 'this lead') + '</h2>' +
+      '<p>' + esc(l.event_type || 'Event inquiry') + (l.event_date ? ' · ' + fmtDate(l.event_date) : '') + '</p></div>' +
+      '<div class="confidence-summary ' + scoreClass(l.confidence_score || 0) + '"><span class="confidence-score">' + (l.confidence_score != null ? l.confidence_score : '—') + '</span><div><strong>' + esc(confidence.title) + '</strong><span>' + esc(confidence.body) + '</span></div></div></div>';
 
     // Gut check bar
     if (l.gut_check_total != null) {
@@ -531,17 +631,16 @@
       html += '<div class="done-reason-detail">' + esc(l.done_reason) + '</div>';
     }
 
-    // Draft grid
+    html += '<div class="review-workspace">';
+
+    // Draft review
     if (l.full_draft || l.compressed_draft) {
-      html += '<div class="draft-grid">';
+      html += '<div class="review-main">';
       html += '<div class="draft-box" id="draft-full-' + l.id + '">' +
-        '<h4>Full Draft' + (l.edit_round > 0 ? ' (edit ' + l.edit_round + ')' : '') + '</h4>' +
+        '<div class="draft-heading"><div><span class="eyebrow">Primary reply</span><h3>Full Draft' + (l.edit_round > 0 ? ' · edit ' + l.edit_round : '') + '</h3></div><span class="draft-purpose">Review this copy</span></div>' +
         '<p>' + (esc(l.full_draft) || '\u2014').replace(/\n/g, '<br>') + '</p>' +
       '</div>';
-      html += '<div class="draft-box">' +
-        '<h4>Compressed Draft</h4>' +
-        '<p>' + (esc(l.compressed_draft) || '\u2014').replace(/\n/g, '<br>') + '</p>' +
-      '</div>';
+      html += '<details class="compressed-draft"><summary>Phone-ready version <span>View compressed draft</span></summary><p>' + (esc(l.compressed_draft) || '\u2014').replace(/\n/g, '<br>') + '</p></details>';
       html += '</div>';
     }
 
@@ -556,7 +655,7 @@
       ['Floor', fmtPrice(l.floor)]
     ];
 
-    html += '<div class="classification-grid">';
+    html += '<aside class="review-brief" aria-label="Lead brief"><div class="brief-heading"><span class="eyebrow">Lead brief</span><h3>Decision context</h3></div><div class="classification-grid">';
     items.forEach(function (item) {
       var val = item[1] || '\u2014';
       html += '<div class="class-item">' +
@@ -564,17 +663,17 @@
         '<span class="class-value">' + esc(String(val)) + '</span>' +
       '</div>';
     });
-    html += '</div>';
+    html += '</div></aside></div>';
 
     // Action buttons
     var canApprove = l.full_draft && l.compressed_draft && (l.status === 'received' || l.status === 'sent');
     var isDone = l.status === 'done' || l.status === 'sending';
 
-    html += '<div class="detail-actions">';
+    html += '<div class="detail-actions review-actions">';
     if (isDone) {
-      html += '<button class="btn btn-primary" disabled>Approved</button>';
+      html += '<div class="approval-destination"><strong>Draft approved</strong><span>The phone-ready copy was delivered to your phone.</span></div><button class="btn btn-primary" disabled>Approved</button>';
     } else if (canApprove) {
-      html += '<button class="btn btn-primary" data-approve="' + l.id + '">Approve &amp; Send</button>';
+      html += '<div class="approval-destination"><strong>Ready to approve?</strong><span>This sends the phone-ready copy to your phone — not to the client.</span></div><button class="btn btn-primary" data-approve="' + l.id + '">Approve draft</button>';
     }
     if (l.full_draft && !isDone) {
       html += '<button class="btn btn-outline" data-edit="' + l.id + '">Edit Draft</button>';
@@ -636,10 +735,10 @@
     var muted = (l.status === 'sent' || l.status === 'done') ? ' row-muted' : '';
     var isOpen = expandedId === l.id;
 
-    var row = '<tr class="lead-row' + muted + '" data-id="' + l.id + '">' +
+    var row = '<tr class="lead-row' + muted + '" data-id="' + l.id + '" tabindex="0" aria-expanded="' + (isOpen ? 'true' : 'false') + '">' +
       '<td>' +
         '<div class="lead-event-name">' + (esc(l.event_type) || 'Unknown') + '</div>' +
-        '<div class="lead-event-sub">' + esc(l.client_name) + '</div>' +
+        '<div class="lead-event-sub">' + esc(l.client_name) + '</div>' + priorityChipHTML(l) +
       '</td>' +
       '<td class="lead-date">' + fmtDate(l.event_date) + '</td>' +
       '<td class="lead-venue">' + (esc(l.venue) || '\u2014') + '</td>' +
@@ -651,7 +750,7 @@
       '<td></td>' +
     '</tr>';
 
-    row += '<tr class="detail-row" data-detail="' + l.id + '">' +
+    row += '<tr class="detail-row" data-detail-row="' + l.id + '">' +
       '<td colspan="7"><div class="detail-panel' + (isOpen ? ' open' : '') + '" data-detail="' + l.id + '">' +
       (isOpen ? renderDetailPanel(l) : '') +
       '</div></td></tr>';
@@ -666,11 +765,11 @@
     var muted = (l.status === 'sent' || l.status === 'done') ? ' mobile-card-muted' : '';
     var isOpen = expandedId === l.id;
 
-    return '<div class="mobile-card' + muted + '" data-id="' + l.id + '">' +
+    return '<div class="mobile-card' + muted + '" data-id="' + l.id + '" tabindex="0" aria-expanded="' + (isOpen ? 'true' : 'false') + '">' +
       '<div class="mobile-card-header">' +
         '<div>' +
           '<div class="lead-event-name">' + (esc(l.event_type) || 'Unknown') + '</div>' +
-          '<div class="lead-event-sub">' + esc(l.client_name) + '</div>' +
+          '<div class="lead-event-sub">' + esc(l.client_name) + '</div>' + priorityChipHTML(l) +
         '</div>' +
         '<span class="status-badge ' + st.css + '">' + st.label + '</span>' + outcomeBadgeHTML(l) + (shouldShowDoneReason(l) ? '<span class="done-reason-badge">' + esc(formatDoneReason(l.done_reason)) + '</span>' : '') +
       '</div>' +
@@ -698,8 +797,11 @@
     var tbody = document.getElementById('tableBody');
 
     if (!leads.length) {
-      tbody.innerHTML = '<tr><td colspan="7" class="placeholder-text-mobile">' +
-        'No leads yet \u2014 paste one in the Analyze tab</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="7" class="empty-table-cell">' +
+        '<div class="empty-state"><p class="empty-kicker">Queue clear</p>' +
+        '<h2 class="serif">Nothing needs your attention</h2>' +
+        '<p>When a new inquiry arrives, its draft and confidence score will appear here.</p>' +
+        '<button class="btn btn-primary" data-empty-action="analyze">Analyze a lead</button></div></td></tr>';
       return;
     }
 
@@ -717,8 +819,10 @@
     var container = document.getElementById('mobileCards');
 
     if (!leads.length) {
-      container.innerHTML = '<div class="placeholder-text">' +
-        'No leads yet \u2014 paste one in the Analyze tab</div>';
+      container.innerHTML = '<div class="empty-state"><p class="empty-kicker">Queue clear</p>' +
+        '<h2 class="serif">Nothing needs your attention</h2>' +
+        '<p>When a new inquiry arrives, its draft and confidence score will appear here.</p>' +
+        '<button class="btn btn-primary" data-empty-action="analyze">Analyze a lead</button></div>';
       return;
     }
 
@@ -743,6 +847,7 @@
         prevPanels[i].classList.remove('open');
         prevPanels[i].innerHTML = '';
       }
+      document.querySelectorAll('[data-id="' + prevId + '"]').forEach(function (el) { el.setAttribute('aria-expanded', 'false'); });
     }
 
     // Expand new detail panel
@@ -752,6 +857,7 @@
         if (currentLeads[j].id === expandedId) { lead = currentLeads[j]; break; }
       }
       if (lead) {
+        document.querySelectorAll('[data-id="' + expandedId + '"]').forEach(function (el) { el.setAttribute('aria-expanded', 'true'); });
         var panels = document.querySelectorAll('[data-detail="' + expandedId + '"]');
         for (var k = 0; k < panels.length; k++) {
           panels[k].classList.add('open');
@@ -774,13 +880,17 @@
     if (card) toggleDetail(parseInt(card.dataset.id, 10));
   });
 
-  /* ── Approve & Send ─────────────────────────────────────── */
-
-  function showFlash() {
-    var flash = document.getElementById('approveFlash');
-    flash.classList.add('show');
-    setTimeout(function () { flash.classList.remove('show'); }, 1200);
+  function handleLeadKey(e) {
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+    var item = e.target.closest('[data-id]');
+    if (!item || e.target.closest('button, textarea, input, select, summary')) return;
+    e.preventDefault();
+    toggleDetail(parseInt(item.dataset.id, 10));
   }
+  document.getElementById('tableBody').addEventListener('keydown', handleLeadKey);
+  document.getElementById('mobileCards').addEventListener('keydown', handleLeadKey);
+
+  /* ── Approve & Send ─────────────────────────────────────── */
 
   document.addEventListener('click', function (e) {
     var btn = e.target.closest('[data-approve]');
@@ -788,20 +898,21 @@
 
     var id = parseInt(btn.dataset.approve, 10);
     btn.disabled = true;
-    btn.textContent = 'Sending\u2026';
+    btn.textContent = 'Approving\u2026';
 
     apiPost('/api/leads/' + id + '/approve', {}).then(function (updated) {
-      showFlash();
+      showToast('Draft approved and copied to your phone.', 'success');
       for (var i = 0; i < currentLeads.length; i++) {
         if (currentLeads[i].id === id) { currentLeads[i] = updated; break; }
       }
       loadStats();
+      loadFollowUpSummary();
       renderTable(currentLeads);
       renderMobile(currentLeads);
     }).catch(function (err) {
       btn.disabled = false;
-      btn.textContent = 'Approve & Send';
-      alert('Approve failed: ' + err.message);
+      btn.textContent = 'Approve draft';
+      showToast('Approval failed: ' + err.message, 'error');
     });
   });
 
@@ -847,7 +958,7 @@
       }).catch(function (err) {
         saveBtn.disabled = false;
         saveBtn.textContent = 'Save';
-        alert('Save failed: ' + err.message);
+        showToast('Draft could not be saved: ' + err.message, 'error');
       });
       return;
     }
@@ -886,13 +997,20 @@
     }
 
     tabBtns.forEach(function (b) {
-      b.classList.toggle('active', b.getAttribute('data-tab') === tab);
+      var isActive = b.getAttribute('data-tab') === tab;
+      b.classList.toggle('active', isActive);
+      b.setAttribute('aria-selected', isActive ? 'true' : 'false');
+      b.tabIndex = isActive ? 0 : -1;
     });
+
+    document.getElementById('panel-leads').setAttribute(
+      'aria-labelledby', tab === 'all' ? 'tab-all' : 'tab-queue'
+    );
 
     // Auto-scroll active tab into view (for 5-tab overflow on mobile)
     var activeBtn = document.querySelector('.tab-btn.active');
     if (activeBtn) {
-      activeBtn.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+      activeBtn.scrollIntoView({ behavior: 'auto', inline: 'center', block: 'nearest' });
     }
   }
 
@@ -900,6 +1018,25 @@
     btn.addEventListener('click', function () {
       showTab(btn.dataset.tab);
     });
+    btn.addEventListener('keydown', function (e) {
+      var tabs = Array.prototype.slice.call(tabBtns);
+      var index = tabs.indexOf(btn);
+      var next = null;
+      if (e.key === 'ArrowRight') next = (index + 1) % tabs.length;
+      if (e.key === 'ArrowLeft') next = (index - 1 + tabs.length) % tabs.length;
+      if (e.key === 'Home') next = 0;
+      if (e.key === 'End') next = tabs.length - 1;
+      if (next === null) return;
+      e.preventDefault();
+      tabs[next].focus();
+      tabs[next].click();
+    });
+  });
+
+  document.addEventListener('click', function (e) {
+    var emptyAction = e.target.closest('[data-empty-action]');
+    if (!emptyAction) return;
+    showTab(emptyAction.getAttribute('data-empty-action'));
   });
 
   /* ── Filter pills ────────────────────────────────────────── */
@@ -1004,7 +1141,7 @@
         renderMobile(currentLeads);
       })
       .catch(function (err) {
-        alert('Save failed: ' + err.message);
+        showToast('Outcome could not be saved: ' + err.message, 'error');
       })
       .finally(function () {
         savingOutcome = null;
@@ -1031,12 +1168,12 @@
 
   function loadInsights() {
     var container = document.getElementById('insightsContent');
-    container.innerHTML = '<div class="shimmer"></div>';
+    container.innerHTML = '<div class="skeleton-grid" aria-label="Loading insights"><div class="skeleton-card"></div><div class="skeleton-card"></div><div class="skeleton-card"></div></div>';
 
     apiFetch('/api/analytics').then(function (data) {
       renderInsights(data);
     }).catch(function (err) {
-      container.innerHTML = '<div class="insights-empty"><p>Failed to load analytics: ' + esc(err.message) + '</p></div>';
+      container.innerHTML = '<div class="insights-empty error-text"><p>Failed to load analytics: ' + esc(err.message) + '</p><button class="btn btn-outline" data-retry="insights">Try again</button></div>';
     });
   }
 
@@ -1044,15 +1181,19 @@
     var container = document.getElementById('insightsContent');
 
     if (data.total_with_outcome === 0) {
-      container.innerHTML = '<div class="insights-empty">' +
-        '<h2>No outcomes recorded yet</h2>' +
-        '<p>Mark leads as Booked, Lost, or No Reply to see conversion stats.</p>' +
+      container.innerHTML = '<div class="empty-state insights-empty">' +
+        '<p class="empty-kicker">Insights unlock with outcomes</p>' +
+        '<h2 class="serif">No outcomes recorded yet</h2>' +
+        '<p>Mark completed leads as Booked, Lost, or No Reply to build a useful conversion picture.</p>' +
+        '<button class="btn btn-outline" data-empty-action="all">Review all leads</button>' +
       '</div>';
       return;
     }
 
     var html = '';
     var hasEnough = data.total_with_outcome >= 5;
+
+    html += buildInsightGuidance(data);
 
     // Summary cards
     html += '<div class="insights-cards">';
@@ -1155,6 +1296,25 @@
 
     container.innerHTML = html;
     applyDataWidths(container);
+  }
+
+  function bestPerforming(rows) {
+    if (!rows || !rows.length) return null;
+    return rows.slice().filter(function (r) { return (r.total || 0) >= 2; }).sort(function (a, b) { return (b.rate || 0) - (a.rate || 0); })[0] || null;
+  }
+
+  function buildInsightGuidance(data) {
+    var notes = [];
+    var platform = bestPerforming(data.by_platform);
+    var format = bestPerforming(data.by_format);
+    if (platform) notes.push('<li><strong>Protect your best source.</strong> ' + esc(platform.label || 'Your leading platform') + ' currently converts best across sources with enough history.</li>');
+    if (format) notes.push('<li><strong>Lead with what books.</strong> ' + esc(FORMAT_NAMES[format.label] || format.label) + ' is your strongest format so far.</li>');
+    if (data.avg_quote_price != null && data.avg_actual_price != null) {
+      var gap = data.avg_actual_price - data.avg_quote_price;
+      notes.push('<li><strong>Watch the close.</strong> Actual bookings are ' + (gap >= 0 ? fmtPrice(gap) + ' above' : fmtPrice(Math.abs(gap)) + ' below') + ' the average quote.</li>');
+    }
+    if (!notes.length) notes.push('<li><strong>Keep recording outcomes.</strong> A few more Booked, Lost, or No Reply results will reveal useful patterns.</li>');
+    return '<section class="insight-guidance"><div><span class="eyebrow">What this means</span><h2 class="serif">Your next best moves</h2></div><ul>' + notes.join('') + '</ul></section>';
   }
 
   function renderFollowUpEffectivenessSection(rows) {
@@ -1296,6 +1456,11 @@
     document.getElementById('analyzeStages').style.display = 'block';
     document.getElementById('analyzeResults').style.display = 'none';
     document.getElementById('analyzeError').style.display = 'none';
+    document.getElementById('analyzeInput').removeAttribute('aria-invalid');
+    document.getElementById('analyzeProgress').hidden = false;
+    document.getElementById('analyzeProgressFill').style.width = '4%';
+    document.getElementById('analyzeProgressLabel').textContent = 'Preparing analysis…';
+    document.getElementById('analyzeEstimate').textContent = 'Usually under a minute';
     var rows = document.querySelectorAll('.analyze-stage-row');
     for (var i = 0; i < rows.length; i++) {
       rows[i].className = 'analyze-stage-row';
@@ -1310,6 +1475,11 @@
     if (ms !== undefined) {
       row.querySelector('.stage-time').textContent = (ms / 1000).toFixed(1) + 's';
     }
+    var labels = ['Preparing analysis…', 'Reading the lead', 'Checking pricing', 'Assembling context', 'Writing both drafts', 'Running final checks'];
+    var progress = status === 'done' ? num * 20 : Math.max(4, (num - 1) * 20 + 8);
+    document.getElementById('analyzeProgressFill').style.width = progress + '%';
+    document.getElementById('analyzeProgressLabel').textContent = labels[num] || labels[0];
+    document.getElementById('analyzeEstimate').textContent = progress >= 80 ? 'A few seconds left' : (progress >= 40 ? 'About 20–30 seconds left' : 'Usually under a minute');
   }
 
   function analyzeKvHTML(pairs) {
@@ -1383,11 +1553,21 @@
     ));
 
     document.getElementById('analyzeResults').style.display = 'block';
+    document.getElementById('analyzeProgressFill').style.width = '100%';
+    document.getElementById('analyzeProgressLabel').textContent = 'Analysis complete';
+    document.getElementById('analyzeEstimate').textContent = 'Ready to review';
   }
 
   function runAnalyze() {
     var text = document.getElementById('analyzeInput').value.trim();
-    if (!text) return;
+    if (!text) {
+      var emptyError = document.getElementById('analyzeError');
+      emptyError.textContent = 'Paste a lead message or use the sample lead to begin.';
+      emptyError.style.display = 'block';
+      document.getElementById('analyzeInput').setAttribute('aria-invalid', 'true');
+      document.getElementById('analyzeInput').focus();
+      return;
+    }
 
     var btn = document.getElementById('analyzeBtn');
     if (btn.disabled) return;  // guard against keyboard re-entry
@@ -1436,6 +1616,7 @@
                 var errBox = document.getElementById('analyzeError');
                 errBox.textContent = 'Error: ' + payload.error;
                 errBox.style.display = 'block';
+                document.getElementById('analyzeProgress').hidden = true;
               }
               currentEvent = null;
             }
@@ -1453,6 +1634,7 @@
         errBox.textContent = 'Network error: ' + err.message;
         errBox.style.display = 'block';
       }
+      document.getElementById('analyzeProgress').hidden = true;
     }).finally(function () {
       btn.disabled = false;
       btn.textContent = 'Analyze';
@@ -1460,6 +1642,33 @@
   }
 
   document.getElementById('analyzeBtn').addEventListener('click', runAnalyze);
+
+  function updateAnalyzeCount() {
+    var input = document.getElementById('analyzeInput');
+    var n = input.value.length;
+    document.getElementById('analyzeCharCount').textContent = n.toLocaleString() + ' character' + (n === 1 ? '' : 's');
+    if (n) {
+      input.removeAttribute('aria-invalid');
+      document.getElementById('analyzeError').style.display = 'none';
+    }
+  }
+
+  document.getElementById('sampleLeadBtn').addEventListener('click', function () {
+    document.getElementById('analyzeInput').value = 'Hi Alex — we are planning a 90-person outdoor wedding at Harbor Garden on September 12. We would love warm Spanish guitar for the ceremony and cocktail hour, about two hours total. Our budget is around $1,500. Are you available, and what ensemble would you recommend?';
+    updateAnalyzeCount();
+    document.getElementById('analyzeInput').focus();
+  });
+
+  document.getElementById('clearAnalyzeBtn').addEventListener('click', function () {
+    document.getElementById('analyzeInput').value = '';
+    document.getElementById('analyzeResults').style.display = 'none';
+    document.getElementById('analyzeStages').style.display = 'none';
+    document.getElementById('analyzeProgress').hidden = true;
+    updateAnalyzeCount();
+    document.getElementById('analyzeInput').focus();
+  });
+
+  document.getElementById('analyzeInput').addEventListener('input', updateAnalyzeCount);
 
   document.getElementById('analyzeInput').addEventListener('keydown', function (e) {
     if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) runAnalyze();
@@ -1469,14 +1678,16 @@
 
   function loadFollowUps() {
     var gen = ++followUpRequestGeneration;
+    document.getElementById('followUpCards').innerHTML = '<div class="skeleton-list" aria-label="Loading follow-ups"><div class="skeleton-row"></div><div class="skeleton-row"></div></div>';
     apiFetch('/api/leads?follow_up=active').then(function (leads) {
       if (gen !== followUpRequestGeneration) return; // stale, discard
       followUpLeads = leads;
       lastFollowUpFetch = Date.now();
       renderFollowUpCards(leads);
+      updateFollowUpSummary(leads);
     }).catch(function (e) {
       document.getElementById('followUpCards').innerHTML =
-        '<div class="fu-empty"><p>Failed to load: ' + esc(e.message) + '</p></div>';
+        '<div class="fu-empty error-text"><p>Failed to load: ' + esc(e.message) + '</p><button class="btn btn-outline" data-retry="followups">Try again</button></div>';
     });
   }
 
@@ -1494,9 +1705,11 @@
     var container = document.getElementById('followUpCards');
 
     if (!leads.length) {
-      container.innerHTML = '<div class="fu-empty">' +
+      container.innerHTML = '<div class="empty-state fu-empty">' +
+        '<p class="empty-kicker">Follow-up queue clear</p>' +
         '<h2 class="serif">No follow-ups pending</h2>' +
-        '<p>Follow-ups are scheduled automatically when you approve an initial response.</p>' +
+        '<p>Approving an initial response schedules the next touchpoint automatically.</p>' +
+        '<button class="btn btn-outline" data-empty-action="queue">Return to queue</button>' +
         '</div>';
       return;
     }
@@ -1591,13 +1804,14 @@
 
         var msgs = { approve: 'Approved', skip: 'Skipped', snooze: 'Snoozed', replied: 'Marked replied' };
         showFuFlash(msgs[action] || 'Done');
+        updateFollowUpSummary(followUpLeads);
       })
       .catch(function (err) {
         if (err.message.indexOf('409') !== -1) {
           loadFollowUps(); // silently refresh on conflict
           return;
         }
-        alert(action + ' failed: ' + err.message);
+        showToast('Follow-up action failed: ' + err.message, 'error');
       })
       .finally(function () {
         delete leadInFlight[leadId];
@@ -1627,6 +1841,15 @@
     }
   });
 
+  document.addEventListener('click', function (e) {
+    var retry = e.target.closest('[data-retry]');
+    if (!retry) return;
+    var target = retry.dataset.retry;
+    if (target === 'leads') loadLeads();
+    if (target === 'insights') loadInsights();
+    if (target === 'followups') loadFollowUps();
+  });
+
   /* ── Initial load ────────────────────────────────────────── */
 
   // Handle #follow-ups hash from SMS notification links
@@ -1636,6 +1859,7 @@
 
   loadStats();
   loadLeads();
+  loadFollowUpSummary();
 
 })();
 </script>
