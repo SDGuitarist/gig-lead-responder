@@ -66,6 +66,7 @@ The original empty-state gap was checked with temporary isolated fictional fixtu
 |------|-------|
 | **Enable auto-send in production** | Operational call: flip Railway `AUTO_SEND_ENABLED=true` after the review-only monitoring period confirms draft quality. |
 | **Production-lessons addendum** | Once auto-send runs live, add an addendum to the Phase 2 solution doc (reply quality, false-auto-send rate, follow-up behavior). The solution doc marks production validation as PENDING. |
+| **TODO — replace stale Twilio Auth Token** | Dashboard **Approve** (SMS phone-copy to Alex) fails with **500 → Twilio 401 (code 20003)**. Root cause: `TWILIO_AUTH_TOKEN` in `.env` is **31 chars, should be 32** (truncated on paste). Fix: copy the full token from console.twilio.com → Account Info into `.env` line ~20, then verify live before retrying: `curl -s -o /dev/null -w '%{http_code}' https://api.twilio.com/2010-04-01/Accounts/$SID.json -u "$SID:$TOKEN"` must return **200** (per key-rotation rule: verify with a real auth call, not a string match). Until fixed, drafts are still fully usable — copy them from the dashboard directly. Twilio creds live only in `.env` (not `~/.zshrc`), so no shell fix needed. |
 
 ## Key Artifacts
 
