@@ -149,7 +149,7 @@ was being measured.
 **Tracker correction found, not applied:** `todos/052-pending-p2-extract-css-from-dashboard.md`
 is still `status: pending` but the work is **done** — verified: `public/dashboard.css`
 exists (1358 lines), `dashboard.html` has **0** inline `<style>` blocks and links
-the stylesheet. Landed in `8641f3b`. (Its filename says `052`; the heading inside
+the stylesheet. Landed in `6baf6cd`. (Its filename says `052`; the heading inside
 says `# 047:`.) Flip the status and reconcile the number.
 
 ## Prompt for Next Session
@@ -178,7 +178,7 @@ Then add "typecheck": "tsc --noEmit" to package.json scripts and confirm BOTH
 final commit. Do not touch data/leads.db or .env.
 
 Also flip todos/052-pending-p2-extract-css-from-dashboard.md to status: resolved
-and rename the file — the work landed in 8641f3b (verified: dashboard.css exists,
+and rename the file — the work landed in 6baf6cd (verified: dashboard.css exists,
 0 inline <style> blocks in dashboard.html).
 ```
 
