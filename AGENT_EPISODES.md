@@ -2129,7 +2129,7 @@ Ordered by friction group, then by Corroboration (descending) within each group.
 
 #### dashboard-no-framework — Vanilla HTML/CSS kept; React/Svelte rejected for a single-user tool
 - **Friction-type:** F4 (over-engineering avoided)
-- **Source traces:** `docs/brainstorms/2026-02-22-dashboard-ui-redesign-brainstorm.md:19,69-71,84-85`; `public/mockup-hybrid.html`
+- **Source traces:** `docs/brainstorms/2026-02-22-dashboard-ui-redesign-brainstorm.md:19,69-71,84-85`; `docs/design/mockup-hybrid.html`
 - **Corroboration:** 1 (brainstorms)
 - **Cycle/arc:** Dashboard UI Redesign
 - **Date/source:** 2026-02-22

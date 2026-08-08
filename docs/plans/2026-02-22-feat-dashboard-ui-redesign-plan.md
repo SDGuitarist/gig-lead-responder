@@ -25,7 +25,7 @@ Replace the current two disconnected surfaces (`public/index.html` analyzer +
 
 **Design:** Hybrid warm+clean — warm cream/gold color palette with Playfair
 Display headings (personality) combined with an information-dense data table
-layout (utility). Reference mockup: `public/mockup-hybrid.html`.
+layout (utility). Reference mockup: `docs/design/mockup-hybrid.html`.
 
 **Audience:** Alejandro only (single-user, personal tool).
 
@@ -174,7 +174,7 @@ app.use(apiRouter);
 
 **New file:** `public/dashboard.html`
 
-Start from `public/mockup-hybrid.html` as the template. Strip out hardcoded
+Start from `docs/design/mockup-hybrid.html` as the template. Strip out hardcoded
 sample data and replace with dynamic rendering from the API.
 
 **This chunk builds:**
@@ -333,7 +333,7 @@ TypeScript in the browser, no npm packages for the frontend.
 ## References
 
 - Brainstorm: `docs/brainstorms/2026-02-22-dashboard-ui-redesign-brainstorm.md`
-- Target mockup: `public/mockup-hybrid.html`
+- Target mockup: `docs/design/mockup-hybrid.html`
 - Current analyzer: `public/index.html`
 - Current dashboard: `src/dashboard.ts`
 - Database layer: `src/leads.ts`
