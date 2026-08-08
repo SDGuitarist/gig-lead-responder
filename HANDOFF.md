@@ -4,6 +4,18 @@
 **Branch:** `main`
 **Phase:** Real-lead intake completed locally; partial analysis complete and the remaining backlog is blocked by exhausted Anthropic API credits.
 
+## First 60 Seconds: Peer-Session Check
+
+Sessions run in parallel here. On 2026-08-08 one cut a branch at `e339340` while another
+landed `197f118` + `4ff91c6` (Yelp credential-leak fix) on `main`; it found out at merge time.
+
+1. **Before cutting a branch:** `git fetch origin && git log --oneline HEAD..origin/main`.
+   Fetch first — without it, "up to date" and "stale" both print nothing. Any line = a peer landed work.
+2. **Before editing:** `git status --short`. A dirty tree you did not dirty is a live peer; read
+   every diff before touching it (global CLAUDE.md → "Parallel Sessions on One Repo").
+3. **After merging `main` into your branch:** re-run `npm run typecheck && npm test` locally — a
+   clean merge means no textual conflict, not that the combination works. CI only runs once you push.
+
 > **Reconciliation note (2026-06-25):** Phase 2 was implemented and merged on
 > 2026-05-31 but the HANDOFF/plan/compound all drifted, leaving a false
 > impression that Phase 2 hadn't started. Reconciled from verified git history:
@@ -102,6 +114,7 @@ The archived FilmCon dashboard (`~/Projects/filmcon/docs/solutions/2026-07-18-fi
 ## Prompt for Next Session
 
 ```
+Run the "First 60 Seconds: Peer-Session Check" at the top of HANDOFF.md before any edit.
 Read HANDOFF.md. After Anthropic API credits are added, process only the 13 real
 received leads whose `full_draft` is NULL. Unset the inherited
 ANTHROPIC_API_KEY so dotenv loads the current `.env` value, and keep DRY_RUN=true
