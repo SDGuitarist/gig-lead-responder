@@ -10,3 +10,7 @@ dist/
 logs/
 credentials.json
 token.json
+
+# Subagent scratch memory — per-agent notes, not project knowledge.
+# Committing it makes stale agent observations authoritative for future sessions.
+.claude/agent-memory/

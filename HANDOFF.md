@@ -111,20 +111,232 @@ The archived FilmCon dashboard (`~/Projects/filmcon/docs/solutions/2026-07-18-fi
 - **Audit-first, success-only atomic write** is the generalized form of *this project's own* Phase 2 P0 fix — the auto-send path calling `completeApproval()` (`src/automation/orchestrator.ts:295`) so the state change and its follow-up/audit land atomically. When adding any **new state-changing path**, route it through the one canonical atomic function; never re-implement inline (that was the original bug).
 - **Deploy fail-open + unenforced-gate + stale-env** lessons speak directly to the **`AUTO_SEND_ENABLED` Railway gating**. Before flipping auto-send live: enforce the safety gate *in code/CI*, not by remembering to check it; log the resolved flag at startup (already done — keep it); and verify the live Railway env with a real check, not an assumption (the "guards against stale Railway env vars" note here is the same class as FilmCon's fail-open-because-ENVIRONMENT-never-wired P0).
 
+### 2026-08-07 security fix + typecheck diagnosis session
+
+**Shipped and verified live.** `public/mockup-hybrid.html` was served **without
+authentication** on production. `src/app.ts:68` registers `express.static` *after*
+the three `sessionAuth`-protected routes (`/dashboard.html`, `/`, `/index.html`),
+so every other real file in `public/` was public. The exposed file publishes quote
+figures verbatim ($250–$850).
+
+Moved to `docs/design/` rather than deleted — seven references across
+`AGENT_EPISODES.md`, the redesign plan, and the brainstorm cite it as the approved
+design reference, and deleting it would have left dangling citations. All
+references updated in the same commit. PR #22, squash-merged as `e339340`.
+
+Verified against production with a control, before and after:
+
+| Path | Before | After |
+|---|---|---|
+| `/mockup-hybrid.html` | **200** (56,506 bytes) | **401** |
+| `/health` | 200 | 200 |
+| `/dashboard.html` | 401 | 401 |
+| `/no-such-file.html` | 401 | 401 |
+| `/dashboard.css` | 200 | 200 |
+
+The 401 on a **nonexistent** path is the control that makes the reading
+interpretable: it proves the 200 was a genuine static serve of a real file, not a
+blanket allow. Scope is limited to files that actually exist in `public/` — this
+was not directory traversal. Railway auto-deployed from `main` ~40s after merge.
+
+**Diagnosed, not fixed: `npx tsc --noEmit` fails with 10 errors.** Pre-existing;
+this session touched no `.ts`. They are 4 root causes:
+
+| Group | Errors | Root cause | Fix |
+|---|---|---|---|
+| **A** | 6 | `src/claude.ts:4` — `Awaited<ReturnType<Anthropic["messages"]["create"]>>` resolves to `Message \| Stream` because `create` is overloaded and no literal `stream: false` narrows it. `Stream` has no `.content`. Hits `claude.ts:59,110` + three test mocks. | `type ClaudeMessageResponse = Anthropic.Message;` then add `citations: null` to the three mocks' text blocks (SDK `TextBlock` requires it). |
+| **B** | 3 | `types.ts:24` `RecommendedFormat = Format \| "unresolved"` passed where a plain `Format` is required: `router.ts:79`, `generate.ts:429`, and `:434` as a downstream consequence. | Narrowing guard before each lookup so `"unresolved"` is handled explicitly. |
+| **C** | 1 | `orchestrator.ts:264` — `AutoSendDeps.sendSms` typed `=> Promise<void>`, real `sendSms` returns `Promise<{success, error?}>`. | Widen the dep type. |
+| **D** | 1 | `shape-lead.test.ts:62` — `@ts-expect-error` above `delete (lead as any).done_reason`; the `as any` makes the line legal, so the directive expects an error that no longer occurs. | Delete the directive line. |
+
+**Group B is the only correctness risk** — `"unresolved"` reaching the pricing
+lookup returns `undefined` and propagates into a quote. A, C, D are hygiene.
+
+**Why these accumulated: there is no typecheck gate.** No `tsc` in
+`package.json` scripts, no `.github/workflows`, no git hooks. `tsx` strips types
+without checking them, so the 315-test suite (all passing) has never looked at
+them. "Tests pass" and "the code typechecks" are different claims and only one
+was being measured.
+
+**Tracker correction found, not applied:** `todos/052-pending-p2-extract-css-from-dashboard.md`
+is still `status: pending` but the work is **done** — verified: `public/dashboard.css`
+exists (1358 lines), `dashboard.html` has **0** inline `<style>` blocks and links
+the stylesheet. Landed in `6baf6cd`. (Its filename says `052`; the heading inside
+says `# 047:`.) Flip the status and reconcile the number.
+
+**RESOLVED 2026-08-07** in `54d90bf` — status flipped, file renamed to
+`todos/052-done-p2-extract-css-from-dashboard.md`. The sha above was also wrong
+(`8641f3b` → `6baf6cd`, corrected in `aa93fa0`).
+
+## Prompt for Next Session — SUPERSEDED, DO NOT RUN
+
+> Completed 2026-08-07 on branch `fix/typecheck-errors` (pushed, head `54d90bf`).
+> All 10 errors are fixed. Kept verbatim for the record — the live instructions are
+> in **Prompt for Next Session** at the bottom of this file.
+
+```
+Project root: /Users/alejandroguillen/Projects/gig-lead-responder
+
+Read HANDOFF.md, section "2026-08-07 security fix + typecheck diagnosis session".
+Fix all 10 `npx tsc --noEmit` errors, in this order, each as its own commit on a
+branch off main (do NOT commit to main):
+
+1. Group B first — it is the only correctness risk. Add narrowing guards so
+   "unresolved" is handled explicitly before the Record<Format, FormatRates>
+   lookup. Files: src/types.ts:24, src/automation/router.ts:79,
+   src/prompts/generate.ts:429 and :434.
+2. Group A — change src/claude.ts:4 to `type ClaudeMessageResponse =
+   Anthropic.Message;` then add `citations: null` to the text blocks in
+   src/claude-extended.test.ts:10, src/confidence.test.ts:60,
+   src/run-pipeline.test.ts:70.
+3. Group C — widen AutoSendDeps.sendSms in src/automation/orchestrator.ts to
+   match the real sendSms return type.
+4. Group D — delete the dead @ts-expect-error at src/shape-lead.test.ts:62.
+
+Then add "typecheck": "tsc --noEmit" to package.json scripts and confirm BOTH
+`npm run typecheck` (0 errors) and `npm test` (315 pass) are green before the
+final commit. Do not touch data/leads.db or .env.
+
+Also flip todos/052-pending-p2-extract-css-from-dashboard.md to status: resolved
+and rename the file — the work landed in 6baf6cd (verified: dashboard.css exists,
+0 inline <style> blocks in dashboard.html).
+```
+
+### Three Questions — security fix + typecheck diagnosis session
+
+1. **Hardest implementation decision in this session?** Whether to delete `mockup-hybrid.html` (which is what was authorized) or move it. Seven docs cite it as the approved design reference, so deleting would have closed the exposure while creating seven dangling citations — trading one failure class for a worse one. Moving it out of the served directory and updating every reference in the same commit achieves the same security outcome with no collateral damage, so I deviated and said so explicitly rather than executing the literal instruction.
+2. **What did you consider changing but leave alone, and why?** The 10 typecheck errors — diagnosed and grouped but not fixed, because Alex drew the line at a fresh session. Also `.claude/agent-memory/` (gitignored this session rather than committed: it is another agent's scratch state, and committing it would make a stale April note about `ukulele_solo` authoritative for future sessions — that specific claim is now false, `ukulele` routes to `sourced_cultural_solo` per `docs/Sourced_Format_Definitions.md:22`). And `todos/052`, left for the next session with the verification already done.
+3. **Least confident about going into review?** Group B's fix shape. I know the three sites and the mechanism, but not what the *correct* behavior is when a format is genuinely `"unresolved"` at a pricing lookup — throw, return a clarification-mode sentinel, or fall back to a default tier is a product decision, not a type-system one. Whoever fixes it should decide that deliberately rather than picking whatever silences `tsc`. Separately: `src/error-middleware.test.ts:155-156` asserts a 200 on `/dashboard.html` as proof auth is intact, but the test runs with `DASHBOARD_USER`/`PASS` unset, which takes the dev bypass at `src/auth.ts:118-126` — "auth passed" and "auth was disabled" produce the same 200. Not a live hole (`src/server.ts:18-21` hard-fails in production without those vars), but that test cannot detect its own bypass.
+
+### 2026-08-07 typecheck fix session (10 `tsc` errors → 0)
+
+#### Prior Phase Risk
+
+Previous phase's "Least confident about" answer, verbatim:
+
+> Group B's fix shape. I know the three sites and the mechanism, but not what the
+> *correct* behavior is when a format is genuinely `"unresolved"` at a pricing lookup —
+> throw, return a clarification-mode sentinel, or fall back to a default tier is a
+> product decision, not a type-system one.
+
+**How this phase addressed it:** by investigating reachability before writing a line of
+fix. The premise turned out to be false — at neither site was it a product decision.
+
+**Shipped, not merged.** Branch `fix/typecheck-errors`, cut off `main` at `e339340`,
+pushed at `54d90bf`. No PR opened, nothing merged, `main` still fails `tsc`.
+
+| # | Commit | Group | Errors |
+|---|--------|-------|--------|
+| 1 | `c48dbc2` | B — unresolved format | 10 → 7 |
+| 2 | `4d79719` | A — ClaudeMessageResponse | 7 → 2 |
+| 3 | `12c6721` | C — sendSms return type | 2 → 1 |
+| 4 | `726cae8` | D — dead ts-expect-error | 1 → 0 |
+| 5 | `54d90bf` | typecheck script + todo 052 | — |
+
+**Gates:** `npm run typecheck` → 0 errors. `npm test` → 315 pass, 0 fail, 52 suites.
+Re-run independently twice (review agent, then the orchestrating session) rather than
+taken on report from the agents that made the changes.
+
+**Group B was two opposite problems, not one product decision.**
+
+- `router.ts:79` — `"unresolved"` **does** reach it (traced: `prompts/classify.ts:67-72`
+  emits it, `pipeline/classify.ts:33-38` allows it, `enrich.ts:35-37` preserves it,
+  `orchestrator.ts:153` routes it). But `getFormatFamily` was **already total** — it
+  loops the family table, matches nothing, returns `"unknown"`. The type was too narrow
+  for a function that already handled the case. Fix: widen the parameter.
+- `generate.ts:429/434` — `"unresolved"` **cannot** reach it. `findMinFloor` has exactly
+  one caller, gated behind `budget.tier === "no_viable_scope"`; every `PricingResult`
+  carrying `"unresolved"` is constructed with `budget.tier: "none"`; and `lookupPrice`
+  already throws on `"unresolved"` at `price.ts:57`. Fix: narrow the parameter to
+  `Format`, with `as Format` at the call site behind a documented invariant.
+
+No runtime guard was added at either site, deliberately: at the first it would be
+redundant, at the second it would be dead code masquerading as a safety check.
+
+`PricingResult.format` was deliberately **left** as `RecommendedFormat`. Narrowing it
+would trade these 3 errors for 2 new ones at `run-pipeline.ts:35` and `:138` and force
+inventing a replacement sentinel — a behavior change smuggled in as a typecheck fix.
+
+**Verification method worth reusing: emitted-JS diff.** Rather than eyeballing the diff
+for smuggled behavior, the review transpiled `main`'s and `HEAD`'s version of all four
+changed production files through the repo's own esbuild and diffed the output — identical
+for all four. Zero runtime behavior change proven mechanically instead of asserted. The
+instrument was checked too: `tsc --listFiles` confirms all four files were actually
+typechecked, and the test glob matches all 24 test files — so "0 errors" could not have
+quietly meant "nothing ran".
+
+**Two errors in the previous handoff, found and corrected:**
+
+- Group A is **5** errors, not 6. The stated 6+3+1+1 = 11; there are 10.
+- Todo 052 landed in **`6baf6cd`**, not `8641f3b` (corrected in `aa93fa0`). `8641f3b` is
+  the 07-18 UI/UX pass and touches no CSS at all, so `git show 8641f3b` would have read
+  as a falsely-closed todo.
+
+**Unplanned but mechanically required:** `src/orchestrator.test.ts` (the spy mock must
+return `{success: true}` once `sendSms` is widened) and `ClaudeMessageRequest` →
+`MessageCreateParamsNonStreaming` in `src/claude.ts`.
+
+**The new gate is not wired to anything.** `"typecheck": "tsc --noEmit"` exists in
+`package.json`, but there is still no `.github/workflows` and no git hooks. It runs only
+when a human remembers to run it — the same unenforced-gate class that let 10 errors
+accumulate in the first place.
+
 ## Prompt for Next Session
 
 ```
+Project root: /Users/alejandroguillen/Projects/gig-lead-responder
+
 Run the "First 60 Seconds: Peer-Session Check" at the top of HANDOFF.md before any edit.
-Read HANDOFF.md. After Anthropic API credits are added, process only the 13 real
-received leads whose `full_draft` is NULL. Unset the inherited
-ANTHROPIC_API_KEY so dotenv loads the current `.env` value, and keep DRY_RUN=true
-and AUTO_SEND_ENABLED=false. Isolate clarification-mode generation failures and
-do not send email or SMS. Relevant files: data/leads.db, .env,
-src/run-pipeline.ts, public/dashboard.html.
+Two sessions worked this repo on 2026-08-07/08 and both streams are recorded below.
+
+PRIMARY (from the lead-processing stream):
+After Anthropic API credits are added, process only the 13 real received leads whose
+`full_draft` is NULL. Unset the inherited ANTHROPIC_API_KEY so dotenv loads the current
+`.env` value, and keep DRY_RUN=true and AUTO_SEND_ENABLED=false. Isolate
+clarification-mode generation failures and do not send email or SMS.
+Relevant files: data/leads.db, .env, src/run-pipeline.ts, public/dashboard.html.
+
+TYPECHECK STREAM — items 1-3 are DONE as of 2026-08-08, do not redo them:
+  [x] 1. fix/typecheck-errors merged (PR #23, f478239). main typechecks clean.
+  [x] 2. CI gate wired (PR #24, 9cfa5f8) — .github/workflows/ci.yml runs typecheck +
+         test on PRs and pushes to main. Branch protection on main now REQUIRES the
+         "typecheck + test" check, with strict + enforce_admins both on. Verified by
+         a real rejected push: "GH006: Protected branch update failed".
+  [x] 3. todos/082 filed (PricingResult rehydration unvalidated at the DB boundary).
+  [x] BONUS. tsconfig now typechecks scripts/ too (PR #25, 400bb1a) — it previously
+         passed a planted error in scripts/ at exit 0.
+  [ ] 4. STILL OPEN: src/error-middleware.test.ts:155-156 asserts a 200 on
+         /dashboard.html as proof auth is intact, but runs with DASHBOARD_USER/PASS
+         unset and so takes the dev bypass at src/auth.ts:118-126. "Auth passed" and
+         "auth was disabled" produce the same 200; the test cannot detect its own
+         bypass. Not a live hole (src/server.ts:18-21 hard-fails in production).
+
+Also open, not urgent: `npm audit` reports 10 vulnerabilities (1 low, 5 moderate,
+4 high), deliberately not gated in CI. No linter is configured.
+
+Do not touch data/leads.db or .env.
 ```
 
 ## Three Questions
 
-1. **Hardest implementation decision in this session?** Treating Gmail notifications as real only when the message contained a concrete future event date and recognizable marketplace or form provenance, while rejecting reminders and ambiguous mail.
-2. **What did you consider changing but leave alone, and why?** I left AI analysis, draft generation, approval state, and all outbound delivery untouched because importing real inquiries did not authorize contacting prospects or consuming their records through the response pipeline.
-3. **Least confident about going into review?** Lali's saved draft failed the gate at confidence 0, while 13 leads still need analysis after API credits are replenished; clarification-mode generation also failed on two sparse inquiries.
+1. **Hardest implementation decision in this session?** Whether to trust the previous
+   session's framing of Group B as a product decision. The handoff said the fix shape
+   was a product call and implied a runtime guard; the conservative move was to
+   implement one. Instead I spent four parallel read-only agents on reachability first.
+   That inverted the answer: at `generate.ts` the guard would have been unreachable dead
+   code that reads as a safety check, and at `router.ts` it would have duplicated
+   behavior the function already had. Taking a well-written handoff at face value would
+   have produced a worse codebase than the type errors it replaced.
+2. **What did you consider changing but left alone, and why?** `PricingResult.format`
+   (narrowing it looks tidy but forces inventing a new sentinel — see above). The
+   `twilio-webhook.ts:152` persistence hole, left as a todo rather than fixed here: it is
+   pre-existing, it fails loud rather than silent, and folding it in is exactly the scope
+   creep the reviewer flagged on commit 5. And `.claude/agent-memory/`, still untracked.
+3. **Least confident about going into review?** The `as Format` cast at
+   `generate.ts:374`. The unreachability proof is sound today, but it rests on an
+   invariant maintained by convention across four files — not by the type system and not
+   by any test. Nothing fails loudly if a future edit constructs a `PricingResult` with
+   `format: "unresolved"` and `budget.tier: "no_viable_scope"`; the cast just goes quiet.
+   A test asserting that combination is unconstructible would convert the comment into an
+   enforced invariant. Related: the emitted-JS-identical proof shows behavior did not
+   change, which is not the same claim as the types now describing reality correctly.
