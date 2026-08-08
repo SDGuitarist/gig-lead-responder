@@ -1,7 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 
-type ClaudeMessageRequest = Parameters<Anthropic["messages"]["create"]>[0];
-type ClaudeMessageResponse = Awaited<ReturnType<Anthropic["messages"]["create"]>>;
+type ClaudeMessageRequest = Anthropic.MessageCreateParamsNonStreaming;
+type ClaudeMessageResponse = Anthropic.Message;
 type ClaudeRequester = (request: ClaudeMessageRequest) => Promise<ClaudeMessageResponse>;
 
 let client: Anthropic | null = null;

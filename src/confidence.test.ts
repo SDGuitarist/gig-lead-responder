@@ -61,11 +61,22 @@ function mockClaude(responses: unknown[]) {
     id: "msg-test",
     type: "message" as const,
     role: "assistant" as const,
-    content: [{ type: "text" as const, text: JSON.stringify(responses[i++ % responses.length]) }],
+    content: [
+      {
+        type: "text" as const,
+        text: JSON.stringify(responses[i++ % responses.length]),
+        citations: null,
+      },
+    ],
     model: "claude-sonnet-4-6",
     stop_reason: "end_turn" as const,
     stop_sequence: null,
-    usage: { input_tokens: 100, output_tokens: 100 },
+    usage: {
+      input_tokens: 100,
+      output_tokens: 100,
+      cache_creation_input_tokens: null,
+      cache_read_input_tokens: null,
+    },
   }));
 }
 
