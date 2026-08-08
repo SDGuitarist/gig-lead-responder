@@ -1,5 +1,5 @@
 ---
-status: pending
+status: done
 priority: p2
 issue_id: "086"
 tags: [deploy, observability, ambiguous-output, railway]
@@ -86,3 +86,34 @@ fixing rather than tolerating. Compare `083`: same shape, different surface.
 - THE SYSTEM SHALL NOT expose branch names, build logs, or environment values
   through this endpoint — it is unauthenticated. A short SHA and a timestamp
   are sufficient.
+
+## Resolution — 2026-08-08, PR #30 (`2550b96`)
+
+`/health` now returns:
+
+```json
+{"status":"ok","rejectedEmails":0,"commit":"2550b96","startedAt":"2026-08-08T17:48:52.020Z"}
+```
+
+Implemented in `src/build-info.ts`, wired in at `src/app.ts:51`. 9 new tests;
+suite 342 -> 351.
+
+**Verified end to end, and this is the part that matters.** The merge commit
+was `2550b96`; production `/health` returned `"commit":"2550b96"`. That is the
+first deploy in this repo confirmed rather than inferred -- previously the only
+signal was a `200` that was equally true before the merge.
+
+It also settled the open assumption: `RAILWAY_GIT_COMMIT_SHA` **is** the
+correct variable name. Had it been wrong, the endpoint would have returned
+`"unknown"` -- which is exactly why the field returns a literal `"unknown"`
+instead of being omitted. A wrong guess would have been visible rather than
+silent.
+
+Controls re-checked at the same time: `/dashboard.html` 401, `/dashboard.css`
+200, `/no-such-file.html` 401.
+
+**Deploy verification from here on:**
+
+```
+curl -s $URL/health | jq -r .commit   # must equal the merged SHA
+```
