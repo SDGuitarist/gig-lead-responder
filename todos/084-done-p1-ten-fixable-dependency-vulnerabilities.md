@@ -1,5 +1,5 @@
 ---
-status: pending
+status: done
 priority: p1
 issue_id: "084"
 tags: [security, dependencies, production, ci]
@@ -86,3 +86,38 @@ the next person who reads the CI file's comments.
 - WHEN any advisory is deliberately not fixed, THE SYSTEM SHALL record which
   one and why in this file, so "not fixed" is distinguishable from "not looked
   at".
+
+## Resolution — 2026-08-08, PR #28 (`a8389e5`)
+
+`npm audit` went **10 → 0**. Lockfile-only; `package.json` is byte-identical,
+no declared range changed, `--force` never used, no semver-major bump.
+
+Two steps, because one was not enough:
+
+1. `npm audit fix` resolved 9 of 10 transitively — `axios`, `body-parser`,
+   `express`, `express-rate-limit`, `follow-redirects`, `form-data`,
+   `ip-address`, `path-to-regexp`, `qs`.
+2. `esbuild` (low) could not be fixed that way. `npm audit fix` kept printing
+   "fix available via `npm audit fix`" while changing nothing on repeat runs,
+   because `tsx@4.21.0` pinned `esbuild@0.27.3`. `npm update tsx` moved tsx
+   `4.21.0 -> 4.23.11`, which declares `esbuild: ~0.28.0` and resolved to the
+   patched `0.28.1`. Still inside the existing `^4.19.0` range.
+
+   **Worth remembering:** the advisory covers `0.27.3 - 0.28.0`, so landing on
+   `0.28.0` would have looked like an upgrade and fixed nothing. "Newer" and
+   "patched" are different claims.
+
+Verified after the change and again after a clean `npm ci`: 0 vulnerabilities,
+`typecheck` exit 0, 342 tests passing, `plan:check` runs under the new tsx.
+CI confirmed the same on a fresh runner install.
+
+**Known limit on the deploy verification.** Production returned `/health` 200,
+`/dashboard.html` 401 and `/no-such-file.html` 401 (control) after the merge —
+but `/health` exposes no build identifier and the Railway CLI token was
+expired, so "healthy on the new tsx" and "healthy on the old tsx" produce
+identical output. The deploy is inferred, not verified. This matters here more
+than for the preceding type-only PRs because `npm start` is `tsx src/index.ts`,
+so this change did alter what runs in production. Filed as `086`.
+
+**Follow-up done in the same session:** `npm audit` wired into CI as its own
+scheduled + lockfile-triggered workflow (see `.github/workflows/audit.yml`).
