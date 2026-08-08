@@ -230,7 +230,7 @@ async function dispatchReply(
 /** Side-effect callbacks — injectable for testing. */
 export interface AutoSendDeps {
   updateLead: (id: number, fields: Record<string, unknown>) => void;
-  sendSms: (config: AutomationConfig, msg: string) => Promise<void>;
+  sendSms: (config: AutomationConfig, msg: string) => Promise<{ success: boolean; error?: string }>;
   logLead: (entry: LeadLogEntry) => void;
   dispatchReply: (
     lead: ParsedLead, text: string, auth: OAuth2Client,
