@@ -152,7 +152,15 @@ exists (1358 lines), `dashboard.html` has **0** inline `<style>` blocks and link
 the stylesheet. Landed in `6baf6cd`. (Its filename says `052`; the heading inside
 says `# 047:`.) Flip the status and reconcile the number.
 
-## Prompt for Next Session
+**RESOLVED 2026-08-07** in `54d90bf` — status flipped, file renamed to
+`todos/052-done-p2-extract-css-from-dashboard.md`. The sha above was also wrong
+(`8641f3b` → `6baf6cd`, corrected in `aa93fa0`).
+
+## Prompt for Next Session — SUPERSEDED, DO NOT RUN
+
+> Completed 2026-08-07 on branch `fix/typecheck-errors` (pushed, head `54d90bf`).
+> All 10 errors are fixed. Kept verbatim for the record — the live instructions are
+> in **Prompt for Next Session** at the bottom of this file.
 
 ```
 Project root: /Users/alejandroguillen/Projects/gig-lead-responder
@@ -182,8 +190,132 @@ and rename the file — the work landed in 6baf6cd (verified: dashboard.css exis
 0 inline <style> blocks in dashboard.html).
 ```
 
-## Three Questions
+### Three Questions — security fix + typecheck diagnosis session
 
 1. **Hardest implementation decision in this session?** Whether to delete `mockup-hybrid.html` (which is what was authorized) or move it. Seven docs cite it as the approved design reference, so deleting would have closed the exposure while creating seven dangling citations — trading one failure class for a worse one. Moving it out of the served directory and updating every reference in the same commit achieves the same security outcome with no collateral damage, so I deviated and said so explicitly rather than executing the literal instruction.
 2. **What did you consider changing but leave alone, and why?** The 10 typecheck errors — diagnosed and grouped but not fixed, because Alex drew the line at a fresh session. Also `.claude/agent-memory/` (gitignored this session rather than committed: it is another agent's scratch state, and committing it would make a stale April note about `ukulele_solo` authoritative for future sessions — that specific claim is now false, `ukulele` routes to `sourced_cultural_solo` per `docs/Sourced_Format_Definitions.md:22`). And `todos/052`, left for the next session with the verification already done.
 3. **Least confident about going into review?** Group B's fix shape. I know the three sites and the mechanism, but not what the *correct* behavior is when a format is genuinely `"unresolved"` at a pricing lookup — throw, return a clarification-mode sentinel, or fall back to a default tier is a product decision, not a type-system one. Whoever fixes it should decide that deliberately rather than picking whatever silences `tsc`. Separately: `src/error-middleware.test.ts:155-156` asserts a 200 on `/dashboard.html` as proof auth is intact, but the test runs with `DASHBOARD_USER`/`PASS` unset, which takes the dev bypass at `src/auth.ts:118-126` — "auth passed" and "auth was disabled" produce the same 200. Not a live hole (`src/server.ts:18-21` hard-fails in production without those vars), but that test cannot detect its own bypass.
+
+### 2026-08-07 typecheck fix session (10 `tsc` errors → 0)
+
+#### Prior Phase Risk
+
+Previous phase's "Least confident about" answer, verbatim:
+
+> Group B's fix shape. I know the three sites and the mechanism, but not what the
+> *correct* behavior is when a format is genuinely `"unresolved"` at a pricing lookup —
+> throw, return a clarification-mode sentinel, or fall back to a default tier is a
+> product decision, not a type-system one.
+
+**How this phase addressed it:** by investigating reachability before writing a line of
+fix. The premise turned out to be false — at neither site was it a product decision.
+
+**Shipped, not merged.** Branch `fix/typecheck-errors`, cut off `main` at `e339340`,
+pushed at `54d90bf`. No PR opened, nothing merged, `main` still fails `tsc`.
+
+| # | Commit | Group | Errors |
+|---|--------|-------|--------|
+| 1 | `c48dbc2` | B — unresolved format | 10 → 7 |
+| 2 | `4d79719` | A — ClaudeMessageResponse | 7 → 2 |
+| 3 | `12c6721` | C — sendSms return type | 2 → 1 |
+| 4 | `726cae8` | D — dead ts-expect-error | 1 → 0 |
+| 5 | `54d90bf` | typecheck script + todo 052 | — |
+
+**Gates:** `npm run typecheck` → 0 errors. `npm test` → 315 pass, 0 fail, 52 suites.
+Re-run independently twice (review agent, then the orchestrating session) rather than
+taken on report from the agents that made the changes.
+
+**Group B was two opposite problems, not one product decision.**
+
+- `router.ts:79` — `"unresolved"` **does** reach it (traced: `prompts/classify.ts:67-72`
+  emits it, `pipeline/classify.ts:33-38` allows it, `enrich.ts:35-37` preserves it,
+  `orchestrator.ts:153` routes it). But `getFormatFamily` was **already total** — it
+  loops the family table, matches nothing, returns `"unknown"`. The type was too narrow
+  for a function that already handled the case. Fix: widen the parameter.
+- `generate.ts:429/434` — `"unresolved"` **cannot** reach it. `findMinFloor` has exactly
+  one caller, gated behind `budget.tier === "no_viable_scope"`; every `PricingResult`
+  carrying `"unresolved"` is constructed with `budget.tier: "none"`; and `lookupPrice`
+  already throws on `"unresolved"` at `price.ts:57`. Fix: narrow the parameter to
+  `Format`, with `as Format` at the call site behind a documented invariant.
+
+No runtime guard was added at either site, deliberately: at the first it would be
+redundant, at the second it would be dead code masquerading as a safety check.
+
+`PricingResult.format` was deliberately **left** as `RecommendedFormat`. Narrowing it
+would trade these 3 errors for 2 new ones at `run-pipeline.ts:35` and `:138` and force
+inventing a replacement sentinel — a behavior change smuggled in as a typecheck fix.
+
+**Verification method worth reusing: emitted-JS diff.** Rather than eyeballing the diff
+for smuggled behavior, the review transpiled `main`'s and `HEAD`'s version of all four
+changed production files through the repo's own esbuild and diffed the output — identical
+for all four. Zero runtime behavior change proven mechanically instead of asserted. The
+instrument was checked too: `tsc --listFiles` confirms all four files were actually
+typechecked, and the test glob matches all 24 test files — so "0 errors" could not have
+quietly meant "nothing ran".
+
+**Two errors in the previous handoff, found and corrected:**
+
+- Group A is **5** errors, not 6. The stated 6+3+1+1 = 11; there are 10.
+- Todo 052 landed in **`6baf6cd`**, not `8641f3b` (corrected in `aa93fa0`). `8641f3b` is
+  the 07-18 UI/UX pass and touches no CSS at all, so `git show 8641f3b` would have read
+  as a falsely-closed todo.
+
+**Unplanned but mechanically required:** `src/orchestrator.test.ts` (the spy mock must
+return `{success: true}` once `sendSms` is widened) and `ClaudeMessageRequest` →
+`MessageCreateParamsNonStreaming` in `src/claude.ts`.
+
+**The new gate is not wired to anything.** `"typecheck": "tsc --noEmit"` exists in
+`package.json`, but there is still no `.github/workflows` and no git hooks. It runs only
+when a human remembers to run it — the same unenforced-gate class that let 10 errors
+accumulate in the first place.
+
+## Prompt for Next Session
+
+```
+Project root: /Users/alejandroguillen/Projects/gig-lead-responder
+
+Branch fix/typecheck-errors is pushed (54d90bf) and green: 0 tsc errors, 315/315
+tests. It is NOT merged, and main still fails tsc. Do these in order:
+
+1. Open a PR for fix/typecheck-errors and merge it. Until it lands, the typecheck
+   gate added in 54d90bf protects nothing.
+2. Wire the gate: add a .github/workflows CI job running `npm run typecheck` and
+   `npm test` on PRs. An unenforced gate is why these 10 errors accumulated.
+3. File a todo for the persistence-boundary hole the review found:
+   src/twilio-webhook.ts:152 rehydrates a PricingResult from the DB validating
+   only `typeof rawP.quote_price === "number"`, then feeds it to runEditPipeline.
+   A corrupt pricing_json with format:"unresolved" + budget.tier:"no_viable_scope"
+   reaches findMinFloor, where RATE_TABLES["unresolved"] is undefined and
+   Object.entries throws. Pre-existing; fails loud, not silent. Do NOT fold this
+   into the typecheck branch.
+4. Fix src/error-middleware.test.ts:155-156 — it asserts a 200 on /dashboard.html
+   as proof auth is intact, but runs with DASHBOARD_USER/PASS unset and so takes
+   the dev bypass at src/auth.ts:118-126. "Auth passed" and "auth was disabled"
+   produce the same 200; the test cannot detect its own bypass.
+
+Do not touch data/leads.db or .env.
+```
+
+## Three Questions
+
+1. **Hardest implementation decision in this session?** Whether to trust the previous
+   session's framing of Group B as a product decision. The handoff said the fix shape
+   was a product call and implied a runtime guard; the conservative move was to
+   implement one. Instead I spent four parallel read-only agents on reachability first.
+   That inverted the answer: at `generate.ts` the guard would have been unreachable dead
+   code that reads as a safety check, and at `router.ts` it would have duplicated
+   behavior the function already had. Taking a well-written handoff at face value would
+   have produced a worse codebase than the type errors it replaced.
+2. **What did you consider changing but left alone, and why?** `PricingResult.format`
+   (narrowing it looks tidy but forces inventing a new sentinel — see above). The
+   `twilio-webhook.ts:152` persistence hole, left as a todo rather than fixed here: it is
+   pre-existing, it fails loud rather than silent, and folding it in is exactly the scope
+   creep the reviewer flagged on commit 5. And `.claude/agent-memory/`, still untracked.
+3. **Least confident about going into review?** The `as Format` cast at
+   `generate.ts:374`. The unreachability proof is sound today, but it rests on an
+   invariant maintained by convention across four files — not by the type system and not
+   by any test. Nothing fails loudly if a future edit constructs a `PricingResult` with
+   `format: "unresolved"` and `budget.tier: "no_viable_scope"`; the cast just goes quiet.
+   A test asserting that combination is unconstructible would convert the comment into an
+   enforced invariant. Related: the emitted-JS-identical proof shows behavior did not
+   change, which is not the same claim as the types now describing reality correctly.
