@@ -26,7 +26,7 @@ We explored three design directions via parallel mockup agents:
 
 **Chosen: Hybrid of Warm + Clean** — warm colors/fonts with clean table layout.
 
-The winning mockup is at `public/mockup-hybrid.html`.
+The winning mockup is at `docs/design/mockup-hybrid.html`.
 
 ## Design Specifications
 
