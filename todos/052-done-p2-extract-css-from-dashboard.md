@@ -1,5 +1,5 @@
 ---
-status: pending
+status: done
 priority: p2
 issue_id: "052"
 tags: [code-review, architecture, dashboard, line-budget]
@@ -8,7 +8,7 @@ unblocks: ["046"]
 sub_priority: 7
 ---
 
-# 047: Extract CSS from dashboard.html to recover line budget
+# 052: Extract CSS from dashboard.html to recover line budget
 
 ## Problem Statement
 
@@ -43,3 +43,4 @@ Option A. Zero-risk change that unblocks future feature additions.
 | Date | Action | Learnings |
 |------|--------|-----------|
 | 2026-03-05 | Created from review | At 96% budget, next feature forces emergency extraction |
+| 2026-08-07 | Verified complete; status flipped to done | Landed in 6baf6cd (not 8641f3b); dashboard.html has 0 `<style>` blocks and 0 inline `style=` attrs; CSS served via express.static in src/app.ts:68. Heading said "047", a stale batch artifact; filename/issue_id "052" is authoritative. Note: dashboard.html has since grown back to 1,867 lines (above the ~1,750 target, still inside the 2,800 budget) from later feature work, so the line-budget number is stale but the extraction itself is complete |

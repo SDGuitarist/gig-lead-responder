@@ -11,11 +11,16 @@ function mockResponse(text: string) {
     id: "msg-test",
     type: "message" as const,
     role: "assistant" as const,
-    content: [{ type: "text" as const, text }],
+    content: [{ type: "text" as const, text, citations: null }],
     model: "claude-sonnet-4-6",
     stop_reason: "end_turn" as const,
     stop_sequence: null,
-    usage: { input_tokens: 10, output_tokens: 10 },
+    usage: {
+      input_tokens: 10,
+      output_tokens: 10,
+      cache_creation_input_tokens: null,
+      cache_read_input_tokens: null,
+    },
   }));
 }
 
