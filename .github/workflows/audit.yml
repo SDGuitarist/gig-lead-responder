@@ -1,0 +1,69 @@
+name: Audit
+
+# Dependency vulnerability gate. Deliberately NOT part of ci.yml, and
+# deliberately not a required status check on every PR.
+#
+# Why separate: `npm audit` queries the registry at run time, so its result
+# depends on what advisories exist today, not on what is in this repo. A new
+# advisory published overnight can turn a previously-green PR red without a
+# single line of code changing. Wiring that into the PR-blocking path would
+# stop unrelated work at an arbitrary moment — which is how a gate earns the
+# reputation that makes people stop reading it.
+#
+# So it runs where it is actually informative:
+#   - on PRs that touch the lockfile or package.json (the changes that can
+#     introduce a vulnerable dependency)
+#   - weekly, to catch advisories published against dependencies that did not
+#     change (the case a PR trigger structurally cannot see)
+#   - on demand
+#
+# Baseline when added (2026-08-08, todo 084): 0 vulnerabilities. It was added
+# only after the count reached zero — a gate that is red on the day it lands
+# teaches people to ignore it.
+
+on:
+  pull_request:
+    paths:
+      - 'package.json'
+      - 'package-lock.json'
+  schedule:
+    # Mondays 15:00 UTC (08:00 PT)
+    - cron: '0 15 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: audit-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  audit:
+    name: npm audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      # --audit-level=high fails the job on high and critical only.
+      # Moderate and low still appear in the log but do not fail the run:
+      # the npm ecosystem produces a steady trickle of low-severity advisories
+      # in dev tooling, and failing on those is what turns this into noise.
+      # The full report is printed first so nothing is hidden by the threshold.
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Report all advisories
+        run: npm audit || true
+
+      - name: Fail on high or critical
+        run: npm audit --audit-level=high
