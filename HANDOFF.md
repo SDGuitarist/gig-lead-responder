@@ -281,7 +281,12 @@ return `{success: true}` once `sendSms` is widened) and `ClaudeMessageRequest` �
 when a human remembers to run it — the same unenforced-gate class that let 10 errors
 accumulate in the first place.
 
-## Prompt for Next Session
+## Prompt for Next Session — SUPERSEDED 2026-08-08, DO NOT RUN
+
+> The typecheck stream in this block is fully closed (items 1-4 all done as of
+> `defe03e`). The lead-processing item is still live and has been carried
+> forward verbatim into the current **Prompt for Next Session** at the bottom
+> of this file. Kept here for the record only.
 
 ```
 Project root: /Users/alejandroguillen/Projects/gig-lead-responder
@@ -317,7 +322,7 @@ Also open, not urgent: `npm audit` reports 10 vulnerabilities (1 low, 5 moderate
 Do not touch data/leads.db or .env.
 ```
 
-## Three Questions
+### Three Questions — typecheck fix session (2026-08-07)
 
 1. **Hardest implementation decision in this session?** Whether to trust the previous
    session's framing of Group B as a product decision. The handoff said the fix shape
@@ -340,3 +345,143 @@ Do not touch data/leads.db or .env.
    A test asserting that combination is unconstructible would convert the comment into an
    enforced invariant. Related: the emitted-JS-identical proof shows behavior did not
    change, which is not the same claim as the types now describing reality correctly.
+
+### 2026-08-08 CI gate, dependency, and deploy-verification session
+
+#### Prior Phase Risk
+
+Previous phase's "Least confident about" answer, verbatim:
+
+> The `as Format` cast at `generate.ts:374`. The unreachability proof is sound today,
+> but it rests on an invariant maintained by convention across four files — not by the
+> type system and not by any test.
+
+**How this phase addressed it: it did not.** That invariant is still unenforced. It is
+recorded in `todos/082`, which covers the same boundary from the read side. Accepted
+rather than closed, and named here so it is not mistaken for handled.
+
+**Six PRs, all merged, `main` at `defe03e`.**
+
+| PR | What | Merge |
+|---|---|---|
+| #26 | land the 2026-08-07 session records on main | `2df70df` |
+| #27 | file todos 083, 084, 085 | `1f626cf` |
+| #28 | resolve all 10 dependency vulnerabilities | `a8389e5` |
+| #29 | audit gate; close 084; file 086 | `5196ff8` |
+| #30 | `/health` build identifier | `2550b96` |
+| #31 | close 086 | `defe03e` |
+
+**The gate is now enforcing, not advisory.** Branch protection on `main` requires the
+`typecheck + test` check, with `strict: true` (branch must be up to date, which is the
+direct answer to `main` moving under a session mid-PR) and `enforce_admins: true`.
+
+Proven, not assumed. A real push of an empty commit straight at `main` was rejected:
+
+```
+remote: error: GH006: Protected branch update failed for refs/heads/main.
+remote: - Required status check "typecheck + test" is expected.
+```
+
+A first attempt used `git push --dry-run` and reported success — dry-run never reaches
+the server's receive-time checks, so "would be allowed" and "was never evaluated" print
+identically. That result was discarded rather than counted.
+
+**Dependency vulnerabilities: 10 → 0** (`npm audit`). Lockfile-only; `package.json` is
+byte-identical, no `--force`, no semver-major bump. `npm audit fix` cleared 9. The tenth
+could not be fixed that way: it kept printing "fix available via `npm audit fix`" while
+changing nothing, because `tsx@4.21.0` pinned `esbuild@0.27.3`. `npm update tsx`
+(4.21.0 → 4.23.11) resolved `esbuild@0.28.1`. **The advisory covers `0.27.3 - 0.28.0`,
+so landing on `0.28.0` would have looked like an upgrade and fixed nothing** — "newer"
+and "patched" are different claims.
+
+**`npm audit` is gated separately, on purpose** (`.github/workflows/audit.yml`). It
+queries the registry at run time, so an advisory published overnight can red a
+previously-green PR with no code change. Blocking unrelated work at an arbitrary moment
+is how a gate stops being read. It runs on PRs touching `package.json`/`package-lock.json`,
+weekly for drift, and on demand. `--audit-level=high` fails the run; the step before
+prints the full report unfiltered. Verified against a known answer: clean repo exit 0,
+scratch project with `lodash@4.17.11` exit 1.
+
+**Deploys are now verifiable.** `/health` previously returned
+`{"status":"ok","rejectedEmails":N}` — no build identifier. Railway auto-deploys from
+`main`, so the only post-merge signal was a `200` that was equally true before the merge.
+It now returns `commit` and `startedAt`. Confirmed end to end: merge commit `2550b96`,
+production `/health` returned `"commit":"2550b96"`. First deploy in this repo verified
+rather than inferred.
+
+That also settled an open assumption — `RAILWAY_GIT_COMMIT_SHA` is the correct variable
+name. It was checkable only because the field returns a literal `"unknown"` on failure
+instead of being omitted; a wrong guess stayed visible rather than going silent.
+
+**Coverage gap closed:** `tsconfig.json` was `include: ["src"]`, so `npm run typecheck`
+never looked at `scripts/` — 91 files checked, zero from `scripts/`, confirmed by
+planting a type error there that passed at exit 0. Now 94 files. `scripts/plan-gate.ts`
+is executed code with its own test file and had been unguarded.
+
+**Housekeeping:** 15 merged branches deleted (all verified as ancestors of `main` first,
+SHAs recorded). Suite 315 → 351. Five branches remain, four genuinely unmerged.
+
+## Prompt for Next Session
+
+```
+Project root: /Users/alejandroguillen/Projects/gig-lead-responder
+
+Run the "First 60 Seconds: Peer-Session Check" at the top of HANDOFF.md before any edit.
+main was defe03e when this was written; this handoff commit sits on top of it, so
+check `git log -1` rather than trusting that SHA. CI (typecheck + test) is a REQUIRED
+status check with strict and enforce_admins on, so you cannot push to main directly —
+branch, PR, let CI pass, merge.
+
+VERIFY A DEPLOY LIKE THIS (new as of 2026-08-08):
+  curl -s https://gig-lead-responder-production.up.railway.app/health | jq -r .commit
+  It must equal the merged SHA. "unknown" means the build identifier broke.
+
+PRIMARY — carried forward, still open:
+After Anthropic API credits are added, process only the 13 real received leads whose
+`full_draft` is NULL. Unset the inherited ANTHROPIC_API_KEY so dotenv loads the current
+`.env` value, and keep DRY_RUN=true and AUTO_SEND_ENABLED=false. Isolate
+clarification-mode generation failures and do not send email or SMS.
+Relevant files: data/leads.db, .env, src/run-pipeline.ts, public/dashboard.html.
+
+OPEN TODOS (nothing p1 outstanding):
+  083 p2  src/error-middleware.test.ts:155-156 asserts 200 on /dashboard.html as proof
+          auth works, but runs with DASHBOARD_USER/PASS unset and takes the dev bypass
+          at src/auth.ts:118-126. "Auth passed" and "auth was disabled" are identical.
+          Not a live hole. Its acceptance criteria require DEMONSTRATING the fixed test
+          goes red when sessionAuth is removed — do not skip that step.
+  082 p2  PricingResult rehydrated from the DB with one-field validation, then cast.
+          Also the home of the unenforced generate.ts:374 invariant.
+  081 p2  advisor tool — Opus on generate/verify.
+  085 p3  no linter configured; decide adopt-or-not and record the decision either way.
+
+Do not touch data/leads.db or .env.
+```
+
+## Three Questions
+
+1. **Hardest implementation decision in this session?** How to wire `npm audit` into CI.
+   The obvious move was adding a step to `ci.yml`, which would have made it a required
+   check on every PR. I rejected that: `npm audit` queries the registry at run time, so
+   its verdict depends on what advisories exist today rather than on anything in the
+   repo, and an advisory published overnight would red a previously-green PR with no code
+   change. For a solo maintainer that means being blocked at an arbitrary moment on work
+   unrelated to the finding — the precise mechanism by which a gate stops being read. A
+   separate workflow, triggered on lockfile changes plus a weekly schedule, keeps the
+   signal and drops the false blocking. The reasoning is written into the file so the
+   next person does not "simplify" it back into `ci.yml`.
+2. **What did you consider changing but left alone, and why?** The `generate.ts:374`
+   invariant — still unenforced, deliberately left to `todos/082` rather than folded into
+   an unrelated PR. `npm audit` at `--audit-level=moderate` rather than `high`; rejected
+   because moderate advisories in dev tooling are a steady trickle and would turn the
+   gate into noise. And `enforce_admins` was initially set to `false` as a safety valve
+   before I reversed it — a bypassable gate for a sole admin reproduces the exact failure
+   this session was closing.
+3. **Least confident about going into review?** That the CI gate covers what matters, as
+   opposed to what is easy to check. It runs `tsc` and the test suite. It does not run a
+   linter (`085`), does not gate on `npm audit` for most PRs by design, and — the real
+   gap — **nothing verifies the deployed app actually works.** `/health` returning the
+   right SHA proves the right code shipped; it does not prove the pipeline processes a
+   lead correctly. 351 tests pass against a suite that has never sent a real message.
+   Separately: `--audit-level=high` means moderate advisories now accumulate silently.
+   That is a deliberate trade, but it is the kind of threshold that gets set once and
+   never revisited, so it is worth a look if the moderate count ever climbs.
