@@ -59,7 +59,6 @@ describe("shapeLead — done_reason", () => {
 
   it("returns null when done_reason is undefined", () => {
     const lead = makeLeadRecord();
-    // @ts-expect-error — simulate missing field from old DB records
     delete (lead as any).done_reason;
     const shaped = shapeLead(lead);
     assert.equal(shaped.done_reason, null);
