@@ -123,7 +123,7 @@ function createSpyDeps() {
 
   const deps: AutoSendDeps = {
     updateLead: (id, fields) => { updateLeadCalls.push({ id, fields }); },
-    sendSms: async (_config, msg) => { smsCalls.push(msg); },
+    sendSms: async (_config, msg) => { smsCalls.push(msg); return { success: true }; },
     logLead: (entry) => { logLeadCalls.push(entry); },
     dispatchReply: async () => {
       dispatchReplyCalled = true;

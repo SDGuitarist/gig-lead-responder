@@ -38,13 +38,30 @@ export async function processLead(
   const startTime = Date.now();
 
   // 1. Validate source (SPF/DKIM mandatory — reject when missing or failed)
-  const validation = validateSource(msg.from, msg.authenticationResults);
+  const validation = validateSource(
+    msg.from,
+    msg.authenticationResults,
+    msg.subject,
+    msg.bodyText || msg.bodyHtml
+  );
   if (!validation.valid) {
     console.warn(`[source-validator] REJECTED ${msg.from}: ${validation.reason}`);
     incrementRejectedEmailCount();
     return;
   }
   const platform = validation.platform!;
+
+  // 1b. Genuine mail, but a reply to an existing conversation rather than a new
+  // lead. Yelp sends both from the same address, so this cannot be done by
+  // sender. Do NOT count these as rejections — a reply is not a failure, and
+  // conflating them is what hid the Yelp outage in the first place.
+  // Consuming replies (auto-stop follow-ups) is roadmap #3, not wired up yet.
+  if (validation.kind === "reply") {
+    console.log(
+      `[source-validator] REPLY from ${msg.from} on ${platform} — not a new lead, skipping lead pipeline`
+    );
+    return;
+  }
 
   // 2. Dedup
   if (isProcessed(msg.id)) {
@@ -230,7 +247,7 @@ async function dispatchReply(
 /** Side-effect callbacks — injectable for testing. */
 export interface AutoSendDeps {
   updateLead: (id: number, fields: Record<string, unknown>) => void;
-  sendSms: (config: AutomationConfig, msg: string) => Promise<void>;
+  sendSms: (config: AutomationConfig, msg: string) => Promise<{ success: boolean; error?: string }>;
   logLead: (entry: LeadLogEntry) => void;
   dispatchReply: (
     lead: ParsedLead, text: string, auth: OAuth2Client,

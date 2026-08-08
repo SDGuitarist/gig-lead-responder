@@ -1,4 +1,4 @@
-import type { PipelineOutput, Format } from "../types.js";
+import type { PipelineOutput, Format, RecommendedFormat } from "../types.js";
 import type { ParsedLead, AutoSendResult, HoldResult, RouterResult } from "./types.js";
 import { guessFormatFamily } from "../capabilities.js";
 
@@ -14,7 +14,9 @@ const FORMAT_FAMILIES: Record<string, readonly Format[]> = {
   sourced: ["sourced_cultural_solo", "sourced_cultural_duo", "sourced_cultural_trio", "sourced_cultural_quartet", "sourced_cultural_5piece"],
 };
 
-function getFormatFamily(format: Format): string {
+// Accepts RecommendedFormat: clarification-first leads carry "unresolved", which
+// falls through to "unknown" below. The function is already total over any string.
+function getFormatFamily(format: RecommendedFormat): string {
   for (const [family, formats] of Object.entries(FORMAT_FAMILIES)) {
     if ((formats as readonly string[]).includes(format)) return family;
   }

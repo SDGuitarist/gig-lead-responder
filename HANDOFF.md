@@ -4,6 +4,18 @@
 **Branch:** `main`
 **Phase:** Real-lead intake completed locally; partial analysis complete and the remaining backlog is blocked by exhausted Anthropic API credits.
 
+## First 60 Seconds: Peer-Session Check
+
+Sessions run in parallel here. On 2026-08-08 one cut a branch at `e339340` while another
+landed `197f118` + `4ff91c6` (Yelp credential-leak fix) on `main`; it found out at merge time.
+
+1. **Before cutting a branch:** `git fetch origin && git log --oneline HEAD..origin/main`.
+   Fetch first — without it, "up to date" and "stale" both print nothing. Any line = a peer landed work.
+2. **Before editing:** `git status --short`. A dirty tree you did not dirty is a live peer; read
+   every diff before touching it (global CLAUDE.md → "Parallel Sessions on One Repo").
+3. **After merging `main` into your branch:** re-run `npm run typecheck && npm test` locally — a
+   clean merge means no textual conflict, not that the combination works. CI only runs once you push.
+
 > **Reconciliation note (2026-06-25):** Phase 2 was implemented and merged on
 > 2026-05-31 but the HANDOFF/plan/compound all drifted, leaving a false
 > impression that Phase 2 hadn't started. Reconciled from verified git history:
@@ -274,24 +286,33 @@ accumulate in the first place.
 ```
 Project root: /Users/alejandroguillen/Projects/gig-lead-responder
 
-Branch fix/typecheck-errors is pushed (54d90bf) and green: 0 tsc errors, 315/315
-tests. It is NOT merged, and main still fails tsc. Do these in order:
+Run the "First 60 Seconds: Peer-Session Check" at the top of HANDOFF.md before any edit.
+Two sessions worked this repo on 2026-08-07/08 and both streams are recorded below.
 
-1. Open a PR for fix/typecheck-errors and merge it. Until it lands, the typecheck
-   gate added in 54d90bf protects nothing.
-2. Wire the gate: add a .github/workflows CI job running `npm run typecheck` and
-   `npm test` on PRs. An unenforced gate is why these 10 errors accumulated.
-3. File a todo for the persistence-boundary hole the review found:
-   src/twilio-webhook.ts:152 rehydrates a PricingResult from the DB validating
-   only `typeof rawP.quote_price === "number"`, then feeds it to runEditPipeline.
-   A corrupt pricing_json with format:"unresolved" + budget.tier:"no_viable_scope"
-   reaches findMinFloor, where RATE_TABLES["unresolved"] is undefined and
-   Object.entries throws. Pre-existing; fails loud, not silent. Do NOT fold this
-   into the typecheck branch.
-4. Fix src/error-middleware.test.ts:155-156 — it asserts a 200 on /dashboard.html
-   as proof auth is intact, but runs with DASHBOARD_USER/PASS unset and so takes
-   the dev bypass at src/auth.ts:118-126. "Auth passed" and "auth was disabled"
-   produce the same 200; the test cannot detect its own bypass.
+PRIMARY (from the lead-processing stream):
+After Anthropic API credits are added, process only the 13 real received leads whose
+`full_draft` is NULL. Unset the inherited ANTHROPIC_API_KEY so dotenv loads the current
+`.env` value, and keep DRY_RUN=true and AUTO_SEND_ENABLED=false. Isolate
+clarification-mode generation failures and do not send email or SMS.
+Relevant files: data/leads.db, .env, src/run-pipeline.ts, public/dashboard.html.
+
+TYPECHECK STREAM — items 1-3 are DONE as of 2026-08-08, do not redo them:
+  [x] 1. fix/typecheck-errors merged (PR #23, f478239). main typechecks clean.
+  [x] 2. CI gate wired (PR #24, 9cfa5f8) — .github/workflows/ci.yml runs typecheck +
+         test on PRs and pushes to main. Branch protection on main now REQUIRES the
+         "typecheck + test" check, with strict + enforce_admins both on. Verified by
+         a real rejected push: "GH006: Protected branch update failed".
+  [x] 3. todos/082 filed (PricingResult rehydration unvalidated at the DB boundary).
+  [x] BONUS. tsconfig now typechecks scripts/ too (PR #25, 400bb1a) — it previously
+         passed a planted error in scripts/ at exit 0.
+  [ ] 4. STILL OPEN: src/error-middleware.test.ts:155-156 asserts a 200 on
+         /dashboard.html as proof auth is intact, but runs with DASHBOARD_USER/PASS
+         unset and so takes the dev bypass at src/auth.ts:118-126. "Auth passed" and
+         "auth was disabled" produce the same 200; the test cannot detect its own
+         bypass. Not a live hole (src/server.ts:18-21 hard-fails in production).
+
+Also open, not urgent: `npm audit` reports 10 vulnerabilities (1 low, 5 moderate,
+4 high), deliberately not gated in CI. No linter is configured.
 
 Do not touch data/leads.db or .env.
 ```

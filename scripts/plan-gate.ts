@@ -269,8 +269,20 @@ export function checkPlanGate(planPath: string): PlanGateResult {
   const planDir = process.cwd();
   const { contract, errors } = validateContract(parsed, planDir);
 
-  if (errors.length > 0) {
-    return { status: "invalid", reasons: errors, contract: null };
+  // validateContract only returns a null contract alongside at least one error,
+  // so the second clause is a boundary check rather than an expected path: it
+  // fires only if a future edit adds a null-contract return with no error text.
+  // Checking it explicitly beats asserting non-null, which would fail with a
+  // confusing property-access error instead of saying what went wrong.
+  if (errors.length > 0 || contract === null) {
+    return {
+      status: "invalid",
+      reasons:
+        errors.length > 0
+          ? errors
+          : ["Contract validation returned no contract and no error."],
+      contract: null,
+    };
   }
 
   // Determine status
