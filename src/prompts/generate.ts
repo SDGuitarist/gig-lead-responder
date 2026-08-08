@@ -1,6 +1,6 @@
 import { RATE_TABLES, type TierRates } from "../data/rates.js";
 import { VOICE_REFERENCES } from "../data/voice-references.js";
-import { CONCERN_4PIECE_ALT, CONCERN_FULL_ENSEMBLE, GUT_CHECK_KEYS, GUT_CHECK_THRESHOLD, GUT_CHECK_TOTAL, type Classification, type PricingResult } from "../types.js";
+import { CONCERN_4PIECE_ALT, CONCERN_FULL_ENSEMBLE, GUT_CHECK_KEYS, GUT_CHECK_THRESHOLD, GUT_CHECK_TOTAL, type Classification, type Format, type PricingResult } from "../types.js";
 import { sanitizeClassification, wrapUntrustedData, wrapVoiceReference } from "../utils/sanitize.js";
 
 /**
@@ -371,7 +371,16 @@ Word count: 100-125 words.
   }
 
   // no_viable_scope
-  const { min_floor, min_duration } = findMinFloor(pricing.format, pricing.tier_key);
+  //
+  // INVARIANT: pricing.format is "unresolved" ONLY on clarification-first results
+  // (run-pipeline.ts createClarificationPricingResult) and hard-gate declines
+  // (run-pipeline.ts:137-146). Both hardcode budget.tier === "none", so the guard on
+  // line 342 above already returned; the one_question guard at the top of this
+  // function returns earlier still. detectBudgetGap is never called for them
+  // (run-pipeline.ts:197, :210-213), and lookupPrice throws on "unresolved"
+  // (price.ts:57), so every priced result carries a real Format.
+  // Reaching here therefore implies format is a real Format.
+  const { min_floor, min_duration } = findMinFloor(pricing.format as Format, pricing.tier_key);
   const gigsaladClose = classification.platform === "gigsalad"
     ? `\nGigSalad close: End with "If your plans change, you can find me here on GigSalad." Do NOT include phone, email, or "reach out."`
     : "";
@@ -423,7 +432,7 @@ Present ONE total number ($${total}) to the client. Do NOT itemize the travel fe
  * Used by no_viable_scope mode to state the absolute minimum.
  */
 function findMinFloor(
-  format: PricingResult["format"],
+  format: Format,
   tier_key: string,
 ): { min_floor: number; min_duration: number } {
   const rateTable = RATE_TABLES[format];
