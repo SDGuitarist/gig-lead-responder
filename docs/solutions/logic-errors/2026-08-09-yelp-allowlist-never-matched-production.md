@@ -211,5 +211,9 @@ this outage. **Different failures must read differently.**
 - **Still open:** the five other Yelp conversations were never ingested and nothing
   will retroactively pull them in. The Bash behaviour is unknown — if it resembles Yelp
   (email-visible replies) roadmap #1 expands reply coverage; if it resembles GigSalad
-  (on-platform only) it does not. `form-submission@squarespace.com` has zero mail in the
-  mailbox despite a parser existing for it, so that source's status is unresolved.
+  (on-platform only) it does not. **CORRECTED 2026-08-09: the Squarespace source is
+  fine.** This doc originally reported it as having zero mail; the real sender is
+  `form-submission@squarespace.**info**`, which the allowlist already accepts. That
+  claim came from searching a single spelling and treating the resulting zero as
+  absence — a self-inflicted FC85, and a reminder that a control-verified negative
+  only covers the exact string searched.
