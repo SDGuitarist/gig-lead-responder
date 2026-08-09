@@ -39,7 +39,7 @@ platform named in the dependency it does not exist at all.**
 |---|---|---|
 | **Yelp** | **YES — explicit, machine-readable** | Dedicated `RE:` notification per reply |
 | **GigSalad** | **NO** | All mail is one-way notification; conversation is on-platform |
-| **Squarespace** | N/A — zero mail exists | Parser exists in code, no matching mail |
+| **Squarespace** | ~~zero mail exists~~ **CORRECTED 2026-08-09 — see §3** | Working. Real sender is `squarespace.info`, not `.com` |
 | The Bash / WeddingWire | Not yet integrated (roadmap #1) | Unknown |
 
 **Yelp is the only source that can drive reply detection today**, and it was not the
@@ -133,12 +133,27 @@ no thread to check and no inbound webhook to fire.
   hear from you" mean Alex has *not* responded. Never treat these as replies. They are
   the opposite, and their wording is close enough to mislead a naive matcher.
 
-## 3. Squarespace — parser with no traffic
+## 3. Squarespace — ~~parser with no traffic~~ CORRECTED 2026-08-09: it works
 
-`from:form-submission@squarespace.com` returns `{}` (verified against control). A
-parser exists at `src/automation/parsers/squarespace.ts` with no corresponding mail.
-Either the sender pattern changed, website leads route elsewhere, or none have arrived.
-Worth resolving before counting website leads as a covered source.
+> **This section was WRONG when written, and the error is instructive enough to leave
+> visible.** The original claim: "`from:form-submission@squarespace.com` returns `{}`
+> (verified against control), so a parser exists with no corresponding mail."
+>
+> **The real sender is `form-submission@squarespace.info` — `.info`, not `.com`.** The
+> allowlist is `/^(form-submission|noreply)@squarespace\.(com|info)$/i` and accepts it.
+> Squarespace has always worked; it is the source of 11 of the 13 undrafted leads in
+> `data/leads.db`.
+>
+> **How the error was made:** I searched one spelling of the sender, got a genuine zero,
+> and reported "no mail exists" — when the allowlist's own `(com|info)` alternation was
+> sitting in the code I had just read, naming the other domain. The control query proved
+> the *search* worked; it could not prove I had searched for the right thing. **A
+> verified-negative still only covers the string you typed.** Same family as FC85
+> (searched negative treated as durable fact), self-inflicted four days after documenting
+> it.
+>
+> Found by tracing where the 13 undrafted leads actually came from, not by re-reading
+> this doc.
 
 ## 4. Two defects found while surveying
 
@@ -195,7 +210,7 @@ Any fixture must be redacted. Raw samples were deliberately not written to this 
 |---|---|---|---|
 | Yelp | 6 | 3 | One had 3 replies in 29 min |
 | GigSalad | 9 | 0 | Structurally impossible via email |
-| Squarespace | 0 | 0 | No mail at all |
+| Squarespace | ~~0~~ **working** | n/a | CORRECTED — sender is `.info`; 11 of 13 undrafted leads came via this path |
 
 Message ids and conversation tokens were left out on purpose. Re-pull from Gmail with
 `from:yelp.com` when building fixtures, and redact before committing.
