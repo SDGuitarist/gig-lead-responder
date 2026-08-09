@@ -421,7 +421,11 @@ is executed code with its own test file and had been unguarded.
 **Housekeeping:** 15 merged branches deleted (all verified as ancestors of `main` first,
 SHAs recorded). Suite 315 → 351. Five branches remain, four genuinely unmerged.
 
-## Prompt for Next Session
+## Prompt for Next Session — SUPERSEDED 2026-08-09, DO NOT RUN
+
+> The PRIMARY item (13 leads) and all four open todos are still live and have been
+> carried forward verbatim into the current **Prompt for Next Session** at the bottom
+> of this file. Kept here for the record only.
 
 ```
 Project root: /Users/alejandroguillen/Projects/gig-lead-responder
@@ -485,3 +489,69 @@ Do not touch data/leads.db or .env.
    Separately: `--audit-level=high` means moderate advisories now accumulate silently.
    That is a deliberate trade, but it is the kind of threshold that gets set once and
    never revisited, so it is worth a look if the moderate count ever climbs.
+
+---
+
+### 2026-08-09 compound phase — Yelp allowlist capture bug
+
+**Shipped:** `695b62a` (PR #33) — `docs/solutions/logic-errors/2026-08-09-yelp-allowlist-never-matched-production.md`, closing the cycle opened by `197f118` + `4ff91c6` on 2026-08-07.
+
+**What the cycle was.** While pulling real Gmail samples to build a reply parser (roadmap #3), the survey found that `source-validator.ts` allowed `/^(no-reply|biz-alerts)@yelp\.com$/i` while real Yelp mail arrives from `reply+<32 hex>@messaging.yelp.com`. Anchored pattern, so no near-miss: **every Yelp lead had been rejected as "Unknown sender" for months.** Six conversations in the mailbox, three with client replies, none ingested.
+
+**The part that mattered more than the bug.** Fixing the allowlist would have armed `parseYelpEmail`, which had never executed and had no tests. Audited against a real email first, it captured Yelp's passwordless login URL — a bearer credential — into `portalUrl` **and** `rawText`, the field sent to the Claude API. Both fixed before the allowlist change merged.
+
+**Process deviation, recorded not endorsed:** no plan phase and no `/workflows:review` phase this cycle. Verification was 342/342 tests (11 new, proven to fail against the pre-fix parser), a typecheck error set proven byte-identical to `main`, and CI green. **There are no review-agent finding counts — do not read their absence as "review found nothing."**
+
+**Deliberately NOT done:** `gigs@gigsalad.com` was not added to the allowlist. Accepting it without booked-detection turns every payment receipt into a phantom lead.
+
+### Three Questions — compound phase (2026-08-09)
+
+1. **Hardest pattern to extract?** Separating "the allowlist regex was wrong" from the reusable lesson. The typo is not knowledge. The reusable part is that the broken gate was *shielding* an unreviewed code path, so the fix and the audit behind it had to ship together. That only surfaced after tracing what `validateSource` passing actually triggers downstream.
+2. **What did you consider documenting but left out?** A redesign making `rejectedEmailCount` persistent and per-platform. Left out because a per-platform counter still cannot distinguish "no Yelp leads arrived" from "Yelp leads were rejected" — the honest instrument is a *positive* liveness assertion (each configured platform has ingested ≥1 lead in N days), and that deserves its own cycle.
+3. **Least confident about?** **The fix has never processed a real Yelp email.** Everything green is fixtures. `YelpPortalClient.fetchLeadDetails()` is next in the chain and unexercised by exactly the mechanism that left the parser untested — expect the next defect there. Business impact also remains unmeasured.
+
+## Prompt for Next Session
+
+```
+Project root: /Users/alejandroguillen/Projects/gig-lead-responder
+
+Run the "First 60 Seconds: Peer-Session Check" at the top of HANDOFF.md before any edit.
+Check `git log -1` rather than trusting any SHA written here. CI (typecheck + test) is a
+REQUIRED status check with strict and enforce_admins on, so you cannot push to main
+directly — branch, PR, let CI pass, merge.
+
+VERIFY A DEPLOY LIKE THIS:
+  curl -s https://gig-lead-responder-production.up.railway.app/health | jq -r .commit
+  It must equal the merged SHA. "unknown" means the build identifier broke.
+  NOTE: `rejectedEmails` in that same response is in-memory and resets on restart. It
+  cannot distinguish a dead channel from a healthy one. Never read it as evidence.
+
+PRIMARY — carried forward, still open:
+After Anthropic API credits are added, process only the 13 real received leads whose
+`full_draft` is NULL. Unset the inherited ANTHROPIC_API_KEY so dotenv loads the current
+`.env` value, and keep DRY_RUN=true and AUTO_SEND_ENABLED=false. Isolate
+clarification-mode generation failures and do not send email or SMS.
+Relevant files: data/leads.db, .env, src/run-pipeline.ts, public/dashboard.html.
+(Alex's standing rule is to NOT buy usage credits — confirm with him before assuming
+this item is unblocked.)
+
+NEW — first real Yelp lead is the open verification:
+The 2026-08-07 Yelp fix has never processed a real Yelp email. When one arrives, watch
+the whole chain: poller → validateSource (expect kind:"lead") → parseYelpEmail →
+YelpPortalClient.fetchLeadDetails() → pipeline. fetchLeadDetails is the next unexercised
+stage; treat it as unreviewed. Read
+docs/solutions/logic-errors/2026-08-09-yelp-allowlist-never-matched-production.md first.
+
+OPEN TODOS (nothing p1 outstanding):
+  083 p2  src/error-middleware.test.ts:155-156 asserts 200 on /dashboard.html as proof
+          auth works, but runs with DASHBOARD_USER/PASS unset and takes the dev bypass
+          at src/auth.ts:118-126. "Auth passed" and "auth was disabled" are identical.
+          Not a live hole. Its acceptance criteria require DEMONSTRATING the fixed test
+          goes red when sessionAuth is removed — do not skip that step.
+  082 p2  PricingResult rehydrated from the DB with one-field validation, then cast.
+          Also the home of the unenforced generate.ts:374 invariant.
+  081 p2  advisor tool — Opus on generate/verify.
+  085 p3  no linter configured; decide adopt-or-not and record the decision either way.
+
+Do not touch data/leads.db or .env.
+```
