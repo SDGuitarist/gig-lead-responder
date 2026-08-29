@@ -84,8 +84,8 @@ export function postCheckDrafts(
     });
   };
 
-  let cleanedFull = fixEmDashes(fullDraft);
-  let cleanedCompressed = fixEmDashes(compressedDraft);
+  const cleanedFull = fixEmDashes(fullDraft);
+  const cleanedCompressed = fixEmDashes(compressedDraft);
 
   // --- Check: banned phrases ---
   for (const phrase of BANNED_PHRASES) {
