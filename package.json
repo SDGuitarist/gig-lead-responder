@@ -12,7 +12,8 @@
     "serve": "tsx src/server.ts",
     "test": "node --import tsx --test src/*.test.ts scripts/*.test.ts",
     "typecheck": "tsc --noEmit",
-    "plan:check": "tsx scripts/plan-gate.ts"
+    "plan:check": "tsx scripts/plan-gate.ts",
+    "lint": "eslint ."
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.39.0",
@@ -28,9 +29,13 @@
     "twilio": "^5.12.2"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@types/better-sqlite3": "^7.6.13",
     "@types/cookie-parser": "^1.4.10",
     "@types/express": "^5.0.0",
-    "typescript": "^5.7.0"
+    "eslint": "^10.9.1",
+    "globals": "^17.11.0",
+    "typescript": "^5.7.0",
+    "typescript-eslint": "^8.68.0"
   }
 }

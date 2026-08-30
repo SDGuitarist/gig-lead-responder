@@ -72,7 +72,7 @@ export async function processLead(
   console.log(`\nProcessing ${platform} lead (message: ${msg.id})`);
 
   // 3. Parse
-  let lead: ParsedLead = parseLeadEmail(msg, platform);
+  const lead: ParsedLead = parseLeadEmail(msg, platform);
 
   // 3b. Persist to SQLite (so lead appears on dashboard immediately)
   const dbLead = insertLead({

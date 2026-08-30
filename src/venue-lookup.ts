@@ -29,6 +29,7 @@ export async function lookupVenueContext(venueName: string): Promise<VenueLookup
     return { type: "error", reason: "invalid input: venue name too long" };
   }
   // Reject control characters (but allow normal unicode like accented letters)
+  // eslint-disable-next-line no-control-regex -- matching control chars is the point here
   if (/[\x00-\x1f\x7f]/.test(venueName)) {
     return { type: "error", reason: "invalid input: control characters" };
   }

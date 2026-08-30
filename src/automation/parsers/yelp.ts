@@ -138,7 +138,7 @@ function normalizeLine(line: string): string {
     .replace(ANY_URL, "")
     .replace(/\[([^\]]*)\]\(\s*\)/g, "$1") // markdown link whose URL we just removed
     .replace(/\[([^\]]*)\]\([^)]*\)/g, "$1") // any remaining markdown link
-    .replace(/^[\s|>*_#\-]+/, "")
+    .replace(/^[\s|>*_#-]+/, "")
     .replace(/[\s|*_]+$/, "")
     .trim();
 }
