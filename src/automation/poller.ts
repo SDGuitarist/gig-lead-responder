@@ -55,6 +55,9 @@ export function resolvePollerDryRun(_config: AutomationConfig): boolean {
 
 /** Seconds of overlap kept behind the cursor; the dedup table drops repeats. */
 const CURSOR_OVERLAP_S = 300;
+const MAX_ATTEMPTS = 3;
+/** Gmail id -> failed attempts so far; in memory, so a restart allows 3 more. */
+const failedAttempts = new Map<string, number>();
 
 export interface PollDeps {
   fetchSince: (afterTs: number) => Promise<GmailMessage[]>;
@@ -84,15 +87,28 @@ export async function pollOnce(deps: PollDeps): Promise<void> {
   if (messages.length > 0) {
     console.log(`[gmail-poller] Found ${messages.length} new message(s)`);
   }
+  // A failed lead holds the cursor so the next poll retries it; finished ones
+  // are skipped by the done-list. After MAX_ATTEMPTS we give up on it.
+  let hold = false;
   for (const m of messages) {
     try {
       await deps.handle(m);
+      failedAttempts.delete(m.id);
     } catch (err) {
-      console.error(`[gmail-poller] Error processing ${m.id}:`, err instanceof Error ? err.message : err);
+      const attempts = (failedAttempts.get(m.id) ?? 0) + 1;
+      const reason = err instanceof Error ? err.message : String(err);
+      if (attempts >= MAX_ATTEMPTS) {
+        failedAttempts.delete(m.id);
+        console.error(`[gmail-poller] GAVE UP on ${m.id} after ${attempts} attempts: ${reason}`);
+      } else {
+        failedAttempts.set(m.id, attempts);
+        hold = true;
+        console.error(`[gmail-poller] Error processing ${m.id} (attempt ${attempts}, will retry): ${reason}`);
+      }
     }
   }
 
-  savePollSuccess(startedS - CURSOR_OVERLAP_S, new Date(startedMs).toISOString());
+  savePollSuccess(hold ? cursor : startedS - CURSOR_OVERLAP_S, new Date(startedMs).toISOString());
 }
 
 function isAuthError(msg: string): boolean {
