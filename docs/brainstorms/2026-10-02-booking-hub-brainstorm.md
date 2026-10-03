@@ -157,3 +157,8 @@ None.
   whether Playwright logins survive their bot checks. If not, auto-send shrinks to email/form
   leads and the portals get "draft + one-tap approve." Second: reading iMessages needs Full Disk
   Access on the server Mac, and macOS privacy rules have blocked reads before.
+
+## Feed-Forward
+
+Same content as `## Three Questions` above (this repo's CLAUDE.md names the section that way):
+hardest decision = Q1, rejected alternatives = Q2, least confident = Q3.
