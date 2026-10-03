@@ -2,7 +2,7 @@
 
 **Date:** 2026-10-02
 **Branch:** `docs/booking-hub-brainstorm` (docs only, unpushed, not merged)
-**Phase:** Booking hub plan. Codex round 1 **NO-GO** and round 2 **NO-GO #2**, both recorded in `docs/reviews/`. Round-2 fixes applied. **Automatic review iteration has STOPPED.** No round-3 prompt exists. Next step is Alex's decision (below). No work phase has started.
+**Phase:** Booking hub plan. Codex round 1 **NO-GO** and round 2 **NO-GO #2**, both recorded in `docs/reviews/`. Round-2 fixes applied. **Automatic review iteration has STOPPED.** No round-3 prompt exists. **Alex chose to start Phase 0 (2026-10-03)**; next session begins it (prompt below).
 
 ## 2026-10-02 — Booking hub (supersedes "Current State" below for what to do next)
 
@@ -30,35 +30,39 @@ payments and COIs, run on his MacBook and drafted with Claude Max.
 - **`npm test -- --test-name-pattern=X` runs all tests and exits 0 even when X matches
   nothing**, so name-filtered test runs prove nothing until `test:match` (step 0.1) exists.
 
-### Decision for Alex (review loop stopped after 2 NO-GOs)
+### Decision (Alex, 2026-10-03): start Phase 0. No Codex round 3.
 
-**Recommendation: do not run a round 3.** Start Phase 0 instead, which produces evidence.
-1. **What a round 3 would settle:** only whether the three round-2 fixes are written correctly
-   (one canonical string, Chrome fill-only, evidence labelling). These are document fixes, and
-   each has a named test.
-2. **Why execution settles the rest better:** every remaining risk is runtime behaviour that no
-   review can decide:
-   - G1: whether Gmail keeps the Message-ID and finds it with search
-   - C1: whether Railway is stopped and its token dead
-   - S2: GigSalad's email relay
-   - S3: iMessage read-back
-   - S6: the MacBook overnight
-   - FileVault restarts
-
-   Phase 0 runs these.
-3. **If round 3 ran and came back NO-GO:** the hard cap fires, with no round 4, and execution would
-   still be the next step.
-
-To run a round 3 anyway, write `Round 3 authorized by Alejandro: YES`.
+The review loop stopped after 2 NO-GOs (both in `docs/reviews/`). Alex chose execution over a
+round 3, because every remaining risk (G1, C1, S2, S3, S6, FileVault restarts) is runtime
+behaviour that only Phase 0 can settle. The planning branch `docs/booking-hub-brainstorm` is
+pushed to origin and is not merged into `main`.
 
 ### Prompt for Next Session
 
 ```
-Read HANDOFF.md (2026-10-02 section) and docs/plans/2026-10-02-feat-hub-phase0-lead-replies-plan.md.
-If Alex chose to start Phase 0: run /workflows:work on that plan, Phase 0 only, starting with 0.1 (test:match),
-one commit per item, stopping at every step that needs Alex's yes (0.2 steps 2-3, S2, Full Disk Access).
-If Alex wrote "Round 3 authorized by Alejandro: YES": generate a round-3 Codex prompt citing both prior verdicts.
-Otherwise: ask Alex which.
+Work in /Users/alejandroguillen/Projects/gig-lead-responder.
+FIRST gate (stop and ask Alex if anything differs):
+  pwd
+  git fetch origin
+  git branch --show-current                      # expect: docs/booking-hub-brainstorm
+  git rev-parse HEAD origin/docs/booking-hub-brainstorm   # expect: the two SHAs match
+  git status --short                             # expect: clean
+  git log --oneline HEAD..origin/main            # expect: empty (else a peer landed work on main; ask Alex)
+Read: HANDOFF.md (2026-10-02 section), CLAUDE.md,
+  docs/plans/2026-10-02-feat-hub-phase0-lead-replies-plan.md (Phase 0 only),
+  docs/research/2026-10-02-booking-hub/spikes.md, docs/plans/2026-10-02-booking-hub-roadmap.md.
+
+Task: Alex chose to start Phase 0 (2026-10-03). No Codex round 3.
+1. Create branch feat/hub-phase0 from docs/booking-hub-brainstorm.
+2. Run /workflows:work on the plan, PHASE 0 ONLY, in order: 0.1 test:match first, then 0.2 to 0.7.
+   One concern per commit (~50-100 lines), failing test first. Verify with npm run test:match, never with
+   npm test -- --test-name-pattern (that form passes on zero matches).
+3. Record every spike and known-answer result in spikes.md with committed evidence. Nothing counts
+   as "recorded" until it is committed.
+STOP and ask Alex before: stopping Railway or revoking its Gmail grant (0.2 steps 2-3); any real send
+(S2, G1); granting Full Disk Access; moving the ~/Desktop extraction files into ~/Data (0.5); any change to
+Railway, .env or production data. Run claude -p ONLY with the plan's section 1.6 allowlisted environment
+(this shell has ANTHROPIC_API_KEY set). Do not start Module 1. Update HANDOFF.md before stopping.
 ```
 
 ### Three Questions
