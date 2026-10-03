@@ -2,7 +2,7 @@
 
 **Date:** 2026-10-02
 **Branch:** `docs/booking-hub-brainstorm` (docs only, unpushed, not merged)
-**Phase:** Booking hub: brainstorm → refine → plan → deepen DONE. **Next: Codex plan review, round 1.** No work phase has started.
+**Phase:** Booking hub plan. Codex round 1 = **NO-GO** (recorded in `docs/reviews/2026-10-02-booking-hub-plan-codex-round1.md`); revision committed at `43d49e8`. **Next: Codex plan review, round 2** (the prompt is in the plan's "Codex Plan-Review Handoff" section). No work phase has started. **Stop rule:** a 2nd NO-GO stops automatic iteration; round 3 needs `Round 3 authorized by Alejandro: YES`.
 
 ## 2026-10-02 — Booking hub (supersedes "Current State" below for what to do next)
 
@@ -34,7 +34,7 @@ payments and COIs, run on his MacBook and drafted with Claude Max.
 
 ```
 Read HANDOFF.md (2026-10-02 section). Paste the "Codex Plan-Review Handoff" block from
-docs/plans/2026-10-02-feat-hub-phase0-lead-replies-plan.md into Codex (round 1). When Codex returns,
+docs/plans/2026-10-02-feat-hub-phase0-lead-replies-plan.md into Codex (ROUND 2; expected tip = git rev-parse docs/booking-hub-brainstorm). When Codex returns,
 apply its findings to that plan under the fix contract, then stop. Do not start the work phase.
 Relevant files: docs/plans/2026-10-02-feat-hub-phase0-lead-replies-plan.md,
 docs/plans/2026-10-02-booking-hub-roadmap.md, docs/research/2026-10-02-booking-hub/README.md.
