@@ -10,6 +10,8 @@ import { loadConfig, type AutomationConfig } from "./config.js";
 import { setLogPath } from "./logger.js";
 import { loadAuthClient, pollForNewMessages } from "./gmail-watcher.js";
 import { processLead } from "./orchestrator.js";
+import type { GmailMessage } from "./gmail-watcher.js";
+import { getPollerState, savePollAuthFailed, savePollSuccess } from "../db/poller-state.js";
 import { YelpPortalClient } from "./portals/yelp-client.js";
 import { GigSaladPortalClient } from "./portals/gigsalad-client.js";
 
@@ -41,6 +43,52 @@ let authFailed = false;
  */
 export function resolvePollerDryRun(_config: AutomationConfig): boolean {
   return true;
+}
+
+/** Seconds of overlap kept behind the cursor; the dedup table drops repeats. */
+const CURSOR_OVERLAP_S = 300;
+
+export interface PollDeps {
+  fetchSince: (afterTs: number) => Promise<GmailMessage[]>;
+  handle: (msg: GmailMessage) => Promise<void>;
+  now: () => number;
+}
+
+/**
+ * One poll: fetch from the stored cursor, handle each message, then move the
+ * cursor. A fetch error leaves the cursor alone; invalid_grant also records
+ * auth as failed. Errors are rethrown for the caller.
+ */
+export async function pollOnce(deps: PollDeps): Promise<void> {
+  const startedMs = deps.now();
+  const startedS = Math.floor(startedMs / 1000);
+  const cursor = getPollerState().cursorTs ?? startedS - CURSOR_OVERLAP_S;
+
+  let messages: GmailMessage[];
+  try {
+    messages = await deps.fetchSince(cursor);
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    if (isAuthError(msg)) savePollAuthFailed();
+    throw err;
+  }
+
+  if (messages.length > 0) {
+    console.log(`[gmail-poller] Found ${messages.length} new message(s)`);
+  }
+  for (const m of messages) {
+    try {
+      await deps.handle(m);
+    } catch (err) {
+      console.error(`[gmail-poller] Error processing ${m.id}:`, err instanceof Error ? err.message : err);
+    }
+  }
+
+  savePollSuccess(startedS - CURSOR_OVERLAP_S, new Date(startedMs).toISOString());
+}
+
+function isAuthError(msg: string): boolean {
+  return msg.includes("invalid_grant") || msg.includes("401");
 }
 
 export async function startGmailPoller(): Promise<void> {
@@ -79,7 +127,6 @@ export async function startGmailPoller(): Promise<void> {
     password: config.portalCredentials.gigsalad.password,
   });
 
-  let lastPollTimestamp = Math.floor(Date.now() / 1000) - 300;
   let processing = false;
 
   async function poll(): Promise<void> {
@@ -87,29 +134,14 @@ export async function startGmailPoller(): Promise<void> {
     processing = true;
 
     try {
-      const messages = await pollForNewMessages(auth!, lastPollTimestamp);
-
-      if (messages.length > 0) {
-        console.log(`[gmail-poller] Found ${messages.length} new message(s)`);
-      }
-
-      for (const msg of messages) {
-        try {
-          await processLead(msg, config, auth!, yelpClient!, gigsaladClient);
-        } catch (err) {
-          console.error(`[gmail-poller] Error processing ${msg.id}:`, err instanceof Error ? err.message : err);
-        }
-      }
-
-      if (messages.length > 0) {
-        const newestDate = Math.max(
-          ...messages.map((m) => Math.floor(new Date(m.date).getTime() / 1000))
-        );
-        lastPollTimestamp = newestDate - 300;
-      }
+      await pollOnce({
+        fetchSince: (after) => pollForNewMessages(auth!, after),
+        handle: (msg) => processLead(msg, config, auth!, yelpClient!, gigsaladClient),
+        now: () => Date.now(),
+      });
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
-      if (msg.includes("invalid_grant") || msg.includes("401")) {
+      if (isAuthError(msg)) {
         console.error("[gmail-poller] Gmail auth token expired — stopping poller. Run: npx tsx scripts/gmail-auth.ts");
         authFailed = true;
         if (interval) {
