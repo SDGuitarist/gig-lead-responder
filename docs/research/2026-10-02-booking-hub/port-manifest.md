@@ -355,33 +355,33 @@
 | R343 | F15 | Contact Block (Always Include) | UNREVIEWED | | | | |
 | R344 | F15 | ⚠️ Step 9 complete. PROCEED TO VERIFICATION.md (Steps 10-11). | UNREVIEWED | | | | |
 | R345 | F15 | Cross-References | UNREVIEWED | | | | |
-| R346 | F16 | Pacific Flow Entertainment: Lead Analysis Decision Flow | UNREVIEWED | | | | |
-| R347 | F16 | When a Lead Arrives | UNREVIEWED | | | | |
-| R348 | F16 | Step 0: Capability Check | UNREVIEWED | | | | |
-| R349 | F16 | Step 0.5: Delivery Mode Assessment | UNREVIEWED | | | | |
-| R350 | F16 | Alex Performs (AGM Delivery) | UNREVIEWED | | | | |
-| R351 | F16 | Alex Sources (PFE Delivery) | UNREVIEWED | | | | |
-| R352 | F16 | Hybrid (Alex Performs + Sourced Musicians) | UNREVIEWED | | | | |
-| R353 | F16 | Why This Matters | UNREVIEWED | | | | |
-| R354 | F16 | Step 1: Surface Data Extraction | UNREVIEWED | | | | |
-| R355 | F16 | Step 2: Mode Assessment | UNREVIEWED | | | | |
-| R356 | F16 | Step 2.5: Competition + Vagueness Check | UNREVIEWED | | | | |
-| R357 | F16 | Competition Level | UNREVIEWED | | | | |
-| R358 | F16 | ⚠️ Competition Extraction Rule | UNREVIEWED | | | | |
-| R359 | F16 | Vagueness Assessment | UNREVIEWED | | | | |
-| R360 | F16 | Decision Gate | UNREVIEWED | | | | |
-| R361 | F16 | Step 2.75: Stealth Premium Check | UNREVIEWED | | | | |
-| R362 | F16 | Step 3: Pricing Strategy | UNREVIEWED | | | | |
-| R363 | F16 | Competition-Weighted Matrix | UNREVIEWED | | | | |
-| R364 | F16 | Step 4: Tier Classification | UNREVIEWED | | | | |
-| R365 | F16 | Premium Tier (ANY ONE triggers) → Rate Card T3 | UNREVIEWED | | | | |
-| R366 | F16 | Qualification Tier (ANY ONE triggers) → Rate Card T2 (lower end, reframe first) | UNREVIEWED | | | | |
-| R367 | F16 | Standard Tier → Rate Card T2 | UNREVIEWED | | | | |
-| R368 | F16 | Step 5: Check Urgency and Timeline | UNREVIEWED | | | | |
-| R369 | F16 | Urgency Signals | UNREVIEWED | | | | |
-| R370 | F16 | Timeline Bands | UNREVIEWED | | | | |
-| R371 | F16 | Classification Checkpoint (NOT a Deliverable) | UNREVIEWED | | | | |
-| R372 | F16 | Cross-References | UNREVIEWED | | | | |
+| R346 | F16 | Pacific Flow Entertainment: Lead Analysis Decision Flow | ALREADY PRESENT | `src/prompts/classify.ts`: `buildClassifyPrompt` implements Steps 0–5 | always |  |  |
+| R347 | F16 | When a Lead Arrives | ALREADY PRESENT | `src/run-pipeline.ts`: classify runs first, then generate and verify | always |  |  |
+| R348 | F16 | Step 0: Capability Check | ALREADY PRESENT | `docs/PRINCIPLES.md:20` (Capability Trust), loaded by `selectContext`; classify has no capability field, so it cannot decline on capability | always | `Capability Trust` |  |
+| R349 | F16 | Step 0.5: Delivery Mode Assessment | TO PORT | No `delivery_mode` in the classify output (`src/prompts/classify.ts`), yet `docs/RESPONSE_CRAFT.md:19` (loaded) triggers its Sourced Delivery layer on it. Destination: `buildClassifyPrompt` Step 0.5 + a `delivery_mode` field (plan 0.5 names this) | always |  |  |
+| R350 | F16 | Alex Performs (AGM Delivery) | TO PORT | No `delivery_mode` in the classify output (`src/prompts/classify.ts`), yet `docs/RESPONSE_CRAFT.md:19` (loaded) triggers its Sourced Delivery layer on it. Destination: `buildClassifyPrompt` Step 0.5 + a `delivery_mode` field (plan 0.5 names this) | always |  |  |
+| R351 | F16 | Alex Sources (PFE Delivery) | TO PORT | No `delivery_mode` in the classify output (`src/prompts/classify.ts`), yet `docs/RESPONSE_CRAFT.md:19` (loaded) triggers its Sourced Delivery layer on it. Destination: `buildClassifyPrompt` Step 0.5 + a `delivery_mode` field (plan 0.5 names this) | always |  |  |
+| R352 | F16 | Hybrid (Alex Performs + Sourced Musicians) | TO PORT | No `delivery_mode` in the classify output (`src/prompts/classify.ts`), yet `docs/RESPONSE_CRAFT.md:19` (loaded) triggers its Sourced Delivery layer on it. Destination: `buildClassifyPrompt` Step 0.5 + a `delivery_mode` field (plan 0.5 names this) | always |  |  |
+| R353 | F16 | Why This Matters | TO PORT | No `delivery_mode` in the classify output (`src/prompts/classify.ts`), yet `docs/RESPONSE_CRAFT.md:19` (loaded) triggers its Sourced Delivery layer on it. Destination: `buildClassifyPrompt` Step 0.5 + a `delivery_mode` field (plan 0.5 names this) | always |  |  |
+| R354 | F16 | Step 1: Surface Data Extraction | ALREADY PRESENT | `src/prompts/classify.ts` Step 1 (fields, `flagged_concerns`, `competition_quote_count`); delivery mode is R349 | always |  |  |
+| R355 | F16 | Step 2: Mode Assessment | ALREADY PRESENT | `src/prompts/classify.ts` Step 2 (`mode`) | always |  |  |
+| R356 | F16 | Step 2.5: Competition + Vagueness Check | ALREADY PRESENT | `src/prompts/classify.ts` Step 2.5 | always |  |  |
+| R357 | F16 | Competition Level | ALREADY PRESENT | `src/prompts/classify.ts` Step 2.5 competition levels | always |  |  |
+| R358 | F16 | ⚠️ Competition Extraction Rule | TO PORT | Not in the repo copy of PROTOCOL.md nor in the prompt. Destination: `buildClassifyPrompt` (count only from the platform, else 0, never estimate) + the plan's code check; the GigSalad parser (`src/automation/parsers/gigsalad.ts`) does not extract the displayed count yet | always |  |  |
+| R359 | F16 | Vagueness Assessment | ALREADY PRESENT | `src/prompts/classify.ts` Step 2.5 vagueness | always |  |  |
+| R360 | F16 | Decision Gate | ALREADY PRESENT | `src/prompts/classify.ts` Step 2.5 decision gate; binary question in `src/prompts/generate.ts:85` | always |  |  |
+| R361 | F16 | Step 2.75: Stealth Premium Check | ALREADY PRESENT | `src/prompts/classify.ts` Step 2.75 (`stealth_premium`) | always |  |  |
+| R362 | F16 | Step 3: Pricing Strategy | TO PORT | `src/prompts/classify.ts` Step 3 has `price_point` and `context_modifiers`; the sourced rule ($150 minimum profit, withhold premium signals from subcontractors) is nowhere in `src/`. Destination: `lookupPrice()` (`src/pipeline/price.ts`) for sourced formats | sourced delivery |  |  |
+| R363 | F16 | Competition-Weighted Matrix | ALREADY PRESENT | `src/prompts/classify.ts` Step 3 matrix | always |  |  |
+| R364 | F16 | Step 4: Tier Classification | ALREADY PRESENT | `src/prompts/classify.ts` Step 4 | always |  |  |
+| R365 | F16 | Premium Tier (ANY ONE triggers) → Rate Card T3 | ALREADY PRESENT | `src/prompts/classify.ts` Step 4 premium + T3 mapping | always |  |  |
+| R366 | F16 | Qualification Tier (ANY ONE triggers) → Rate Card T2 (lower end, reframe first) | ALREADY PRESENT | `src/prompts/classify.ts` Step 4 qualification | always |  |  |
+| R367 | F16 | Standard Tier → Rate Card T2 | ALREADY PRESENT | `src/prompts/classify.ts` Step 4 standard | always |  |  |
+| R368 | F16 | Step 5: Check Urgency and Timeline | ALREADY PRESENT | `src/prompts/classify.ts` Step 5 (`timeline_band`, `close_type`) | always |  |  |
+| R369 | F16 | Urgency Signals | TO PORT | `src/prompts/classify.ts` derives urgency from the date only; the signal phrases ("original musician cancelled", "last minute", "need to book today") are not listed. Destination: `buildClassifyPrompt` Step 5 | always |  |  |
+| R370 | F16 | Timeline Bands | ALREADY PRESENT | `src/prompts/classify.ts` Step 5 timeline bands | always |  |  |
+| R371 | F16 | Classification Checkpoint (NOT a Deliverable) | ALREADY PRESENT | `src/prompts/classify.ts`: the JSON output is the checkpoint (delivery mode is R349) | always |  |  |
+| R372 | F16 | Cross-References | BLOCKED | proposed NOT PORTED: a navigation table, same class as R019 (approved); needs Alex's yes (q-e) |  |  |  |
 | R373 | F19 | Strategic Context | PORTED | `docs/Bolero_Trio_Negotiation_Playbook.md`, loaded by `selectContext` (`src/pipeline/context.ts`); section text matches the Project (similarity 1.00) | `format_recommended === "bolero_trio"` | `## BOLERO TRIO NEGOTIATION PLAYBOOK` | `port manifest R008` |
 | R374 | F19 | The Buyer Psychology | PORTED | `docs/Bolero_Trio_Negotiation_Playbook.md`, loaded by `selectContext` (`src/pipeline/context.ts`); section text matches the Project (similarity 1.00) | `format_recommended === "bolero_trio"` | `## BOLERO TRIO NEGOTIATION PLAYBOOK` | `port manifest R008` |
 | R375 | F19 | The Anchor Conversation | PORTED | `docs/Bolero_Trio_Negotiation_Playbook.md`, loaded by `selectContext` (`src/pipeline/context.ts`); section text matches the Project (similarity 1.00) | `format_recommended === "bolero_trio"` | `## BOLERO TRIO NEGOTIATION PLAYBOOK` | `port manifest R008` |
