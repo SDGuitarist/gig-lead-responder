@@ -8,7 +8,11 @@ let client: Anthropic | null = null;
 
 function getClient(): Anthropic {
   if (!client) {
-    client = new Anthropic();
+    // Inside any node:test process (node sets NODE_TEST_CONTEXT, including for
+    // `node --test <file>` run directly), never reach the real, billed API.
+    client = process.env.NODE_TEST_CONTEXT
+      ? new Anthropic({ apiKey: "test-no-key", baseURL: "http://127.0.0.1:9" })
+      : new Anthropic();
   }
   return client;
 }
