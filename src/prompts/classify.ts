@@ -56,6 +56,8 @@ Competition levels:
 - High: 6-10 quotes
 - Extreme: 11+ quotes
 
+COMPETITION EXTRACTION RULE: competition_quote_count comes ONLY from the number the lead source platform displays (GigSalad, The Bash). If the lead shows no displayed count, competition_quote_count = 0 (low). A direct lead (website, referral, email) is 0 unless the client says they are comparing other vendors. Never estimate, infer or assume a count: the competition level sets the quote point, the word count and whether a question is allowed, so an invented number corrupts everything downstream.
+
 Vagueness: CLEAR if you can picture what they need and defend a quote. VAGUE if category-only, duration unclear, or event type ambiguous.
 
 Decision gate:
