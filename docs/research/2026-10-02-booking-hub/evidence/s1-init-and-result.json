@@ -1,0 +1,28 @@
+{
+  "init": {
+    "apiKeySource": "none",
+    "tools": [],
+    "mcp_servers": [],
+    "plugins": [
+      {
+        "name": "cc-plugin-agents-md",
+        "path": "builtin",
+        "source": "cc-plugin-agents-md@builtin"
+      },
+      {
+        "name": "cc-plugin-telemetry",
+        "path": "builtin",
+        "source": "cc-plugin-telemetry@builtin"
+      }
+    ],
+    "claude_code_version": "2.1.285",
+    "permissionMode": "default",
+    "model": "claude-opus-5-5",
+    "cwd": "<fresh mkdtemp dir under the session scratchpad>"
+  },
+  "result": {
+    "subtype": "success",
+    "is_error": false,
+    "result": "OK"
+  }
+}

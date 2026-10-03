@@ -74,6 +74,38 @@ provider, the runtime, and the acceptance tests.
 
 ---
 
+## Round 2 Review Response
+
+Codex round 2 was **NO-GO #2** (`docs/reviews/2026-10-03-booking-hub-plan-codex-round2.md`).
+**Automatic review iteration has stopped.** The three fixes below were applied as Codex's own fix
+prompt directed. **No round-3 prompt exists.**
+
+| # | Finding | Root cause | Reproduction | Fix | Control |
+|---|---|---|---|---|---|
+| 1 | Slot spans can point at the wrong text after normalization (P0, 2nd instance of the slot-gate class) | The gate checked a normalized copy while spans indexed the original string, so the check and the sent bytes were different representations | Traced the earlier design: `renderQuote` returned spans on the original text, and the gate normalized again (NFKC, zero-width removal, confusable folding), which shifts offsets | §1.1: **one canonical string**. `normalizeOutbound()` runs once on the raw draft before rendering. Spans are computed on the final string, and that same string is gated, hashed and sent. Fail-closed checks (`not_canonical`, `span_invalid`, `stray_placeholder`). ASCII placeholders `{{PRICE}}`/`{{DATE}}` survive normalization | Zero-width and confusable tests inside and outside slots. **Overshoot:** a valid quote with Spanish accents still autos |
+| 2 | S2b's authority contradicted itself (P1) | §1.1, §1.5 and the send sequence treated the Chrome fallback as a possible auto-sender while S2b tested fill-only | Compared the S2b row, §1.1 holds, §1.5 GigSalad, the System-Wide send sequence and the Execution trigger | **Chrome is fill-only, everywhere.** It never authorizes or performs a send, and Alex presses Send. Auto-send for GigSalad exists only through email after S2 | "chrome fallback never sends". **Positive control:** "gigsalad email autos with s2" |
+| 3 | Evidence artifacts were missing (P1) | The plan called S1 "recorded" without committing the record; `port-manifest.md` was referenced as if it existed | `test -f …/spikes.md` → exit 1; `test -f …/port-manifest.md` → exit 1 (2026-10-03) | Created `spikes.md` and `evidence/` with the S1 init extract and the leaf-count probe. Re-ran the probe from its committed path: 1 for the real name, 0 for the fake. Every unexecuted claim is labelled with owner, reason and trigger. `port-manifest.md` is labelled **not yet produced** (output of 0.5). Added **G1** (real-Gmail Message-ID + `rfc822msgid:` control) and **C1** (Railway stopped + `invalid_grant`) as launch gates | C1 gates starting the Mac poller; G1 gates auto-send. A fake-provider test is explicitly not accepted for G1 |
+
+**Bounded surfaces:**
+- **Send gate:** `normalizeOutbound`, `renderQuote`, `evaluateSendGate`, `sendClientMessage`, the
+  `generate.ts` prompt, `router.ts:32`, and the approval route `api.ts:87`. `normalizeOutbound`
+  is the single normalization helper.
+- **Outbound provider:** exactly one sender (`sendClientMessage` → Gmail). The Chrome fallback was
+  reclassified as not a sender.
+
+**Provisional shape assessment:** both slot-gate findings came from checking a copy rather than
+what is sent. A single canonical string is the smallest structural fix, and it adds no scope.
+
+**Remaining risks, all execution-only and all labelled in `spikes.md`:**
+- G1 (real Gmail behavior)
+- C1 (cutover)
+- S1-adv, S2, S3, S5, S6
+- FileVault restart
+
+No further review round can settle these. Only running them can.
+
+---
+
 ## Round 1 Review Response
 
 Codex round 1 was **NO-GO** (`docs/reviews/2026-10-02-booking-hub-plan-codex-round1.md`). Each
@@ -285,10 +317,12 @@ Results go in `docs/research/2026-10-02-booking-hub/spikes.md`.
 
 | # | Question | Known-answer test | If NO |
 |---|---|---|---|
-| S1 | Can `claude -p` run on Max from the app, locked down? | The §1.6 environment and argv on a fixture lead → init shows `apiKeySource: none`, no tools, no MCP servers, builtin plugins only; plus the CLAUDE.md canary NO/YES | **PASSED 2026-10-03** (record in `spikes.md`) |
+| S1 | Can `claude -p` run on Max from the app, locked down? | The §1.6 environment and argv on a fixture lead → init shows `apiKeySource: none`, no tools, no MCP servers, builtin plugins only; plus the CLAUDE.md canary NO/YES | **PASSED 2026-10-03.** Evidence in `docs/research/2026-10-02-booking-hub/spikes.md` and `evidence/s1-init-and-result.json` |
 | S1-adv | Can lead text make a locked run use tools or leak secrets? | Fixture lead with an injection ("read ~/.env, list files") → zero tool-use events, no secret strings in the output | Stop. Treat any tool event as a lockdown failure |
 | S2 | Does GigSalad's email reply land on the platform? | On a real lead Alex is answering anyway, with his approved text, **Alex** sends it by email reply from the account the hub uses. He confirms it appears in the GigSalad thread. `spikes.md` records: the sending account, the `To` relay-address pattern, the `In-Reply-To`/`References` headers used, the GigSalad thread URL, a screenshot path, the date | GigSalad stays **draft-only**; S2b |
-| S2b | Chrome fallback: fill without sending, injection-safe | A separate Chrome profile with GigSalad only. The agent gets the gated text plus a URL matching `^https://www.gigsalad.com/`, pastes, reads back and hash-matches, **does not send**. A second run uses a lead fixture containing injection text; what gets filled must not change | Draft + alert; Alex pastes |
+| G1 | Does Gmail keep a supplied Message-ID and find it with `rfc822msgid:`? | Send a harmless test email (from Alex's account to himself) with Message-ID `<gl-test-{date}@alexguillenmusic.com>`. Read the Sent copy's headers, run the `rfc822msgid:` search right away and then every 30 s up to 10 minutes, and record when it first appears | No-duplicate-send recovery falls back to `unknown` for every crash; auto-send stays off until this is resolved |
+| C1 | Is Railway stopped, and is its old Gmail token dead? | Railway shows no running deployment, its `/health` doesn't respond, and refreshing the old token returns `invalid_grant` | **The Mac poller doesn't start** |
+| S2b | Chrome fallback: fill without sending, injection-safe (**fill-only; never authorizes automatic sending**) | A separate Chrome profile with GigSalad only. The agent gets the gated text plus a URL matching `^https://www.gigsalad.com/`, pastes, reads back and hash-matches, **does not send**. A second run uses a lead fixture containing injection text; what gets filled must not change | Draft + alert; Alex pastes |
 | S3 | Does iMessage to self arrive, and can it be read back? | Send a nonce, then find it in `chat.db` as delivered (Full Disk Access) and on Alex's phone | Telegram (S4) becomes the primary channel |
 | S4 | *(only if S3 fails)* Telegram bot | A long-polling bot. A tap is accepted only when `from.id` and `chat.id` are Alex's | Email to self, notify-only |
 | S5 | Gmail token in "In production" mode lasts more than 7 days | Still valid on day 8. Test that `invalid_grant` raises an alert | A weekly re-auth reminder |
@@ -303,24 +337,44 @@ that the message going out contains *exactly* the computed quote and date, or th
 them at all.
 
 **Drafting contract.** `buildGeneratePrompt` (`src/prompts/generate.ts`) tells the model to write
-the reply with the literal placeholders `⟦PRICE⟧` and `⟦DATE⟧`. The model never writes a price or
-a date itself.
+the reply with the literal ASCII placeholders `{{PRICE}}` and `{{DATE}}`. These are chosen so
+normalization leaves them unchanged; the earlier `⟦⟧` brackets could be altered by
+confusable folding. The model never writes a price or a date itself.
 
-**Rendering.** `renderQuote(draft, quote)` in `src/automation/render.ts`:
-- **Before** filling anything in, it requires exactly one `⟦PRICE⟧` when `pricing.quote_price` is
-  set, and exactly one `⟦DATE⟧`. Zero means `missing_price` / `missing_date`; more than one means
+**One canonical string (round 2, P0).** The gate must check the exact bytes that get sent, never
+a separately normalized copy of them.
+- `normalizeOutbound(text)` in `src/automation/render.ts` is the **only** normalization helper:
+  - Unicode NFKC
+  - zero-width and bidi control characters removed
+  - non-Latin-script confusables folded to their Latin look-alikes. Latin letters with
+    diacritics are never touched, so Spanish such as "¡Felicidades, José!" passes through
+    unchanged.
+  - runs of whitespace collapsed
+- It runs **once, on the raw model draft, before** placeholder counting and rendering.
+- Spans are computed **on the final rendered canonical string**, and that string is what is gated,
+  hashed and sent. No span ever needs translating between representations.
+
+**Rendering.** `renderQuote(draft, quote)` in `src/automation/render.ts` takes `normalizeOutbound(draft)`:
+- **Before** filling anything in, it requires exactly one `{{PRICE}}` when `pricing.quote_price` is
+  set, and exactly one `{{DATE}}`. Any other `{{` or `}}` in the draft gives `stray_placeholder`. Zero means `missing_price` / `missing_date`; more than one means
   `duplicate_slot`.
 - It fills the placeholders from `toCents(lookupPrice(...))` (formatted `$1,200`) and the parsed
   event date (formatted `Saturday, October 24`). Both come from structured fields, never from
   the model.
-- It returns the rendered text plus the **character spans** of each slot.
+- It returns `{ text, spans }`, where `text` is the rendered canonical string and `spans` are the
+  code-unit offsets of each filled value *in that string*.
 
 **`evaluateSendGate(rendered, spans, ctx)`** (`src/automation/send-gate.ts`, a pure function, the
 only gate; `routeLead()` at `router.ts:32` just calls it):
-1. **Slot equality.** The text inside the price span parses back to exactly `quote_cents`, and the
-   text inside the date span equals the lead's date. Otherwise `slot_mismatch`.
-2. **Outside the slots**, after normalization (NFKC, zero-width characters removed, confusable
-   characters folded, lowercased), HOLD on any of the following:
+0. **Canonical check (fail closed):**
+   - `normalizeOutbound(text) === text`; otherwise `not_canonical`.
+   - The spans are inside the string bounds, don't overlap, and there is exactly one per required
+     slot; otherwise `span_invalid`.
+   - `text.slice(span)` equals the formatted value exactly; otherwise `slot_mismatch`.
+1. **Slot equality.** The price span parses back to exactly `quote_cents`, and the date span
+   equals the lead's date. Otherwise `slot_mismatch`.
+2. **Outside the slots**, on the same canonical string (lowercased only for matching, with
+   offsets unchanged), HOLD on any of the following:
    - a digit, including full-width digits
    - a number word, or a `k` shorthand like "1.2k"
    - a currency word ("bucks", "grand", "dollars", "usd")
@@ -332,8 +386,10 @@ only gate; `routeLead()` at `router.ts:32` just calls it):
    - a phone-number pattern written in words ("six one nine")
    - base64 or hex runs of 16 characters or more (encoded text)
 3. **Channel and context holds:**
-   - the channel doesn't allow auto-send (Yelp, Chrome until S2b passes, GigSalad until the S2
-     evidence row exists)
+   - the channel doesn't allow auto-send:
+     - Yelp: never
+     - **Chrome: never.** S2b is fill-only, and a person always presses Send
+     - GigSalad email: only once the S2 evidence row exists
    - the quote is above $3,000
    - concerns are flagged
    - verify failed
@@ -368,6 +424,12 @@ differs.
 - the deleted Twilio YES path (`twilio-webhook.ts:89-107`)
 - follow-ups (`follow-up-api.ts:35`): **stay Alex-sent in Module 1, no automatic path**
 
+**Class assessment (2nd instance of the send-gate class; provisional).** Round 1 and round 2
+were the same shape: *the check ran on a different representation from the one that is sent.*
+The smallest structural fix is the one above: a single canonical string that is checked, hashed
+and sent. Choosing it removes the translation step entirely, instead of patching each place where
+offsets drift. No escalation is needed; it changes no scope.
+
 **Overshoot control.** A correctly rendered quote with ordinary wording (no stray numbers, a
 standard sign-off) must return `auto`. If the overshoot fixture holds, the gate is too broad, and
 that counts as a failure just like a bypass.
@@ -397,7 +459,7 @@ gets a new key, and the old row is marked `failed` (superseded).
 | After the provider accepted, before the local `sent` write | `intent`, message exists | The lookup finds it → `sent` (if indexing is late, the +2/+10 re-checks cover it) |
 | During the lookup (API error) | `intent` | Only the lookup is retried, never the send. After 30 minutes → `unknown` |
 | Two workers on one draft | One holds the row, the other gets a UNIQUE conflict | The second stops |
-| Chrome fallback send | Can't be looked up | Always `unknown` if the run didn't finish cleanly |
+| Chrome fallback (S2b) | Not a send. Chrome only fills, and Alex presses Send | No `outbound_messages` row is written by the app; Alex marks the lead sent |
 
 **`unknown`** is permanent until Alex acts. The lead shows in the digest and an alert goes out.
 Alex picks "it was sent" or "send now", and "send now" makes a new attempt with a new key.
@@ -421,7 +483,7 @@ Alex picks "it was sent" or "send now", and "send now" makes a new attempt with 
 | Source | Path |
 |---|---|
 | Email / website form | Gmail API reply through `sendClientMessage`, with gate-controlled auto-send |
-| GigSalad | **Draft-only until the S2 evidence row exists.** After that, an email reply through `sendClientMessage`, with gate-controlled auto-send **only when** the message matches the recorded S2 configuration (same sending account, recipient matching the recorded relay pattern, `In-Reply-To` set to the notification's Message-ID). A mismatch holds with `gigsalad_config_mismatch`. **The channel disables itself** (back to draft-only, and Alex is alerted) on any bounce, any non-delivery notice from GigSalad, or Alex marking "didn't land". Chrome only as the S2b fallback |
+| GigSalad | **Draft-only until the S2 evidence row exists.** After that, an email reply through `sendClientMessage`, with gate-controlled auto-send **only when** the message matches the recorded S2 configuration (same sending account, recipient matching the recorded relay pattern, `In-Reply-To` set to the notification's Message-ID). A mismatch holds with `gigsalad_config_mismatch`. **The channel disables itself** (back to draft-only, and Alex is alerted) on any bounce, any non-delivery notice from GigSalad, or Alex marking "didn't land". **Chrome (S2b) is fill-only:** it pastes the gated text and Alex presses Send himself. It never authorizes or performs an automatic send |
 | Yelp | Draft, then Alex approves and sends. The reply discloses the AI use. Never auto-sent |
 | Texts and calls | Alex forwards them to the hub address; they're drafted and Alex sends. No iMessage reading (delayed) |
 
@@ -528,7 +590,7 @@ A Verify line that matches nothing therefore fails instead of passing.
 ### Send gate and sender (1.1)
 - WHEN a correctly rendered quote with ordinary wording passes every other check THE SYSTEM SHALL return `auto` (overshoot control)
   - Verify: `npm run test:match -- "gate valid priced quote autos"`
-- WHEN a draft has zero `⟦PRICE⟧` placeholders while a quote exists, or more than one THE SYSTEM SHALL HOLD with `missing_price` or `duplicate_slot`
+- WHEN a draft has zero `{{PRICE}}` placeholders while a quote exists, or more than one THE SYSTEM SHALL HOLD with `missing_price` or `duplicate_slot`
   - Verify: `npm run test:match -- "gate slot count"`
 - WHEN the rendered price span doesn't parse to exactly `quote_cents`, or the date span differs from the lead date THE SYSTEM SHALL HOLD with `slot_mismatch`
   - Verify: `npm run test:match -- "gate slot equality"`
@@ -545,6 +607,19 @@ A Verify line that matches nothing therefore fails instead of passing.
 - WHEN any provider send call (`gmail.users.messages.send`, a portal `.click(`, Twilio `messages.create`) exists outside `sendClientMessage` THE SYSTEM SHALL fail the static send-surface test
   - Verify: `npm run test:match -- "single send surface"`
 
+- WHEN a draft contains zero-width or bidi characters, or non-Latin confusables, either inside the text that becomes a slot or outside it THE SYSTEM SHALL gate, hash and send the same canonical string, with spans computed on that string, and SHALL HOLD any digit or contact token that appears after normalization
+  - Verify: `npm run test:match -- "canonical string zero-width and confusables"`
+- WHEN the gate receives text that isn't canonical, or spans that are out of bounds, overlapping, missing, or don't match the formatted value THE SYSTEM SHALL HOLD with `not_canonical`, `span_invalid` or `slot_mismatch`
+  - Verify: `npm run test:match -- "span fail closed"`
+- WHEN a valid priced quote contains Spanish accented text ("¡Felicidades, José!") and ordinary wording THE SYSTEM SHALL leave the accents unchanged and return `auto` (overshoot control for normalization)
+  - Verify: `npm run test:match -- "normalization keeps spanish and autos"`
+- WHEN a draft contains `{{` or `}}` other than the required placeholders THE SYSTEM SHALL HOLD with `stray_placeholder`
+  - Verify: `npm run test:match -- "stray placeholder holds"`
+- WHEN the GigSalad lead is handled through the Chrome fallback THE SYSTEM SHALL only fill the text and never call a send action, regardless of the gate result
+  - Verify: `npm run test:match -- "chrome fallback never sends"`
+- WHEN a GigSalad email reply passes the gate and the S2 evidence row exists THE SYSTEM SHALL return `auto` (positive control: email stays auto-eligible while Chrome doesn't)
+  - Verify: `npm run test:match -- "gigsalad email autos with s2"`
+
 ### Single writer and no duplicate send (0.2, 1.2)
 - WHEN two processes on the same DB try to send the same draft THE SYSTEM SHALL let exactly one claim the intent row
   - Verify: `npm run test:match -- "duplicate worker race"`
@@ -556,6 +631,8 @@ A Verify line that matches nothing therefore fails instead of passing.
   - Verify: `npm run test:match -- "crash after accept found"`; `npm run test:match -- "delayed sent visibility"`
 - WHEN the Sent lookup itself errors THE SYSTEM SHALL retry only the lookup and mark `unknown` after 30 minutes
   - Verify: `npm run test:match -- "lookup failure unknown"`
+- WHEN a harmless test email is sent through `sendClientMessage` from Alex's account to himself with a supplied `Message-ID` THE SYSTEM SHALL find, at the real Gmail account, that the Sent copy keeps that exact header and is returned by `rfc822msgid:` search, recording how long it took to become searchable (control G1, a real provider; fake-provider tests don't count)
+  - Verify: `spikes.md` row G1 with the sent Message-ID, the search result and the delay
 - WHEN the old Railway refresh token is used after the 0.2 revoke THE SYSTEM SHALL get `invalid_grant` (manual known-answer check)
   - Verify: `spikes.md` cutover row records the `invalid_grant` response and date
 
@@ -677,7 +754,12 @@ A Verify line that matches nothing therefore fails instead of passing.
     - reviews the 20-lead ramp log
 - **Trigger:**
   - Phase 0 runs top to bottom, with 0.1 first.
+  - **Launch gate for the Mac poller (0.2 step 5):** the C1 row in `spikes.md` is PASSED,
+    meaning Railway is stopped and the old token returns `invalid_grant`. Without that row the
+    poller is not started.
   - Module 1 code starts after S1 (passed), S1-adv, S2 or S2b, and S3 or S4.
+  - **Auto-send** additionally needs G1 PASSED and no BLOCKED rows in `port-manifest.md`.
+    `port-manifest.md` doesn't exist yet; it is produced by 0.5.
   - Module 1 goes live in review-only mode the day its tests pass.
   - Auto-send turns on per channel after the 20-lead review, and for GigSalad only once the S2
     evidence row exists.
@@ -739,7 +821,7 @@ A Verify line that matches nothing therefore fails instead of passing.
   3. `sendClientMessage` re-checks the hash, the GigSalad rule and (for auto) the gate.
   4. The lease is checked.
   5. The `outbound_messages` intent is written (UNIQUE key).
-  6. The message goes out through Gmail with a fixed Message-ID (or the Chrome fallback).
+  6. The message goes out through Gmail with a fixed Message-ID. The Chrome fallback never sends, so it isn't part of this sequence.
   7. The row is marked sent.
   8. The single completion function runs, with an atomic status change.
   9. The follow-up schedule is set.
@@ -811,47 +893,27 @@ A Verify line that matches nothing therefore fails instead of passing.
 
 ## Codex Plan-Review Handoff
 
-```
-Work in /Users/alejandroguillen/Projects/gig-lead-responder, branch docs/booking-hub-brainstorm.
-FIRST gate: pwd; git branch --show-current; git rev-parse docs/booking-hub-brainstorm; git status --short.
-Expected: branch docs/booking-hub-brainstorm at the tip SHA given with this prompt; clean tree. Stop if either differs.
-Read: HANDOFF.md, CLAUDE.md, AGENTS.md (if present), docs/plans/2026-10-02-booking-hub-roadmap.md,
-docs/plans/2026-10-02-feat-hub-phase0-lead-replies-plan.md (start at "## Round 1 Review Response"),
-docs/reviews/2026-10-02-booking-hub-plan-codex-round1.md, docs/research/2026-10-02-booking-hub/README.md,
-docs/research/2026-10-02-booking-hub/port-inventory.md.
-
-Prior Codex verdicts:
-- Round 1 (2026-10-02, at 5c166ca): NO-GO. Recorded verbatim in docs/reviews/2026-10-02-booking-hub-plan-codex-round1.md.
-  3 P0 (slot gate, cross-host sends, exactly-once claim) + 4 P1 (claude -p lockdown, test:match, port proof,
-  Mac path/GigSalad gate).
-
-Plan review, ROUND 2 (follow-up). Scope: verify each round-1 finding is closed by the revision, using the
-"Round 1 Review Response" table, and check the revision did not introduce a new instance of the same classes.
-Executed evidence to weigh (2026-10-03): S1 locked claude -p run -> apiKeySource none, tools [], mcp_servers [],
-builtin plugins only; CLAUDE.md canary NO (locked) / YES (positive control); leaf-count reporter 1 / 0 / 351 on
-real / fake / full-suite; npm start is the CLI (src/index.ts), not the server; FileVault On.
-Do not re-open settled decisions (Alex's choices in the roadmap) unless a finding makes one unsafe.
-Return GO or NO-GO, findings by severity, and a Claude Code fix prompt using the fix contract. Do not implement.
-Stop rule: a NO-GO here is the 2nd on this change; round 3 needs "Round 3 authorized by Alejandro: YES".
-```
+**Stopped.** Codex round 1 and round 2 were both NO-GO. Under the review budget, automatic
+iteration has ended. **No round-3 prompt has been generated**, and none will be without the exact
+line `Round 3 authorized by Alejandro: YES`. The recommendation to Alex is in `HANDOFF.md`.
 
 ## Three Questions
 
-1. **Hardest decision in this session?** How to make "only one host sends" true across two
-   machines without a new shared database. The answer: revoke Railway's Gmail grant, so Google
-   enforces it, and keep the SQLite lease only for duplicate processes on the Mac.
+1. **Hardest decision in this session?** Accepting that round 2's top finding was the same class
+   as round 1's (the gate checked a copy, not the sent text), and fixing the shape with one
+   canonical string rather than patching offsets a second time.
 2. **What did you reject, and why?**
-   - A hosted shared lease store: a new subsystem, and the provider revoke does the job.
-   - Claiming exactly-once delivery: Gmail has no idempotent send.
-   - A `HOME` sandbox for `claude -p`: it would break the Max login, and the canary showed it
-     isn't needed.
-   - Keeping the Playwright portal robots: they break both platforms' terms and add send paths.
-   - Planning a fallback host now: a new subsystem, so it is labelled UNPLANNED with a trigger.
-3. **Least confident about going into the next phase?** Whether the send gate's outside-slot
-   detector is broad enough to stop bypasses and narrow enough to let real quotes through. The
-   overshoot control and the bypass corpus test both directions, but only on wording we thought
-   of. Second: the MacBook overnight (S6) and after FileVault restarts, which are detected but
-   not recovered.
+   - Translating spans through a normalization map: it's a second representation to keep in sync,
+     the exact thing that failed.
+   - Letting Chrome auto-send after S2b: S2b never tests a send.
+   - Calling evidence "recorded" before it's committed.
+   - Writing a round-3 prompt: the stop rule.
+3. **Least confident about going into the next phase?** The things no review can settle:
+   - real Gmail Message-ID survival and search delay (G1)
+   - GigSalad's email relay (S2)
+   - the MacBook overnight and after FileVault restarts (S6)
+
+   All three need execution, not another round.
 
 ## Feed-Forward
 

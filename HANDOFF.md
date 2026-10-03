@@ -2,7 +2,7 @@
 
 **Date:** 2026-10-02
 **Branch:** `docs/booking-hub-brainstorm` (docs only, unpushed, not merged)
-**Phase:** Booking hub plan. Codex round 1 = **NO-GO** (recorded in `docs/reviews/2026-10-02-booking-hub-plan-codex-round1.md`); revision committed at `43d49e8`. **Next: Codex plan review, round 2** (the prompt is in the plan's "Codex Plan-Review Handoff" section). No work phase has started. **Stop rule:** a 2nd NO-GO stops automatic iteration; round 3 needs `Round 3 authorized by Alejandro: YES`.
+**Phase:** Booking hub plan. Codex round 1 **NO-GO** and round 2 **NO-GO #2**, both recorded in `docs/reviews/`. Round-2 fixes applied. **Automatic review iteration has STOPPED.** No round-3 prompt exists. Next step is Alex's decision (below). No work phase has started.
 
 ## 2026-10-02 — Booking hub (supersedes "Current State" below for what to do next)
 
@@ -30,14 +30,35 @@ payments and COIs, run on his MacBook and drafted with Claude Max.
 - **`npm test -- --test-name-pattern=X` runs all tests and exits 0 even when X matches
   nothing**, so name-filtered test runs prove nothing until `test:match` (step 0.1) exists.
 
+### Decision for Alex (review loop stopped after 2 NO-GOs)
+
+**Recommendation: do not run a round 3.** Start Phase 0 instead, which produces evidence.
+1. **What a round 3 would settle:** only whether the three round-2 fixes are written correctly
+   (one canonical string, Chrome fill-only, evidence labelling). These are document fixes, and
+   each has a named test.
+2. **Why execution settles the rest better:** every remaining risk is runtime behaviour that no
+   review can decide:
+   - G1: whether Gmail keeps the Message-ID and finds it with search
+   - C1: whether Railway is stopped and its token dead
+   - S2: GigSalad's email relay
+   - S3: iMessage read-back
+   - S6: the MacBook overnight
+   - FileVault restarts
+
+   Phase 0 runs these.
+3. **If round 3 ran and came back NO-GO:** the hard cap fires, with no round 4, and execution would
+   still be the next step.
+
+To run a round 3 anyway, write `Round 3 authorized by Alejandro: YES`.
+
 ### Prompt for Next Session
 
 ```
-Read HANDOFF.md (2026-10-02 section). Paste the "Codex Plan-Review Handoff" block from
-docs/plans/2026-10-02-feat-hub-phase0-lead-replies-plan.md into Codex (ROUND 2; expected tip = git rev-parse docs/booking-hub-brainstorm). When Codex returns,
-apply its findings to that plan under the fix contract, then stop. Do not start the work phase.
-Relevant files: docs/plans/2026-10-02-feat-hub-phase0-lead-replies-plan.md,
-docs/plans/2026-10-02-booking-hub-roadmap.md, docs/research/2026-10-02-booking-hub/README.md.
+Read HANDOFF.md (2026-10-02 section) and docs/plans/2026-10-02-feat-hub-phase0-lead-replies-plan.md.
+If Alex chose to start Phase 0: run /workflows:work on that plan, Phase 0 only, starting with 0.1 (test:match),
+one commit per item, stopping at every step that needs Alex's yes (0.2 steps 2-3, S2, Full Disk Access).
+If Alex wrote "Round 3 authorized by Alejandro: YES": generate a round-3 Codex prompt citing both prior verdicts.
+Otherwise: ask Alex which.
 ```
 
 ### Three Questions
