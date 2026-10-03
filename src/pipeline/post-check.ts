@@ -121,6 +121,11 @@ export function postCheckDrafts(
     violations.push("soft_price_in_full: draft uses 'starting at' or similar hedging language instead of a firm price");
   }
 
+  // --- Check: battery-powered sound (Alex: never mention it; unannounced backup) ---
+  const batteryPattern = /\bbatter(?:y|ies)\b/i;
+  if (batteryPattern.test(cleanedFull)) violations.push("battery_mention_full");
+  if (batteryPattern.test(cleanedCompressed)) violations.push("battery_mention_compressed");
+
   // --- Check: GigSalad contact info (backup for AI verifier) ---
   if (platform === "gigsalad") {
     const contactPattern = /\b(\d{3}[-.)]\s*\d{3}[-.)]\s*\d{4}|@\w+\.\w+|www\.|\.com|\.net|instagram|facebook)\b/i;
