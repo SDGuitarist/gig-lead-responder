@@ -30,3 +30,10 @@ test("health reports poller state: never, ok, then failed", async () => {
   savePollAuthFailed();
   assert.deepEqual((await health()).poller, { last_success_at: "2026-10-03T16:00:00.000Z", auth: "failed" });
 });
+
+test("health reports lease host: null until held, then the holder's host", async () => {
+  const { tryAcquireLease } = await import("./db/runtime-lease.js");
+  assert.deepEqual((await health()).lease, { host: null });
+  tryAcquireLease({ host: "alex-mbp", pid: process.pid, boot: 1 }, Date.now(), () => true);
+  assert.deepEqual((await health()).lease, { host: "alex-mbp" });
+});
