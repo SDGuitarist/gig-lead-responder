@@ -473,7 +473,7 @@ Every Verify line uses `npm run test:match -- "<name>"`, which **fails if no tes
     {"files": ["src/automation/orchestrator.ts", "src/run-pipeline.ts"], "reason": "Platform must reach the pipeline on the auto-send path"},
     {"files": ["src/automation/router.ts", "src/automation/send-gate.ts"], "reason": "One gate: routeLead delegates to evaluateSendGate"},
     {"files": ["src/data/rates.ts", "src/automation/send-gate.ts"], "reason": "Slot prices come from the same rate table, converted once to cents"},
-    {"files": ["src/automation/source-validator.ts"], "reason": "DMARC-aligned sender check gates both leads and (later) payments"}
+    {"files": ["src/automation/source-validator.ts", "src/source-validator.test.ts"], "reason": "DMARC-aligned sender check gates leads (and later payments); forged-sender cases live in its test file"}
   ]
 }
 ```
