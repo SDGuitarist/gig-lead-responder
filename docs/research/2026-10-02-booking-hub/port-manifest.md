@@ -102,14 +102,14 @@
 | R088 | F5 | Coasterra | TO PORT | Per-venue profile. Destination: PF-Intel (`src/venue-lookup.ts` → `formatVenueContext`). Not in PF-Intel's seed files (control: a seeded venue IS found there, so the search works); whether its live Supabase data has it is unverified | venue named |  |  |
 | R089 | F5 | Scripps Seaside Forum | TO PORT | Per-venue profile. Destination: PF-Intel (`src/venue-lookup.ts` → `formatVenueContext`). Not in PF-Intel's seed files (control: a seeded venue IS found there, so the search works); whether its live Supabase data has it is unverified | venue named |  |  |
 | R090 | F5 | [ADD MORE TIER B PROFILES AS NEEDED] | NOT PORTED | Empty template row; approved class (navigation/placeholder), Alex 2026-10-03 (q-e) |  |  |  |
-| R091 | F5 | Section 4: Red Flag Venues | ALREADY PRESENT | Section heading; the named red-flag venue table is empty placeholders in the source | — |  |  |
+| R091 | F5 | Section 4: Red Flag Venues | ALREADY PRESENT | `src/prompts/classify.ts` Step 2.75 RED FLAG PATTERNS (section heading; its venue table is empty placeholders, R092) | — |  |  |
 | R092 | F5 | Decline or Approach with Caution | NOT PORTED | The table holds only "[Venue Name]" placeholders; nothing to port. Approved class (placeholder), Alex 2026-10-03 (q-e) |  |  |  |
 | R093 | F5 | Red Flag Patterns (Not Venue-Specific) | PORTED | `src/prompts/classify.ts` Step 2.75 RED FLAG PATTERNS → `flagged_concerns` | always | `RED FLAG PATTERNS` | `port manifest F5` |
 | R094 | F5 | Section 5: Venue Signal Detection | PORTED | `src/prompts/classify.ts` Step 2.75 | always |  | `port manifest F5` |
 | R095 | F5 | Auto-Premium Signals (Treat as Tier A) | PORTED | `src/prompts/classify.ts` Step 2.75 auto-premium patterns | always | `Private estate in Rancho Santa Fe, La Jolla or Coronado` | `port manifest F5` |
 | R096 | F5 | Premium Zip Codes | PORTED | `src/prompts/classify.ts` Step 2.75 (the 5 zips were already there; 92091 added) | always | `92091` | `port manifest F5` |
 | R097 | F5 | Tier B Signals (Context-Dependent) | PORTED | `src/prompts/classify.ts` Step 2.75 context-dependent signals | always |  | `port manifest F5` |
-| R098 | F5 | Section 6: Operational Quick Reference | ALREADY PRESENT | Section heading | — |  |  |
+| R098 | F5 | Section 6: Operational Quick Reference | ALREADY PRESENT | `src/prompts/generate.ts` Quote Terms (section heading; children R099, R100) | — |  |  |
 | R099 | F5 | Standard Setup Requirements | TO PORT | Space and setup time by configuration (solo 6x6 ft 20–30 min ... trio with dancer 15x10 ft). The power line is ported via M9. Destination: the Quote Terms block in `buildGeneratePrompt` (`src/prompts/generate.ts`) or a loaded doc | quoting |  |  |
 | R100 | F5 | Common Venue Concerns → Responses | NOT PORTED | Its outdoor-power reply says "battery-powered"; Alex 2026-10-03: never mention battery. The other three replies (volume, load-in, first-time venue) match `docs/PRINCIPLES.md` / `docs/QUICK_REFERENCE.md` preempt tables |  |  |  |
 | R101 | F5 | Cross-References | NOT PORTED | Navigation table; approved by Alex 2026-10-03 (q-e) |  |  |  |
