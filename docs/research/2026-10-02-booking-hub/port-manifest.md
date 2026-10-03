@@ -54,38 +54,38 @@
 | R040 | F2 | Self-Check Protocol | PORTED | Self-check items 1–2 in `src/pipeline/post-check.ts`; 3, 6, 7 in `src/prompts/verify.ts` §7b; 4 is `validated_them`; 5 is `lead_specific_opening` (`src/prompts/verify.ts`) | always |  | `voice kill list`; `port manifest F2 verify` |
 | R041 | F2 | When in Doubt | ALREADY PRESENT | Points to an email-samples doc the app does not have; the app's equivalent is `src/data/voice-references.ts` (shown to generate and verify). Left out of the loaded doc | always |  |  |
 | R042 | F2 | Cross-References | NOT PORTED | Navigation table; approved by Alex 2026-10-03 (q-e) |  |  |  |
-| R043 | F3 | Tier Definitions (Quick Reference) | UNREVIEWED | | | | |
-| R044 | F3 | B2C Buyer Tiers (Private Events) | UNREVIEWED | | | | |
-| R045 | F3 | Recurring Programming Requests for Trio/Ensemble | UNREVIEWED | | | | |
-| R046 | F3 | Flamenco Trio (Guitar + Cajón + Dancer) | UNREVIEWED | | | | |
-| R047 | F3 | B2C Pricing: Flamenco Trio Full (Dancer Entire Duration) | UNREVIEWED | | | | |
-| R048 | F3 | B2C Pricing: Flamenco Trio Hybrid (Recommended Default) | UNREVIEWED | | | | |
-| R049 | F3 | Mariachi: Full Ensemble (Weekend, 8-10 Players) | UNREVIEWED | | | | |
-| R050 | F3 | B2C Pricing: San Diego County | UNREVIEWED | | | | |
-| R051 | F3 | B2C Pricing: Outside San Diego County | UNREVIEWED | | | | |
-| R052 | F3 | Mariachi: 4-Piece (Weekday) | UNREVIEWED | | | | |
-| R053 | F3 | B2C Pricing | UNREVIEWED | | | | |
-| R054 | F3 | Sourced Cultural Music: Universal Pricing | UNREVIEWED | | | | |
-| R055 | F3 | Trio (3 Musicians) | UNREVIEWED | | | | |
-| R056 | F3 | Quartet (4 Musicians) | UNREVIEWED | | | | |
-| R057 | F3 | 5-Piece (5 Musicians) | UNREVIEWED | | | | |
-| R058 | F3 | Booking Guidelines | UNREVIEWED | | | | |
-| R059 | F3 | Strategic Notes | UNREVIEWED | | | | |
-| R060 | F3 | Cross-References | UNREVIEWED | | | | |
-| R061 | F4 | Product Overview | UNREVIEWED | | | | |
-| R062 | F4 | B2C Pricing: Bolero Trio (Private Events) | UNREVIEWED | | | | |
-| R063 | F4 | 1-Hour Service | UNREVIEWED | | | | |
-| R064 | F4 | 1.5-Hour Service (Duration Adjustment Option) | UNREVIEWED | | | | |
-| R065 | F4 | 2-Hour Service (Most Common) | UNREVIEWED | | | | |
-| R066 | F4 | 3-Hour Service | UNREVIEWED | | | | |
-| R067 | F4 | Recurring Programming Requests for Bolero Trio | UNREVIEWED | | | | |
-| R068 | F4 | Tier Definitions (Quick Reference) | UNREVIEWED | | | | |
-| R069 | F4 | B2C Buyer Tiers (Private Events) | UNREVIEWED | | | | |
-| R070 | F4 | B2B Residency Tiers (Recurring Programming): Not Applicable | UNREVIEWED | | | | |
-| R071 | F4 | Lead Source Logic | UNREVIEWED | | | | |
-| R072 | F4 | Booking Guidelines | UNREVIEWED | | | | |
-| R073 | F4 | Strategic Notes | UNREVIEWED | | | | |
-| R074 | F4 | Cross-References | UNREVIEWED | | | | |
+| R043 | F3 | Tier Definitions (Quick Reference) | ALREADY PRESENT | `src/prompts/classify.ts` Step 4 (T1–T3, P/D column); T4 and NP are R403 | always |  |  |
+| R044 | F3 | B2C Buyer Tiers (Private Events) | ALREADY PRESENT | `src/prompts/classify.ts` Step 4 (T1–T3, P/D column); T4 and NP are R403 | always |  |  |
+| R045 | F3 | Recurring Programming Requests for Trio/Ensemble | TO PORT | Recurring programming: solo Alex → residency R1–R3 (R281); trio/ensemble/bolero → a series of B2C events at the $500 floor (5–10% multi-month concession off T2D). In no prompt or code. **Prices: Alex** | engagement = residency / recurring |  |  |
+| R046 | F3 | Flamenco Trio (Guitar + Cajón + Dancer) | ALREADY PRESENT | `src/data/rates.ts`: every card price matches (`npx tsx scripts/port-rate-compare.ts`: 196 of 200, the 4 others are R048's missing option) | format quoted |  | `npx tsx scripts/port-rate-compare.ts` |
+| R047 | F3 | B2C Pricing: Flamenco Trio Full (Dancer Entire Duration) | ALREADY PRESENT | `src/data/rates.ts`: every card price matches (`npx tsx scripts/port-rate-compare.ts`: 196 of 200, the 4 others are R048's missing option) | format quoted |  | `npx tsx scripts/port-rate-compare.ts` |
+| R048 | F3 | B2C Pricing: Flamenco Trio Hybrid (Recommended Default) | TO PORT | `src/data/rates.ts` `FLAMENCO_TRIO_RATES` matches the card for 1–3 h with the dancer for 1 hour. Missing: the card's **3-hour, dancer 2 hours** option (+$300 per tier). Destination: a variant in `rates.ts` + classify. **Adds quotes: Alex** | flamenco trio, 3 h |  |  |
+| R049 | F3 | Mariachi: Full Ensemble (Weekend, 8-10 Players) | ALREADY PRESENT | `src/data/rates.ts`: every card price matches (`npx tsx scripts/port-rate-compare.ts`: 196 of 200, the 4 others are R048's missing option) | format quoted |  | `npx tsx scripts/port-rate-compare.ts` |
+| R050 | F3 | B2C Pricing: San Diego County | ALREADY PRESENT | `src/data/rates.ts`: every card price matches (`npx tsx scripts/port-rate-compare.ts`: 196 of 200, the 4 others are R048's missing option) | format quoted |  | `npx tsx scripts/port-rate-compare.ts` |
+| R051 | F3 | B2C Pricing: Outside San Diego County | TO PORT | Mariachi full ensemble outside San Diego County (travel built in) has no table in `src/data/rates.ts`; `src/travel-fee.ts` asks for a custom travel quote for large ensembles far out. **Adds quotes: Alex** | mariachi_full outside SD County |  |  |
+| R052 | F3 | Mariachi: 4-Piece (Weekday) | ALREADY PRESENT | `src/data/rates.ts`: every card price matches (`npx tsx scripts/port-rate-compare.ts`: 196 of 200, the 4 others are R048's missing option) | format quoted |  | `npx tsx scripts/port-rate-compare.ts` |
+| R053 | F3 | B2C Pricing | ALREADY PRESENT | `src/data/rates.ts`: every card price matches (`npx tsx scripts/port-rate-compare.ts`: 196 of 200, the 4 others are R048's missing option) | format quoted |  | `npx tsx scripts/port-rate-compare.ts` |
+| R054 | F3 | Sourced Cultural Music: Universal Pricing | ALREADY PRESENT | `src/data/rates.ts`: every card price matches (`npx tsx scripts/port-rate-compare.ts`: 196 of 200, the 4 others are R048's missing option) | format quoted |  | `npx tsx scripts/port-rate-compare.ts` |
+| R055 | F3 | Trio (3 Musicians) | ALREADY PRESENT | `src/data/rates.ts`: every card price matches (`npx tsx scripts/port-rate-compare.ts`: 196 of 200, the 4 others are R048's missing option) | format quoted |  | `npx tsx scripts/port-rate-compare.ts` |
+| R056 | F3 | Quartet (4 Musicians) | ALREADY PRESENT | `src/data/rates.ts`: every card price matches (`npx tsx scripts/port-rate-compare.ts`: 196 of 200, the 4 others are R048's missing option) | format quoted |  | `npx tsx scripts/port-rate-compare.ts` |
+| R057 | F3 | 5-Piece (5 Musicians) | ALREADY PRESENT | `src/data/rates.ts`: every card price matches (`npx tsx scripts/port-rate-compare.ts`: 196 of 200, the 4 others are R048's missing option) | format quoted |  | `npx tsx scripts/port-rate-compare.ts` |
+| R058 | F3 | Booking Guidelines | TO PORT | Anchor/floor: `src/pipeline/price.ts`. Travel: `src/travel-fee.ts` distance bands (a finer model than the card's +$250–300 / LA +$500–800). Not in code: holiday/peak quoted separately (R292) and below-floor only for T1. **Price effect: Alex** | always |  |  |
+| R059 | F3 | Strategic Notes | ALREADY PRESENT | 4-piece as right-sized for weekday corporate: `src/prompts/generate.ts` `buildDualFormatBlock`; hybrid trio as default: `flamenco_trio` in `src/data/rates.ts`; recurring trio/ensemble: R045 | flamenco / mariachi |  |  |
+| R060 | F3 | Cross-References | NOT PORTED | Navigation; approved by Alex 2026-10-03 (q-e) |  |  |  |
+| R061 | F4 | Product Overview | ALREADY PRESENT | `src/data/rates.ts`: every card price matches (`npx tsx scripts/port-rate-compare.ts`: 196 of 200, the 4 others are R048's missing option) | format quoted |  | `npx tsx scripts/port-rate-compare.ts` |
+| R062 | F4 | B2C Pricing: Bolero Trio (Private Events) | ALREADY PRESENT | `src/data/rates.ts`: every card price matches (`npx tsx scripts/port-rate-compare.ts`: 196 of 200, the 4 others are R048's missing option) | format quoted |  | `npx tsx scripts/port-rate-compare.ts` |
+| R063 | F4 | 1-Hour Service | ALREADY PRESENT | `src/data/rates.ts`: every card price matches (`npx tsx scripts/port-rate-compare.ts`: 196 of 200, the 4 others are R048's missing option) | format quoted |  | `npx tsx scripts/port-rate-compare.ts` |
+| R064 | F4 | 1.5-Hour Service (Duration Adjustment Option) | ALREADY PRESENT | `src/data/rates.ts`: every card price matches (`npx tsx scripts/port-rate-compare.ts`: 196 of 200, the 4 others are R048's missing option) | format quoted |  | `npx tsx scripts/port-rate-compare.ts` |
+| R065 | F4 | 2-Hour Service (Most Common) | ALREADY PRESENT | `src/data/rates.ts`: every card price matches (`npx tsx scripts/port-rate-compare.ts`: 196 of 200, the 4 others are R048's missing option) | format quoted |  | `npx tsx scripts/port-rate-compare.ts` |
+| R066 | F4 | 3-Hour Service | ALREADY PRESENT | `src/data/rates.ts`: every card price matches (`npx tsx scripts/port-rate-compare.ts`: 196 of 200, the 4 others are R048's missing option) | format quoted |  | `npx tsx scripts/port-rate-compare.ts` |
+| R067 | F4 | Recurring Programming Requests for Bolero Trio | TO PORT | Recurring programming: solo Alex → residency R1–R3 (R281); trio/ensemble/bolero → a series of B2C events at the $500 floor (5–10% multi-month concession off T2D). In no prompt or code. **Prices: Alex** | engagement = residency / recurring |  |  |
+| R068 | F4 | Tier Definitions (Quick Reference) | ALREADY PRESENT | `src/prompts/classify.ts` Step 4 (T1–T3, P/D column); T4 and NP are R403 | always |  |  |
+| R069 | F4 | B2C Buyer Tiers (Private Events) | ALREADY PRESENT | `src/prompts/classify.ts` Step 4 (T1–T3, P/D column); T4 and NP are R403 | always |  |  |
+| R070 | F4 | B2B Residency Tiers (Recurring Programming): Not Applicable | TO PORT | Recurring programming: solo Alex → residency R1–R3 (R281); trio/ensemble/bolero → a series of B2C events at the $500 floor (5–10% multi-month concession off T2D). In no prompt or code. **Prices: Alex** | engagement = residency / recurring |  |  |
+| R071 | F4 | Lead Source Logic | ALREADY PRESENT | `src/prompts/classify.ts` LEAD SOURCE MAPPING + `src/data/rates.ts` P/D columns | always |  |  |
+| R072 | F4 | Booking Guidelines | TO PORT | Anchor/floor: `src/pipeline/price.ts`. Travel: `src/travel-fee.ts` distance bands (a finer model than the card's +$250–300 / LA +$500–800). Not in code: holiday/peak quoted separately (R292) and below-floor only for T1. **Price effect: Alex** | always |  |  |
+| R073 | F4 | Strategic Notes | ALREADY PRESENT | Scarcity and negotiation: `docs/Bolero_Trio_Negotiation_Playbook.md` (loaded for bolero, R008); 1.5-hour option: `BOLERO_TRIO_RATES` in `src/data/rates.ts`; small-venue / recurring: R281 | bolero_trio |  |  |
+| R074 | F4 | Cross-References | NOT PORTED | Navigation; approved by Alex 2026-10-03 (q-e) |  |  |  |
 | R075 | F5 | Pacific Flow Entertainment: Venue Intelligence | ALREADY PRESENT | Venue intel at runtime = PF-Intel (`src/venue-lookup.ts`) + `src/pipeline/format-venue-context.ts`; tier rules in `src/prompts/classify.ts` Step 2.75 | venue named |  |  |
 | R076 | F5 | How to Use This File | ALREADY PRESENT | `src/pipeline/context.ts`: venue context is placed high when PF-Intel returns data | venue named |  |  |
 | R077 | F5 | Section 1: Tier Classification | PORTED | `src/prompts/classify.ts` Step 2.75 | always | `Tier A venues (auto-premium` | `port manifest F5` |
@@ -113,23 +113,23 @@
 | R099 | F5 | Standard Setup Requirements | TO PORT | Space and setup time by configuration (solo 6x6 ft 20–30 min ... trio with dancer 15x10 ft). The power line is ported via M9. Destination: the Quote Terms block in `buildGeneratePrompt` (`src/prompts/generate.ts`) or a loaded doc | quoting |  |  |
 | R100 | F5 | Common Venue Concerns → Responses | NOT PORTED | Its outdoor-power reply says "battery-powered"; Alex 2026-10-03: never mention battery. The other three replies (volume, load-in, first-time venue) match `docs/PRINCIPLES.md` / `docs/QUICK_REFERENCE.md` preempt tables |  |  |  |
 | R101 | F5 | Cross-References | NOT PORTED | Navigation table; approved by Alex 2026-10-03 (q-e) |  |  |  |
-| R102 | F6 | Buyer Tiers (B2C: Private Events) | UNREVIEWED | | | | |
-| R103 | F6 | Residency Tiers (B2B: Recurring Programming, Solo Alex Only) | UNREVIEWED | | | | |
-| R104 | F6 | B2C Negotiation Rules | UNREVIEWED | | | | |
-| R105 | F6 | B2C: Solo Guitar | UNREVIEWED | | | | |
-| R106 | F6 | B2C: Duo (Guitar + Second Musician) | UNREVIEWED | | | | |
-| R107 | F6 | B2C: Flamenco Duo (Guitar + Cajón) | UNREVIEWED | | | | |
-| R108 | F6 | B2B Residency Pricing: Solo Only | UNREVIEWED | | | | |
-| R109 | F6 | R1: Owner-Operator (Floor $300) | UNREVIEWED | | | | |
-| R110 | F6 | R2: Mid-Tier (Floor $350) | UNREVIEWED | | | | |
-| R111 | F6 | R3: Premium (Floor $400+) | UNREVIEWED | | | | |
-| R112 | F6 | Sourced Cultural Music: Solo & Duo Only | UNREVIEWED | | | | |
-| R113 | F6 | B2C Pricing | UNREVIEWED | | | | |
-| R114 | F6 | Trio/Ensemble Rates: Separate Project | UNREVIEWED | | | | |
-| R115 | F6 | Strategic Margin Notes: Solo & Duo Only | UNREVIEWED | | | | |
-| R116 | F6 | B2B Residency Comparison by Tier (Solo, 2hrs Weekly) | UNREVIEWED | | | | |
-| R117 | F6 | Change Log | UNREVIEWED | | | | |
-| R118 | F6 | April 26, 2026: Residency Tier Restructure (with same-day scope correction) | UNREVIEWED | | | | |
+| R102 | F6 | Buyer Tiers (B2C: Private Events) | ALREADY PRESENT | `src/prompts/classify.ts` Step 4 (T1–T3, P/D column); T4 and NP are R403 | always |  |  |
+| R103 | F6 | Residency Tiers (B2B: Recurring Programming, Solo Alex Only) | TO PORT | Recurring programming: solo Alex → residency R1–R3 (R281); trio/ensemble/bolero → a series of B2C events at the $500 floor (5–10% multi-month concession off T2D). In no prompt or code. **Prices: Alex** | engagement = residency / recurring |  |  |
+| R104 | F6 | B2C Negotiation Rules | TO PORT | Anchor/floor: `src/pipeline/price.ts`. Travel: `src/travel-fee.ts` distance bands (a finer model than the card's +$250–300 / LA +$500–800). Not in code: holiday/peak quoted separately (R292) and below-floor only for T1. **Price effect: Alex** | always |  |  |
+| R105 | F6 | B2C: Solo Guitar | ALREADY PRESENT | `src/data/rates.ts`: every card price matches (`npx tsx scripts/port-rate-compare.ts`: 196 of 200, the 4 others are R048's missing option) | format quoted |  | `npx tsx scripts/port-rate-compare.ts` |
+| R106 | F6 | B2C: Duo (Guitar + Second Musician) | ALREADY PRESENT | `src/data/rates.ts`: every card price matches (`npx tsx scripts/port-rate-compare.ts`: 196 of 200, the 4 others are R048's missing option) | format quoted |  | `npx tsx scripts/port-rate-compare.ts` |
+| R107 | F6 | B2C: Flamenco Duo (Guitar + Cajón) | ALREADY PRESENT | `src/data/rates.ts`: every card price matches (`npx tsx scripts/port-rate-compare.ts`: 196 of 200, the 4 others are R048's missing option) | format quoted |  | `npx tsx scripts/port-rate-compare.ts` |
+| R108 | F6 | B2B Residency Pricing: Solo Only | TO PORT | Recurring programming: solo Alex → residency R1–R3 (R281); trio/ensemble/bolero → a series of B2C events at the $500 floor (5–10% multi-month concession off T2D). In no prompt or code. **Prices: Alex** | engagement = residency / recurring |  |  |
+| R109 | F6 | R1: Owner-Operator (Floor $300) | TO PORT | Recurring programming: solo Alex → residency R1–R3 (R281); trio/ensemble/bolero → a series of B2C events at the $500 floor (5–10% multi-month concession off T2D). In no prompt or code. **Prices: Alex** | engagement = residency / recurring |  |  |
+| R110 | F6 | R2: Mid-Tier (Floor $350) | TO PORT | Recurring programming: solo Alex → residency R1–R3 (R281); trio/ensemble/bolero → a series of B2C events at the $500 floor (5–10% multi-month concession off T2D). In no prompt or code. **Prices: Alex** | engagement = residency / recurring |  |  |
+| R111 | F6 | R3: Premium (Floor $400+) | TO PORT | Recurring programming: solo Alex → residency R1–R3 (R281); trio/ensemble/bolero → a series of B2C events at the $500 floor (5–10% multi-month concession off T2D). In no prompt or code. **Prices: Alex** | engagement = residency / recurring |  |  |
+| R112 | F6 | Sourced Cultural Music: Solo & Duo Only | ALREADY PRESENT | `src/data/rates.ts`: every card price matches (`npx tsx scripts/port-rate-compare.ts`: 196 of 200, the 4 others are R048's missing option) | format quoted |  | `npx tsx scripts/port-rate-compare.ts` |
+| R113 | F6 | B2C Pricing | ALREADY PRESENT | `src/data/rates.ts`: every card price matches (`npx tsx scripts/port-rate-compare.ts`: 196 of 200, the 4 others are R048's missing option) | format quoted |  | `npx tsx scripts/port-rate-compare.ts` |
+| R114 | F6 | Trio/Ensemble Rates: Separate Project | ALREADY PRESENT | `src/data/rates.ts` holds the trio/ensemble tables (the "separate project" pointer is resolved) | — |  |  |
+| R115 | F6 | Strategic Margin Notes: Solo & Duo Only | BLOCKED | proposed NOT PORTED: internal margin math (cost per hour, margin per Alex-hour), not a reply rule; the $150 minimum profit is R362. Needs Alex's yes (q-h) |  |  |  |
+| R116 | F6 | B2B Residency Comparison by Tier (Solo, 2hrs Weekly) | TO PORT | Recurring programming: solo Alex → residency R1–R3 (R281); trio/ensemble/bolero → a series of B2C events at the $500 floor (5–10% multi-month concession off T2D). In no prompt or code. **Prices: Alex** | engagement = residency / recurring |  |  |
+| R117 | F6 | Change Log | BLOCKED | proposed NOT PORTED: change-log history; its content is tracked in R281. Needs Alex's yes (q-h) |  |  |  |
+| R118 | F6 | April 26, 2026: Residency Tier Restructure (with same-day scope correction) | BLOCKED | proposed NOT PORTED: change-log history; its content is tracked in R281. Needs Alex's yes (q-h) |  |  |  |
 | R119 | F7 | Pacific Flow Entertainment: Alex's Philosophy on Event Arcs | PORTED | `docs/EVENT_STRUCTURE_THEORY.md` (the Project's newer, em-dash-free copy; a memorial client's first name replaced), loaded by `selectContext` when classify sets `event_arc` (`src/pipeline/classify.ts` `normalizeEventArc`) | `event_arc` set (wedding / corporate / private_celebration / memorial) | `## EVENT ARCS` | `port manifest F7`; `classify event arc` |
 | R120 | F7 | The Core Thesis | PORTED | `docs/EVENT_STRUCTURE_THEORY.md` (the Project's newer, em-dash-free copy; a memorial client's first name replaced), loaded by `selectContext` when classify sets `event_arc` (`src/pipeline/classify.ts` `normalizeEventArc`) | `event_arc` set (wedding / corporate / private_celebration / memorial) | `## EVENT ARCS` | `port manifest F7`; `classify event arc` |
 | R121 | F7 | Wedding Arc: The Three-Room Structure | PORTED | `docs/EVENT_STRUCTURE_THEORY.md` (the Project's newer, em-dash-free copy; a memorial client's first name replaced), loaded by `selectContext` when classify sets `event_arc` (`src/pipeline/classify.ts` `normalizeEventArc`) | `event_arc` set (wedding / corporate / private_celebration / memorial) | `## EVENT ARCS` | `port manifest F7`; `classify event arc` |

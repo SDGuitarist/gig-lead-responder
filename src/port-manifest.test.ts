@@ -32,3 +32,8 @@ test("port manifest structure: statuses are valid and cited places exist", () =>
     if (status === "NOT PORTED") assert.match(where, /Alex/, `${id}: NOT PORTED needs Alex's approval noted`);
   }
 });
+
+test("port manifest every row reviewed: no row is UNREVIEWED", () => {
+  const unreviewed = tableRows(`${DIR}/port-manifest.md`).filter((r) => r[3] === "UNREVIEWED").map((r) => r[0]);
+  assert.deepEqual(unreviewed, []);
+});
