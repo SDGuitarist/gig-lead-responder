@@ -303,7 +303,16 @@ continues):
 - (b) The battery-powered sound rule conflict.
 - (c) `AUTHENTICITY_SCREEN.md` / `FOLLOW_UP.md`: do they exist, or should the references be
   dropped?
-- Unanswered rows are marked `BLOCKED (Alex q-a/b/c)` in the manifest. **Module 1 can't go live
+- Unanswered rows are marked `BLOCKED (Alex q-a/b/c)` in the manifest.
+- **Answered 2026-10-03 (Alex):**
+  - (a) **Yes**: use the Project's Trio/Ensemble card.
+  - (b) **The Project wins** the battery-powered sound conflict.
+  - (c) Neither file ever existed (the extraction's own audit, line 6058, lists both as "referenced but missing";
+    not found on disk). Claude recommended, pending Alex's veto: `FOLLOW_UP.md` → **ALREADY PRESENT**
+    (`src/follow-up-scheduler.ts`, `src/follow-up-api.ts`, `src/db/follow-ups.ts`); `AUTHENTICITY_SCREEN.md` →
+    **NOT PORTED**: sender spoofing is covered by the DMARC check (`source-validator.ts`), content-level scam
+    screening (overpayment, fake checks) is a known gap with no source text to port.
+ **Module 1 can't go live
   while any row is BLOCKED.**
 
 ### 0.6 Win-rate baseline (read-only)
