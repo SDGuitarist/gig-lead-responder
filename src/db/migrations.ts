@@ -15,8 +15,23 @@ export interface Migration {
   up: (db: Database.Database) => void;
 }
 
-/** The app's migrations, in order. v1 arrives with the poller cursor (plan 0.3). */
-export const MIGRATIONS: Migration[] = [];
+/** The app's migrations, in order. */
+export const MIGRATIONS: Migration[] = [
+  {
+    // Plan 0.3: the poller cursor survives a restart. One row, id = 1.
+    version: 1,
+    name: "poller_state",
+    up: (db) =>
+      db.exec(`
+        CREATE TABLE poller_state (
+          id INTEGER PRIMARY KEY CHECK (id = 1),
+          cursor_ts INTEGER,
+          last_success_at TEXT,
+          auth TEXT CHECK (auth IN ('ok', 'failed'))
+        )
+      `),
+  },
+];
 
 /** Throws if the DB was written by newer code; returns its current version. */
 export function assertDbNotNewer(db: Database.Database, migrations: Migration[]): number {
