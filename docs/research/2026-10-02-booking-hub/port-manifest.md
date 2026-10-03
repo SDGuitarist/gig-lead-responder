@@ -6,6 +6,11 @@
 
 **Open Alex question (q-d):** the chat Project also answered interactive questions ("what should I quote for...", "what do I know about this venue", "does this sound like me"). The app only answers leads. **Answered 2026-10-03: Alex approved NOT PORTED for those rows (R007, R009, R010, R011, R019).**
 
+**Open Alex questions (asked 2026-10-03):**
+- **q-e:** the remaining Cross-References / navigation rows (R218, R330, R372 and the others marked q-e). Proposed NOT PORTED, same reason as R019.
+- **q-f:** `docs/QUICK_REFERENCE.md` "Pricing Shorthand" (loaded into every draft) says solo "Standard $400-500", but `src/data/rates.ts` never quotes solo below $500 and the Project sets a $500 minimum. The Project's own QUICK_REFERENCE dropped this table. Proposed: remove it.
+- **q-g:** contact block on non-GigSalad leads (R252): name only (today) or name + Pacific Flow Entertainment + phone (Project).
+
 **Public repo:** headings, statuses and repo locations only. No rates, no client names, no source text (the source lives in `~/Data/gig-lead-responder/`).
 
 | # | Source | Section | Status | Where / reason | Condition | Marker | Test |
@@ -228,40 +233,40 @@
 | R216 | F10 | 7. Preempt Predictable Questions | PORTED | `docs/PRINCIPLES.md`, loaded for every lead by `selectContext` (`src/pipeline/context.ts:50`); merged from the Project 2026-10-03 (the repo's pipeline-specific intro kept on purpose) | always | `First-Time Event Host` | `port manifest F10` |
 | R217 | F10 | The Quality Standard | PORTED | `docs/PRINCIPLES.md`, loaded for every lead by `selectContext` (`src/pipeline/context.ts:50`); merged from the Project 2026-10-03 (the repo's pipeline-specific intro kept on purpose) | always | `Read the absences?` | `port manifest F10` |
 | R218 | F10 | Cross-References | BLOCKED | proposed NOT PORTED: navigation, same class as R019 (approved); needs Alex's yes (q-e) |  |  |  |
-| R219 | F11 | Pacific Flow Entertainment: Lookup Tables | UNREVIEWED | | | | |
-| R220 | F11 | Engagement Type (Check First) | UNREVIEWED | | | | |
-| R221 | F11 | Residency Tiers (B2B: Solo Alex Only) | UNREVIEWED | | | | |
-| R222 | F11 | Competition Levels | UNREVIEWED | | | | |
-| R223 | F11 | Competition × Vagueness Decision Gate | UNREVIEWED | | | | |
-| R224 | F11 | Tier Bridge: Lead Classification → Rate Card (Private Events) | UNREVIEWED | | | | |
-| R225 | F11 | Competition-Weighted Pricing Matrix (Private Events) | UNREVIEWED | | | | |
-| R226 | F11 | Rate Card Directory | UNREVIEWED | | | | |
-| R227 | F11 | Stealth Premium Signals | UNREVIEWED | | | | |
-| R228 | F11 | Tier Thresholds | UNREVIEWED | | | | |
-| R229 | F11 | Premium (ANY ONE) → Rate Card T3 | UNREVIEWED | | | | |
-| R230 | F11 | Qualification (ANY ONE) → Rate Card T2 (lower end, reframe first) | UNREVIEWED | | | | |
-| R231 | F11 | Standard → Rate Card T2 | UNREVIEWED | | | | |
-| R232 | F11 | Word Count Targets | UNREVIEWED | | | | |
-| R233 | F11 | Full Draft | UNREVIEWED | | | | |
-| R234 | F11 | Compressed Draft (by Competition) | UNREVIEWED | | | | |
-| R235 | F11 | Timeline Bands | UNREVIEWED | | | | |
-| R236 | F11 | Close Types | UNREVIEWED | | | | |
-| R237 | F11 | Layer Triggers | UNREVIEWED | | | | |
-| R238 | F11 | Cultural Context | UNREVIEWED | | | | |
-| R239 | F11 | Planner Effort | UNREVIEWED | | | | |
-| R240 | F11 | Social Proof | UNREVIEWED | | | | |
-| R241 | F11 | Absences as Signals (Quick Reference) | UNREVIEWED | | | | |
-| R242 | F11 | ⚠️ Category vs. Format Check | UNREVIEWED | | | | |
-| R243 | F11 | Sparse Lead Type Classification | UNREVIEWED | | | | |
-| R244 | F11 | Required Pre-Work (Reasoning-First Method) | UNREVIEWED | | | | |
-| R245 | F11 | The Five-Part Draft Sequence (Enforced Order) | UNREVIEWED | | | | |
-| R246 | F11 | The 7-Component Checklist (Verification: After Writing) | UNREVIEWED | | | | |
-| R247 | F11 | The Gut Check (9 Checks) | UNREVIEWED | | | | |
-| R248 | F11 | Verification Gate (Required Before Output) | UNREVIEWED | | | | |
-| R249 | F11 | PRE-WORK (Required Before Drafting) | UNREVIEWED | | | | |
-| R250 | F11 | VERIFICATION GATE (Required) | UNREVIEWED | | | | |
-| R251 | F11 | Preempt Questions by Client Type | UNREVIEWED | | | | |
-| R252 | F11 | Contact Block | UNREVIEWED | | | | |
+| R219 | F11 | Pacific Flow Entertainment: Lookup Tables | ALREADY PRESENT | `docs/QUICK_REFERENCE.md`, loaded for every lead (`src/pipeline/context.ts:69`) | always |  |  |
+| R220 | F11 | Engagement Type (Check First) | TO PORT | Engagement type (private event vs B2B residency) is in no prompt and no code. Destination with F13 PRICING: a classify output field + `lookupPrice()` | always |  |  |
+| R221 | F11 | Residency Tiers (B2B: Solo Alex Only) | TO PORT | Residency tiers: plan 0.5 names `RESIDENCY_RATES` in `src/data/rates.ts`, read by `lookupPrice()`. Rates come from F6 (Solo/Duo card); **rate changes need Alex** | solo + residency |  |  |
+| R222 | F11 | Competition Levels | ALREADY PRESENT | `docs/QUICK_REFERENCE.md`, loaded for every lead (`src/pipeline/context.ts:69`) (Competition Levels); the extraction-rule note is in `buildClassifyPrompt` (R358) | always |  |  |
+| R223 | F11 | Competition × Vagueness Decision Gate | ALREADY PRESENT | `docs/QUICK_REFERENCE.md`, loaded for every lead (`src/pipeline/context.ts:69`); also `src/prompts/classify.ts` Step 2.5 | always |  |  |
+| R224 | F11 | Tier Bridge: Lead Classification → Rate Card (Private Events) | ALREADY PRESENT | `src/prompts/classify.ts` Step 4 (rate card tier mapping) + `src/pipeline/price.ts:52` (tier + column → anchor/floor) | always |  |  |
+| R225 | F11 | Competition-Weighted Pricing Matrix (Private Events) | ALREADY PRESENT | `docs/QUICK_REFERENCE.md`, loaded for every lead (`src/pipeline/context.ts:69`); also `src/prompts/classify.ts` Step 3 | always |  |  |
+| R226 | F11 | Rate Card Directory | ALREADY PRESENT | `src/data/rates.ts:377` (`RATE_TABLES` by format) | always |  |  |
+| R227 | F11 | Stealth Premium Signals | ALREADY PRESENT | `docs/QUICK_REFERENCE.md`, loaded for every lead (`src/pipeline/context.ts:69`); "→ T3" is in `src/prompts/classify.ts` Step 4 | always |  |  |
+| R228 | F11 | Tier Thresholds | ALREADY PRESENT | `docs/QUICK_REFERENCE.md`, loaded for every lead (`src/pipeline/context.ts:69`) | always |  |  |
+| R229 | F11 | Premium (ANY ONE) → Rate Card T3 | ALREADY PRESENT | `docs/QUICK_REFERENCE.md`, loaded for every lead (`src/pipeline/context.ts:69`) | always |  |  |
+| R230 | F11 | Qualification (ANY ONE) → Rate Card T2 (lower end, reframe first) | ALREADY PRESENT | `docs/QUICK_REFERENCE.md`, loaded for every lead (`src/pipeline/context.ts:69`) | always |  |  |
+| R231 | F11 | Standard → Rate Card T2 | ALREADY PRESENT | `docs/QUICK_REFERENCE.md`, loaded for every lead (`src/pipeline/context.ts:69`) | always |  |  |
+| R232 | F11 | Word Count Targets | ALREADY PRESENT | `docs/QUICK_REFERENCE.md`, loaded for every lead (`src/pipeline/context.ts:69`); enforced in `src/prompts/generate.ts:222` | always |  |  |
+| R233 | F11 | Full Draft | ALREADY PRESENT | `docs/QUICK_REFERENCE.md`, loaded for every lead (`src/pipeline/context.ts:69`) (identical to the Project) | always |  |  |
+| R234 | F11 | Compressed Draft (by Competition) | ALREADY PRESENT | `docs/QUICK_REFERENCE.md`, loaded for every lead (`src/pipeline/context.ts:69`) (identical to the Project) | always |  |  |
+| R235 | F11 | Timeline Bands | ALREADY PRESENT | `docs/QUICK_REFERENCE.md`, loaded for every lead (`src/pipeline/context.ts:69`) (identical) | always |  |  |
+| R236 | F11 | Close Types | ALREADY PRESENT | `docs/QUICK_REFERENCE.md`, loaded for every lead (`src/pipeline/context.ts:69`) (identical apart from punctuation) | always |  |  |
+| R237 | F11 | Layer Triggers | ALREADY PRESENT | `docs/QUICK_REFERENCE.md`, loaded for every lead (`src/pipeline/context.ts:69`) | always |  |  |
+| R238 | F11 | Cultural Context | ALREADY PRESENT | `docs/QUICK_REFERENCE.md`, loaded for every lead (`src/pipeline/context.ts:69`) (identical) | always |  |  |
+| R239 | F11 | Planner Effort | ALREADY PRESENT | `docs/QUICK_REFERENCE.md`, loaded for every lead (`src/pipeline/context.ts:69`) (identical) | always |  |  |
+| R240 | F11 | Social Proof | ALREADY PRESENT | `docs/QUICK_REFERENCE.md`, loaded for every lead (`src/pipeline/context.ts:69`) (identical) | always |  |  |
+| R241 | F11 | Absences as Signals (Quick Reference) | ALREADY PRESENT | `docs/PRINCIPLES.md` (ported F10, R211) and `docs/RESPONSE_CRAFT.md` Reading Absent Information (R321), both loaded for every lead | always |  |  |
+| R242 | F11 | ⚠️ Category vs. Format Check | ALREADY PRESENT | `docs/RESPONSE_CRAFT.md` Category vs. Format Rule (ported R322), loaded for every lead | always |  |  |
+| R243 | F11 | Sparse Lead Type Classification | ALREADY PRESENT | `docs/RESPONSE_CRAFT.md` Sparse Lead Type Classification; `src/prompts/generate.ts:152` | always |  |  |
+| R244 | F11 | Required Pre-Work (Reasoning-First Method) | TO PORT | `src/prompts/generate.ts:62` reasoning block has details, absences, emotional core, cinematic opening, validation line; it lacks **request type** (FORMAT vs CATEGORY). Destination: a `request_type` reasoning field in `buildGeneratePrompt` | always |  |  |
+| R245 | F11 | The Five-Part Draft Sequence (Enforced Order) | ALREADY PRESENT | `src/prompts/generate.ts:75` 5-step sequence (woven, not labeled) | always |  |  |
+| R246 | F11 | The 7-Component Checklist (Verification: After Writing) | ALREADY PRESENT | `src/prompts/verify.ts` + `src/types.ts:155` gut checks cover hook, validation, picture, emotion, named fear, answer-everything; close is `close_type` | always |  |  |
+| R247 | F11 | The Gut Check (9 Checks) | ALREADY PRESENT | `src/types.ts:155` (the same 9 checks) | always |  |  |
+| R248 | F11 | Verification Gate (Required Before Output) | ALREADY PRESENT | `src/prompts/verify.ts`: the gate runs before any draft is delivered | always |  |  |
+| R249 | F11 | PRE-WORK (Required Before Drafting) | TO PORT | Same as R244 (request type missing from the reasoning block) | always |  |  |
+| R250 | F11 | VERIFICATION GATE (Required) | ALREADY PRESENT | `src/prompts/verify.ts` (JSON gate with the same fields as the template) | always |  |  |
+| R251 | F11 | Preempt Questions by Client Type | ALREADY PRESENT | `docs/QUICK_REFERENCE.md`, loaded for every lead (`src/pipeline/context.ts:69`); the First-Time Host row is in `docs/PRINCIPLES.md` (ported R216) | always |  |  |
+| R252 | F11 | Contact Block | BLOCKED | Project: name + business name + phone for non-GigSalad leads. App: name only (`src/pipeline/generate.ts:26`), and `docs/QUICK_REFERENCE.md` says no phone in the draft. Needs Alex (q-g) |  |  |  |
 | R253 | F12 | Pacific Flow Entertainment: Quality Gate + Output (Steps 10-11) | UNREVIEWED | | | | |
 | R254 | F12 | ⚠️ MANDATORY SEQUENCE: YOU ARE HERE: FILE 3 OF 3 | UNREVIEWED | | | | |
 | R255 | F12 | Step 10: Quality Verification | UNREVIEWED | | | | |
