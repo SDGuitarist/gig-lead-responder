@@ -35,6 +35,14 @@ function bootstrapCredentialFiles(credPath: string, tokenPath: string): void {
 let interval: ReturnType<typeof setInterval> | null = null;
 let yelpClient: YelpPortalClient | null = null;
 let authFailed = false;
+let activePoll: (() => Promise<void>) | null = null;
+
+/** Polls right away (used on wake). Returns false if the poller isn't running. */
+export async function pollNow(): Promise<boolean> {
+  if (!activePoll) return false;
+  await activePoll();
+  return true;
+}
 
 /**
  * The poller never sends for real until Module 1 ships an alert channel to
@@ -156,6 +164,7 @@ export async function startGmailPoller(): Promise<void> {
     }
   }
 
+  activePoll = poll;
   // Run immediately, then on interval
   await poll();
   interval = setInterval(poll, config.pollIntervalMs);
@@ -166,6 +175,7 @@ export async function startGmailPoller(): Promise<void> {
 }
 
 export async function stopGmailPoller(): Promise<void> {
+  activePoll = null;
   if (interval) {
     clearInterval(interval);
     interval = null;

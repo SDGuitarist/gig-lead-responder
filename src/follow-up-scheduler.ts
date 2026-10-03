@@ -7,6 +7,8 @@ import { baseUrl } from "./utils/helpers.js";
 const INTERVAL_MS = 15 * 60 * 1_000; // 15 minutes
 const MAX_SCHEDULER_RETRIES = 3;
 let schedulerHandle: ReturnType<typeof setTimeout> | null = null;
+let started = false;
+let running = false;
 const retryFailures = new Map<number, number>(); // leadId → consecutive failure count
 const RETRY_MAP_CAP = 50; // safety valve against unbounded growth
 
@@ -79,9 +81,18 @@ async function checkDueFollowUps(): Promise<void> {
  * takes longer than INTERVAL_MS, the next check simply starts later.
  */
 async function schedulerLoop(): Promise<void> {
+  running = true;
+  try {
+    await schedulerPass();
+  } finally {
+    running = false;
+  }
+  if (started) schedulerHandle = setTimeout(schedulerLoop, INTERVAL_MS);
+}
+
+async function schedulerPass(): Promise<void> {
   if (process.env.DISABLE_FOLLOW_UPS === "true") {
     console.log("[scheduler] disabled via DISABLE_FOLLOW_UPS");
-    schedulerHandle = setTimeout(schedulerLoop, INTERVAL_MS);
     return;
   }
 
@@ -93,17 +104,30 @@ async function schedulerLoop(): Promise<void> {
       console.error,
     );
   }
-  schedulerHandle = setTimeout(schedulerLoop, INTERVAL_MS);
 }
 
 /** Start the follow-up scheduler. Call once from server.ts inside app.listen(). */
 export function startFollowUpScheduler(): void {
   console.log("[scheduler] started — checking every 15 minutes");
+  started = true;
   schedulerLoop(); // run immediately on startup (catch up from downtime), then chain
+}
+
+/**
+ * Runs a check now and restarts the 15-minute timer (used on wake).
+ * Returns false if the scheduler isn't started or a check is already running.
+ */
+export function kickFollowUpScheduler(): boolean {
+  if (!started || running) return false;
+  if (schedulerHandle) clearTimeout(schedulerHandle);
+  schedulerHandle = null;
+  schedulerLoop();
+  return true;
 }
 
 /** Stop the scheduler. Call on SIGTERM for graceful shutdown. */
 export function stopFollowUpScheduler(): void {
+  started = false;
   if (schedulerHandle) {
     clearTimeout(schedulerHandle);
     schedulerHandle = null;

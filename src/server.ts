@@ -1,8 +1,9 @@
 import "dotenv/config";
 import { initDb } from "./db/index.js";
 import { createApp } from "./app.js";
-import { startFollowUpScheduler, stopFollowUpScheduler } from "./follow-up-scheduler.js";
-import { startGmailPoller, stopGmailPoller } from "./automation/poller.js";
+import { startFollowUpScheduler, stopFollowUpScheduler, kickFollowUpScheduler } from "./follow-up-scheduler.js";
+import { startGmailPoller, stopGmailPoller, pollNow } from "./automation/poller.js";
+import { startWakeWatch } from "./wake-watch.js";
 import { recoverStuckLeads } from "./post-pipeline.js";
 
 if (!process.env.ANTHROPIC_API_KEY) {
@@ -49,6 +50,12 @@ const server = app.listen(PORT, HOST, () => {
   startFollowUpScheduler();
   startGmailPoller().catch(err => {
     console.error("[startup] Gmail poller failed (non-fatal):", err instanceof Error ? err.message : err);
+  });
+  // Plan 0.3: after the Mac sleeps, catch up at once instead of waiting for the timers.
+  startWakeWatch((gapMs) => {
+    console.log(`[wake] clock jumped ${Math.round(gapMs / 1000)}s; polling and running the scheduler now`);
+    pollNow().catch(err => console.error("[wake] poll failed:", err instanceof Error ? err.message : err));
+    kickFollowUpScheduler();
   });
   recoverStuckLeads().catch(err => {
     console.error("[startup] Stuck lead recovery failed (non-fatal):", err instanceof Error ? err.message : err);
