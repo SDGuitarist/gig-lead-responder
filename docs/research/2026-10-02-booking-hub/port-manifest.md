@@ -17,7 +17,7 @@
 | R005 | P1 | Lead Response (Default) | ALREADY PRESENT | `src/pipeline/context.ts`: RESPONSE_CRAFT, PRICING_TABLES, QUICK_REFERENCE always; PROTOCOL = `buildClassifyPrompt`; rate cards = `src/data/rates.ts`. LEAD_RESPONSE_VOICE is not loaded: tracked in its own (F) rows | always |  |  |
 | R006 | P1 | Cultural Context Routing | TO PORT | `src/pipeline/context.ts:56`: CULTURAL_CORE.md loads only for `spanish_latin`; the rule says load it for any active cultural context when no genre file exists. Classify (`src/prompts/classify.ts:137`) only knows `spanish_latin` | `cultural_context_active` with any tradition | `## CULTURAL CORE FRAMEWORK` |  |
 | R007 | P1 | Pricing Question | BLOCKED | proposed NOT PORTED: an interactive chat task, and the app only answers leads; needs Alex's yes (q-d) |  |  |  |
-| R008 | P1 | Bolero Trio Pricing or Negotiation | TO PORT | `src/data/rates.ts:384` prices bolero; `docs/Bolero_Trio_Negotiation_Playbook.md` exists but nothing loads it. Destination: `selectContext` | `format_recommended === "bolero_trio"` |  |  |
+| R008 | P1 | Bolero Trio Pricing or Negotiation | PORTED | `docs/Bolero_Trio_Negotiation_Playbook.md`, loaded by `selectContext` (`src/pipeline/context.ts`) | `format_recommended === "bolero_trio"` | `## BOLERO TRIO NEGOTIATION PLAYBOOK` | `port manifest R008` |
 | R009 | P1 | Venue Question | BLOCKED | proposed NOT PORTED: an interactive chat task, and the app only answers leads; needs Alex's yes (q-d). The lead-time venue lookup is already in `selectContext` (venue branch) |  |  |  |
 | R010 | P1 | Cultural Pattern Request | BLOCKED | proposed NOT PORTED: an interactive chat task, and the app only answers leads; needs Alex's yes (q-d) |  |  |  |
 | R011 | P1 | Voice Question | BLOCKED | proposed NOT PORTED: an interactive chat task, and the app only answers leads; needs Alex's yes (q-d) |  |  |  |
@@ -382,29 +382,29 @@
 | R370 | F16 | Timeline Bands | UNREVIEWED | | | | |
 | R371 | F16 | Classification Checkpoint (NOT a Deliverable) | UNREVIEWED | | | | |
 | R372 | F16 | Cross-References | UNREVIEWED | | | | |
-| R373 | F19 | Strategic Context | UNREVIEWED | | | | |
-| R374 | F19 | The Buyer Psychology | UNREVIEWED | | | | |
-| R375 | F19 | The Anchor Conversation | UNREVIEWED | | | | |
-| R376 | F19 | Negotiation Sequence (In Order) | UNREVIEWED | | | | |
-| R377 | F19 | Stage 1: They Come Back Pushing Back | UNREVIEWED | | | | |
-| R378 | F19 | Stage 2: They're Still Hesitant After Duration Offer | UNREVIEWED | | | | |
-| R379 | F19 | Stage 3A: Trio Agrees to Flex | UNREVIEWED | | | | |
-| R380 | F19 | Stage 3B: Trio Won't Flex | UNREVIEWED | | | | |
-| R381 | F19 | Stage 4: Hold Firm or Walk Away | UNREVIEWED | | | | |
-| R382 | F19 | The Value Framing Language | UNREVIEWED | | | | |
-| R383 | F19 | Scarcity Lever | UNREVIEWED | | | | |
-| R384 | F19 | Emotional Lever | UNREVIEWED | | | | |
-| R385 | F19 | Cultural Authenticity Lever | UNREVIEWED | | | | |
-| R386 | F19 | The Close (After Value Framing) | UNREVIEWED | | | | |
-| R387 | F19 | The Timing Flexibility Option | UNREVIEWED | | | | |
-| R388 | F19 | The Bundle Strategy | UNREVIEWED | | | | |
-| R389 | F19 | When to Walk Away | UNREVIEWED | | | | |
-| R390 | F19 | The "Not a Real Buyer" Signals | UNREVIEWED | | | | |
-| R391 | F19 | The 1.5-Hour Compromise Script | UNREVIEWED | | | | |
-| R392 | F19 | Post-Negotiation Close | UNREVIEWED | | | | |
-| R393 | F19 | Expected Booking Funnel | UNREVIEWED | | | | |
-| R394 | F19 | Strategic Reminders | UNREVIEWED | | | | |
-| R395 | F19 | Cross-References | UNREVIEWED | | | | |
+| R373 | F19 | Strategic Context | PORTED | `docs/Bolero_Trio_Negotiation_Playbook.md`, loaded by `selectContext` (`src/pipeline/context.ts`); section text matches the Project (similarity 1.00) | `format_recommended === "bolero_trio"` | `## BOLERO TRIO NEGOTIATION PLAYBOOK` | `port manifest R008` |
+| R374 | F19 | The Buyer Psychology | PORTED | `docs/Bolero_Trio_Negotiation_Playbook.md`, loaded by `selectContext` (`src/pipeline/context.ts`); section text matches the Project (similarity 1.00) | `format_recommended === "bolero_trio"` | `## BOLERO TRIO NEGOTIATION PLAYBOOK` | `port manifest R008` |
+| R375 | F19 | The Anchor Conversation | PORTED | `docs/Bolero_Trio_Negotiation_Playbook.md`, loaded by `selectContext` (`src/pipeline/context.ts`); section text matches the Project (similarity 1.00) | `format_recommended === "bolero_trio"` | `## BOLERO TRIO NEGOTIATION PLAYBOOK` | `port manifest R008` |
+| R376 | F19 | Negotiation Sequence (In Order) | PORTED | `docs/Bolero_Trio_Negotiation_Playbook.md`, loaded by `selectContext` (`src/pipeline/context.ts`); section text matches the Project (similarity 1.00) | `format_recommended === "bolero_trio"` | `## BOLERO TRIO NEGOTIATION PLAYBOOK` | `port manifest R008` |
+| R377 | F19 | Stage 1: They Come Back Pushing Back | PORTED | `docs/Bolero_Trio_Negotiation_Playbook.md`, loaded by `selectContext` (`src/pipeline/context.ts`); section text matches the Project (similarity 1.00) | `format_recommended === "bolero_trio"` | `## BOLERO TRIO NEGOTIATION PLAYBOOK` | `port manifest R008` |
+| R378 | F19 | Stage 2: They're Still Hesitant After Duration Offer | PORTED | `docs/Bolero_Trio_Negotiation_Playbook.md`, loaded by `selectContext` (`src/pipeline/context.ts`); section text matches the Project (similarity 1.00) | `format_recommended === "bolero_trio"` | `## BOLERO TRIO NEGOTIATION PLAYBOOK` | `port manifest R008` |
+| R379 | F19 | Stage 3A: Trio Agrees to Flex | PORTED | `docs/Bolero_Trio_Negotiation_Playbook.md`, loaded by `selectContext` (`src/pipeline/context.ts`); section text matches the Project (similarity 1.00) | `format_recommended === "bolero_trio"` | `## BOLERO TRIO NEGOTIATION PLAYBOOK` | `port manifest R008` |
+| R380 | F19 | Stage 3B: Trio Won't Flex | PORTED | `docs/Bolero_Trio_Negotiation_Playbook.md`, loaded by `selectContext` (`src/pipeline/context.ts`); section text matches the Project (similarity 1.00) | `format_recommended === "bolero_trio"` | `## BOLERO TRIO NEGOTIATION PLAYBOOK` | `port manifest R008` |
+| R381 | F19 | Stage 4: Hold Firm or Walk Away | PORTED | `docs/Bolero_Trio_Negotiation_Playbook.md`, loaded by `selectContext` (`src/pipeline/context.ts`); section text matches the Project (similarity 1.00) | `format_recommended === "bolero_trio"` | `## BOLERO TRIO NEGOTIATION PLAYBOOK` | `port manifest R008` |
+| R382 | F19 | The Value Framing Language | PORTED | `docs/Bolero_Trio_Negotiation_Playbook.md`, loaded by `selectContext` (`src/pipeline/context.ts`); section text matches the Project (similarity 1.00) | `format_recommended === "bolero_trio"` | `## BOLERO TRIO NEGOTIATION PLAYBOOK` | `port manifest R008` |
+| R383 | F19 | Scarcity Lever | PORTED | `docs/Bolero_Trio_Negotiation_Playbook.md`, loaded by `selectContext` (`src/pipeline/context.ts`); section text matches the Project (similarity 1.00) | `format_recommended === "bolero_trio"` | `## BOLERO TRIO NEGOTIATION PLAYBOOK` | `port manifest R008` |
+| R384 | F19 | Emotional Lever | PORTED | `docs/Bolero_Trio_Negotiation_Playbook.md`, loaded by `selectContext` (`src/pipeline/context.ts`); section text matches the Project (similarity 1.00) | `format_recommended === "bolero_trio"` | `## BOLERO TRIO NEGOTIATION PLAYBOOK` | `port manifest R008` |
+| R385 | F19 | Cultural Authenticity Lever | PORTED | `docs/Bolero_Trio_Negotiation_Playbook.md`, loaded by `selectContext` (`src/pipeline/context.ts`); section text matches the Project (similarity 1.00) | `format_recommended === "bolero_trio"` | `## BOLERO TRIO NEGOTIATION PLAYBOOK` | `port manifest R008` |
+| R386 | F19 | The Close (After Value Framing) | PORTED | `docs/Bolero_Trio_Negotiation_Playbook.md`, loaded by `selectContext` (`src/pipeline/context.ts`); section text matches the Project (similarity 1.00) | `format_recommended === "bolero_trio"` | `## BOLERO TRIO NEGOTIATION PLAYBOOK` | `port manifest R008` |
+| R387 | F19 | The Timing Flexibility Option | PORTED | `docs/Bolero_Trio_Negotiation_Playbook.md`, loaded by `selectContext` (`src/pipeline/context.ts`); section text matches the Project (similarity 1.00) | `format_recommended === "bolero_trio"` | `## BOLERO TRIO NEGOTIATION PLAYBOOK` | `port manifest R008` |
+| R388 | F19 | The Bundle Strategy | PORTED | `docs/Bolero_Trio_Negotiation_Playbook.md`, loaded by `selectContext` (`src/pipeline/context.ts`); section text matches the Project (similarity 1.00) | `format_recommended === "bolero_trio"` | `## BOLERO TRIO NEGOTIATION PLAYBOOK` | `port manifest R008` |
+| R389 | F19 | When to Walk Away | PORTED | `docs/Bolero_Trio_Negotiation_Playbook.md`, loaded by `selectContext` (`src/pipeline/context.ts`); section text matches the Project (similarity 1.00) | `format_recommended === "bolero_trio"` | `## BOLERO TRIO NEGOTIATION PLAYBOOK` | `port manifest R008` |
+| R390 | F19 | The "Not a Real Buyer" Signals | PORTED | `docs/Bolero_Trio_Negotiation_Playbook.md`, loaded by `selectContext` (`src/pipeline/context.ts`); section text matches the Project (similarity 1.00) | `format_recommended === "bolero_trio"` | `## BOLERO TRIO NEGOTIATION PLAYBOOK` | `port manifest R008` |
+| R391 | F19 | The 1.5-Hour Compromise Script | PORTED | `docs/Bolero_Trio_Negotiation_Playbook.md`, loaded by `selectContext` (`src/pipeline/context.ts`); section text matches the Project (similarity 1.00) | `format_recommended === "bolero_trio"` | `## BOLERO TRIO NEGOTIATION PLAYBOOK` | `port manifest R008` |
+| R392 | F19 | Post-Negotiation Close | PORTED | `docs/Bolero_Trio_Negotiation_Playbook.md`, loaded by `selectContext` (`src/pipeline/context.ts`); section text matches the Project (similarity 1.00) | `format_recommended === "bolero_trio"` | `## BOLERO TRIO NEGOTIATION PLAYBOOK` | `port manifest R008` |
+| R393 | F19 | Expected Booking Funnel | PORTED | `docs/Bolero_Trio_Negotiation_Playbook.md`, loaded by `selectContext` (`src/pipeline/context.ts`); section text matches the Project (similarity 1.00) | `format_recommended === "bolero_trio"` | `## BOLERO TRIO NEGOTIATION PLAYBOOK` | `port manifest R008` |
+| R394 | F19 | Strategic Reminders | PORTED | `docs/Bolero_Trio_Negotiation_Playbook.md`, loaded by `selectContext` (`src/pipeline/context.ts`); section text matches the Project (similarity 1.00) | `format_recommended === "bolero_trio"` | `## BOLERO TRIO NEGOTIATION PLAYBOOK` | `port manifest R008` |
+| R395 | F19 | Cross-References | PORTED | `docs/Bolero_Trio_Negotiation_Playbook.md`, loaded by `selectContext` (`src/pipeline/context.ts`); section text matches the Project (similarity 1.00, 0.97 for Cross-References) | `format_recommended === "bolero_trio"` | `## BOLERO TRIO NEGOTIATION PLAYBOOK` | `port manifest R008` |
 | R396 | M1 | index.md | UNREVIEWED | | | | |
 | R397 | M2 | overview.md | UNREVIEWED | | | | |
 | R398 | M3 | preferences.md | UNREVIEWED | | | | |

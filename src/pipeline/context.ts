@@ -64,6 +64,14 @@ export async function selectContext(
     }
   }
 
+  // Conditional: bolero negotiation playbook (port manifest R008)
+  if (classification.format_recommended === "bolero_trio") {
+    const playbook = await readDoc("Bolero_Trio_Negotiation_Playbook.md", false);
+    if (playbook) {
+      sections.push(`## BOLERO TRIO NEGOTIATION PLAYBOOK\n\n${playbook}`);
+    }
+  }
+
   // No venue data — omit the section entirely (no need to tell the LLM about absent data)
 
   const quickRef = await readDoc("QUICK_REFERENCE.md", false);
