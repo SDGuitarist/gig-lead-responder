@@ -216,18 +216,18 @@
 | R204 | F9 | For Bolero/Latin (Anniversary) | UNREVIEWED | | | | |
 | R205 | F9 | For Latin Heritage (Any Milestone) | UNREVIEWED | | | | |
 | R206 | F9 | Cross-References | UNREVIEWED | | | | |
-| R207 | F10 | Pacific Flow Entertainment: Core Operating Principles | UNREVIEWED | | | | |
-| R208 | F10 | Prime Directive | UNREVIEWED | | | | |
-| R209 | F10 | The Seven Principles | UNREVIEWED | | | | |
-| R210 | F10 | 1. Capability Trust | UNREVIEWED | | | | |
-| R211 | F10 | 2. Demonstrated Understanding | UNREVIEWED | | | | |
-| R212 | F10 | 3. Emotion Over Logic | UNREVIEWED | | | | |
-| R213 | F10 | 4. Friction Kills | UNREVIEWED | | | | |
-| R214 | F10 | 5. Reframe, Don't Downgrade | UNREVIEWED | | | | |
-| R215 | F10 | 6. Name the Fear | UNREVIEWED | | | | |
-| R216 | F10 | 7. Preempt Predictable Questions | UNREVIEWED | | | | |
-| R217 | F10 | The Quality Standard | UNREVIEWED | | | | |
-| R218 | F10 | Cross-References | UNREVIEWED | | | | |
+| R207 | F10 | Pacific Flow Entertainment: Core Operating Principles | ALREADY PRESENT | `docs/PRINCIPLES.md`, loaded for every lead by `selectContext` (`src/pipeline/context.ts:50`); text matches the Project (similarity 1.00) | always |  |  |
+| R208 | F10 | Prime Directive | ALREADY PRESENT | `docs/PRINCIPLES.md`, loaded for every lead by `selectContext` (`src/pipeline/context.ts:50`); text matches the Project (similarity 1.00) | always |  |  |
+| R209 | F10 | The Seven Principles | ALREADY PRESENT | `docs/PRINCIPLES.md`, loaded for every lead by `selectContext` (`src/pipeline/context.ts:50`); text matches the Project (similarity 1.00) | always |  |  |
+| R210 | F10 | 1. Capability Trust | ALREADY PRESENT | `docs/PRINCIPLES.md`, loaded for every lead by `selectContext` (`src/pipeline/context.ts:50`); text matches the Project (similarity 1.00) | always |  |  |
+| R211 | F10 | 2. Demonstrated Understanding | PORTED | `docs/PRINCIPLES.md`, loaded for every lead by `selectContext` (`src/pipeline/context.ts:50`); merged from the Project 2026-10-03 (the repo's pipeline-specific intro kept on purpose) | always | `Absences as Signals` | `port manifest F10` |
+| R212 | F10 | 3. Emotion Over Logic | ALREADY PRESENT | `docs/PRINCIPLES.md`, loaded for every lead by `selectContext` (`src/pipeline/context.ts:50`); text matches the Project (similarity 1.00) | always |  |  |
+| R213 | F10 | 4. Friction Kills | ALREADY PRESENT | `docs/PRINCIPLES.md`, loaded for every lead by `selectContext` (`src/pipeline/context.ts:50`); text matches the Project (similarity 1.00) | always |  |  |
+| R214 | F10 | 5. Reframe, Don't Downgrade | ALREADY PRESENT | `docs/PRINCIPLES.md`, loaded for every lead by `selectContext` (`src/pipeline/context.ts:50`); text matches the Project (similarity 1.00) | always |  |  |
+| R215 | F10 | 6. Name the Fear | ALREADY PRESENT | `docs/PRINCIPLES.md`, loaded for every lead by `selectContext` (`src/pipeline/context.ts:50`); text matches the Project (similarity 1.00) | always |  |  |
+| R216 | F10 | 7. Preempt Predictable Questions | PORTED | `docs/PRINCIPLES.md`, loaded for every lead by `selectContext` (`src/pipeline/context.ts:50`); merged from the Project 2026-10-03 (the repo's pipeline-specific intro kept on purpose) | always | `First-Time Event Host` | `port manifest F10` |
+| R217 | F10 | The Quality Standard | PORTED | `docs/PRINCIPLES.md`, loaded for every lead by `selectContext` (`src/pipeline/context.ts:50`); merged from the Project 2026-10-03 (the repo's pipeline-specific intro kept on purpose) | always | `Read the absences?` | `port manifest F10` |
+| R218 | F10 | Cross-References | BLOCKED | proposed NOT PORTED: navigation, same class as R019 (approved); needs Alex's yes (q-e) |  |  |  |
 | R219 | F11 | Pacific Flow Entertainment: Lookup Tables | UNREVIEWED | | | | |
 | R220 | F11 | Engagement Type (Check First) | UNREVIEWED | | | | |
 | R221 | F11 | Residency Tiers (B2B: Solo Alex Only) | UNREVIEWED | | | | |
