@@ -34,6 +34,30 @@ const BANNED_PHRASES = [
   "offering",
 ];
 
+// --- Alex's voice kill list (docs/LEAD_RESPONSE_VOICE.md, port manifest F2) ---
+// Mechanical items only. Words Alex uses in his own converted replies ("just",
+// "really", plain "perfect", "dream") and context-dependent ones ("foster",
+// "journey", "vision") are judgment calls left to the verify prompt.
+const VOICE_KILL_LIST = [
+  // recent additions (Apr 29, 2026 voice tuning)
+  "land", "landed", "lands", "rotation", "alignment", "framing", "to be clear", "lane", "well before", "asymmetry",
+  // Tier 1 AI tells
+  "delve", "tapestry", "realm", "harness", "unlock", "embark", "unleash", "elevate", "beacon", "groundbreaking",
+  "cutting-edge", "unprecedented", "seamless", "pivotal", "intricate", "robust", "transformative", "revolutionize",
+  "supercharge", "streamline", "game-changer", "empower", "innovative", "paradigm", "comprehensive", "bespoke",
+  "holistic", "turbocharge", "meticulous", "multifaceted",
+  // performative directness
+  "honestly?", "here's the thing", "here's the breakdown", "the bottom line", "let me be clear",
+  // generic vendor / wedding-industrial complex
+  "special day", "love story", "magical", "make memories", "create magic", "perfect soundtrack", "dream day", "bridal vision",
+  // salesy, apologetic, pedestal, corporate, tech-bro
+  "don't miss out", "limited availability", "act now", "i hope this works for you", "if you don't mind me asking",
+  "my craft", "my artistry", "my musical journey", "solutions-oriented", "turnkey", "white-glove",
+  "strategic positioning", "value proposition", "differentiated offering",
+  // generic cinematic setups
+  "in a world where", "imagine a place where",
+];
+
 // --- Soft refusal / fit-undermining patterns ---
 // Catches AI drafts that undermine Alex's capability for an eligible format.
 // These should never appear — the LR voice rules prohibit vendor-speak.
@@ -96,6 +120,17 @@ export function postCheckDrafts(
     if (regex.test(cleanedCompressed)) {
       violations.push(`banned_phrase_compressed: "${phrase}"`);
     }
+  }
+
+  // --- Check: Alex's voice kill list + one exclamation mark at most ---
+  for (const phrase of VOICE_KILL_LIST) {
+    const regex = new RegExp(`(?<![\\w-])${escapeRegex(phrase)}(?![\\w-])`, "i");
+    if (regex.test(cleanedFull)) violations.push(`voice_kill_full: "${phrase}"`);
+    if (regex.test(cleanedCompressed)) violations.push(`voice_kill_compressed: "${phrase}"`);
+  }
+  for (const [label, text] of [["full", cleanedFull], ["compressed", cleanedCompressed]] as const) {
+    const bangs = (text.match(/!/g) ?? []).length;
+    if (bangs > 1) violations.push(`voice_exclamations_${label}: ${bangs}`);
   }
 
   // --- Check: soft refusal / fit-undermining language ---
