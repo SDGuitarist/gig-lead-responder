@@ -286,40 +286,40 @@
 | R272 | F12 | STRATEGIC RESERVE (for follow-up) | TO PORT | Same gap as R018 | always |  |  |
 | R273 | F12 | Why the Gate Has Evidence Requirements | ALREADY PRESENT | `src/prompts/verify.ts`: exact quotes required, empty traceability cell = automatic FAIL; the Graceful Decline additions are the verify half of R320 (TO PORT) | always |  |  |
 | R274 | F12 | Cross-References | NOT PORTED | Navigation table; approved by Alex 2026-10-03 (q-e) |  |  |  |
-| R275 | F13 | Pacific Flow Entertainment: Pricing Router & Qualification Tools | UNREVIEWED | | | | |
-| R276 | F13 | Engagement Type Determination | UNREVIEWED | | | | |
-| R277 | F13 | Private Event (B2C) | UNREVIEWED | | | | |
-| R278 | F13 | Residency (B2B): Solo Alex Only | UNREVIEWED | | | | |
-| R279 | F13 | Wedding-Adjacent (Special Case) | UNREVIEWED | | | | |
-| R280 | F13 | State | UNREVIEWED | | | | |
-| R281 | F13 | Residency Pricing Framework (Solo Alex Only) | UNREVIEWED | | | | |
-| R282 | F13 | Tier Determination | UNREVIEWED | | | | |
-| R283 | F13 | Tier Determination Logic | UNREVIEWED | | | | |
-| R284 | F13 | Conversational Discipline for Residency Quotes | UNREVIEWED | | | | |
-| R285 | F13 | Encuentro Exception | UNREVIEWED | | | | |
-| R286 | F13 | Recurring Programming Requested for Multi-Musician Format | UNREVIEWED | | | | |
-| R287 | F13 | Cross-Reference | UNREVIEWED | | | | |
-| R288 | F13 | Tier Bridge: Lead Classification → Rate Card Tier (Private Events) | UNREVIEWED | | | | |
-| R289 | F13 | Step 1: Determine Buyer Tier | UNREVIEWED | | | | |
-| R290 | F13 | Step 2: Determine Pricing Column | UNREVIEWED | | | | |
-| R291 | F13 | Step 3: Calibrate Quote Point (Anchor vs Floor) | UNREVIEWED | | | | |
-| R292 | F13 | Step 4: Apply Context Modifiers | UNREVIEWED | | | | |
-| R293 | F13 | The Complete Bridge (Example) | UNREVIEWED | | | | |
-| R294 | F13 | Competition-Weighted Pricing Matrix (Private Events) | UNREVIEWED | | | | |
-| R295 | F13 | Pricing Rules | UNREVIEWED | | | | |
-| R296 | F13 | Budget Qualification Language | UNREVIEWED | | | | |
-| R297 | F13 | When You Need to Surface Budget | UNREVIEWED | | | | |
-| R298 | F13 | When Budget Is Lower Than Expected | UNREVIEWED | | | | |
-| R299 | F13 | Reframe Language (Never Say "Cheaper") | UNREVIEWED | | | | |
-| R300 | F13 | Quote Formatting | UNREVIEWED | | | | |
-| R301 | F13 | T3 / Premium (Structured, Confident) | UNREVIEWED | | | | |
-| R302 | F13 | T2 / Standard (Conversational, Approachable) | UNREVIEWED | | | | |
-| R303 | F13 | Residency Quote (B2B) | UNREVIEWED | | | | |
-| R304 | F13 | Configuration Decision Guidance | UNREVIEWED | | | | |
-| R305 | F13 | Rate Card Directory | UNREVIEWED | | | | |
-| R306 | F13 | Cross-References | UNREVIEWED | | | | |
-| R307 | F13 | Change Log | UNREVIEWED | | | | |
-| R308 | F13 | April 26, 2026: Residency Pricing Framework Added (with same-day scope correction) | UNREVIEWED | | | | |
+| R275 | F13 | Pacific Flow Entertainment: Pricing Router & Qualification Tools | ALREADY PRESENT | `src/pipeline/price.ts:52` `lookupPrice()` + `src/prompts/classify.ts` (tier, column) | always |  |  |
+| R276 | F13 | Engagement Type Determination | TO PORT | Engagement type (private / residency / wedding-adjacent) is in no prompt and no code; same destination as R220: a classify field + `lookupPrice()` | always |  |  |
+| R277 | F13 | Private Event (B2C) | TO PORT | Engagement type (private / residency / wedding-adjacent) is in no prompt and no code; same destination as R220: a classify field + `lookupPrice()` | always |  |  |
+| R278 | F13 | Residency (B2B): Solo Alex Only | TO PORT | Residency framework (solo Alex only, R1–R3 floors, conversational discipline, Encuentro exception, multi-musician series at the $500 floor). Plan 0.5: `RESIDENCY_RATES` in `src/data/rates.ts` + classify. **Rates need Alex** | engagement = residency |  |  |
+| R279 | F13 | Wedding-Adjacent (Special Case) | TO PORT | Engagement type (private / residency / wedding-adjacent) is in no prompt and no code; same destination as R220: a classify field + `lookupPrice()` | always |  |  |
+| R280 | F13 | State | TO PORT | Engagement type (private / residency / wedding-adjacent) is in no prompt and no code; same destination as R220: a classify field + `lookupPrice()` | always |  |  |
+| R281 | F13 | Residency Pricing Framework (Solo Alex Only) | TO PORT | Residency framework (solo Alex only, R1–R3 floors, conversational discipline, Encuentro exception, multi-musician series at the $500 floor). Plan 0.5: `RESIDENCY_RATES` in `src/data/rates.ts` + classify. **Rates need Alex** | engagement = residency |  |  |
+| R282 | F13 | Tier Determination | TO PORT | Residency framework (solo Alex only, R1–R3 floors, conversational discipline, Encuentro exception, multi-musician series at the $500 floor). Plan 0.5: `RESIDENCY_RATES` in `src/data/rates.ts` + classify. **Rates need Alex** | engagement = residency |  |  |
+| R283 | F13 | Tier Determination Logic | TO PORT | Residency framework (solo Alex only, R1–R3 floors, conversational discipline, Encuentro exception, multi-musician series at the $500 floor). Plan 0.5: `RESIDENCY_RATES` in `src/data/rates.ts` + classify. **Rates need Alex** | engagement = residency |  |  |
+| R284 | F13 | Conversational Discipline for Residency Quotes | TO PORT | Residency framework (solo Alex only, R1–R3 floors, conversational discipline, Encuentro exception, multi-musician series at the $500 floor). Plan 0.5: `RESIDENCY_RATES` in `src/data/rates.ts` + classify. **Rates need Alex** | engagement = residency |  |  |
+| R285 | F13 | Encuentro Exception | TO PORT | Residency framework (solo Alex only, R1–R3 floors, conversational discipline, Encuentro exception, multi-musician series at the $500 floor). Plan 0.5: `RESIDENCY_RATES` in `src/data/rates.ts` + classify. **Rates need Alex** | engagement = residency |  |  |
+| R286 | F13 | Recurring Programming Requested for Multi-Musician Format | TO PORT | Residency framework (solo Alex only, R1–R3 floors, conversational discipline, Encuentro exception, multi-musician series at the $500 floor). Plan 0.5: `RESIDENCY_RATES` in `src/data/rates.ts` + classify. **Rates need Alex** | engagement = residency |  |  |
+| R287 | F13 | Cross-Reference | NOT PORTED | Navigation; approved by Alex 2026-10-03 (q-e) |  |  |  |
+| R288 | F13 | Tier Bridge: Lead Classification → Rate Card Tier (Private Events) | ALREADY PRESENT | `src/prompts/classify.ts` Step 4 (tier → T1/T2/T3) + `src/pipeline/price.ts:52` `lookupPrice()`. The Project's T4 and NP tracks are R403 | always |  |  |
+| R289 | F13 | Step 1: Determine Buyer Tier | ALREADY PRESENT | `src/prompts/classify.ts` Step 4 (T4/NP: R403) | always |  |  |
+| R290 | F13 | Step 2: Determine Pricing Column | ALREADY PRESENT | `src/prompts/classify.ts` LEAD SOURCE MAPPING (`lead_source_column`) | always |  |  |
+| R291 | F13 | Step 3: Calibrate Quote Point (Anchor vs Floor) | ALREADY PRESENT | `src/pipeline/price.ts:52` `lookupPrice()`: quote position from competition level | always |  |  |
+| R292 | F13 | Step 4: Apply Context Modifiers | TO PORT | Context modifiers (wedding ceremony, wedding-adjacent, holiday/peak, travel): classify emits `context_modifiers`, but `src/pipeline/price.ts:52` `lookupPrice()` applies none of them except travel (`src/travel-fee.ts`). Destination: `lookupPrice()`. **Price effect: needs Alex** | context_modifiers present |  |  |
+| R293 | F13 | The Complete Bridge (Example) | ALREADY PRESENT | `src/pipeline/price.ts:52` `lookupPrice()`: the worked example walks the same classify → tier → column → competition path | always |  |  |
+| R294 | F13 | Competition-Weighted Pricing Matrix (Private Events) | ALREADY PRESENT | `src/prompts/classify.ts` Step 3 + `docs/QUICK_REFERENCE.md` | always |  |  |
+| R295 | F13 | Pricing Rules | TO PORT | Most rules are enforced (full hours; single number: `src/pipeline/post-check.ts` bans ranges; $500 floor in `src/data/rates.ts`). Gaps: $150 minimum profit (R362) and residency floors (R281). ⚠ `docs/PRICING_TABLES.md` (loaded) still says "Standard leads can receive ranges" (q-i) | always |  |  |
+| R296 | F13 | Budget Qualification Language | ALREADY PRESENT | `src/prompts/generate.ts` budget modes (`buildBudgetModeBlock`) + clarification mode. The Project's sample lines use "investment"/"package", which the app bans, so they are not copied | budget gap |  |  |
+| R297 | F13 | When You Need to Surface Budget | ALREADY PRESENT | `src/prompts/generate.ts` clarification mode (one binary question, never "what's your budget?") | one_question |  |  |
+| R298 | F13 | When Budget Is Lower Than Expected | ALREADY PRESENT | `src/prompts/generate.ts` BUDGET MODE small / large / no-viable-scope | budget gap |  |  |
+| R299 | F13 | Reframe Language (Never Say "Cheaper") | ALREADY PRESENT | `docs/PRINCIPLES.md` "Reframe, Don't Downgrade" (loaded); `src/prompts/generate.ts` large-gap rule bans "instead"/"budget option" | budget gap |  |  |
+| R300 | F13 | Quote Formatting | TO PORT | Tier-specific quote formatting is not in `src/prompts/generate.ts` (it weaves the price into prose). Destination: `buildGeneratePrompt`, by tier. Design choice: structured price line vs woven prose | quoting |  |  |
+| R301 | F13 | T3 / Premium (Structured, Confident) | TO PORT | T3 structured line ("[Format], $[Anchor]" + what's included); see R300 | tier = premium |  |  |
+| R302 | F13 | T2 / Standard (Conversational, Approachable) | TO PORT | T2 conversational anchor; see R300 | tier = standard |  |  |
+| R303 | F13 | Residency Quote (B2B) | TO PORT | Residency framework (solo Alex only, R1–R3 floors, conversational discipline, Encuentro exception, multi-musician series at the $500 floor). Plan 0.5: `RESIDENCY_RATES` in `src/data/rates.ts` + classify. **Rates need Alex** | engagement = residency |  |  |
+| R304 | F13 | Configuration Decision Guidance | ALREADY PRESENT | `docs/PRICING_TABLES.md:73` "When to Recommend Which" (loaded) matches the Project's trio-vs-duo table | flamenco |  |  |
+| R305 | F13 | Rate Card Directory | ALREADY PRESENT | `src/data/rates.ts:377` `RATE_TABLES` | always |  |  |
+| R306 | F13 | Cross-References | NOT PORTED | Navigation; approved by Alex 2026-10-03 (q-e) |  |  |  |
+| R307 | F13 | Change Log | BLOCKED | proposed NOT PORTED: a change log (history, no rule); its content is the residency framework, tracked in R281. Needs Alex's yes (q-h) |  |  |  |
+| R308 | F13 | April 26, 2026: Residency Pricing Framework Added (with same-day scope correction) | BLOCKED | proposed NOT PORTED: change-log entry; see R307 (q-h) |  |  |  |
 | R309 | F14 | Pacific Flow Entertainment: Pre-Draft Analysis (Steps 6-8) | ALREADY PRESENT | `docs/RESPONSE_CRAFT.md`, loaded for every lead by `selectContext` (`src/pipeline/context.ts:35`); matched the Project before the port | always |  |  |
 | R310 | F14 | ⚠️ MANDATORY SEQUENCE: YOU ARE HERE: FILE 1 OF 3 | ALREADY PRESENT | `src/run-pipeline.ts`: classify → generate → verify order is enforced in code. The chat banner text is deliberately NOT in the doc (test `port manifest F14`) | always |  |  |
 | R311 | F14 | Step 6: Evaluate Layers | ALREADY PRESENT | `docs/RESPONSE_CRAFT.md`, loaded for every lead by `selectContext` (`src/pipeline/context.ts:35`); matched the Project before the port | always |  |  |
