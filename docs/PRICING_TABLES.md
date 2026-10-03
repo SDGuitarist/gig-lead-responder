@@ -13,10 +13,9 @@ Price data by tier and format. Tier determination happens in CORE_METHODOLOGY.md
 
 1. **Quote full hours only.** No 30-minute increments.
 2. **$500 minimum booking floor.** No booking under $500 regardless of tier, duration, or configuration.
-3. **Premium leads get single confident numbers** (e.g., "$995"), not ranges.
-4. **Standard leads can receive ranges** during qualification (e.g., "$500-595").
-5. **Wedding is a pricing modifier**, not a response tier. Apply Wedding prices when wedding indicators present.
-6. **Never quote until performer availability is confirmed** (operational—Alex handles this).
+3. **Every quote is a single confident number** (e.g., "$995"), never a range: the anchor from `src/data/rates.ts`.
+4. **Wedding is a pricing modifier**, not a response tier. Apply Wedding prices when wedding indicators present.
+5. **Never quote until performer availability is confirmed** (operational—Alex handles this).
 
 </pricing_rules>
 
@@ -124,12 +123,6 @@ Price data by tier and format. Tier determination happens in CORE_METHODOLOGY.md
 
 ## Budget Qualification Language
 
-### Solo (Standard)
-"For a solo Spanish guitarist with vocals, that typically runs around $500-600 for the first couple hours. Does that range work for what you're planning?"
-
-### Duo (Standard)
-"A Latin duo with vocals usually runs $600-700 for a 2-hour set. Does that fit your budget?"
-
 ### Duo (Premium)
 State single confident number in structured format:
 ```
@@ -143,14 +136,8 @@ Flamenco Trio (Guitar, Cajón, Dancer) — $1,800
 Includes [hours], professional sound calibrated for both phases, and flexibility for pauses during speeches. Extension available at $200/half hour.
 ```
 
-### Wedding Solo
-"For weddings, I typically recommend budgeting around $500-650 for a solo guitarist. Does that align with what you're thinking?"
-
 ### Wedding Duo
 "For a duo at a wedding, that typically runs around $1,200 for a 2-hour set. Does that work for your budget?"
-
-### When They Say It's More Than Expected
-"I understand—live music is an investment. What range were you hoping to stay within? I might have some options."
 
 </budget_qualification_language>
 
