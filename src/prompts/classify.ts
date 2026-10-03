@@ -79,6 +79,16 @@ Check for hidden wealth signals. ANY ONE present = stealth_premium: true:
 - Corporate 100+
 - Luxury cues: valet, plated dinner, "black tie", executive audience, VIP
 - Saturday evening at named venue
+- Tier A venues (auto-premium, whatever else the lead says): Hotel del Coronado, The Grand Del Mar / Fairmont Grand Del Mar, Lodge at Torrey Pines, La Valencia Hotel, Rancho Valencia, L'Auberge Del Mar, Estancia La Jolla, The Prado at Balboa Park, San Diego Museum of Art
+- Tier B venues (premium only with another signal: 100+ guests, corporate, Saturday evening): Coasterra, Tom Ham's Lighthouse, Marina Village (corporate or 75+), Brick (large corporate evening). Scripps Seaside Forum and Martin Johnson House are premium for any booking
+- Auto-premium patterns: Private estate in Rancho Santa Fe, La Jolla or Coronado; country club in Rancho Santa Fe, La Jolla or Fairbanks Ranch; winery in Temecula or Ramona; yacht or boat; museum + private event or donor
+- Context-dependent: downtown rooftop (75+ guests, corporate), waterfront restaurant private buyout (50+), golf club outside a premium zip (tournament or corporate), brewery private event (corporate, 100+)
+- Also affluent: Rancho Santa Fe alternate zip 92091
+
+RED FLAG PATTERNS (add each one found to flagged_concerns):
+- "We'll pay you after the event" (payment risk: deposit first or decline)
+- The venue has no event coordinator (logistics risk)
+- "The last musician cancelled" with no explanation (ask why before committing)
 
 ### Step 3: Pricing Strategy
 Competition × Premium matrix for price_point:
