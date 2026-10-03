@@ -15,6 +15,18 @@ export interface Migration {
   up: (db: Database.Database) => void;
 }
 
+/** The app's migrations, in order. v1 arrives with the poller cursor (plan 0.3). */
+export const MIGRATIONS: Migration[] = [];
+
+/** Throws if the DB was written by newer code; returns its current version. */
+export function assertDbNotNewer(db: Database.Database, migrations: Migration[]): number {
+  const current = db.pragma("user_version", { simple: true }) as number;
+  if (current > migrations.length) {
+    throw new Error(`Database is at v${current}, newer than this code (v${migrations.length}). Refusing to start.`);
+  }
+  return current;
+}
+
 /** Applies pending migrations; returns the versions it applied. */
 export function runMigrations(
   db: Database.Database,
@@ -27,11 +39,7 @@ export function runMigrations(
     }
   });
 
-  const current = db.pragma("user_version", { simple: true }) as number;
-  const latest = migrations.length;
-  if (current > latest) {
-    throw new Error(`Database is at v${current}, newer than this code (v${latest}). Refusing to start.`);
-  }
+  const current = assertDbNotNewer(db, migrations);
 
   const applied: number[] = [];
   for (const m of migrations.slice(current)) {

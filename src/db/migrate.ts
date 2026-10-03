@@ -1,10 +1,11 @@
-// Allowed imports: node builtins, better-sqlite3, ../types.js only
+// Allowed imports: node builtins, better-sqlite3, ../types.js, ./migrations.js only
 // NEVER import from ./index.js (circular dependency risk)
 
 import { mkdirSync } from "node:fs";
-import { dirname } from "node:path";
+import { dirname, join } from "node:path";
 import Database from "better-sqlite3";
 import { FOLLOW_UP_STATUSES } from "../types.js";
+import { MIGRATIONS, assertDbNotNewer, runMigrations } from "./migrations.js";
 
 const DB_PATH = process.env.DATABASE_PATH || "./data/leads.db";
 
@@ -17,6 +18,8 @@ export function initDb(): Database.Database {
   db = new Database(DB_PATH);
   db.pragma("journal_mode = WAL");
   db.pragma("foreign_keys = ON");
+  // Before the baseline touches anything: refuse a DB written by newer code.
+  assertDbNotNewer(db, MIGRATIONS);
 
   db.exec(`
     CREATE TABLE IF NOT EXISTS leads (
@@ -216,6 +219,9 @@ export function initDb(): Database.Database {
       last_seen_at TEXT DEFAULT (datetime('now'))
     )
   `);
+
+  // Numbered migrations run after the baseline, so they can rely on its tables.
+  runMigrations(db, MIGRATIONS, join(dirname(DB_PATH), "backups"));
 
   return db;
 }
