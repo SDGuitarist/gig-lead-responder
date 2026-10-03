@@ -68,6 +68,14 @@ export async function selectContext(
     }
   }
 
+  // Conditional: event arc theory when classify names an arc (port manifest F7)
+  if (classification.event_arc) {
+    const arcs = await readDoc("EVENT_STRUCTURE_THEORY.md", false);
+    if (arcs) {
+      sections.push(`## EVENT ARCS (this lead: ${classification.event_arc})\n\n${arcs}`);
+    }
+  }
+
   // Conditional: bolero negotiation playbook (port manifest R008)
   if (classification.format_recommended === "bolero_trio") {
     const playbook = await readDoc("Bolero_Trio_Negotiation_Playbook.md", false);

@@ -11,7 +11,8 @@ const lead = (format: string, cultural: boolean) =>
   ({ format_recommended: format, cultural_context_active: cultural, cultural_tradition: cultural ? "spanish_latin" : null }) as unknown as Classification;
 
 test("battery never shown to the model: loaded docs on every branch", async () => {
-  for (const c of [lead("solo", false), lead("solo", true), lead("bolero_trio", true)]) {
+  const withArc = { ...lead("solo", false), event_arc: "wedding" } as Classification;
+  for (const c of [lead("solo", false), lead("solo", true), lead("bolero_trio", true), withArc]) {
     const ctx = await selectContext(c);
     assert.ok(ctx.length > 1000, "control: context loaded");
     assert.doesNotMatch(ctx, /batter/i);
