@@ -46,12 +46,15 @@ reports not-delivered, so dashboard **Approve returns an error** until Module 1;
 **G1 FAILED:** Gmail replaces a supplied Message-ID (`spikes.md` G1), so plan §1.2's duplicate-send recovery must be
 redesigned in the Module 1 plan before any auto-send. Open for Alex: port questions (a)(b)(c), Full Disk Access (S3).
 
-**Queued, no Alex needed (next session, in this order):**
-- 0.3 **Twilio delete**. ⚠ `poller.ts` falls back to DRY RUN when Twilio creds are missing; deleting Twilio must replace that
-  gate explicitly, or the poller could go LIVE. Write the "stays dry-run" test first.
-- 0.4 migration runner → then 0.3 poller cursor, wake catch-up and `/health` fields (they need a table).
-- 0.2 same-host lease + static send-surface test (pin today's send sites; tighten to one in Module 1).
-- 0.7 S1-adv (with the §1.6 allowlisted env only).
+**Queued, no Alex needed (next session, in this order):** *(rewritten end of 2026-10-03)*
+- ~~Twilio delete~~ DONE. ~~0.4 migration runner~~ DONE. ~~port questions a/b/c~~ ANSWERED (plan §0.5).
+- 0.3 poller cursor = **migration v1** (`poller_state`), then wake catch-up and `/health` fields
+  (`poller.last_success_at`, `poller.auth`, `lease.host`), each with its plan test name.
+- 0.2 same-host `runtime_lease` (migration v2) + extend `src/send-surface.test.ts` to pin today's send sites.
+- 0.7 S1-adv (the §1.6 allowlisted env only).
+- 0.5 port: manifest over the 406 rows in `port-inventory.md`; source is now `~/Data/gig-lead-responder/`.
+- 0.6 baseline: read-only GigSalad/Yelp dashboards + calendar in Chrome (Alex's accounts; ask first).
+**Still needs Alex:** Full Disk Access for the terminal (S3). **Module 1 plan must redesign §1.2** (G1 failed).
 
 ### Prompt for Next Session
 
@@ -61,20 +64,18 @@ FIRST gate (stop and ask Alex if anything differs):
   pwd
   git fetch origin
   git branch --show-current                      # expect: feat/hub-phase0
-  git rev-parse HEAD origin/feat/hub-phase0      # expect: the two SHAs match
+  git rev-parse HEAD; git rev-parse origin/feat/hub-phase0   # expect: identical
   git status --short                             # expect: clean
   git log --oneline HEAD..origin/main            # expect: empty
-Read: HANDOFF.md (2026-10-03 section), CLAUDE.md, docs/research/2026-10-02-booking-hub/spikes.md,
-  docs/plans/2026-10-02-feat-hub-phase0-lead-replies-plan.md (Phase 0 only).
+Read: HANDOFF.md (2026-10-03 section, all three updates), CLAUDE.md,
+  docs/research/2026-10-02-booking-hub/spikes.md, docs/plans/2026-10-02-feat-hub-phase0-lead-replies-plan.md (Phase 0).
 
-Task: continue Phase 0 from the "Queued" list in HANDOFF.md, in order. Twilio delete first, with a failing
-test that the poller stays DRY RUN without Twilio. One concern per commit, failing test first, verify with
-npm run test:match (exit 3 = zero matches). Every test run goes through npm test / test:match (never
-node --test directly: that bypasses the no-billing guard). Record results in spikes.md and commit them.
-If Alex has run `railway login`, finish 0.2 step 1 read-only first (filter variables to the three named keys).
-STOP and ask Alex before: stopping Railway or revoking its Gmail grant; any real send (S2, G1); Full Disk
-Access; moving the ~/Desktop extraction files; committing data/zip_distances.json (public repo); any change to
-Railway, .env or production data. Run claude -p ONLY with the plan's §1.6 allowlisted environment.
+Task: continue Phase 0 from the "Queued" list in HANDOFF.md, in order (poller cursor as migration v1 first).
+One concern per commit, failing test first, verify with npm run test:match (exit 3 = zero matches).
+HARD GATE: never start the Mac poller or server against real mail (drafting still bills the API key).
+Railway is retired and disconnected; do not reconnect it. Record results in spikes.md and commit them.
+STOP and ask Alex before: any real send; Full Disk Access; reading his GigSalad/Yelp dashboards; any
+change to .env or production data. Run claude -p ONLY with the plan's section 1.6 allowlisted environment.
 Do not start Module 1. Update HANDOFF.md before stopping.
 ```
 
