@@ -86,33 +86,33 @@
 | R072 | F4 | Booking Guidelines | UNREVIEWED | | | | |
 | R073 | F4 | Strategic Notes | UNREVIEWED | | | | |
 | R074 | F4 | Cross-References | UNREVIEWED | | | | |
-| R075 | F5 | Pacific Flow Entertainment: Venue Intelligence | UNREVIEWED | | | | |
-| R076 | F5 | How to Use This File | UNREVIEWED | | | | |
-| R077 | F5 | Section 1: Tier Classification | UNREVIEWED | | | | |
-| R078 | F5 | Tier A: Auto-Trigger Premium | UNREVIEWED | | | | |
-| R079 | F5 | Tier B: Context-Dependent Premium | UNREVIEWED | | | | |
-| R080 | F5 | Standard Venues (No Modifier) | UNREVIEWED | | | | |
-| R081 | F5 | Section 2: Venue Profiles: Tier A | UNREVIEWED | | | | |
-| R082 | F5 | Hotel del Coronado | UNREVIEWED | | | | |
-| R083 | F5 | The Grand Del Mar | UNREVIEWED | | | | |
-| R084 | F5 | Lodge at Torrey Pines | UNREVIEWED | | | | |
-| R085 | F5 | La Valencia Hotel | UNREVIEWED | | | | |
-| R086 | F5 | [TEMPLATE FOR ADDITIONAL TIER A VENUES] | UNREVIEWED | | | | |
-| R087 | F5 | Section 3: Venue Profiles: Tier B | UNREVIEWED | | | | |
-| R088 | F5 | Coasterra | UNREVIEWED | | | | |
-| R089 | F5 | Scripps Seaside Forum | UNREVIEWED | | | | |
-| R090 | F5 | [ADD MORE TIER B PROFILES AS NEEDED] | UNREVIEWED | | | | |
-| R091 | F5 | Section 4: Red Flag Venues | UNREVIEWED | | | | |
-| R092 | F5 | Decline or Approach with Caution | UNREVIEWED | | | | |
-| R093 | F5 | Red Flag Patterns (Not Venue-Specific) | UNREVIEWED | | | | |
-| R094 | F5 | Section 5: Venue Signal Detection | UNREVIEWED | | | | |
-| R095 | F5 | Auto-Premium Signals (Treat as Tier A) | UNREVIEWED | | | | |
-| R096 | F5 | Premium Zip Codes | UNREVIEWED | | | | |
-| R097 | F5 | Tier B Signals (Context-Dependent) | UNREVIEWED | | | | |
-| R098 | F5 | Section 6: Operational Quick Reference | UNREVIEWED | | | | |
-| R099 | F5 | Standard Setup Requirements | UNREVIEWED | | | | |
-| R100 | F5 | Common Venue Concerns → Responses | UNREVIEWED | | | | |
-| R101 | F5 | Cross-References | UNREVIEWED | | | | |
+| R075 | F5 | Pacific Flow Entertainment: Venue Intelligence | ALREADY PRESENT | Venue intel at runtime = PF-Intel (`src/venue-lookup.ts`) + `src/pipeline/format-venue-context.ts`; tier rules in `src/prompts/classify.ts` Step 2.75 | venue named |  |  |
+| R076 | F5 | How to Use This File | ALREADY PRESENT | `src/pipeline/context.ts`: venue context is placed high when PF-Intel returns data | venue named |  |  |
+| R077 | F5 | Section 1: Tier Classification | PORTED | `src/prompts/classify.ts` Step 2.75 | always | `Tier A venues (auto-premium` | `port manifest F5` |
+| R078 | F5 | Tier A: Auto-Trigger Premium | PORTED | `src/prompts/classify.ts` Step 2.75 (named Tier A list) | venue named | `Rancho Valencia` | `port manifest F5` |
+| R079 | F5 | Tier B: Context-Dependent Premium | PORTED | `src/prompts/classify.ts` Step 2.75 (Tier B + conditions) | venue named | `Martin Johnson House` | `port manifest F5` |
+| R080 | F5 | Standard Venues (No Modifier) | ALREADY PRESENT | `src/prompts/classify.ts` Step 2.75: venues without a signal stay standard (no modifier) | always |  |  |
+| R081 | F5 | Section 2: Venue Profiles: Tier A | TO PORT | Per-venue profile. Destination: PF-Intel (`src/venue-lookup.ts` → `formatVenueContext`). Not in PF-Intel's seed files (control: a seeded venue IS found there, so the search works); whether its live Supabase data has it is unverified | venue named |  |  |
+| R082 | F5 | Hotel del Coronado | TO PORT | Per-venue profile. Destination: PF-Intel (`src/venue-lookup.ts` → `formatVenueContext`). Not in PF-Intel's seed files (control: a seeded venue IS found there, so the search works); whether its live Supabase data has it is unverified | venue named |  |  |
+| R083 | F5 | The Grand Del Mar | TO PORT | Per-venue profile. Destination: PF-Intel (`src/venue-lookup.ts` → `formatVenueContext`). Not in PF-Intel's seed files (control: a seeded venue IS found there, so the search works); whether its live Supabase data has it is unverified | venue named |  |  |
+| R084 | F5 | Lodge at Torrey Pines | TO PORT | Per-venue profile. Destination: PF-Intel (`src/venue-lookup.ts` → `formatVenueContext`). Not in PF-Intel's seed files (control: a seeded venue IS found there, so the search works); whether its live Supabase data has it is unverified | venue named |  |  |
+| R085 | F5 | La Valencia Hotel | TO PORT | Per-venue profile. Destination: PF-Intel (`src/venue-lookup.ts` → `formatVenueContext`). Not in PF-Intel's seed files (control: a seeded venue IS found there, so the search works); whether its live Supabase data has it is unverified | venue named |  |  |
+| R086 | F5 | [TEMPLATE FOR ADDITIONAL TIER A VENUES] | NOT PORTED | Empty template row; approved class (navigation/placeholder), Alex 2026-10-03 (q-e) |  |  |  |
+| R087 | F5 | Section 3: Venue Profiles: Tier B | TO PORT | Per-venue profile. Destination: PF-Intel (`src/venue-lookup.ts` → `formatVenueContext`). Not in PF-Intel's seed files (control: a seeded venue IS found there, so the search works); whether its live Supabase data has it is unverified | venue named |  |  |
+| R088 | F5 | Coasterra | TO PORT | Per-venue profile. Destination: PF-Intel (`src/venue-lookup.ts` → `formatVenueContext`). Not in PF-Intel's seed files (control: a seeded venue IS found there, so the search works); whether its live Supabase data has it is unverified | venue named |  |  |
+| R089 | F5 | Scripps Seaside Forum | TO PORT | Per-venue profile. Destination: PF-Intel (`src/venue-lookup.ts` → `formatVenueContext`). Not in PF-Intel's seed files (control: a seeded venue IS found there, so the search works); whether its live Supabase data has it is unverified | venue named |  |  |
+| R090 | F5 | [ADD MORE TIER B PROFILES AS NEEDED] | NOT PORTED | Empty template row; approved class (navigation/placeholder), Alex 2026-10-03 (q-e) |  |  |  |
+| R091 | F5 | Section 4: Red Flag Venues | ALREADY PRESENT | Section heading; the named red-flag venue table is empty placeholders in the source | — |  |  |
+| R092 | F5 | Decline or Approach with Caution | NOT PORTED | The table holds only "[Venue Name]" placeholders; nothing to port. Approved class (placeholder), Alex 2026-10-03 (q-e) |  |  |  |
+| R093 | F5 | Red Flag Patterns (Not Venue-Specific) | PORTED | `src/prompts/classify.ts` Step 2.75 RED FLAG PATTERNS → `flagged_concerns` | always | `RED FLAG PATTERNS` | `port manifest F5` |
+| R094 | F5 | Section 5: Venue Signal Detection | PORTED | `src/prompts/classify.ts` Step 2.75 | always |  | `port manifest F5` |
+| R095 | F5 | Auto-Premium Signals (Treat as Tier A) | PORTED | `src/prompts/classify.ts` Step 2.75 auto-premium patterns | always | `Private estate in Rancho Santa Fe, La Jolla or Coronado` | `port manifest F5` |
+| R096 | F5 | Premium Zip Codes | PORTED | `src/prompts/classify.ts` Step 2.75 (the 5 zips were already there; 92091 added) | always | `92091` | `port manifest F5` |
+| R097 | F5 | Tier B Signals (Context-Dependent) | PORTED | `src/prompts/classify.ts` Step 2.75 context-dependent signals | always |  | `port manifest F5` |
+| R098 | F5 | Section 6: Operational Quick Reference | ALREADY PRESENT | Section heading | — |  |  |
+| R099 | F5 | Standard Setup Requirements | TO PORT | Space and setup time by configuration (solo 6x6 ft 20–30 min ... trio with dancer 15x10 ft). The power line is ported via M9. Destination: the Quote Terms block in `buildGeneratePrompt` (`src/prompts/generate.ts`) or a loaded doc | quoting |  |  |
+| R100 | F5 | Common Venue Concerns → Responses | NOT PORTED | Its outdoor-power reply says "battery-powered"; Alex 2026-10-03: never mention battery. The other three replies (volume, load-in, first-time venue) match `docs/PRINCIPLES.md` / `docs/QUICK_REFERENCE.md` preempt tables |  |  |  |
+| R101 | F5 | Cross-References | NOT PORTED | Navigation table; approved by Alex 2026-10-03 (q-e) |  |  |  |
 | R102 | F6 | Buyer Tiers (B2C: Private Events) | UNREVIEWED | | | | |
 | R103 | F6 | Residency Tiers (B2B: Recurring Programming, Solo Alex Only) | UNREVIEWED | | | | |
 | R104 | F6 | B2C Negotiation Rules | UNREVIEWED | | | | |
