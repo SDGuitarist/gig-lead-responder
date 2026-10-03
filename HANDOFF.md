@@ -1,8 +1,83 @@
 # HANDOFF -- Gig Lead Responder
 
-**Date:** 2026-10-02
-**Branch:** `docs/booking-hub-brainstorm` (docs only, unpushed, not merged)
-**Phase:** Booking hub plan. Codex round 1 **NO-GO** and round 2 **NO-GO #2**, both recorded in `docs/reviews/`. Round-2 fixes applied. **Automatic review iteration has STOPPED.** No round-3 prompt exists. **Alex chose to start Phase 0 (2026-10-03)**; next session begins it (prompt below).
+**Date:** 2026-10-03
+**Branch:** `feat/hub-phase0` (cut from `docs/booking-hub-brainstorm` at `c644210`; pushed; not merged)
+**Phase:** Work, Phase 0 **in progress**. 0.1 done; 0.3 three of eight defects done; the rest is blocked on Alex or queued (below). Module 1 not started.
+
+## 2026-10-03 — Phase 0 work session (supersedes the 10-02 "Prompt for Next Session")
+
+**Done (9 commits on `feat/hub-phase0`; evidence rows in `docs/research/2026-10-02-booking-hub/spikes.md`):**
+- **0.1 `test:match`**: `scripts/run-tests.mjs`, `scripts/leaf-reporter.mjs`, `scripts/test-files.mjs`. Exit 0/1/2/3 as planned.
+  **Deviation found and fixed:** node:test reports a *skipped* test as a pass, so a skipped-only match would have exited 0;
+  skips are now counted apart (sentinel `{"pass","fail","skip"}`). `npm test -- --test-name-pattern=X` is now refused (exit 2).
+  The parser scaffold became `tests/parsers/parsers.test.ts` on node:test (5 real tests now run; 3 skip for missing fixtures).
+- **Test runner can't bill.** ⚠ **Incident:** a failing-first test ran the real pipeline on the shell's `ANTHROPIC_API_KEY`
+  (~6–8 billed calls, dry-run, temp DB, nothing sent). The runner now sets a dead key and `ANTHROPIC_BASE_URL`.
+  Gap: `node --test <file>` run directly bypasses the runner.
+- **0.3 fixed:** orchestrator passes `platform` (`26228a7`); DKIM → **Gmail DMARC pass for the platform's own domain**, with
+  real headers from all 3 platforms as the overshoot control (`bc49c49`); dashboard requires creds in every env, binds
+  `127.0.0.1`, trust proxy loopback (`2faeacf`). Full suite: **377 pass, 0 fail, 4 skip**; `tsc` clean.
+
+**Found (all in `spikes.md`):**
+- **Railway's poller is probably not running** (inference): `/health` shows `rejectedEmails: 0` after 8 weeks up on
+  `edc8cfb` (= `main`), and the poller stops itself on `invalid_grant` while `/health` stays "ok". Unverified until the logs are read.
+- **The Mac's Gmail token is dead** (`invalid_grant`, file from 2026-05-31). 0.2 step 4 needs a fresh sign-in anyway.
+- `railway` CLI is logged out (`invalid_grant`), so 0.2 step 1 is only half done.
+- **Merge caution:** `main` → Railway auto-deploy would now bind `127.0.0.1` and fail health checks. Merge only after 0.2 retires Railway.
+
+**Blocked on Alex (nothing here was attempted):**
+1. `! railway login`, so Claude can finish 0.2 step 1 (read `AUTO_SEND_ENABLED`, `DRY_RUN`, `GMAIL_TOKEN_PATH`, poller logs).
+2. **Travel-fee ZIP table:** the plan says track `data/zip_distances.json`, but the repo is **PUBLIC** and 1,265 ZIP→miles
+   rows let anyone triangulate the origin (likely home). Options: commit it anyway / keep it untracked (works on the Mac
+   today) / store it in `~/Data`. Not done.
+3. 0.2 steps 2–3 (stop Railway, revoke grant), 0.5 file move, S2/G1 real sends, Full Disk Access (S3) — unchanged, need his yes.
+
+**Queued, no Alex needed (next session, in this order):**
+- 0.3 **Twilio delete**. ⚠ `poller.ts` falls back to DRY RUN when Twilio creds are missing; deleting Twilio must replace that
+  gate explicitly, or the poller could go LIVE. Write the "stays dry-run" test first.
+- 0.4 migration runner → then 0.3 poller cursor, wake catch-up and `/health` fields (they need a table).
+- 0.2 same-host lease + static send-surface test (pin today's send sites; tighten to one in Module 1).
+- 0.7 S1-adv (with the §1.6 allowlisted env only).
+
+### Prompt for Next Session
+
+```
+Work in /Users/alejandroguillen/Projects/gig-lead-responder.
+FIRST gate (stop and ask Alex if anything differs):
+  pwd
+  git fetch origin
+  git branch --show-current                      # expect: feat/hub-phase0
+  git rev-parse HEAD origin/feat/hub-phase0      # expect: the two SHAs match
+  git status --short                             # expect: clean
+  git log --oneline HEAD..origin/main            # expect: empty
+Read: HANDOFF.md (2026-10-03 section), CLAUDE.md, docs/research/2026-10-02-booking-hub/spikes.md,
+  docs/plans/2026-10-02-feat-hub-phase0-lead-replies-plan.md (Phase 0 only).
+
+Task: continue Phase 0 from the "Queued" list in HANDOFF.md, in order. Twilio delete first, with a failing
+test that the poller stays DRY RUN without Twilio. One concern per commit, failing test first, verify with
+npm run test:match (exit 3 = zero matches). Every test run goes through npm test / test:match (never
+node --test directly: that bypasses the no-billing guard). Record results in spikes.md and commit them.
+If Alex has run `railway login`, finish 0.2 step 1 read-only first (filter variables to the three named keys).
+STOP and ask Alex before: stopping Railway or revoking its Gmail grant; any real send (S2, G1); Full Disk
+Access; moving the ~/Desktop extraction files; committing data/zip_distances.json (public repo); any change to
+Railway, .env or production data. Run claude -p ONLY with the plan's §1.6 allowlisted environment.
+Do not start Module 1. Update HANDOFF.md before stopping.
+```
+
+### Three Questions
+
+1. **Hardest implementation decision in this session?** How strict the DMARC check could be without causing another
+   Yelp-style outage. Real headers settled it: Gmail reports the *parent* domain (`yelp.com` for `messaging.yelp.com`),
+   so the check matches a per-platform DMARC domain list, not the From address's exact domain.
+2. **What did you consider changing but left alone, and why?** Committing `zip_distances.json` (a public repo would leak a
+   home location; Alex's call), adding `gigs@gigsalad.com` to the allowlist (the tests show it's rejected on purpose:
+   payment notices), and deleting Twilio tonight (its creds check is the live-mode gate, so it needs its own careful commit).
+3. **Least confident about going into review?** The Railway inference. If Railway's poller *is* alive, it is a second
+   writer right now, and every plan step that assumes "Railway is idle" is wrong until the logs are read.
+
+---
+
+*Previous section (2026-10-02 planning), kept for history. Its "Prompt for Next Session" is SUPERSEDED.*
 
 ## 2026-10-02 — Booking hub (supersedes "Current State" below for what to do next)
 
@@ -37,7 +112,7 @@ round 3, because every remaining risk (G1, C1, S2, S3, S6, FileVault restarts) i
 behaviour that only Phase 0 can settle. The planning branch `docs/booking-hub-brainstorm` is
 pushed to origin and is not merged into `main`.
 
-### Prompt for Next Session
+### Prompt for Next Session — SUPERSEDED 2026-10-03, DO NOT RUN
 
 ```
 Work in /Users/alejandroguillen/Projects/gig-lead-responder.
@@ -589,7 +664,7 @@ Do not touch data/leads.db or .env.
 2. **What did you consider documenting but left out?** A redesign making `rejectedEmailCount` persistent and per-platform. Left out because a per-platform counter still cannot distinguish "no Yelp leads arrived" from "Yelp leads were rejected" — the honest instrument is a *positive* liveness assertion (each configured platform has ingested ≥1 lead in N days), and that deserves its own cycle.
 3. **Least confident about?** **The fix has never processed a real Yelp email.** Everything green is fixtures. `YelpPortalClient.fetchLeadDetails()` is next in the chain and unexercised by exactly the mechanism that left the parser untested — expect the next defect there. Business impact also remains unmeasured.
 
-## Prompt for Next Session
+## Prompt for Next Session — SUPERSEDED 2026-10-03, DO NOT RUN (current prompt is in the 2026-10-03 section at the top)
 
 ```
 Project root: /Users/alejandroguillen/Projects/gig-lead-responder
