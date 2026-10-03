@@ -1,0 +1,9 @@
+# test:match known answers, 2026-10-03 00:36 PDT, branch feat/hub-phase0 @ 1135d95, node v25.8.2
+npm run test:match -- "allows Basic Auth POSTs"  -> exit 0  LEAF_MATCH {"pass":1,"fail":0,"skip":0}
+npm run test:match -- "zz-no-such-test"  -> exit 3  LEAF_MATCH {"pass":0,"fail":0,"skip":0}
+npm run test:match -- "selftest deliberate failure"  -> exit 3  LEAF_MATCH {"pass":0,"fail":0,"skip":1}
+npm run test:match -- "nested fixture reachable"  -> exit 0  LEAF_MATCH {"pass":1,"fail":0,"skip":0}
+npm run test:match -- "returns low confidence for empty body"  -> exit 0  LEAF_MATCH {"pass":1,"fail":0,"skip":0}
+TEST_MATCH_SELFTEST=1 npm run test:match -- "selftest deliberate failure"  -> exit 1  LEAF_MATCH {"pass":0,"fail":1,"skip":0}
+npm test -- --test-name-pattern=x  -> exit 2  (refused)
+npm test  -> exit 0  LEAF_MATCH {"pass":363,"fail":0,"skip":4}
