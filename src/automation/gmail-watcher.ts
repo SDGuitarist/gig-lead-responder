@@ -128,6 +128,27 @@ async function fetchMessage(
   };
 }
 
+type ListPage = { messages?: { id?: string | null }[] | null; nextPageToken?: string | null };
+
+/**
+ * Every inbox message id after the timestamp (2-minute overlap for safety),
+ * following page tokens so a long gap is read in full.
+ */
+export async function listMessageIdsSince(
+  list: (params: { q: string; pageToken?: string }) => Promise<ListPage>,
+  afterTimestamp: number
+): Promise<string[]> {
+  const q = `in:inbox after:${afterTimestamp - 120}`;
+  const ids: string[] = [];
+  let pageToken: string | undefined;
+  do {
+    const page = await list({ q, pageToken });
+    for (const m of page.messages ?? []) if (m.id) ids.push(m.id);
+    pageToken = page.nextPageToken ?? undefined;
+  } while (pageToken);
+  return ids;
+}
+
 /**
  * Poll Gmail for new messages since the last check.
  * Returns full parsed messages for any new emails found.
@@ -138,26 +159,16 @@ export async function pollForNewMessages(
 ): Promise<GmailMessage[]> {
   const gmail = google.gmail({ version: "v1", auth });
 
-  // Search for recent inbox messages (2-minute overlap window for safety)
-  const query = `in:inbox after:${afterTimestamp - 120}`;
+  const ids = await listMessageIdsSince(
+    async ({ q, pageToken }) =>
+      (await gmail.users.messages.list({ userId: "me", q, maxResults: 100, pageToken })).data,
+    afterTimestamp
+  );
 
-  const listRes = await gmail.users.messages.list({
-    userId: "me",
-    q: query,
-    maxResults: 20,
-  });
-
-  const stubs = listRes.data.messages || [];
-  if (stubs.length === 0) return [];
-
-  // Fetch full details for each message
   const messages: GmailMessage[] = [];
-  for (const stub of stubs) {
-    if (stub.id) {
-      messages.push(await fetchMessage(gmail, stub.id));
-    }
+  for (const id of ids) {
+    messages.push(await fetchMessage(gmail, id));
   }
-
   return messages;
 }
 
