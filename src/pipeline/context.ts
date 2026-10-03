@@ -52,6 +52,10 @@ export async function selectContext(
     sections.push(`## CORE PRINCIPLES\n\n${principles}`);
   }
 
+  // Always include — Alex's voice spec (port manifest F2)
+  const voice = await readDoc("LEAD_RESPONSE_VOICE.md", true);
+  sections.push(`## LEAD RESPONSE VOICE\n\n${voice}`);
+
   // Conditional: cultural context
   if (classification.cultural_context_active && classification.cultural_tradition === "spanish_latin") {
     const cultural = await readDoc("CULTURAL_SPANISH_LATIN.md", false);
