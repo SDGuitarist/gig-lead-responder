@@ -25,6 +25,11 @@
   inside any test process, a DB path outside the temp folder becomes a throwaway DB. Real DB is at v1; v2 applies on
   the next app start (backup first).
 
+**⚠ Codex round 1 OUT (2026-10-03 ~13:15):** reviews `2f2ec7d..e1fb163`. Until its verdict is back, do NOT edit
+`src/automation/`, `src/db/`, `src/app.ts`, `src/server.ts`, `src/wake-watch.ts`, `src/follow-up-scheduler.ts`
+(the prompt's gate stops Codex if they move). Port work in `src/pipeline/`, docs and new tests is fine.
+Prompt: session scratchpad `codex-round1-phase0-runtime.md` (also sent to Alex). Record the verdict in `docs/reviews/`.
+
 **Open for Alex:**
 - ~~q-d~~ **Approved (Alex, 2026-10-03):** R007, R009–R011, R019 are NOT PORTED (chat-only tasks).
 - Full Disk Access (S3); 0.6 dashboards (ask first); the Module 1 §1.2 redesign (G1 failed) is unchanged.
