@@ -6,7 +6,7 @@ import type { LeadStatus, LeadOutcome, LossReason } from "./types.js";
 import { LEAD_OUTCOMES, LOSS_REASONS } from "./types.js";
 import { sessionAuth, csrfGuard } from "./auth.js";
 import { analyzeLimiter, approveLimiter } from "./rate-limit.js";
-import { sendSms } from "./sms.js";
+import { alertAlex as sendSms } from "./alert.js";
 import { runPipeline } from "./run-pipeline.js";
 import { shapeLead } from "./utils/shape-lead.js";
 import { asyncHandler } from "./utils/async-handler.js";

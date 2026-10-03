@@ -1,6 +1,6 @@
 import { getLeadsDueForFollowUp, updateLead, claimFollowUpForSending, storeFollowUpDraft } from "./db/index.js";
 import { generateFollowUpDraft } from "./pipeline/follow-up-generate.js";
-import { sendSms } from "./sms.js";
+import { alertAlex as sendSms } from "./alert.js";
 import type { LeadRecord } from "./types.js";
 import { baseUrl } from "./utils/helpers.js";
 

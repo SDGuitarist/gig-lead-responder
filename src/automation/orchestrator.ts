@@ -7,7 +7,7 @@ import { isProcessed, markProcessed } from "./dedup.js";
 import { parseLeadEmail } from "./parsers/index.js";
 import { routeLead } from "./router.js";
 import { logLead, type LeadLogEntry } from "./logger.js";
-import { sendSmsSafe as sendSms } from "../sms.js";
+import { alertAlexSafe as sendSms } from "../alert.js";
 import { sendSquarespaceReply } from "./senders/gmail-sender.js";
 import { runPipeline } from "../run-pipeline.js";
 import type { PipelineOutput } from "../types.js";

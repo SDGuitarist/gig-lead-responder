@@ -1,7 +1,7 @@
 import { getLead, updateLead } from "./db/index.js";
 import { stmt } from "./db/stmt-cache.js";
 import { normalizeLeadRow } from "./db/leads.js";
-import { sendSms } from "./sms.js";
+import { alertAlex as sendSms } from "./alert.js";
 import type { LeadRecord, PipelineOutput } from "./types.js";
 
 /**
