@@ -80,8 +80,10 @@ parts that need macOS: reading iMessages and working the EventHelper site.
 4. **One Lead Responder: the Project is the brain, the repo is the body.** The Project's rules
    get ported into the repo (see the comparison below), so the repo becomes the single source.
    The claude.ai Project is retired once the repo matches it.
-5. **Money terms are fixed, not designed.** 50% non-refundable retainer, balance on the day,
-   never a booking without a deposit (`~/.claude/docs/contract-and-payment-process.md`).
+5. **Money terms are fixed, not designed.** 50% non-refundable retainer on signing; balance due
+   one week before a music performance (day-of for corporate/one-off); card adds 3.75%; inside 7
+   days the full total is owed; W-9 for corporate; checks to Alejandro Guillen; never a booking
+   without a deposit (`~/.claude/docs/contract-and-payment-process.md`).
 6. **A deposit triggers the calendar.** One event drives the calendar entry, the reminders and
    the status change, so the Dannecker gap cannot recur.
 7. **Spending money always needs a human.** COI purchases, refunds, and anything that charges a
