@@ -46,6 +46,10 @@ reports not-delivered, so dashboard **Approve returns an error** until Module 1;
 **G1 FAILED:** Gmail replaces a supplied Message-ID (`spikes.md` G1), so plan §1.2's duplicate-send recovery must be
 redesigned in the Module 1 plan before any auto-send. Open for Alex: port questions (a)(b)(c), Full Disk Access (S3).
 
+**⚠ CLAIMED 2026-10-03 ~09:25 by session `33bddb35`:** the poller-cursor item below. Migration v1 `poller_state`
+is DONE (`72ad079`). Wiring the poller to it (`pollOnce`, test "poller gap recovery") is in progress, uncommitted,
+in that session. Paused because a peer session may also be active here. Do not start the poller-cursor item in another session.
+
 **Queued, no Alex needed (next session, in this order):** *(rewritten end of 2026-10-03)*
 - ~~Twilio delete~~ DONE. ~~0.4 migration runner~~ DONE. ~~port questions a/b/c~~ ANSWERED (plan §0.5).
 - 0.3 poller cursor = **migration v1** (`poller_state`), then wake catch-up and `/health` fields
