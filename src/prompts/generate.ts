@@ -216,6 +216,13 @@ ${classification.platform === "gigsalad"
     ? `**Contact Block: OMIT** — GigSalad prohibits direct contact info in platform messages. Do NOT include phone number, email, or website URL anywhere in the response.`
     : `**Sign-Off (ALWAYS append to both drafts):**
 End with "Alex Guillen" on its own line. No business name, no phone number — just the name.`}
+${clarificationMode || pricing.budget.tier === "no_viable_scope"
+    ? ""
+    : `
+**Quote Terms (every quote, both drafts):**
+- A 50% deposit holds the date. Say it plainly, once, near the price.
+- Setup needs: one standard 110V outlet within about 25 ft of where I play (the only electrical need) and one armless chair. Keep it to one short clause in the compressed draft.
+`}
 
 ### Full Draft
 - All 5 steps naturally woven (no visible structure/labels)
