@@ -1,10 +1,10 @@
 /**
  * Validates that an email came from a known lead platform.
  * Uses exact sender patterns (not substring matching) plus
- * Gmail SPF/DKIM header checks to prevent spoofing.
+ * Gmail's DMARC result for the platform's domain to prevent spoofing.
  *
- * SPF/DKIM is MANDATORY — emails without Authentication-Results or
- * with failed checks are rejected. This prevents spoofed emails from
+ * DMARC pass is MANDATORY — emails without Authentication-Results, or
+ * without dmarc=pass for the platform's own domain, are rejected. This prevents spoofed emails from
  * consuming Claude API tokens.
  */
 
@@ -74,18 +74,44 @@ function extractEmail(fromHeader: string): string {
 }
 
 /**
- * Check if Gmail's Authentication-Results header indicates SPF and DKIM pass.
+ * The domain DMARC must pass for, per platform. DMARC reports the parent
+ * domain: Yelp mail from messaging.yelp.com shows header.from=yelp.com.
+ * Checked against real headers on 2026-10-03.
  */
-function checkAuthHeaders(authResults: string): boolean {
+const DMARC_DOMAINS: Record<GmailPlatform, string[]> = {
+  gigsalad: ["gigsalad.com"],
+  yelp: ["yelp.com"],
+  squarespace: ["squarespace.com", "squarespace.info"],
+};
+
+/**
+ * True only when Gmail's own Authentication-Results says DMARC passed for this
+ * platform's domain. A bare dkim=pass proves nothing: every real platform mail
+ * also carries a dkim=pass for its email vendor, and an attacker can get one
+ * for any domain they own.
+ *
+ * Only a header whose authserv-id is mx.google.com counts. The caller reads
+ * the first Authentication-Results header, which Gmail adds on receipt.
+ */
+function checkAuthHeaders(authResults: string, platform: GmailPlatform): boolean {
   if (!authResults) return false;
-  const hasSPF = /spf=pass/i.test(authResults);
-  const hasDKIM = /dkim=pass/i.test(authResults);
-  return hasSPF && hasDKIM;
+  let text = authResults;
+  // Drop (comments), which can contain arbitrary text, before reading clauses.
+  for (let prev = ""; prev !== text; ) {
+    prev = text;
+    text = text.replace(/\([^()]*\)/g, " ");
+  }
+  const [authservId, ...clauses] = text.split(";").map((c) => c.trim().toLowerCase());
+  if (authservId !== "mx.google.com") return false;
+  const dmarc = clauses.find((c) => /^dmarc=/.test(c));
+  if (!dmarc || !/^dmarc=pass\b/.test(dmarc)) return false;
+  const from = dmarc.match(/\bheader\.from=([a-z0-9.-]+)/)?.[1];
+  return !!from && DMARC_DOMAINS[platform].includes(from);
 }
 
 /**
  * Validate an incoming email against the sender allowlist and auth headers.
- * SPF/DKIM is mandatory — reject when header is missing or checks fail.
+ * DMARC pass for the platform's domain is mandatory.
  *
  * A reply to an existing conversation is still `valid: true` — it is genuine,
  * authenticated mail from a known platform. It is distinguished by `kind`
@@ -94,7 +120,7 @@ function checkAuthHeaders(authResults: string): boolean {
  * indistinguishable from a spoofing attempt in the logs and the counter.
  *
  * @param fromHeader - The "From" header value (e.g., "GigSalad <leads@gigsalad.com>")
- * @param authenticationResults - Gmail's "Authentication-Results" header (for SPF/DKIM)
+ * @param authenticationResults - Gmail's first "Authentication-Results" header (for DMARC)
  * @param subject - Message subject. Omit only when the kind is irrelevant to the caller.
  * @param body - Message body (text preferred). Same caveat as subject.
  */
@@ -109,12 +135,12 @@ export function validateSource(
   // Match against allowlist
   for (const [platform, pattern] of Object.entries(ALLOWED_SENDERS)) {
     if (pattern.test(email)) {
-      // SPF/DKIM is mandatory — reject if header is missing or checks fail
-      if (!checkAuthHeaders(authenticationResults)) {
+      // DMARC pass for the platform's domain is mandatory
+      if (!checkAuthHeaders(authenticationResults, platform as GmailPlatform)) {
         return {
           valid: false,
           platform: platform as GmailPlatform,
-          reason: `Sender ${email} matched ${platform} but SPF/DKIM not verified`,
+          reason: `Sender ${email} matched ${platform} but DMARC did not pass for its domain`,
         };
       }
       return {

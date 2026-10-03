@@ -19,7 +19,7 @@ import { GigSaladPortalClient } from "./portals/gigsalad-client.js";
 /**
  * Process a single Gmail message through the full automation pipeline:
  *
- * 1. Validate source (exact allowlist + SPF/DKIM)
+ * 1. Validate source (exact allowlist + DMARC for the platform domain)
  * 2. Dedup check
  * 3. Parse email → ParsedLead
  * 4. Yelp enrichment (if Yelp — read full message from portal)
@@ -38,7 +38,7 @@ export async function processLead(
 ): Promise<void> {
   const startTime = Date.now();
 
-  // 1. Validate source (SPF/DKIM mandatory — reject when missing or failed)
+  // 1. Validate source (DMARC pass for the platform domain is mandatory)
   const validation = validateSource(
     msg.from,
     msg.authenticationResults,

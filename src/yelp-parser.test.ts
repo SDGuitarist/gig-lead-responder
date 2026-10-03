@@ -43,7 +43,7 @@ Or simply respond by replying to this email`;
     date: "2026-07-14T21:54:17Z",
     replyTo: "",
     messageIdHeader: "<probe@messaging.yelp.com>",
-    authenticationResults: "spf=pass; dkim=pass",
+    authenticationResults: "mx.google.com; dkim=pass header.i=@yelp.com; dmarc=pass (p=REJECT) header.from=yelp.com",
     bodyText,
     bodyHtml: `<html><body>
 <div>New Message from Kimberly</div>

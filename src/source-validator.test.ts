@@ -6,39 +6,45 @@ import {
   incrementRejectedEmailCount,
 } from "./automation/source-validator.js";
 
-describe("validateSource — SPF/DKIM mandatory", () => {
+// Shape of a real Gmail Authentication-Results header (see
+// source-validator-dmarc.test.ts for verbatim samples).
+function passFor(domain: string, dmarc = "pass"): string {
+  return `mx.google.com; dkim=pass header.i=@${domain}; spf=pass smtp.mailfrom=x@${domain}; dmarc=${dmarc} (p=REJECT) header.from=${domain}`;
+}
+
+describe("validateSource — DMARC mandatory", () => {
   it("rejects matching sender with empty authenticationResults", () => {
     const result = validateSource("GigSalad <leads@gigsalad.com>", "");
     assert.equal(result.valid, false);
-    assert.ok(result.reason?.includes("SPF/DKIM not verified"));
+    assert.ok(result.reason?.includes("DMARC did not pass"));
   });
 
   it("rejects matching sender when authenticationResults omitted", () => {
     const result = validateSource("GigSalad <leads@gigsalad.com>");
     assert.equal(result.valid, false);
-    assert.ok(result.reason?.includes("SPF/DKIM not verified"));
+    assert.ok(result.reason?.includes("DMARC did not pass"));
   });
 
-  it("rejects matching sender with spf=fail", () => {
+  it("rejects matching sender with dmarc=fail", () => {
     const result = validateSource(
       "GigSalad <leads@gigsalad.com>",
-      "spf=fail; dkim=pass"
+      passFor("gigsalad.com", "fail")
     );
     assert.equal(result.valid, false);
   });
 
-  it("rejects matching sender with dkim=fail", () => {
-    const result = validateSource(
-      "GigSalad <leads@gigsalad.com>",
-      "spf=pass; dkim=fail"
-    );
-    assert.equal(result.valid, false);
-  });
-
-  it("accepts matching sender with spf=pass and dkim=pass", () => {
+  it("rejects matching sender with the old spf+dkim-only header", () => {
     const result = validateSource(
       "GigSalad <leads@gigsalad.com>",
       "spf=pass; dkim=pass"
+    );
+    assert.equal(result.valid, false);
+  });
+
+  it("accepts matching sender with dmarc=pass for its domain", () => {
+    const result = validateSource(
+      "GigSalad <leads@gigsalad.com>",
+      passFor("gigsalad.com")
     );
     assert.equal(result.valid, true);
     assert.equal(result.platform, "gigsalad");
@@ -47,7 +53,7 @@ describe("validateSource — SPF/DKIM mandatory", () => {
   it("accepts Yelp sender with passing auth", () => {
     const result = validateSource(
       "Yelp <no-reply@yelp.com>",
-      "spf=pass; dkim=pass"
+      passFor("yelp.com")
     );
     assert.equal(result.valid, true);
     assert.equal(result.platform, "yelp");
@@ -56,7 +62,7 @@ describe("validateSource — SPF/DKIM mandatory", () => {
   it("accepts Squarespace sender with passing auth", () => {
     const result = validateSource(
       "Squarespace <form-submission@squarespace.com>",
-      "spf=pass; dkim=pass"
+      passFor("squarespace.com")
     );
     assert.equal(result.valid, true);
     assert.equal(result.platform, "squarespace");
@@ -65,7 +71,7 @@ describe("validateSource — SPF/DKIM mandatory", () => {
   it("rejects unknown sender regardless of auth", () => {
     const result = validateSource(
       "Attacker <attacker@evil.com>",
-      "spf=pass; dkim=pass"
+      passFor("evil.com")
     );
     assert.equal(result.valid, false);
     assert.ok(result.reason?.includes("Unknown sender"));
@@ -76,7 +82,7 @@ describe("validateSource — SPF/DKIM mandatory", () => {
 // matched no live sender, so every Yelp lead was rejected as "Unknown sender".
 // Each address below was OBSERVED in Alex's mailbox on 2026-08-07.
 // See docs/brainstorms/2026-08-07-reply-detection-samples.md §4a.
-const PASS = "spf=pass; dkim=pass";
+const PASS = passFor("yelp.com");
 const YELP_CONV = "reply+17de1e4965044590b37284774f71ee2d@messaging.yelp.com";
 
 describe("validateSource — real observed senders", () => {
@@ -88,14 +94,14 @@ describe("validateSource — real observed senders", () => {
   });
 
   it("accepts a live GigSalad lead address", () => {
-    const result = validateSource("GigSalad <leads@gigsalad.com>", PASS);
+    const result = validateSource("GigSalad <leads@gigsalad.com>", passFor("gigsalad.com"));
     assert.equal(result.valid, true);
     assert.equal(result.platform, "gigsalad");
     assert.equal(result.kind, "lead");
   });
 
-  it("still enforces SPF/DKIM on the new Yelp pattern", () => {
-    const result = validateSource(`Yelp <${YELP_CONV}>`, "spf=pass; dkim=fail");
+  it("still enforces DMARC on the new Yelp pattern", () => {
+    const result = validateSource(`Yelp <${YELP_CONV}>`, passFor("yelp.com", "fail"));
     assert.equal(result.valid, false);
   });
 
@@ -168,7 +174,7 @@ describe("validateSource — lead vs reply on the same address", () => {
   it("does not apply Yelp reply markers to GigSalad", () => {
     const result = validateSource(
       "GigSalad <leads@gigsalad.com>",
-      PASS,
+      passFor("gigsalad.com"),
       "RE: something",
       "has replied to your message"
     );
