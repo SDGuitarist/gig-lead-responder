@@ -5,7 +5,6 @@ import { join } from "node:path";
 import { readFileSync } from "node:fs";
 import { randomBytes } from "node:crypto";
 import webhookRouter from "./webhook.js";
-import twilioWebhookRouter from "./twilio-webhook.js";
 import apiRouter from "./api.js";
 import followUpApiRouter from "./follow-up-api.js";
 import { sessionAuth, csrfGuard, logout } from "./auth.js";
@@ -76,8 +75,6 @@ export function createApp() {
   // Mailgun inbound webhook
   app.use(webhookRouter);
 
-  // Twilio inbound SMS webhook
-  app.use(twilioWebhookRouter);
 
   // JSON API for new dashboard (includes /api/analyze)
   app.use(apiRouter);

@@ -21,12 +21,6 @@ export interface AutomationConfig {
     readonly credentialsPath: string;
     readonly tokenPath: string;
   };
-  readonly twilio: {
-    readonly accountSid: string;
-    readonly authToken: string;
-    readonly fromNumber: string;
-    readonly toNumber: string;
-  };
   readonly portalCredentials: {
     readonly gigsalad: { readonly email: string; readonly password: string };
     readonly yelp: { readonly email: string; readonly password: string };
@@ -53,12 +47,6 @@ export function loadConfig(): AutomationConfig {
     gmail: {
       credentialsPath: optional("GMAIL_CREDENTIALS_PATH", "credentials.json"),
       tokenPath: optional("GMAIL_TOKEN_PATH", "data/gmail-token.json"),
-    },
-    twilio: {
-      accountSid: optional("TWILIO_ACCOUNT_SID", ""),
-      authToken: optional("TWILIO_AUTH_TOKEN", ""),
-      fromNumber: optional("TWILIO_FROM_NUMBER", ""),
-      toNumber: optional("TWILIO_TO_NUMBER", ""),
     },
     portalCredentials: {
       gigsalad: {

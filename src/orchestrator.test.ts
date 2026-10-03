@@ -14,7 +14,6 @@ function fakeConfig(overrides: Partial<AutomationConfig> = {}): AutomationConfig
     dryRun: false,
     autoSendEnabled: false,
     gmail: { credentialsPath: "", tokenPath: "" },
-    twilio: { accountSid: "", authToken: "", fromNumber: "", toNumber: "" },
     portalCredentials: {
       gigsalad: { email: "", password: "" },
       yelp: { email: "", password: "" },

@@ -181,7 +181,7 @@ export function claimFollowUpForSending(leadId: number): boolean {
 }
 
 /**
- * Shared approval function — called by BOTH Twilio webhook and dashboard API.
+ * Shared approval function — called by the dashboard API (the Twilio webhook was removed in plan 0.3).
  * Atomically sets status = "done" and schedules the first follow-up.
  */
 export function completeApproval(leadId: number, doneReason: string, smsSentAt?: string): LeadRecord | undefined {

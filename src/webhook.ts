@@ -150,7 +150,7 @@ router.post("/webhook/mailgun", webhookLimiter, (req, res) => {
     .then((output) => postPipeline(leadRecord.id, output))
     .catch((err) =>
       postPipelineError(leadRecord.id, err).catch((innerErr) => {
-        // Double fault: postPipelineError itself failed (Twilio down + DB write failed)
+        // Double fault: postPipelineError itself failed (alert failed + DB write failed)
         // Last resort: log both errors. Nothing else we can do.
         console.error("postPipelineError failed:", innerErr);
         console.error("Original error:", err);

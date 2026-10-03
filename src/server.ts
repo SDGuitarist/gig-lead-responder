@@ -28,7 +28,7 @@ if (process.env.DASHBOARD_PASS!.length < 8) {
   process.exit(1);
 }
 if (process.env.NODE_ENV === "production" || process.env.RAILWAY_ENVIRONMENT) {
-  if (process.env.DISABLE_TWILIO_VALIDATION === "true" || process.env.DISABLE_MAILGUN_VALIDATION === "true") {
+  if (process.env.DISABLE_MAILGUN_VALIDATION === "true") {
     console.error("FATAL: webhook validation bypass enabled in production");
     process.exit(1);
   }
