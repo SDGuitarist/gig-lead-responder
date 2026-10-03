@@ -342,21 +342,21 @@
 | R328 | F14 | The Wedge Test | ALREADY PRESENT | `docs/RESPONSE_CRAFT.md`, loaded for every lead by `selectContext` (`src/pipeline/context.ts:35`); matched the Project before the port | always |  |  |
 | R329 | F14 | ⚠️ Steps 6-8 complete. PROCEED TO DRAFT_METHOD.md (Step 9). | TO PORT | Depends on F15: the app does not load `docs/DRAFT_METHOD.md`. Banner deliberately left out of the doc until that is decided | always |  |  |
 | R330 | F14 | Cross-References | NOT PORTED | navigation, same class as R019 (approved); approved by Alex 2026-10-03 (q-e) |  |  |  |
-| R331 | F15 | Pacific Flow Entertainment: Writing Execution (Step 9) | UNREVIEWED | | | | |
-| R332 | F15 | ⚠️ MANDATORY SEQUENCE: YOU ARE HERE: FILE 2 OF 3 | UNREVIEWED | | | | |
-| R333 | F15 | Step 9: Draft Response | UNREVIEWED | | | | |
-| R334 | F15 | The Reasoning-First Method | UNREVIEWED | | | | |
-| R335 | F15 | Sourced Lead Drafting | UNREVIEWED | | | | |
-| R336 | F15 | The Five-Part Draft Sequence | UNREVIEWED | | | | |
-| R337 | F15 | The Validation Draft (Required Pre-Work) | UNREVIEWED | | | | |
-| R338 | F15 | The 7-Component Checklist (Verify After Writing) | UNREVIEWED | | | | |
-| R339 | F15 | Non-Negotiables | UNREVIEWED | | | | |
-| R340 | F15 | Dual Output Requirement | UNREVIEWED | | | | |
-| R341 | F15 | Qualification Responses | UNREVIEWED | | | | |
-| R342 | F15 | Close Types | UNREVIEWED | | | | |
-| R343 | F15 | Contact Block (Always Include) | UNREVIEWED | | | | |
-| R344 | F15 | ⚠️ Step 9 complete. PROCEED TO VERIFICATION.md (Steps 10-11). | UNREVIEWED | | | | |
-| R345 | F15 | Cross-References | UNREVIEWED | | | | |
+| R331 | F15 | Pacific Flow Entertainment: Writing Execution (Step 9) | ALREADY PRESENT | `src/prompts/generate.ts`: `buildGeneratePrompt` implements Step 9 | always |  |  |
+| R332 | F15 | ⚠️ MANDATORY SEQUENCE: YOU ARE HERE: FILE 2 OF 3 | ALREADY PRESENT | `src/run-pipeline.ts`: order enforced in code; the chat banner is not loaded (`docs/DRAFT_METHOD.md` is unloaded on purpose since `1bc9cad`) | always |  |  |
+| R333 | F15 | Step 9: Draft Response | ALREADY PRESENT | `src/prompts/generate.ts` STEP 1 REASON + STEP 2 WRITE DRAFTS | always |  |  |
+| R334 | F15 | The Reasoning-First Method | TO PORT | `src/prompts/generate.ts`:60 reasoning block has details, absences, emotional core, cinematic opening (with the deletion test), validation line. Missing: pre-work item 5, the list of fears with the sentence that answers each, and the sourced notes (R335) | always |  |  |
+| R335 | F15 | Sourced Lead Drafting | TO PORT | Sourced voice table, transparency placement (Part 2/3), differentiator and validation patterns, and sourced price presentation (no breakdown, no coordination fee) are in no prompt and no loaded doc (`docs/DRAFT_METHOD.md` is never loaded, by design since `1bc9cad`). Destination: a sourced block in `buildGeneratePrompt`, gated on `delivery_mode` (R349) | delivery_mode = sources / hybrid |  |  |
+| R336 | F15 | The Five-Part Draft Sequence | ALREADY PRESENT | `src/prompts/generate.ts`:75 the same five parts, Part 2 verbatim; sourced Part 2–4 notes are R335 | always |  |  |
+| R337 | F15 | The Validation Draft (Required Pre-Work) | ALREADY PRESENT | `src/prompts/generate.ts`: `validation_line` reasoning + "Validation Must Survive Compression" | always |  |  |
+| R338 | F15 | The 7-Component Checklist (Verify After Writing) | ALREADY PRESENT | `src/prompts/verify.ts` gut checks (same as R246); the sourced 8th check is R335 | always |  |  |
+| R339 | F15 | Non-Negotiables | ALREADY PRESENT | `src/prompts/generate.ts` (details, absences, preempt via concern traceability) + preempt tables in `docs/PRINCIPLES.md` and `docs/QUICK_REFERENCE.md` (battery, COI, volume); mariachi lead time is not stated anywhere (minor) | always |  |  |
+| R340 | F15 | Dual Output Requirement | TO PORT | `src/prompts/generate.ts` dual drafts and compressed targets match. Full-draft premium 125–145 is deliberate (`1bc9cad`, matches QUICK_REFERENCE). Gap: the compressed draft "must retain" list lacks **fear resolution** (and sourced integrity). Destination: the Compressed Draft rule in `buildStyleRulesBlock` | always |  |  |
+| R341 | F15 | Qualification Responses | TO PORT | No qualification-tier drafting rule in `src/prompts/generate.ts` (budget-gap blocks cover stated budgets only). `docs/PRINCIPLES.md` "Reframe, Don't Downgrade" is loaded. Destination: a block in `buildGeneratePrompt` when `tier === "qualification"` | tier = qualification |  |  |
+| R342 | F15 | Close Types | ALREADY PRESENT | `docs/QUICK_REFERENCE.md` Close Types (loaded) + `close_type` in `src/prompts/generate.ts`:85; sourced close note is R335 | always |  |  |
+| R343 | F15 | Contact Block (Always Include) | NOT PORTED | Alex 2026-10-03 (q-g): name-only sign-off (`src/pipeline/generate.ts:26`) |  |  |  |
+| R344 | F15 | ⚠️ Step 9 complete. PROCEED TO VERIFICATION.md (Steps 10-11). | ALREADY PRESENT | `src/run-pipeline.ts`: verify runs after generate; chat banner not loaded | always |  |  |
+| R345 | F15 | Cross-References | NOT PORTED | Navigation table; approved by Alex 2026-10-03 (q-e) |  |  |  |
 | R346 | F16 | Pacific Flow Entertainment: Lead Analysis Decision Flow | ALREADY PRESENT | `src/prompts/classify.ts`: `buildClassifyPrompt` implements Steps 0–5 | always |  |  |
 | R347 | F16 | When a Lead Arrives | ALREADY PRESENT | `src/run-pipeline.ts`: classify runs first, then generate and verify | always |  |  |
 | R348 | F16 | Step 0: Capability Check | ALREADY PRESENT | `docs/PRINCIPLES.md:20` (Capability Trust), loaded by `selectContext`; classify has no capability field, so it cannot decline on capability | always | `Capability Trust` |  |
