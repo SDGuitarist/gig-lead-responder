@@ -4,7 +4,7 @@
 
 **Rows** come from `port-inventory.md`, in order. **Statuses:** `UNREVIEWED` (nobody has compared it yet), `PORTED` (cites the runtime function and the test that calls it), `ALREADY PRESENT` (cites the repo file, and line where useful, that already does it), `NOT PORTED` (reason plus Alex's approval) or `TO PORT` (reviewed: a real gap, destination named, not built yet) or `BLOCKED` (waiting on an Alex question).
 
-**Open Alex question (q-d):** the chat Project also answered interactive questions ("what should I quote for...", "what do I know about this venue", "does this sound like me"). The app only answers leads. Rows marked *proposed NOT PORTED* wait on his yes.
+**Open Alex question (q-d):** the chat Project also answered interactive questions ("what should I quote for...", "what do I know about this venue", "does this sound like me"). The app only answers leads. **Answered 2026-10-03: Alex approved NOT PORTED for those rows (R007, R009, R010, R011, R019).**
 
 **Public repo:** headings, statuses and repo locations only. No rates, no client names, no source text (the source lives in `~/Data/gig-lead-responder/`).
 
@@ -16,11 +16,11 @@
 | R004 | P1 | Task Routing | ALREADY PRESENT | `src/pipeline/context.ts`: section heading only; its routes are R005–R011 | — |  |  |
 | R005 | P1 | Lead Response (Default) | ALREADY PRESENT | `src/pipeline/context.ts`: RESPONSE_CRAFT, PRICING_TABLES, QUICK_REFERENCE always; PROTOCOL = `buildClassifyPrompt`; rate cards = `src/data/rates.ts`. LEAD_RESPONSE_VOICE is not loaded: tracked in its own (F) rows | always |  |  |
 | R006 | P1 | Cultural Context Routing | TO PORT | `src/pipeline/context.ts:56`: CULTURAL_CORE.md loads only for `spanish_latin`; the rule says load it for any active cultural context when no genre file exists. Classify (`src/prompts/classify.ts:137`) only knows `spanish_latin`. Not a small port: the flag also drives the generate word count and wedge (`src/prompts/generate.ts:222`, `:262`) and a verify check (`src/prompts/verify.ts:207`), so it needs a design pass and live drafting runs | `cultural_context_active` with any tradition | `## CULTURAL CORE FRAMEWORK` |  |
-| R007 | P1 | Pricing Question | BLOCKED | proposed NOT PORTED: an interactive chat task, and the app only answers leads; needs Alex's yes (q-d) |  |  |  |
+| R007 | P1 | Pricing Question | NOT PORTED | an interactive chat task, and the app only answers leads; approved by Alex 2026-10-03 (q-d) |  |  |  |
 | R008 | P1 | Bolero Trio Pricing or Negotiation | PORTED | `docs/Bolero_Trio_Negotiation_Playbook.md`, loaded by `selectContext` (`src/pipeline/context.ts`) | `format_recommended === "bolero_trio"` | `## BOLERO TRIO NEGOTIATION PLAYBOOK` | `port manifest R008` |
-| R009 | P1 | Venue Question | BLOCKED | proposed NOT PORTED: an interactive chat task, and the app only answers leads; needs Alex's yes (q-d). The lead-time venue lookup is already in `selectContext` (venue branch) |  |  |  |
-| R010 | P1 | Cultural Pattern Request | BLOCKED | proposed NOT PORTED: an interactive chat task, and the app only answers leads; needs Alex's yes (q-d) |  |  |  |
-| R011 | P1 | Voice Question | BLOCKED | proposed NOT PORTED: an interactive chat task, and the app only answers leads; needs Alex's yes (q-d) |  |  |  |
+| R009 | P1 | Venue Question | NOT PORTED | an interactive chat task, and the app only answers leads; approved by Alex 2026-10-03 (q-d). The lead-time venue lookup is already in `selectContext` (venue branch) |  |  |  |
+| R010 | P1 | Cultural Pattern Request | NOT PORTED | an interactive chat task, and the app only answers leads; approved by Alex 2026-10-03 (q-d) |  |  |  |
+| R011 | P1 | Voice Question | NOT PORTED | an interactive chat task, and the app only answers leads; approved by Alex 2026-10-03 (q-d) |  |  |  |
 | R012 | P1 | Pricing Architecture | ALREADY PRESENT | `src/pipeline/price.ts:52` `lookupPrice()`: tier + column from classify, anchor/floor from `src/data/rates.ts`, position by competition level | always |  |  |
 | R013 | P1 | File Architecture | ALREADY PRESENT | `src/pipeline/context.ts`: file tiers map to the always/conditional loads; each file is checked in its own rows | — |  |  |
 | R014 | P1 | Output Format | ALREADY PRESENT | `src/prompts/verify.ts`: the gate is produced and checked before drafts leave the pipeline (`src/run-pipeline.ts`) | always |  |  |
@@ -28,7 +28,7 @@
 | R016 | P1 | FULL DRAFT ([X] words) | ALREADY PRESENT | `src/prompts/generate.ts`: `full_draft` | always | `full_draft` |  |
 | R017 | P1 | COMPRESSED DRAFT ([X] words, [Competition Level]) | ALREADY PRESENT | `src/prompts/generate.ts`: `compressed_draft`, sized by competition level | always | `compressed_draft` |  |
 | R018 | P1 | STRATEGIC RESERVE (for follow-up) | TO PORT | No strategic reserve anywhere in `src/`. Destination: a `strategic_reserve` output of `buildGeneratePrompt`, read by the follow-up prompt (`src/prompts/follow-up.ts`) | always |  |  |
-| R019 | P1 | Cross-Reference Index | BLOCKED | proposed NOT PORTED: a navigation table for the chat Project; each file it points to has its own rows. Needs Alex's yes (q-d) |  |  |  |
+| R019 | P1 | Cross-Reference Index | NOT PORTED | a navigation table for the chat Project; each file it points to has its own rows. Approved by Alex 2026-10-03 (q-d) |  |  |  |
 | R020 | F1 | When to use this template | UNREVIEWED | | | | |
 | R021 | F1 | The structure, in order | UNREVIEWED | | | | |
 | R022 | F1 | Fill-in template | UNREVIEWED | | | | |

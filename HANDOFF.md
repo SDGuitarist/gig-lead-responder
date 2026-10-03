@@ -26,9 +26,9 @@
   the next app start (backup first).
 
 **Open for Alex:**
-- **q-d:** 5 port rows (R007, R009–R011, R019) are chat-only tasks; proposed NOT PORTED, need his yes.
+- ~~q-d~~ **Approved (Alex, 2026-10-03):** R007, R009–R011, R019 are NOT PORTED (chat-only tasks).
 - Full Disk Access (S3); 0.6 dashboards (ask first); the Module 1 §1.2 redesign (G1 failed) is unchanged.
-- A process from the earlier session may still be alive: `npx tsx scripts/gmail-auth.ts` (shell pid 69417).
+- ~~Leftover `gmail-auth.ts` process~~ checked: it had already exited after saving the token at 08:21; nothing listens on port 3001.
 
 **Queued, no Alex needed (next session, in this order):**
 1. 0.5 port, file by file. Run `python3 scripts/port-section-sim.py` first. Rule used so far: identical text is
