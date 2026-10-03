@@ -1,13 +1,25 @@
 // Allowed imports: node builtins, better-sqlite3, ../types.js, ./migrations.js only
 // NEVER import from ./index.js (circular dependency risk)
 
-import { mkdirSync } from "node:fs";
-import { dirname, join } from "node:path";
+import { mkdirSync, mkdtempSync, realpathSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { dirname, join, resolve } from "node:path";
 import Database from "better-sqlite3";
 import { FOLLOW_UP_STATUSES } from "../types.js";
 import { MIGRATIONS, assertDbNotNewer, runMigrations } from "./migrations.js";
 
-const DB_PATH = process.env.DATABASE_PATH || "./data/leads.db";
+const DB_PATH = resolveDbPath(process.env.DATABASE_PATH || "./data/leads.db");
+
+/**
+ * Inside any node:test process, a path outside the temp folder (such as the
+ * real data/leads.db from .env) is swapped for a throwaway DB, because initDb
+ * runs migrations on whatever it opens. Opened it once on 2026-10-03.
+ */
+function resolveDbPath(path: string): string {
+  if (!process.env.NODE_TEST_CONTEXT) return path;
+  if (resolve(path).startsWith(realpathSync(tmpdir())) || resolve(path).startsWith(tmpdir())) return path;
+  return join(mkdtempSync(join(tmpdir(), "glr-guard-")), "leads.db");
+}
 
 let db: Database.Database;
 
