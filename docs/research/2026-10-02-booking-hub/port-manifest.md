@@ -264,28 +264,28 @@
 | R250 | F11 | VERIFICATION GATE (Required) | ALREADY PRESENT | `src/prompts/verify.ts` (JSON gate with the same fields as the template) | always |  |  |
 | R251 | F11 | Preempt Questions by Client Type | ALREADY PRESENT | `docs/QUICK_REFERENCE.md`, loaded for every lead (`src/pipeline/context.ts:69`); the First-Time Host row is in `docs/PRINCIPLES.md` (ported R216) | always |  |  |
 | R252 | F11 | Contact Block | NOT PORTED | Alex 2026-10-03 (q-g): drafts keep name-only sign-off (`src/pipeline/generate.ts:26`); the Project's business-name + phone block is not used | | | |
-| R253 | F12 | Pacific Flow Entertainment: Quality Gate + Output (Steps 10-11) | UNREVIEWED | | | | |
-| R254 | F12 | ⚠️ MANDATORY SEQUENCE: YOU ARE HERE: FILE 3 OF 3 | UNREVIEWED | | | | |
-| R255 | F12 | Step 10: Quality Verification | UNREVIEWED | | | | |
-| R256 | F12 | Component Quality Standards | UNREVIEWED | | | | |
-| R257 | F12 | Sourced Lead Quality Standards (Additional) | UNREVIEWED | | | | |
-| R258 | F12 | The Quality Test | UNREVIEWED | | | | |
-| R259 | F12 | The Prose Test | UNREVIEWED | | | | |
-| R260 | F12 | The "Best Line" Requirement | UNREVIEWED | | | | |
-| R261 | F12 | Revision Protocol | UNREVIEWED | | | | |
-| R262 | F12 | Step 11: The Gut Check | UNREVIEWED | | | | |
-| R263 | F12 | The Competitor Test (Required) | UNREVIEWED | | | | |
-| R264 | F12 | The Validation Test (Specific) | UNREVIEWED | | | | |
-| R265 | F12 | The "Their Details" Test | UNREVIEWED | | | | |
-| R266 | F12 | Strategic Reserve | UNREVIEWED | | | | |
-| R267 | F12 | Output Format | UNREVIEWED | | | | |
-| R268 | F12 | PRE-WORK (Required Before Drafting) | UNREVIEWED | | | | |
-| R269 | F12 | VERIFICATION GATE (Required) | UNREVIEWED | | | | |
-| R270 | F12 | FULL DRAFT ([X] words) | UNREVIEWED | | | | |
-| R271 | F12 | COMPRESSED DRAFT ([X] words: [Competition Level]) | UNREVIEWED | | | | |
-| R272 | F12 | STRATEGIC RESERVE (for follow-up) | UNREVIEWED | | | | |
-| R273 | F12 | Why the Gate Has Evidence Requirements | UNREVIEWED | | | | |
-| R274 | F12 | Cross-References | UNREVIEWED | | | | |
+| R253 | F12 | Pacific Flow Entertainment: Quality Gate + Output (Steps 10-11) | ALREADY PRESENT | `src/prompts/verify.ts`: `buildVerifyPrompt` implements Steps 10–11 | always |  |  |
+| R254 | F12 | ⚠️ MANDATORY SEQUENCE: YOU ARE HERE: FILE 3 OF 3 | ALREADY PRESENT | `src/run-pipeline.ts`: verify runs after generate; chat banner not loaded | always |  |  |
+| R255 | F12 | Step 10: Quality Verification | ALREADY PRESENT | `src/prompts/verify.ts` (evidence extraction + gut checks); rewrite loop in `src/run-pipeline.ts` | always |  |  |
+| R256 | F12 | Component Quality Standards | TO PORT | The present-vs-excellent rubric and the "best version, or just a version?" test are not given to `src/prompts/verify.ts` (its gut checks are booleans). Destination: rubric text in `buildVerifyPrompt` | always |  |  |
+| R257 | F12 | Sourced Lead Quality Standards (Additional) | TO PORT | Sourced quality standards (transparency, authenticity signal, accountability, musician quality) are not checked by `src/prompts/verify.ts`. Destination: `buildVerifyPrompt`, gated on `delivery_mode` (R349) | delivery_mode = sources / hybrid |  |  |
+| R258 | F12 | The Quality Test | TO PORT | The present-vs-excellent rubric and the "best version, or just a version?" test are not given to `src/prompts/verify.ts` (its gut checks are booleans). Destination: rubric text in `buildVerifyPrompt` | always |  |  |
+| R259 | F12 | The Prose Test | ALREADY PRESENT | `src/prompts/verify.ts` `prose_flows`; `src/prompts/generate.ts` "One continuous movement" | always |  |  |
+| R260 | F12 | The "Best Line" Requirement | ALREADY PRESENT | `src/prompts/verify.ts` `best_line` + `best_line_present` | always |  |  |
+| R261 | F12 | Revision Protocol | ALREADY PRESENT | `src/run-pipeline.ts`: a failed gate triggers rewrites; `src/automation/router.ts:62` holds after retries | gate fail |  |  |
+| R262 | F12 | Step 11: The Gut Check | ALREADY PRESENT | `src/types.ts:155` + `src/prompts/verify.ts` (the 9 checks and more); the Graceful Decline additions are the verify half of R320 (TO PORT) | always |  |  |
+| R263 | F12 | The Competitor Test (Required) | ALREADY PRESENT | `src/prompts/verify.ts` §6 Competitor Test + §6b lead specificity; the Graceful Decline additions are the verify half of R320 (TO PORT) | always |  |  |
+| R264 | F12 | The Validation Test (Specific) | ALREADY PRESENT | `src/prompts/verify.ts` `validation_line`, `validated_them`, `compressed_validation_present` | always |  |  |
+| R265 | F12 | The "Their Details" Test | ALREADY PRESENT | `src/prompts/verify.ts` `lead_specific_opening`, `can_see_it` | always |  |  |
+| R266 | F12 | Strategic Reserve | TO PORT | Strategic reserve: same gap as R018 (no output field anywhere in `src/`) | always |  |  |
+| R267 | F12 | Output Format | ALREADY PRESENT | `src/prompts/verify.ts`: JSON output (gate before drafts leave the pipeline) | always |  |  |
+| R268 | F12 | PRE-WORK (Required Before Drafting) | TO PORT | Same as R244: the generate reasoning block lacks request type (FORMAT vs CATEGORY) | always |  |  |
+| R269 | F12 | VERIFICATION GATE (Required) | ALREADY PRESENT | `src/prompts/verify.ts` JSON gate (validation, best line, traceability, scene, competitor, gut checks); the Graceful Decline additions are the verify half of R320 (TO PORT). "Response Mode" is part of R320 | always |  |  |
+| R270 | F12 | FULL DRAFT ([X] words) | ALREADY PRESENT | `src/prompts/generate.ts`: `full_draft` | always |  |  |
+| R271 | F12 | COMPRESSED DRAFT ([X] words: [Competition Level]) | ALREADY PRESENT | `src/prompts/generate.ts`: `compressed_draft` | always |  |  |
+| R272 | F12 | STRATEGIC RESERVE (for follow-up) | TO PORT | Same gap as R018 | always |  |  |
+| R273 | F12 | Why the Gate Has Evidence Requirements | ALREADY PRESENT | `src/prompts/verify.ts`: exact quotes required, empty traceability cell = automatic FAIL; the Graceful Decline additions are the verify half of R320 (TO PORT) | always |  |  |
+| R274 | F12 | Cross-References | NOT PORTED | Navigation table; approved by Alex 2026-10-03 (q-e) |  |  |  |
 | R275 | F13 | Pacific Flow Entertainment: Pricing Router & Qualification Tools | UNREVIEWED | | | | |
 | R276 | F13 | Engagement Type Determination | UNREVIEWED | | | | |
 | R277 | F13 | Private Event (B2C) | UNREVIEWED | | | | |
