@@ -318,28 +318,28 @@
 | R306 | F13 | Cross-References | UNREVIEWED | | | | |
 | R307 | F13 | Change Log | UNREVIEWED | | | | |
 | R308 | F13 | April 26, 2026: Residency Pricing Framework Added (with same-day scope correction) | UNREVIEWED | | | | |
-| R309 | F14 | Pacific Flow Entertainment: Pre-Draft Analysis (Steps 6-8) | UNREVIEWED | | | | |
-| R310 | F14 | ⚠️ MANDATORY SEQUENCE: YOU ARE HERE: FILE 1 OF 3 | UNREVIEWED | | | | |
-| R311 | F14 | Step 6: Evaluate Layers | UNREVIEWED | | | | |
-| R312 | F14 | Sourced Delivery Layer | UNREVIEWED | | | | |
-| R313 | F14 | Cultural Context Layer | UNREVIEWED | | | | |
-| R314 | F14 | Planner Effort Layer | UNREVIEWED | | | | |
-| R315 | F14 | Social Proof Technique | UNREVIEWED | | | | |
-| R316 | F14 | Step 7: Address Flagged Concerns | UNREVIEWED | | | | |
-| R317 | F14 | Integration Requirement | UNREVIEWED | | | | |
-| R318 | F14 | Common Concern Patterns | UNREVIEWED | | | | |
-| R319 | F14 | Sourced Delivery Concern Patterns | UNREVIEWED | | | | |
-| R320 | F14 | Graceful Decline Pattern (Format/Fit Mismatch) | UNREVIEWED | | | | |
-| R321 | F14 | Reading Absent Information | UNREVIEWED | | | | |
-| R322 | F14 | ⚠️ Category vs. Format Rule | UNREVIEWED | | | | |
-| R323 | F14 | Sparse Lead Type Classification | UNREVIEWED | | | | |
-| R324 | F14 | Long-Format Expertise (3+ Hours) | UNREVIEWED | | | | |
-| R325 | F14 | Step 8: Find the Wedge | UNREVIEWED | | | | |
-| R326 | F14 | Wedge Sources | UNREVIEWED | | | | |
-| R327 | F14 | Sourced-Specific Wedge Patterns | UNREVIEWED | | | | |
-| R328 | F14 | The Wedge Test | UNREVIEWED | | | | |
-| R329 | F14 | ⚠️ Steps 6-8 complete. PROCEED TO DRAFT_METHOD.md (Step 9). | UNREVIEWED | | | | |
-| R330 | F14 | Cross-References | UNREVIEWED | | | | |
+| R309 | F14 | Pacific Flow Entertainment: Pre-Draft Analysis (Steps 6-8) | ALREADY PRESENT | `docs/RESPONSE_CRAFT.md`, loaded for every lead by `selectContext` (`src/pipeline/context.ts:35`); matched the Project before the port | always |  |  |
+| R310 | F14 | ⚠️ MANDATORY SEQUENCE: YOU ARE HERE: FILE 1 OF 3 | ALREADY PRESENT | `src/run-pipeline.ts`: classify → generate → verify order is enforced in code. The chat banner text is deliberately NOT in the doc (test `port manifest F14`) | always |  |  |
+| R311 | F14 | Step 6: Evaluate Layers | ALREADY PRESENT | `docs/RESPONSE_CRAFT.md`, loaded for every lead by `selectContext` (`src/pipeline/context.ts:35`); matched the Project before the port | always |  |  |
+| R312 | F14 | Sourced Delivery Layer | ALREADY PRESENT | `docs/RESPONSE_CRAFT.md`, loaded for every lead by `selectContext` (`src/pipeline/context.ts:35`); matched the Project before the port | always |  |  |
+| R313 | F14 | Cultural Context Layer | ALREADY PRESENT | `docs/RESPONSE_CRAFT.md`, loaded for every lead by `selectContext` (`src/pipeline/context.ts:35`); matched the Project before the port | always |  |  |
+| R314 | F14 | Planner Effort Layer | ALREADY PRESENT | `docs/RESPONSE_CRAFT.md`, loaded for every lead by `selectContext` (`src/pipeline/context.ts:35`); matched the Project before the port | always |  |  |
+| R315 | F14 | Social Proof Technique | ALREADY PRESENT | `docs/RESPONSE_CRAFT.md`, loaded for every lead by `selectContext` (`src/pipeline/context.ts:35`); matched the Project before the port | always |  |  |
+| R316 | F14 | Step 7: Address Flagged Concerns | ALREADY PRESENT | `docs/RESPONSE_CRAFT.md`, loaded for every lead by `selectContext` (`src/pipeline/context.ts:35`); matched the Project before the port | always |  |  |
+| R317 | F14 | Integration Requirement | ALREADY PRESENT | `docs/RESPONSE_CRAFT.md`, loaded for every lead by `selectContext` (`src/pipeline/context.ts:35`); matched the Project before the port | always |  |  |
+| R318 | F14 | Common Concern Patterns | ALREADY PRESENT | `docs/RESPONSE_CRAFT.md`, loaded for every lead by `selectContext` (`src/pipeline/context.ts:35`); matched the Project before the port | always |  |  |
+| R319 | F14 | Sourced Delivery Concern Patterns | ALREADY PRESENT | `docs/RESPONSE_CRAFT.md`, loaded for every lead by `selectContext` (`src/pipeline/context.ts:35`); matched the Project before the port | always |  |  |
+| R320 | F14 | Graceful Decline Pattern (Format/Fit Mismatch) | TO PORT | `docs/RESPONSE_CRAFT.md`, loaded for every lead by `selectContext` (`src/pipeline/context.ts:35`). **Doc half PORTED 2026-10-03** (client name in the canonical example replaced by a placeholder: public repo). Still to port per plan 0.5: `buildVerifyPrompt` checks + gate hold `graceful_decline` when classify flags the trigger | format-fit or sensitivity trigger | `Graceful Decline Pattern (Format/Fit Mismatch)` | `port manifest F14` |
+| R321 | F14 | Reading Absent Information | PORTED | `docs/RESPONSE_CRAFT.md`, loaded for every lead by `selectContext` (`src/pipeline/context.ts:35`); merged from the Project 2026-10-03 (was 0.93) | always | `Never treat a sparse lead as permission to go generic` | `port manifest F14` |
+| R322 | F14 | ⚠️ Category vs. Format Rule | PORTED | `docs/RESPONSE_CRAFT.md`, loaded for every lead by `selectContext` (`src/pipeline/context.ts:35`); merged from the Project 2026-10-03 (was 0.05) | always | `Category vs. Format Rule` | `port manifest F14` |
+| R323 | F14 | Sparse Lead Type Classification | ALREADY PRESENT | `docs/RESPONSE_CRAFT.md`, loaded for every lead by `selectContext` (`src/pipeline/context.ts:35`); matched the Project before the port | always |  |  |
+| R324 | F14 | Long-Format Expertise (3+ Hours) | ALREADY PRESENT | `docs/RESPONSE_CRAFT.md`, loaded for every lead by `selectContext` (`src/pipeline/context.ts:35`); matched the Project before the port | always |  |  |
+| R325 | F14 | Step 8: Find the Wedge | ALREADY PRESENT | `docs/RESPONSE_CRAFT.md`, loaded for every lead by `selectContext` (`src/pipeline/context.ts:35`); matched the Project before the port | always |  |  |
+| R326 | F14 | Wedge Sources | PORTED | `docs/RESPONSE_CRAFT.md`, loaded for every lead by `selectContext` (`src/pipeline/context.ts:35`); merged from the Project 2026-10-03 (was 0.91) | always | `Ambiguity as Expertise` | `port manifest F14` |
+| R327 | F14 | Sourced-Specific Wedge Patterns | PORTED | `docs/RESPONSE_CRAFT.md`, loaded for every lead by `selectContext` (`src/pipeline/context.ts:35`); merged from the Project 2026-10-03 (was 0.91) | always | `Ambiguity as Expertise` | `port manifest F14` |
+| R328 | F14 | The Wedge Test | ALREADY PRESENT | `docs/RESPONSE_CRAFT.md`, loaded for every lead by `selectContext` (`src/pipeline/context.ts:35`); matched the Project before the port | always |  |  |
+| R329 | F14 | ⚠️ Steps 6-8 complete. PROCEED TO DRAFT_METHOD.md (Step 9). | TO PORT | Depends on F15: the app does not load `docs/DRAFT_METHOD.md`. Banner deliberately left out of the doc until that is decided | always |  |  |
+| R330 | F14 | Cross-References | BLOCKED | proposed NOT PORTED: navigation, same class as R019 (approved); needs Alex's yes (q-e) |  |  |  |
 | R331 | F15 | Pacific Flow Entertainment: Writing Execution (Step 9) | UNREVIEWED | | | | |
 | R332 | F15 | ⚠️ MANDATORY SEQUENCE: YOU ARE HERE: FILE 2 OF 3 | UNREVIEWED | | | | |
 | R333 | F15 | Step 9: Draft Response | UNREVIEWED | | | | |
