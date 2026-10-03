@@ -12,6 +12,8 @@ import { loadAuthClient, pollForNewMessages } from "./gmail-watcher.js";
 import { processLead } from "./orchestrator.js";
 import type { GmailMessage } from "./gmail-watcher.js";
 import { getPollerState, savePollAuthFailed, savePollSuccess } from "../db/poller-state.js";
+import { tryAcquireLease } from "../db/runtime-lease.js";
+import { currentHolder, isPidAlive } from "./lease-holder.js";
 import { YelpPortalClient } from "./portals/yelp-client.js";
 import { GigSaladPortalClient } from "./portals/gigsalad-client.js";
 
@@ -63,6 +65,15 @@ export interface PollDeps {
   fetchSince: (afterTs: number) => Promise<GmailMessage[]>;
   handle: (msg: GmailMessage) => Promise<void>;
   now: () => number;
+  /** Takes or renews the same-host lease; a poll without it does nothing. */
+  acquireLease?: () => boolean;
+}
+
+const LEASE_RENEW_MS = 20_000;
+let leaseTimer: ReturnType<typeof setInterval> | null = null;
+
+function acquireOwnLease(): boolean {
+  return tryAcquireLease(currentHolder(), Date.now(), isPidAlive);
 }
 
 /**
@@ -71,6 +82,10 @@ export interface PollDeps {
  * auth as failed. Errors are rethrown for the caller.
  */
 export async function pollOnce(deps: PollDeps): Promise<void> {
+  if (deps.acquireLease && !deps.acquireLease()) {
+    console.warn("[gmail-poller] Another process holds the runtime lease; skipping this poll");
+    return;
+  }
   const startedMs = deps.now();
   const startedS = Math.floor(startedMs / 1000);
   const cursor = getPollerState().cursorTs ?? startedS - CURSOR_OVERLAP_S;
@@ -162,6 +177,7 @@ export async function startGmailPoller(): Promise<void> {
         fetchSince: (after) => pollForNewMessages(auth!, after),
         handle: (msg) => processLead(msg, config, auth!, yelpClient!, gigsaladClient),
         now: () => Date.now(),
+        acquireLease: acquireOwnLease,
       });
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
@@ -181,6 +197,7 @@ export async function startGmailPoller(): Promise<void> {
   }
 
   activePoll = poll;
+  leaseTimer = setInterval(acquireOwnLease, LEASE_RENEW_MS);
   // Run immediately, then on interval
   await poll();
   interval = setInterval(poll, config.pollIntervalMs);
@@ -192,6 +209,10 @@ export async function startGmailPoller(): Promise<void> {
 
 export async function stopGmailPoller(): Promise<void> {
   activePoll = null;
+  if (leaseTimer) {
+    clearInterval(leaseTimer);
+    leaseTimer = null;
+  }
   if (interval) {
     clearInterval(interval);
     interval = null;
