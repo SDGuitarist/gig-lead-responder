@@ -33,7 +33,8 @@ COIs. It grows out of gig-lead-responder, the only app already running 24/7.
 | Job | Behavior |
 |---|---|
 | Lead replies | Drafts every lead with the Project's full method. **Auto-sends** high-confidence drafts. Texts Alex to approve uncertain ones. |
-| Lead sources | GigSalad, Yelp, The Bash (portal replies), email + website form, texts/calls. Social DMs out of scope. |
+| Lead sources | GigSalad, Yelp, The Bash (portal replies), email + website form. Texts and calls are captured (read from iMessage, or forwarded/logged by Alex) and drafted for Alex to send. Social DMs out of scope. |
+| Contacts | One gig, many people (couple, planner, venue coordinator, corporate contact), each with a role. Client type (corporate, private, couple, planner) shapes templates. |
 | Contracts | Creates and fills the Performance Agreement, signs Alex's side, sends it. Client signs with any tool. Detects the signed return. |
 | Invoices + payments | Sends deposit/balance invoices. Reads payment emails **and iMessages** (Square, Venmo, Zelle), matches each to a gig, logs it, reminds when due or late. |
 | Calendar | Gig goes on the GIG Calendar the moment the deposit lands. |
@@ -69,7 +70,10 @@ parts that need macOS: reading iMessages and working the EventHelper site.
 1. **Own app, not a subscription.** Commercial CRMs (HoneyBook, Dubsado, HubSpot,
    entertainment-specific tools) are researched for features to borrow. Every borrowed feature
    is checked against HoneyBook's three failures.
-2. **Lead replies come first.** The other modules follow one at a time.
+2. **One plan covers all modules; the build goes in this order:** (1) merged Lead Responder +
+   auto-send + the 4 known production defects (pacific-flow-hub todo 020); (2) nothing
+   forgotten: deposit → calendar → reminders; (3) contracts + invoices + payment matching;
+   (4) COIs and logistics. Each module ships and runs before the next starts.
 3. **Confidence decides auto-send.** High confidence sends on its own; anything else waits for a
    text approval. How confidence is measured is a planning question, and so is every portal's
    rules on automated replies.
@@ -140,14 +144,14 @@ None.
 
 ---
 
-## Feed-Forward
+## Three Questions
 
-- **Hardest decision:** auto-sending. It's the biggest lever for winning gigs and the biggest
+1. **Hardest decision in this session?** auto-sending. It's the biggest lever for winning gigs and the biggest
   risk. One wrong price or tone sent at 2am under Alex's name cannot be unsent, and marketplace
   rules on automated replies are unverified.
-- **Rejected alternatives:** a new hub app (B) and Claude Code on the Mac alone (C). Reasons
+2. **What did you reject, and why?** a new hub app (B) and Claude Code on the Mac alone (C). Reasons
   above. Also buying HoneyBook back or adopting any sandbox CRM as-is: none has held real data.
-- **Least confident:** whether GigSalad, Yelp and The Bash allow automated portal replies, and
+3. **Least confident about going into the next phase?** whether GigSalad, Yelp and The Bash allow automated portal replies, and
   whether Playwright logins survive their bot checks. If not, auto-send shrinks to email/form
   leads and the portals get "draft + one-tap approve." Second: reading iMessages needs Full Disk
   Access on the server Mac, and macOS privacy rules have blocked reads before.
