@@ -1,9 +1,9 @@
 # CULTURAL_CORE.md
-## Pacific Flow Entertainment — Cultural Response Framework
+## Pacific Flow Entertainment: Cultural Response Framework
 
 **Purpose:** Universal framework for cultural responses. Apply this when Cultural Context layer is active (per RESPONSE_CRAFT.md → Step 6). Region-specific patterns live in CULTURAL_[region].md files.
 
-**Line count target:** ~150 lines
+**Line count target:** ~180 lines
 
 ---
 
@@ -24,9 +24,9 @@ A family requesting flamenco for abuela's 90th birthday isn't buying background 
 ## The Gift-Giver Framework
 
 In cultural events, there are three parties:
-1. **The honoree** — Who the celebration is for
-2. **The gift-giver** — Who is booking (making this happen)
-3. **The guests** — Who will experience it
+1. **The honoree:** Who the celebration is for
+2. **The gift-giver:** Who is booking (making this happen)
+3. **The guests:** Who will experience it
 
 The person filling out the form is usually the gift-giver. They decided this music mattered enough to seek it out. That decision deserves recognition.
 
@@ -44,7 +44,7 @@ The gift-giver often won't be recognized by guests. The evening will feel right,
 
 > "The guests at that table won't know you're the reason the evening feels this way. But you will."
 
-This works because it's TRUE—and because no other vendor will think to say it.
+This works because it's TRUE, and because no other vendor will think to say it.
 
 ---
 
@@ -74,7 +74,7 @@ When a client mentions "guests will dance" or requests a "flamenco group," deter
 
 ### Why This Matters
 
-Participatory events need the full configuration (e.g., flamenco trio with dancer). The dancer doesn't just perform—she invites the room in. With the right guests, the palmas and jaleo happen naturally.
+Participatory events need the full configuration (e.g., flamenco trio with dancer). The dancer doesn't just perform, she invites the room in. With the right guests, the palmas and jaleo happen naturally.
 
 Performance events can work with smaller configurations. The music is a moment, not a catalyst.
 
@@ -92,13 +92,13 @@ Using tradition-specific terms signals fluency. Restraint matters more than rang
 > "...and with a Spanish family in the room, the palmas and jaleo will come naturally."
 
 **Showing off (wrong):**
-> "The duende, the jaleo, the palmas, the compás—it will be a true juerga with all the flamenco traditions."
+> "The duende, the jaleo, the palmas, the compás, it will be a true juerga with all the flamenco traditions."
 
 ### How to Use Terms
 
 1. Choose terms the GUESTS would use (not academic terms)
 2. Weave them into the picture, not into a glossary
-3. Don't define them—trust that your confidence carries meaning
+3. Don't define them, trust that your confidence carries meaning
 
 → For tradition-specific terminology: See CULTURAL_[region].md
 
@@ -110,7 +110,7 @@ When Cultural Context is active, the wedge lives in one of these places:
 
 ### 1. The Honoree's Relationship to the Music
 
-> "For someone who grew up with this in their soul, being surrounded by family while flamenco plays—that's not just a party. That's being seen."
+> "For someone who grew up with this in their soul, being surrounded by family while flamenco plays, that's not just a party. That's being seen."
 
 ### 2. The Gift-Giver's Intention
 
@@ -128,6 +128,52 @@ When Cultural Context is active, the wedge lives in one of these places:
 
 ---
 
+## The Vehicle (Why You)
+
+Demonstrated understanding earns trust. But trust without a vehicle doesn't close.
+
+The client needs to believe:
+1. **Problem:** Finding the right person for a moment that actually matters
+2. **Solution:** Your approach (configuration, flow, cultural understanding)
+3. **Vehicle:** YOU are the person who can execute this, and why
+
+### The Flow
+
+| Element | What It Does |
+|---------|--------------|
+| **Wedge** | "I see what this moment is" |
+| **Vehicle** | "I'm the person who can deliver it" |
+| **Solution** | "Here's how it unfolds" |
+
+The wedge creates separation. The vehicle converts understanding into "book this person."
+
+### Vehicle Patterns
+
+| Pattern | Example |
+|---------|---------|
+| **Longevity + Personal Network** | "I've been performing flamenco in San Diego for over 30 years, and I work with a small group of artists I know personally" |
+| **Specific Cultural Experience** | "When the room is full of Sevillanos, you don't perform at them, you ignite with them" |
+| **Not an Agency** | "Musicians who understand that this isn't about putting on a show, it's about finding the duende" |
+| **Proof of Understanding** | "I've been part of moments like this. I know what happens when the music is right." |
+
+### Vehicle Placement
+
+After the wedge, before the solution unfolds:
+
+> [Wedge] "Your grandmother left Sevilla at 22, built a family here, and now she's turning 90 surrounded by that family."
+>
+> [Vehicle] "I've been performing flamenco in San Diego for over 30 years, and I work with artists who understand that when the room is full of Sevillanos, you don't perform at them. You ignite with them."
+>
+> [Solution] "Here's how this unfolds: Dinner elegant and warm..."
+
+### The Test
+
+Does the response answer: **"Why should I believe YOU can deliver what you're describing?"**
+
+If not, add the vehicle.
+
+---
+
 ## Musical Bridges
 
 Sometimes the request doesn't match the event. Show them the connection they didn't know existed.
@@ -136,13 +182,13 @@ Sometimes the request doesn't match the event. Show them the connection they did
 
 **Wrong:** "Classical guitar isn't really Western music..."
 
-**Right:** "The warm sound you're imagining comes from nylon-string guitar—same instrument Willie Nelson plays. It'll feel Western without the twang."
+**Right:** "The warm sound you're imagining comes from nylon-string guitar, same instrument Willie Nelson plays. It'll feel Western without the twang."
 
 ### Common Bridges
 
 | Request | Bridge To | Connection |
 |---------|-----------|------------|
-| Classical guitar | Country/Western | Willie Nelson, Chet Atkins—nylon string players |
+| Classical guitar | Country/Western | Willie Nelson, Chet Atkins, nylon string players |
 | Spanish guitar | Mediterranean/Coastal | Natural fit for California coastal, wine country |
 | Spanish guitar | Latin heritage | Foundation of bolero, ranchera, trova |
 | "Gypsy Kings style" | Flamenco trio | That sound requires guitar + cajón + dancer |
@@ -163,7 +209,7 @@ When Cultural Context is active, the pipeline's 5-step draft sequence shifts:
 | **4. Recommendation + price** | Price, logistics, cultural configuration |
 | **5. CTA** | Same |
 
-The structure is the same. The depth is different.
+The structure is the same. The depth is different. The vehicle is essential.
 
 ---
 
@@ -173,9 +219,10 @@ The structure is the same. The depth is different.
 |------|----------|
 | Cultural Context triggers | RESPONSE_CRAFT.md → Step 6 |
 | Spanish/Latin patterns | CULTURAL_SPANISH_LATIN.md |
-| Flamenco/Mariachi pricing | PRICING.md |
+| Flamenco/Mariachi pricing | Rate_Card_Trio_Ensemble.md, Rate_Card_Bolero_Trio.md |
 | 7-component framework | RESPONSE_CRAFT.md → Step 9 |
 
 ---
 
 *Universal framework. For tradition-specific patterns, load CULTURAL_[region].md.*
+

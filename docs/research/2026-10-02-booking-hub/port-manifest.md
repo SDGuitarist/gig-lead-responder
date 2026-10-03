@@ -152,32 +152,32 @@
 | R140 | F7 | How the Orchestrator Uses This Document | UNREVIEWED | | | | |
 | R141 | F7 | The Repertoire-to-Phase Mapping | UNREVIEWED | | | | |
 | R142 | F7 | Why the Orchestrator Can't Skip This | UNREVIEWED | | | | |
-| R143 | F8 | Pacific Flow Entertainment: Cultural Response Framework | UNREVIEWED | | | | |
-| R144 | F8 | Why Cultural Responses Are Different | UNREVIEWED | | | | |
-| R145 | F8 | The Gift-Giver Framework | UNREVIEWED | | | | |
-| R146 | F8 | Validation Patterns | UNREVIEWED | | | | |
-| R147 | F8 | The Invisible Gift | UNREVIEWED | | | | |
-| R148 | F8 | Participatory vs. Performance | UNREVIEWED | | | | |
-| R149 | F8 | Performance (Guests Watch) | UNREVIEWED | | | | |
-| R150 | F8 | Participatory (Guests Join In) | UNREVIEWED | | | | |
-| R151 | F8 | Why This Matters | UNREVIEWED | | | | |
-| R152 | F8 | Domain Terminology | UNREVIEWED | | | | |
-| R153 | F8 | The Rule: 1-2 Terms Maximum | UNREVIEWED | | | | |
-| R154 | F8 | How to Use Terms | UNREVIEWED | | | | |
-| R155 | F8 | Finding the Cultural Wedge | UNREVIEWED | | | | |
-| R156 | F8 | 1. The Honoree's Relationship to the Music | UNREVIEWED | | | | |
-| R157 | F8 | 2. The Gift-Giver's Intention | UNREVIEWED | | | | |
-| R158 | F8 | 3. What Will Happen in the Room | UNREVIEWED | | | | |
-| R159 | F8 | 4. The Generational Thread | UNREVIEWED | | | | |
-| R160 | F8 | The Vehicle (Why You) | UNREVIEWED | | | | |
-| R161 | F8 | The Flow | UNREVIEWED | | | | |
-| R162 | F8 | Vehicle Patterns | UNREVIEWED | | | | |
-| R163 | F8 | Vehicle Placement | UNREVIEWED | | | | |
-| R164 | F8 | The Test | UNREVIEWED | | | | |
-| R165 | F8 | Musical Bridges | UNREVIEWED | | | | |
-| R166 | F8 | Common Bridges | UNREVIEWED | | | | |
-| R167 | F8 | Cultural Response Flow | UNREVIEWED | | | | |
-| R168 | F8 | Cross-References | UNREVIEWED | | | | |
+| R143 | F8 | Pacific Flow Entertainment: Cultural Response Framework | ALREADY PRESENT | `docs/CULTURAL_CORE.md`, loaded by `selectContext` (`src/pipeline/context.ts:61`); today only for `spanish_latin` (see R006); matched the Project before the port | `cultural_tradition === "spanish_latin"` (R006 widens this) |  |  |
+| R144 | F8 | Why Cultural Responses Are Different | ALREADY PRESENT | `docs/CULTURAL_CORE.md`, loaded by `selectContext` (`src/pipeline/context.ts:61`); today only for `spanish_latin` (see R006); matched the Project before the port | `cultural_tradition === "spanish_latin"` (R006 widens this) |  |  |
+| R145 | F8 | The Gift-Giver Framework | ALREADY PRESENT | `docs/CULTURAL_CORE.md`, loaded by `selectContext` (`src/pipeline/context.ts:61`); today only for `spanish_latin` (see R006); matched the Project before the port | `cultural_tradition === "spanish_latin"` (R006 widens this) |  |  |
+| R146 | F8 | Validation Patterns | ALREADY PRESENT | `docs/CULTURAL_CORE.md`, loaded by `selectContext` (`src/pipeline/context.ts:61`); today only for `spanish_latin` (see R006); matched the Project before the port | `cultural_tradition === "spanish_latin"` (R006 widens this) |  |  |
+| R147 | F8 | The Invisible Gift | ALREADY PRESENT | `docs/CULTURAL_CORE.md`, loaded by `selectContext` (`src/pipeline/context.ts:61`); today only for `spanish_latin` (see R006); matched the Project before the port | `cultural_tradition === "spanish_latin"` (R006 widens this) |  |  |
+| R148 | F8 | Participatory vs. Performance | ALREADY PRESENT | `docs/CULTURAL_CORE.md`, loaded by `selectContext` (`src/pipeline/context.ts:61`); today only for `spanish_latin` (see R006); matched the Project before the port | `cultural_tradition === "spanish_latin"` (R006 widens this) |  |  |
+| R149 | F8 | Performance (Guests Watch) | ALREADY PRESENT | `docs/CULTURAL_CORE.md`, loaded by `selectContext` (`src/pipeline/context.ts:61`); today only for `spanish_latin` (see R006); matched the Project before the port | `cultural_tradition === "spanish_latin"` (R006 widens this) |  |  |
+| R150 | F8 | Participatory (Guests Join In) | ALREADY PRESENT | `docs/CULTURAL_CORE.md`, loaded by `selectContext` (`src/pipeline/context.ts:61`); today only for `spanish_latin` (see R006); matched the Project before the port | `cultural_tradition === "spanish_latin"` (R006 widens this) |  |  |
+| R151 | F8 | Why This Matters | ALREADY PRESENT | `docs/CULTURAL_CORE.md`, loaded by `selectContext` (`src/pipeline/context.ts:61`); today only for `spanish_latin` (see R006); matched the Project before the port | `cultural_tradition === "spanish_latin"` (R006 widens this) |  |  |
+| R152 | F8 | Domain Terminology | ALREADY PRESENT | `docs/CULTURAL_CORE.md`, loaded by `selectContext` (`src/pipeline/context.ts:61`); today only for `spanish_latin` (see R006); matched the Project before the port | `cultural_tradition === "spanish_latin"` (R006 widens this) |  |  |
+| R153 | F8 | The Rule: 1-2 Terms Maximum | ALREADY PRESENT | `docs/CULTURAL_CORE.md`, loaded by `selectContext` (`src/pipeline/context.ts:61`); today only for `spanish_latin` (see R006); matched the Project before the port | `cultural_tradition === "spanish_latin"` (R006 widens this) |  |  |
+| R154 | F8 | How to Use Terms | ALREADY PRESENT | `docs/CULTURAL_CORE.md`, loaded by `selectContext` (`src/pipeline/context.ts:61`); today only for `spanish_latin` (see R006); matched the Project before the port | `cultural_tradition === "spanish_latin"` (R006 widens this) |  |  |
+| R155 | F8 | Finding the Cultural Wedge | ALREADY PRESENT | `docs/CULTURAL_CORE.md`, loaded by `selectContext` (`src/pipeline/context.ts:61`); today only for `spanish_latin` (see R006); matched the Project before the port | `cultural_tradition === "spanish_latin"` (R006 widens this) |  |  |
+| R156 | F8 | 1. The Honoree's Relationship to the Music | ALREADY PRESENT | `docs/CULTURAL_CORE.md`, loaded by `selectContext` (`src/pipeline/context.ts:61`); today only for `spanish_latin` (see R006); matched the Project before the port | `cultural_tradition === "spanish_latin"` (R006 widens this) |  |  |
+| R157 | F8 | 2. The Gift-Giver's Intention | ALREADY PRESENT | `docs/CULTURAL_CORE.md`, loaded by `selectContext` (`src/pipeline/context.ts:61`); today only for `spanish_latin` (see R006); matched the Project before the port | `cultural_tradition === "spanish_latin"` (R006 widens this) |  |  |
+| R158 | F8 | 3. What Will Happen in the Room | ALREADY PRESENT | `docs/CULTURAL_CORE.md`, loaded by `selectContext` (`src/pipeline/context.ts:61`); today only for `spanish_latin` (see R006); matched the Project before the port | `cultural_tradition === "spanish_latin"` (R006 widens this) |  |  |
+| R159 | F8 | 4. The Generational Thread | ALREADY PRESENT | `docs/CULTURAL_CORE.md`, loaded by `selectContext` (`src/pipeline/context.ts:61`); today only for `spanish_latin` (see R006); matched the Project before the port | `cultural_tradition === "spanish_latin"` (R006 widens this) |  |  |
+| R160 | F8 | The Vehicle (Why You) | PORTED | `docs/CULTURAL_CORE.md`, loaded by `selectContext` (`src/pipeline/context.ts:61`); today only for `spanish_latin` (see R006); taken from the Project 2026-10-03 (was 0.28) | `cultural_tradition === "spanish_latin"` (R006 widens this) | `The Vehicle (Why You)` | `port manifest F8` |
+| R161 | F8 | The Flow | PORTED | `docs/CULTURAL_CORE.md`, loaded by `selectContext` (`src/pipeline/context.ts:61`); today only for `spanish_latin` (see R006); taken from the Project 2026-10-03 (was 0.33) | `cultural_tradition === "spanish_latin"` (R006 widens this) | `The Vehicle (Why You)` | `port manifest F8` |
+| R162 | F8 | Vehicle Patterns | PORTED | `docs/CULTURAL_CORE.md`, loaded by `selectContext` (`src/pipeline/context.ts:61`); today only for `spanish_latin` (see R006); taken from the Project 2026-10-03 (was 0.20) | `cultural_tradition === "spanish_latin"` (R006 widens this) | `The Vehicle (Why You)` | `port manifest F8` |
+| R163 | F8 | Vehicle Placement | PORTED | `docs/CULTURAL_CORE.md`, loaded by `selectContext` (`src/pipeline/context.ts:61`); today only for `spanish_latin` (see R006); taken from the Project 2026-10-03 (was 0.25) | `cultural_tradition === "spanish_latin"` (R006 widens this) | `The Vehicle (Why You)` | `port manifest F8` |
+| R164 | F8 | The Test | PORTED | `docs/CULTURAL_CORE.md`, loaded by `selectContext` (`src/pipeline/context.ts:61`); today only for `spanish_latin` (see R006); taken from the Project 2026-10-03 (was 0.31) | `cultural_tradition === "spanish_latin"` (R006 widens this) | `The Vehicle (Why You)` | `port manifest F8` |
+| R165 | F8 | Musical Bridges | ALREADY PRESENT | `docs/CULTURAL_CORE.md`, loaded by `selectContext` (`src/pipeline/context.ts:61`); today only for `spanish_latin` (see R006); matched the Project before the port | `cultural_tradition === "spanish_latin"` (R006 widens this) |  |  |
+| R166 | F8 | Common Bridges | ALREADY PRESENT | `docs/CULTURAL_CORE.md`, loaded by `selectContext` (`src/pipeline/context.ts:61`); today only for `spanish_latin` (see R006); matched the Project before the port | `cultural_tradition === "spanish_latin"` (R006 widens this) |  |  |
+| R167 | F8 | Cultural Response Flow | PORTED | `docs/CULTURAL_CORE.md`, loaded by `selectContext` (`src/pipeline/context.ts:61`); today only for `spanish_latin` (see R006); merged 2026-10-03: kept the repo's 5-step table (matches `src/prompts/generate.ts:81`), added the Project's "The vehicle is essential." | `cultural_tradition === "spanish_latin"` (R006 widens this) | `The vehicle is essential.` | `port manifest F8` |
+| R168 | F8 | Cross-References | BLOCKED | proposed NOT PORTED: navigation, same class as R019 (approved); needs Alex's yes (q-e) |  |  |  |
 | R169 | F9 | Pacific Flow Entertainment: Spanish/Latin Cultural Patterns | PORTED | `docs/CULTURAL_SPANISH_LATIN.md`, loaded by `selectContext` (`src/pipeline/context.ts:57`); replaced with the Project's version 2026-10-03 (was 0.98) | `cultural_tradition === "spanish_latin"` | `Bolero Signals (Any 2+)` | `port manifest F9` |
 | R170 | F9 | Terminology by Tradition | ALREADY PRESENT | `docs/CULTURAL_SPANISH_LATIN.md`, loaded by `selectContext` (`src/pipeline/context.ts:57`); matched the Project before the port | `cultural_tradition === "spanish_latin"` | | |
 | R171 | F9 | Flamenco | ALREADY PRESENT | `docs/CULTURAL_SPANISH_LATIN.md`, loaded by `selectContext` (`src/pipeline/context.ts:57`); matched the Project before the port | `cultural_tradition === "spanish_latin"` | | |
