@@ -306,7 +306,7 @@ continues):
 - Unanswered rows are marked `BLOCKED (Alex q-a/b/c)` in the manifest.
 - **Answered 2026-10-03 (Alex):**
   - (a) **Yes**: use the Project's Trio/Ensemble card.
-  - (b) **The Project wins** the battery-powered sound conflict.
+  - (b) **The Project wins** the battery-powered sound conflict. Clarified 2026-10-03 (the conflict was inside the Project: memory vs files): **never mention battery-powered sound**. Removed from everything the model sees; `post-check.ts` fails any draft that mentions it.
   - (c) Neither file ever existed (the extraction's own audit, line 6058, lists both as "referenced but missing";
     not found on disk). Claude recommended, pending Alex's veto: `FOLLOW_UP.md` → **ALREADY PRESENT**
     (`src/follow-up-scheduler.ts`, `src/follow-up-api.ts`, `src/db/follow-ups.ts`); `AUTHENTICITY_SCREEN.md` →

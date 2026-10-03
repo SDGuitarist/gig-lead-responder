@@ -331,7 +331,7 @@
 | R317 | F14 | Integration Requirement | ALREADY PRESENT | `docs/RESPONSE_CRAFT.md`, loaded for every lead by `selectContext` (`src/pipeline/context.ts:35`); matched the Project before the port | always |  |  |
 | R318 | F14 | Common Concern Patterns | ALREADY PRESENT | `docs/RESPONSE_CRAFT.md`, loaded for every lead by `selectContext` (`src/pipeline/context.ts:35`); matched the Project before the port | always |  |  |
 | R319 | F14 | Sourced Delivery Concern Patterns | ALREADY PRESENT | `docs/RESPONSE_CRAFT.md`, loaded for every lead by `selectContext` (`src/pipeline/context.ts:35`); matched the Project before the port | always |  |  |
-| R320 | F14 | Graceful Decline Pattern (Format/Fit Mismatch) | TO PORT | `docs/RESPONSE_CRAFT.md`, loaded for every lead by `selectContext` (`src/pipeline/context.ts:35`). **Doc half PORTED 2026-10-03** (client name in the canonical example replaced by a placeholder: public repo). Still to port per plan 0.5: `buildVerifyPrompt` checks + gate hold `graceful_decline` when classify flags the trigger | format-fit or sensitivity trigger | `Graceful Decline Pattern (Format/Fit Mismatch)` | `port manifest F14` |
+| R320 | F14 | Graceful Decline Pattern (Format/Fit Mismatch) | TO PORT | `docs/RESPONSE_CRAFT.md`, loaded for every lead by `selectContext` (`src/pipeline/context.ts:35`). **Doc half PORTED 2026-10-03** (client name in the canonical example replaced by a placeholder: public repo). Still to port per plan 0.5: `buildVerifyPrompt` checks + gate hold `graceful_decline` when classify flags the trigger. ⚠ `SOFT_REFUSAL_PATTERNS` in `src/pipeline/post-check.ts` (e.g. "recommend looking elsewhere") can flag a legitimate decline exit line; exempt it when the decline mode is active | format-fit or sensitivity trigger | `Graceful Decline Pattern (Format/Fit Mismatch)` | `port manifest F14` |
 | R321 | F14 | Reading Absent Information | PORTED | `docs/RESPONSE_CRAFT.md`, loaded for every lead by `selectContext` (`src/pipeline/context.ts:35`); merged from the Project 2026-10-03 (was 0.93) | always | `Never treat a sparse lead as permission to go generic` | `port manifest F14` |
 | R322 | F14 | ⚠️ Category vs. Format Rule | PORTED | `docs/RESPONSE_CRAFT.md`, loaded for every lead by `selectContext` (`src/pipeline/context.ts:35`); merged from the Project 2026-10-03 (was 0.05) | always | `Category vs. Format Rule` | `port manifest F14` |
 | R323 | F14 | Sparse Lead Type Classification | ALREADY PRESENT | `docs/RESPONSE_CRAFT.md`, loaded for every lead by `selectContext` (`src/pipeline/context.ts:35`); matched the Project before the port | always |  |  |
@@ -407,16 +407,16 @@
 | R393 | F19 | Expected Booking Funnel | PORTED | `docs/Bolero_Trio_Negotiation_Playbook.md`, loaded by `selectContext` (`src/pipeline/context.ts`); section text matches the Project (similarity 1.00) | `format_recommended === "bolero_trio"` | `## BOLERO TRIO NEGOTIATION PLAYBOOK` | `port manifest R008` |
 | R394 | F19 | Strategic Reminders | PORTED | `docs/Bolero_Trio_Negotiation_Playbook.md`, loaded by `selectContext` (`src/pipeline/context.ts`); section text matches the Project (similarity 1.00) | `format_recommended === "bolero_trio"` | `## BOLERO TRIO NEGOTIATION PLAYBOOK` | `port manifest R008` |
 | R395 | F19 | Cross-References | PORTED | `docs/Bolero_Trio_Negotiation_Playbook.md`, loaded by `selectContext` (`src/pipeline/context.ts`); section text matches the Project (similarity 1.00, 0.97 for Cross-References) | `format_recommended === "bolero_trio"` | `## BOLERO TRIO NEGOTIATION PLAYBOOK` | `port manifest R008` |
-| R396 | M1 | index.md | UNREVIEWED | | | | |
-| R397 | M2 | overview.md | UNREVIEWED | | | | |
-| R398 | M3 | preferences.md | UNREVIEWED | | | | |
-| R399 | M4 | tools-and-references.md | UNREVIEWED | | | | |
-| R400 | M5 | booking-terms.md | UNREVIEWED | | | | |
-| R401 | M6 | education-programs.md | UNREVIEWED | | | | |
-| R402 | M7 | jit-vision-to-voices.md | UNREVIEWED | | | | |
-| R403 | M8 | pricing-decisions.md | UNREVIEWED | | | | |
-| R404 | M9 | quote-setup-rules.md | UNREVIEWED | | | | |
-| R405 | M10 | venue-history.md | UNREVIEWED | | | | |
-| R406 | M11 | music-background.md | UNREVIEWED | | | | |
+| R396 | M1 | index.md | BLOCKED | proposed NOT PORTED: Project name and description only, no rule. Needs Alex's yes (q-h) |  |  |  |
+| R397 | M2 | overview.md | TO PORT | Holds the **Instrument Rule**: Alex performs guitar (any style) and ukulele; sourcing only for an instrument he doesn't play, 3+ musicians, or stated unavailability; style never sets delivery mode. Destination: R349 (`delivery_mode` in `buildClassifyPrompt`). The rest is business context, no rule | always |  |  |
+| R398 | M3 | preferences.md | TO PORT | Salutation: ALREADY in `src/prompts/generate.ts`:70 (when a first name exists). Follow-up check-in: `src/follow-up-scheduler.ts`. Not in the app: negotiation-stage replies (skip the cinematic opening, no two-option menu or closing script). Destination: the reply/negotiation path (a later module) | negotiation replies |  |  |
+| R399 | M4 | tools-and-references.md | ALREADY PRESENT | `src/data/voice-references.ts` (Patterson, Sparse Cocktail and the other references). The T4 reference lead is the F1 rows; the Three Questions protocol is a dev rule (`CLAUDE.md`), not runtime | always |  |  |
+| R400 | M5 | booking-terms.md | PORTED | `src/prompts/generate.ts` Quote Terms block (every quote, not clarification or no-viable-scope) | quoting | `50% deposit holds the date` | `port manifest M5 M9` |
+| R401 | M6 | education-programs.md | BLOCKED | proposed NOT PORTED: education work status, not a lead-reply rule. Needs Alex's yes (q-h) |  |  |  |
+| R402 | M7 | jit-vision-to-voices.md | BLOCKED | proposed NOT PORTED: JIT / Vision to Voices role, not a lead-reply rule. Needs Alex's yes (q-h) |  |  |  |
+| R403 | M8 | pricing-decisions.md | TO PORT | T4 tier (solo 2/3/4 hr known) and NP tiers (NP2 solo 1/2 hr known; open at the floor; in-kind line; route on who pays, not venue). Plan 0.5 names `src/data/rates.ts` tier rows + a classify `buyer_track`. **Rate changes need Alex**; several values are still "to be set" in the source | buyer_track ∈ {T4, NP} |  |  |
+| R404 | M9 | quote-setup-rules.md | PORTED | `src/prompts/generate.ts` Quote Terms (110V outlet within ~25 ft, armless chair); battery: removed from everything the model sees + `src/pipeline/post-check.ts` fails any draft that mentions it (Alex 2026-10-03) | quoting | `one armless chair` | `port manifest M5 M9`; `post-check holds battery mention`; `battery never shown to the model` |
+| R405 | M10 | venue-history.md | TO PORT | Four venues Alex has played that are not in venue intel. Venue credibility comes from PF-Intel (`src/venue-lookup.ts`); destination: PF-Intel data or a local list read by `formatVenueContext` | venue named |  |  |
+| R406 | M11 | music-background.md | TO PORT | Ukulele = Alex Performs. Destination: R349 delivery mode; the classify format list has no ukulele value (`src/prompts/classify.ts`) | ukulele requested |  |  |
 
 **Rows: 406.**
