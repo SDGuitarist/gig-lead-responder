@@ -2,49 +2,71 @@
 
 **Date:** 2026-10-03
 **Branch:** `feat/hub-phase0` (cut from `docs/booking-hub-brainstorm` at `c644210`; pushed; not merged)
-**Phase:** Work, Phase 0 **in progress**. 0.1, 0.2 (code), 0.3 (all but the alert half of `invalid_grant alerts`), 0.4, S1, S1-adv done. 0.5 port: 42 of 406 rows reviewed. 0.6 waits on Alex. Module 1 not started.
+**Phase:** Work, Phase 0 **in progress**. 0.1, 0.2 (code), 0.3 (all but the alert half of `invalid_grant alerts`), 0.4, S1, S1-adv done. **0.5 port: all 406 rows reviewed; 75 TO PORT remain** (build work). 0.6 blocked (see below). Codex round 1 out. Module 1 not started.
 
-## 2026-10-03 (session 33bddb35, ~09:10–09:45) — poller cursor, wake, lease, S1-adv, port start
+## 2026-10-03 (session 33bddb35, ~09:10–15:30) — poller cursor, wake, lease, S1-adv, the whole port review
 
-**Supersedes the "Queued" list and the prompt in the section below.** All results are rows in `spikes.md`.
+**Supersedes the "Queued" list and the prompt in the section below.** Results are rows in `spikes.md`; port detail is in `port-manifest.md`.
 
-**Done (21 commits, `72ad079`..`e1fb163`, pushed):**
+**Part 1 (`72ad079`..`e1fb163`, runtime; under Codex review):**
 - **0.3 poller cursor = migration v1** `poller_state`; `pollOnce()` resumes from it; the Gmail list follows page tokens
   (was: first 20 only). `/health` now has `poller.last_success_at`, `poller.auth` (`never`/`ok`/`failed`), `lease.host`.
-- **Failed lead retried, not skipped (Alex caught it mid-session):** a failure holds the cursor (3 attempts, then
-  `GAVE UP` in the log); `processLead` resumes a half-done `received` row instead of dying on `UNIQUE`.
+- **Failed lead retried, not skipped (Alex caught it):** a failure holds the cursor (3 attempts, then `GAVE UP` in the
+  log); `processLead` resumes a half-done `received` row instead of dying on `UNIQUE`.
 - **0.3 wake catch-up:** `src/wake-watch.ts` (30 s tick, >2 min jump) → `pollNow()` + `kickFollowUpScheduler()`.
-- **0.2 same-host lease = migration v2** `runtime_lease`; each poll needs it, renewed every 20 s; `holdsLease()` ready
-  for Module 1's send check. **Send sites pinned** by file and count (7), with a planted-call control.
-- **0.7 S1-adv PASSED** (exact §1.6 env): 0 tool-use events, canary not leaked, 0 of 15 `.env` values in output.
-  Finding for Module 1: the model appended a "this looks like prompt injection" note under the draft.
-- **0.5 port started:** `port-manifest.md` (406 rows) + structure test; new status `TO PORT`. P1 (19) and F19 (23)
-  reviewed. **R008 PORTED:** the Bolero playbook now loads for `bolero_trio` leads. Helper: `scripts/port-section-sim.py`.
+- **0.2 same-host lease = migration v2** `runtime_lease`; every poll needs it; `holdsLease()` ready for Module 1.
+  **Send sites pinned** by file and count (7), with a planted-call control.
+- **0.7 S1-adv PASSED**; **real server booted** with Gmail disabled (migrations, loopback, `/health` observed).
 - ⚠ **Incident (my error):** a failing-first test opened the real `data/leads.db` and applied migration v1 (one empty
-  table; 0 leads / 16 processed rows unchanged; backup `data/backups/pre-v1.db`). **Alex chose to keep it.** Guard added:
-  inside any test process, a DB path outside the temp folder becomes a throwaway DB. Real DB is at v1; v2 applies on
-  the next app start (backup first).
+  table, data unchanged, backup `data/backups/pre-v1.db`). **Alex kept it.** Guard: tests can never open a non-temp DB.
 
-**⚠ Codex round 1 OUT (2026-10-03 ~13:15):** reviews `2f2ec7d..e1fb163`. Until its verdict is back, do NOT edit
-`src/automation/`, `src/db/`, `src/app.ts`, `src/server.ts`, `src/wake-watch.ts`, `src/follow-up-scheduler.ts`
-(the prompt's gate stops Codex if they move). Port work in `src/pipeline/`, docs and new tests is fine.
-Prompt: session scratchpad `codex-round1-phase0-runtime.md` (also sent to Alex). Record the verdict in `docs/reviews/`.
+**Part 2 (`0252977`..`83c2ea9`, the port):** every one of the 406 rows reviewed: 197 ALREADY PRESENT, 102 PORTED,
+32 NOT PORTED (all approved by Alex), **75 TO PORT**, 0 BLOCKED. What changed in the app:
+- **Loaded for drafts now:** Alex's voice spec (`docs/LEAD_RESPONSE_VOICE.md`, every lead); event-arc theory when
+  classify sets the new `event_arc`; Bolero playbook for bolero leads. Merged from the Project: PRINCIPLES (read the
+  absences), CULTURAL_SPANISH_LATIN (bolero/trova), CULTURAL_CORE (Vehicle), RESPONSE_CRAFT (graceful decline,
+  category vs format).
+- **Classify:** competition only from the platform's count (else 0); named venue tiers, premium signals, zip 92091,
+  red-flag patterns; `event_arc`; `extended_dancer`.
+- **Generate:** every quote states the 50% deposit and setup needs (110V outlet, armless chair).
+- **Post-check (`src/pipeline/post-check.ts`):** Alex's voice kill list, at most one `!`, and **any battery mention
+  fails** (Alex: never mention battery-powered sound; also removed from everything the model sees). Verify names the
+  voice judgment checks (hedges, false binary, triads...).
+- **Pricing:** all 208 prices on the three Project rate cards now match `src/data/rates.ts`
+  (`npx tsx scripts/port-rate-compare.ts`). Added (Alex): full mariachi 35+ miles out uses the card's outside-SD table
+  with travel built in; 3-hour flamenco trio with the dancer for 2 hours when the lead asks.
+- **Removed from draft context (Alex):** stale price shorthand (QUICK_REFERENCE), range-quote samples + the ranges
+  rule (PRICING_TABLES), battery wording; 7 example lines word-swapped so no loaded example fails the post-check.
 
 **Open for Alex:**
-- ~~q-d~~ **Approved (Alex, 2026-10-03):** R007, R009–R011, R019 are NOT PORTED (chat-only tasks).
-- Full Disk Access (S3); 0.6 dashboards (ask first); the Module 1 §1.2 redesign (G1 failed) is unchanged.
-- ~~Leftover `gmail-auth.ts` process~~ checked: it had already exited after saving the token at 08:21; nothing listens on port 3001.
+- ⚠ **Public repo holds personal contact data:** `docs/venue_intel_seed_data_v2.csv` (venue contacts' names and email
+  addresses), pre-existing. Untouched. Removing it from the history is a history rewrite: his call.
+- **0.6 baseline is blocked:** GigSalad was not signed in (Claude can't enter passwords) and the permission system
+  refused opening the Yelp business dashboard (client personal data). Options: Alex signs in and allows it, or Alex
+  reads the numbers himself.
+- Codex round 1 verdict (paste it in; record in `docs/reviews/`). Full Disk Access (S3). Module 1 §1.2 redesign (G1).
 
-**Queued, no Alex needed (next session, in this order):**
-1. 0.5 port, file by file. Run `python3 scripts/port-section-sim.py` first. Rule used so far: identical text is
-   **not** ALREADY PRESENT unless something loads it at runtime (`selectContext`, a prompt builder, `rates.ts`).
-   Likely order: F16 PROTOCOL (0.96, vs `buildClassifyPrompt`), F10 PRINCIPLES / F9 / F14 (loaded docs, check the diffs),
-   F12 VERIFICATION and F15 DRAFT_METHOD (identical-ish but **not loaded**: loading them changes drafting, so list as
-   TO PORT with the question), F11/F13 (diverged), F2/F5/F7/F1 (no repo copy), rate cards F3/F4/F6 last: they diverge
-   (0.59–0.73) and prices live in `src/data/rates.ts`; (a) says the Project's Trio/Ensemble card wins, but Bolero and
-   Solo/Duo differences may need Alex.
-2. Add the test "port inventory fully accounted" only when no row is UNREVIEWED.
-3. R006 (CULTURAL_CORE for any tradition) and R018 (strategic reserve) need a design pass, not just a load.
+**⚠ Codex round 1 OUT (~13:15):** reviews `2f2ec7d..e1fb163`. Until the verdict is back, do NOT edit `src/automation/`,
+`src/db/`, `src/app.ts`, `src/server.ts`, `src/wake-watch.ts`, `src/follow-up-scheduler.ts` (its gate stops Codex if
+they move). Nothing in Part 2 touched them. Prompt: session scratchpad `codex-round1-phase0-runtime.md`.
+
+**Known, not fixed (pre-existing):** `lookupPrice` returns the requested duration, not the one it priced (2.5 h is
+priced as 3 h but labelled 2.5). Only the new outside-SD mariachi path reports the priced hours.
+
+**Queued, no Alex needed (next session):** the 75 TO PORT rows, grouped (each row names its destination):
+1. **Delivery mode** (R349–R353, R397, R406, R335, R257): a `delivery_mode` classify field (Instrument Rule: guitar
+   any style + ukulele = Alex performs) that the loaded Sourced Delivery layer and a sourced generate/verify block key on.
+2. **Small prompt gaps:** request type in the reasoning block (R244/R249/R268); urgency phrases (R369); compressed
+   draft must keep a fear resolution (R340); qualification-tier block (R341); verify rubric (R256/R258).
+3. **Graceful decline code half** (R320): verify checks + `graceful_decline` hold; exempt its exit line from
+   `SOFT_REFUSAL_PATTERNS`. **Strategic reserve** (R018/R266/R272). **CULTURAL_CORE for any tradition** (R006).
+4. **Code checks:** competition count must equal the platform's displayed count (R358 code half; parser work).
+5. **Needs Alex's numbers:** residency R1–R3 + engagement type (R220, R221, R276–R286, R303, recurring rows), T4 and
+   NP tiers + `buyer_track` (R403, then the F1 T4 reference lead), $150 minimum profit (R362/R295), context modifiers
+   and holiday/peak pricing (R292, R058/R072/R104), quote formatting by tier (R300–R302).
+6. **Other repos/data:** venue profiles and venue history in PF-Intel (R081–R089, R405); setup space table (R099);
+   negotiation replies (R398, later module); DRAFT_METHOD banner (R329, only if that file is ever loaded).
+Add the plan's "port inventory fully accounted" test only when no row is TO PORT.
 
 ### Prompt for Next Session
 
@@ -58,24 +80,29 @@ FIRST gate (stop and ask Alex if anything differs):
 Read: HANDOFF.md (top section, session 33bddb35), CLAUDE.md,
   docs/research/2026-10-02-booking-hub/spikes.md, docs/research/2026-10-02-booking-hub/port-manifest.md,
   docs/plans/2026-10-02-feat-hub-phase0-lead-replies-plan.md §0.5.
-Task: continue the 0.5 port from the top-section queue, one source file per commit.
-Run python3 scripts/port-section-sim.py into the scratchpad first; never paste source text, rates or
-client names into the public repo. Verify with npm run test:match -- "port manifest" (exit 3 = zero matches).
+First: if Alex has pasted the Codex round-1 verdict, record it in docs/reviews/ and work its fix prompt under the fix
+contract before anything else. Otherwise: port the TO PORT rows from the top-section queue, group 1 (delivery mode)
+first, one concern per commit, failing test first, verify with npm run test:match (exit 3 = zero matches).
+Do NOT edit src/automation, src/db, src/app.ts, src/server.ts, src/wake-watch.ts, src/follow-up-scheduler.ts until
+the Codex verdict is in. Never put source text, client names or contact data into the public repo.
 HARD GATE: never start the Mac poller or server against real mail. Never open data/leads.db from a test.
 STOP and ask Alex before: any real send; Full Disk Access; reading GigSalad/Yelp dashboards; any change to
-.env or production data; any rate change in src/data/rates.ts. Do not start Module 1. Update HANDOFF.md before stopping.
+.env or production data; any new or changed price. Do not start Module 1. Update HANDOFF.md before stopping.
 ```
 
 ### Three Questions
 
-1. **Hardest implementation decision in this session?** Where the poller cursor should move after a failure. Moving it
-   always loses a lead; never moving it lets one bad email freeze polling. Settled on: hold for 3 attempts, then give up
-   loudly, plus resuming the half-done DB row so a retry can actually succeed.
-2. **What did you consider changing but left alone, and why?** Activating CULTURAL_CORE for every tradition (R006) and
-   loading DRAFT_METHOD/VERIFICATION. Both are one-line loads but change drafting, which can't be checked without live
-   runs on the Max provider (not built yet).
-3. **Least confident about going into review?** The wake and lease wiring is unit-tested only; nothing has run it on the
-   real Mac through a real sleep (S6). And the 3-attempt counter lives in memory, so a crash loop retries forever.
+1. **Hardest implementation decision in this session?** Which kill-list words become code bans. The voice spec says
+   cut "just" and "perfect" on sight, but two of Alex's own converted replies use them ("Just say the word", "perfect
+   for that"). His real results won: code bans only words he never uses; context words go to verify as judgment.
+2. **What did you consider changing but left alone, and why?** Loading DRAFT_METHOD.md and VERIFICATION.md whole.
+   Their rules are mostly already in the generate/verify prompts, the April `1bc9cad` commit unloaded them on purpose,
+   and their chat banners ("load the next file") would confuse the model. Gaps became named TO PORT rows instead.
+3. **Least confident about going into review?** Behaviour no unit test can show: the new loaded docs (voice spec,
+   event arcs, merged files) make the generate context much longer, and the stricter post-check (kill list, battery,
+   one `!`) may push more drafts into rewrite-then-hold. Neither has been run on a real lead; that needs the Max
+   provider (Module 1). Also from part 1: wake and lease are unit-tested only (S6), and the 3-attempt counter is in
+   memory, so a crash loop retries forever.
 
 ## 2026-10-03 — Phase 0 work session (supersedes the 10-02 "Prompt for Next Session")
 
