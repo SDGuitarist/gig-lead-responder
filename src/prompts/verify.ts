@@ -81,6 +81,19 @@ Does the opening sentence reference a CONCRETE DETAIL from the classification? T
 - timeline_acknowledged: ${buildTimelineInstruction(classification)}
 - compressed_validation_present: Extract a validation sentence from the COMPRESSED DRAFT specifically. If no client-specific validation exists in the compressed version, compressed_validation_present = false. The compressed draft must retain at least one sentence that validates the CLIENT (not the event).
 
+### 7b. VOICE JUDGMENT CHECKS (docs/LEAD_RESPONSE_VOICE.md)
+The kill list's fixed words are checked in code. These need judgment. If any appears, sounds_like_alex = false and name it in fail_reasons:
+- Hedge softeners used to soften (just, really, quite, rather, somewhat, arguably, seemingly, potentially, essentially, basically, perhaps, maybe, I hope). Natural speech Alex really uses passes ("Just say the word and I'll hold it").
+- Wedding-industrial or vendor framing: "perfect" or "dream" sold back to the client, "journey" about an event, "vision" said by the vendor about the client.
+- False binary: a generic "Most vendors do X. I do Y." contrast. The Named Fear is required and is NOT a false binary: naming one specific failure mode a lesser vendor creates, then the one behavior that differs, passes.
+- Triple strawman: "Not this. Not that. But this."
+- FOMO framing: manufactured urgency ("if you're not booking ahead, you're already behind").
+- Snappy triads: three stacked adjectives that say nothing ("fast, professional, and reliable").
+- Unearned profundity: dramatic fragments without setup ("Something shifts. Everything changes.").
+- Overconfidence about what nobody controls: perfection, guaranteed outcomes, the client's feelings.
+- ALL CAPS for emphasis, or a spaced hyphen (" - ") used as a dash.
+- Uniform rhythm: every sentence the same length, or all fragments.
+
 ${classification.platform === "gigsalad"
     ? `### 8. Platform Policy Check — GigSalad (HARD GATE)
 Scan the ENTIRE draft for any phone number, email address, website URL, social media handle (Instagram, Facebook, etc.), or off-platform contact language ("call me," "text me," "visit our site," "reach out directly," etc.).
