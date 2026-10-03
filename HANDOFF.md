@@ -1,8 +1,62 @@
 # HANDOFF -- Gig Lead Responder
 
-**Date:** 2026-07-18
-**Branch:** `main`
-**Phase:** Real-lead intake completed locally; partial analysis complete and the remaining backlog is blocked by exhausted Anthropic API credits.
+**Date:** 2026-10-02
+**Branch:** `docs/booking-hub-brainstorm` (docs only, unpushed, not merged)
+**Phase:** Booking hub: brainstorm → refine → plan → deepen DONE. **Next: Codex plan review, round 1.** No work phase has started.
+
+## 2026-10-02 — Booking hub (supersedes "Current State" below for what to do next)
+
+**Goal (Alex):** grow this app into one system for leads, gigs, reminders, contracts, invoices,
+payments and COIs, run on his MacBook and drafted with Claude Max.
+
+**Done this session (all docs, no `src/` change):**
+- Brainstorm: `docs/brainstorms/2026-10-02-booking-hub-brainstorm.md`, refined once.
+- Research: `docs/research/2026-10-02-booking-hub/`. It holds 6 research reports, 6 deepen
+  reviews, and the Trio/Ensemble side-by-side.
+- Roadmap: `docs/plans/2026-10-02-booking-hub-roadmap.md`, with the decisions, module order and
+  success measures.
+- Plan (Phase 0 + Module 1, lead replies, deepened):
+  `docs/plans/2026-10-02-feat-hub-phase0-lead-replies-plan.md`. `plan:check` reports
+  `manual_only`, the expected result.
+- The claude.ai Project "Gig Lead Response System 4.0" was extracted and compared against the
+  repo. The extraction sits on `~/Desktop` and must move to `~/Data/` before the port (step 0.5).
+
+**Found today, live in production code (fix in Phase 0, not yet fixed):**
+- The auto-send path drops `platform` (`src/automation/orchestrator.ts:~130`).
+- The DKIM check accepts any domain (`src/automation/source-validator.ts:79-84`).
+- The dashboard binds to every network and turns auth off outside production (`src/server.ts:43`,
+  `src/auth.ts`).
+- The poller looks back only 5 minutes after a restart (`src/automation/poller.ts:75`).
+- **`npm test -- --test-name-pattern=X` runs all tests and exits 0 even when X matches
+  nothing**, so name-filtered test runs prove nothing until `test:match` (step 0.1) exists.
+
+### Prompt for Next Session
+
+```
+Read HANDOFF.md (2026-10-02 section). Paste the "Codex Plan-Review Handoff" block from
+docs/plans/2026-10-02-feat-hub-phase0-lead-replies-plan.md into Codex (round 1). When Codex returns,
+apply its findings to that plan under the fix contract, then stop. Do not start the work phase.
+Relevant files: docs/plans/2026-10-02-feat-hub-phase0-lead-replies-plan.md,
+docs/plans/2026-10-02-booking-hub-roadmap.md, docs/research/2026-10-02-booking-hub/README.md.
+```
+
+### Three Questions
+
+1. **Hardest decision in this session?** What may auto-send. The answer: a slot-allowlist code
+   gate plus a 20-lead review-only ramp, instead of an LLM confidence score.
+2. **What did you reject, and why?** Twilio (blocked without 10DLC registration), bots on The Bash
+   and Yelp (their terms), Railway as a second poller (double sends), one plan for all modules
+   (Alex chose to split), and `--test-name-pattern` as a verification command (proven to match
+   nothing and still pass).
+3. **Least confident about going into the next phase?** The MacBook as the host: sleep, the lid,
+   and OS restarts that wait at the FileVault login screen. Spike S6 and the heartbeat monitor
+   detect this; neither prevents it.
+
+---
+
+*Earlier state, kept for history:*
+
+**Previous date:** 2026-07-18. **Previous phase:** Real-lead intake completed locally; partial analysis complete and the remaining backlog is blocked by exhausted Anthropic API credits.
 
 ## First 60 Seconds: Peer-Session Check
 
