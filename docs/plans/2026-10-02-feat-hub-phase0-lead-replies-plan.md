@@ -256,6 +256,7 @@ portal, or any Twilio `messages.create` appears anywhere other than the single
 
 **First, move the source.** `~/Desktop/Gig_Lead_Response_System_4.0_Extraction.md` and
 `~/Desktop/Rate_Card_Solo_Duo.md` move into `~/Data/`. They never go in the repo.
+**Done 2026-10-03:** both now live in `~/Data/gig-lead-responder/` (checksums matched; ~/Data commit `9f4ef1e`, pushed to the encrypted remote).
 
 **Denominator.** `docs/research/2026-10-02-booking-hub/port-inventory.md` lists **406 rule
 sections** (R001–R406), generated mechanically from the extraction's headings. Every row ends in
