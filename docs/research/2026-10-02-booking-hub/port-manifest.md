@@ -6,10 +6,7 @@
 
 **Open Alex question (q-d):** the chat Project also answered interactive questions ("what should I quote for...", "what do I know about this venue", "does this sound like me"). The app only answers leads. **Answered 2026-10-03: Alex approved NOT PORTED for those rows (R007, R009, R010, R011, R019).**
 
-**Open Alex questions (asked 2026-10-03):**
-- **q-e:** the remaining Cross-References / navigation rows (R218, R330, R372 and the others marked q-e). Proposed NOT PORTED, same reason as R019.
-- **q-f:** `docs/QUICK_REFERENCE.md` "Pricing Shorthand" (loaded into every draft) says solo "Standard $400-500", but `src/data/rates.ts` never quotes solo below $500 and the Project sets a $500 minimum. The Project's own QUICK_REFERENCE dropped this table. Proposed: remove it.
-- **q-g:** contact block on non-GigSalad leads (R252): name only (today) or name + Pacific Flow Entertainment + phone (Project).
+**Answered 2026-10-03 (Alex):** q-e: cross-reference/navigation rows NOT PORTED. q-f: the stale "Pricing Shorthand" table removed from `docs/QUICK_REFERENCE.md` (test `stale price shorthand`). q-g: contact block stays name only (R252).
 
 **Public repo:** headings, statuses and repo locations only. No rates, no client names, no source text (the source lives in `~/Data/gig-lead-responder/`).
 
@@ -182,7 +179,7 @@
 | R165 | F8 | Musical Bridges | ALREADY PRESENT | `docs/CULTURAL_CORE.md`, loaded by `selectContext` (`src/pipeline/context.ts:61`); today only for `spanish_latin` (see R006); matched the Project before the port | `cultural_tradition === "spanish_latin"` (R006 widens this) |  |  |
 | R166 | F8 | Common Bridges | ALREADY PRESENT | `docs/CULTURAL_CORE.md`, loaded by `selectContext` (`src/pipeline/context.ts:61`); today only for `spanish_latin` (see R006); matched the Project before the port | `cultural_tradition === "spanish_latin"` (R006 widens this) |  |  |
 | R167 | F8 | Cultural Response Flow | PORTED | `docs/CULTURAL_CORE.md`, loaded by `selectContext` (`src/pipeline/context.ts:61`); today only for `spanish_latin` (see R006); merged 2026-10-03: kept the repo's 5-step table (matches `src/prompts/generate.ts:81`), added the Project's "The vehicle is essential." | `cultural_tradition === "spanish_latin"` (R006 widens this) | `The vehicle is essential.` | `port manifest F8` |
-| R168 | F8 | Cross-References | BLOCKED | proposed NOT PORTED: navigation, same class as R019 (approved); needs Alex's yes (q-e) |  |  |  |
+| R168 | F8 | Cross-References | NOT PORTED | navigation, same class as R019 (approved); approved by Alex 2026-10-03 (q-e) |  |  |  |
 | R169 | F9 | Pacific Flow Entertainment: Spanish/Latin Cultural Patterns | PORTED | `docs/CULTURAL_SPANISH_LATIN.md`, loaded by `selectContext` (`src/pipeline/context.ts:57`); replaced with the Project's version 2026-10-03 (was 0.98) | `cultural_tradition === "spanish_latin"` | `Bolero Signals (Any 2+)` | `port manifest F9` |
 | R170 | F9 | Terminology by Tradition | ALREADY PRESENT | `docs/CULTURAL_SPANISH_LATIN.md`, loaded by `selectContext` (`src/pipeline/context.ts:57`); matched the Project before the port | `cultural_tradition === "spanish_latin"` | | |
 | R171 | F9 | Flamenco | ALREADY PRESENT | `docs/CULTURAL_SPANISH_LATIN.md`, loaded by `selectContext` (`src/pipeline/context.ts:57`); matched the Project before the port | `cultural_tradition === "spanish_latin"` | | |
@@ -220,7 +217,7 @@
 | R203 | F9 | For Participatory Events | ALREADY PRESENT | `docs/CULTURAL_SPANISH_LATIN.md`, loaded by `selectContext` (`src/pipeline/context.ts:57`); matched the Project before the port | `cultural_tradition === "spanish_latin"` | | |
 | R204 | F9 | For Bolero/Latin (Anniversary) | PORTED | `docs/CULTURAL_SPANISH_LATIN.md`, loaded by `selectContext` (`src/pipeline/context.ts:57`); replaced with the Project's version 2026-10-03 (was 0.45) | `cultural_tradition === "spanish_latin"` | `Bolero Signals (Any 2+)` | `port manifest F9` |
 | R205 | F9 | For Latin Heritage (Any Milestone) | PORTED | `docs/CULTURAL_SPANISH_LATIN.md`, loaded by `selectContext` (`src/pipeline/context.ts:57`); replaced with the Project's version 2026-10-03 (was 0.36) | `cultural_tradition === "spanish_latin"` | `Bolero Signals (Any 2+)` | `port manifest F9` |
-| R206 | F9 | Cross-References | BLOCKED | proposed NOT PORTED: navigation, same class as R019 (approved); needs Alex's yes (q-e) | | | |
+| R206 | F9 | Cross-References | NOT PORTED | navigation, same class as R019 (approved); approved by Alex 2026-10-03 (q-e) | | | |
 | R207 | F10 | Pacific Flow Entertainment: Core Operating Principles | ALREADY PRESENT | `docs/PRINCIPLES.md`, loaded for every lead by `selectContext` (`src/pipeline/context.ts:50`); text matches the Project (similarity 1.00) | always |  |  |
 | R208 | F10 | Prime Directive | ALREADY PRESENT | `docs/PRINCIPLES.md`, loaded for every lead by `selectContext` (`src/pipeline/context.ts:50`); text matches the Project (similarity 1.00) | always |  |  |
 | R209 | F10 | The Seven Principles | ALREADY PRESENT | `docs/PRINCIPLES.md`, loaded for every lead by `selectContext` (`src/pipeline/context.ts:50`); text matches the Project (similarity 1.00) | always |  |  |
@@ -232,7 +229,7 @@
 | R215 | F10 | 6. Name the Fear | ALREADY PRESENT | `docs/PRINCIPLES.md`, loaded for every lead by `selectContext` (`src/pipeline/context.ts:50`); text matches the Project (similarity 1.00) | always |  |  |
 | R216 | F10 | 7. Preempt Predictable Questions | PORTED | `docs/PRINCIPLES.md`, loaded for every lead by `selectContext` (`src/pipeline/context.ts:50`); merged from the Project 2026-10-03 (the repo's pipeline-specific intro kept on purpose) | always | `First-Time Event Host` | `port manifest F10` |
 | R217 | F10 | The Quality Standard | PORTED | `docs/PRINCIPLES.md`, loaded for every lead by `selectContext` (`src/pipeline/context.ts:50`); merged from the Project 2026-10-03 (the repo's pipeline-specific intro kept on purpose) | always | `Read the absences?` | `port manifest F10` |
-| R218 | F10 | Cross-References | BLOCKED | proposed NOT PORTED: navigation, same class as R019 (approved); needs Alex's yes (q-e) |  |  |  |
+| R218 | F10 | Cross-References | NOT PORTED | navigation, same class as R019 (approved); approved by Alex 2026-10-03 (q-e) |  |  |  |
 | R219 | F11 | Pacific Flow Entertainment: Lookup Tables | ALREADY PRESENT | `docs/QUICK_REFERENCE.md`, loaded for every lead (`src/pipeline/context.ts:69`) | always |  |  |
 | R220 | F11 | Engagement Type (Check First) | TO PORT | Engagement type (private event vs B2B residency) is in no prompt and no code. Destination with F13 PRICING: a classify output field + `lookupPrice()` | always |  |  |
 | R221 | F11 | Residency Tiers (B2B: Solo Alex Only) | TO PORT | Residency tiers: plan 0.5 names `RESIDENCY_RATES` in `src/data/rates.ts`, read by `lookupPrice()`. Rates come from F6 (Solo/Duo card); **rate changes need Alex** | solo + residency |  |  |
@@ -266,7 +263,7 @@
 | R249 | F11 | PRE-WORK (Required Before Drafting) | TO PORT | Same as R244 (request type missing from the reasoning block) | always |  |  |
 | R250 | F11 | VERIFICATION GATE (Required) | ALREADY PRESENT | `src/prompts/verify.ts` (JSON gate with the same fields as the template) | always |  |  |
 | R251 | F11 | Preempt Questions by Client Type | ALREADY PRESENT | `docs/QUICK_REFERENCE.md`, loaded for every lead (`src/pipeline/context.ts:69`); the First-Time Host row is in `docs/PRINCIPLES.md` (ported R216) | always |  |  |
-| R252 | F11 | Contact Block | BLOCKED | Project: name + business name + phone for non-GigSalad leads. App: name only (`src/pipeline/generate.ts:26`), and `docs/QUICK_REFERENCE.md` says no phone in the draft. Needs Alex (q-g) |  |  |  |
+| R252 | F11 | Contact Block | NOT PORTED | Alex 2026-10-03 (q-g): drafts keep name-only sign-off (`src/pipeline/generate.ts:26`); the Project's business-name + phone block is not used | | | |
 | R253 | F12 | Pacific Flow Entertainment: Quality Gate + Output (Steps 10-11) | UNREVIEWED | | | | |
 | R254 | F12 | ⚠️ MANDATORY SEQUENCE: YOU ARE HERE: FILE 3 OF 3 | UNREVIEWED | | | | |
 | R255 | F12 | Step 10: Quality Verification | UNREVIEWED | | | | |
@@ -344,7 +341,7 @@
 | R327 | F14 | Sourced-Specific Wedge Patterns | PORTED | `docs/RESPONSE_CRAFT.md`, loaded for every lead by `selectContext` (`src/pipeline/context.ts:35`); merged from the Project 2026-10-03 (was 0.91) | always | `Ambiguity as Expertise` | `port manifest F14` |
 | R328 | F14 | The Wedge Test | ALREADY PRESENT | `docs/RESPONSE_CRAFT.md`, loaded for every lead by `selectContext` (`src/pipeline/context.ts:35`); matched the Project before the port | always |  |  |
 | R329 | F14 | ⚠️ Steps 6-8 complete. PROCEED TO DRAFT_METHOD.md (Step 9). | TO PORT | Depends on F15: the app does not load `docs/DRAFT_METHOD.md`. Banner deliberately left out of the doc until that is decided | always |  |  |
-| R330 | F14 | Cross-References | BLOCKED | proposed NOT PORTED: navigation, same class as R019 (approved); needs Alex's yes (q-e) |  |  |  |
+| R330 | F14 | Cross-References | NOT PORTED | navigation, same class as R019 (approved); approved by Alex 2026-10-03 (q-e) |  |  |  |
 | R331 | F15 | Pacific Flow Entertainment: Writing Execution (Step 9) | UNREVIEWED | | | | |
 | R332 | F15 | ⚠️ MANDATORY SEQUENCE: YOU ARE HERE: FILE 2 OF 3 | UNREVIEWED | | | | |
 | R333 | F15 | Step 9: Draft Response | UNREVIEWED | | | | |
@@ -386,7 +383,7 @@
 | R369 | F16 | Urgency Signals | TO PORT | `src/prompts/classify.ts` derives urgency from the date only; the signal phrases ("original musician cancelled", "last minute", "need to book today") are not listed. Destination: `buildClassifyPrompt` Step 5 | always |  |  |
 | R370 | F16 | Timeline Bands | ALREADY PRESENT | `src/prompts/classify.ts` Step 5 timeline bands | always |  |  |
 | R371 | F16 | Classification Checkpoint (NOT a Deliverable) | ALREADY PRESENT | `src/prompts/classify.ts`: the JSON output is the checkpoint (delivery mode is R349) | always |  |  |
-| R372 | F16 | Cross-References | BLOCKED | proposed NOT PORTED: a navigation table, same class as R019 (approved); needs Alex's yes (q-e) |  |  |  |
+| R372 | F16 | Cross-References | NOT PORTED | a navigation table, same class as R019 (approved); approved by Alex 2026-10-03 (q-e) |  |  |  |
 | R373 | F19 | Strategic Context | PORTED | `docs/Bolero_Trio_Negotiation_Playbook.md`, loaded by `selectContext` (`src/pipeline/context.ts`); section text matches the Project (similarity 1.00) | `format_recommended === "bolero_trio"` | `## BOLERO TRIO NEGOTIATION PLAYBOOK` | `port manifest R008` |
 | R374 | F19 | The Buyer Psychology | PORTED | `docs/Bolero_Trio_Negotiation_Playbook.md`, loaded by `selectContext` (`src/pipeline/context.ts`); section text matches the Project (similarity 1.00) | `format_recommended === "bolero_trio"` | `## BOLERO TRIO NEGOTIATION PLAYBOOK` | `port manifest R008` |
 | R375 | F19 | The Anchor Conversation | PORTED | `docs/Bolero_Trio_Negotiation_Playbook.md`, loaded by `selectContext` (`src/pipeline/context.ts`); section text matches the Project (similarity 1.00) | `format_recommended === "bolero_trio"` | `## BOLERO TRIO NEGOTIATION PLAYBOOK` | `port manifest R008` |
