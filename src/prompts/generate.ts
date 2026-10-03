@@ -423,6 +423,13 @@ Distance: ${travel.miles} mi from San Diego (${travel.band} band, ZIP ${travel.z
 This ensemble size and distance requires a custom travel quote. Do NOT calculate a travel fee. In the draft, state the base performance rate and note that travel pricing will be provided separately after confirming logistics. Example: "Travel to [city] for this ensemble is quoted separately — I'll have that number for you once we confirm the date."`;
   }
 
+  if (travel.included_in_price) {
+    return `
+## TRAVEL — INCLUDED
+Distance: ${travel.miles} mi from San Diego (${travel.band} band, ZIP ${travel.zip})
+Travel is built into this price ($${pricing.quote_price}). Do NOT add or mention a separate travel fee.`;
+  }
+
   if (travel.band === "Local") return "";
 
   const total = pricing.quote_price + travel.fee;

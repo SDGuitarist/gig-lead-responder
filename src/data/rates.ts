@@ -172,6 +172,24 @@ export const MARIACHI_4PIECE_RATES: FormatRates = {
   },
 };
 
+// --- Mariachi Full Ensemble, outside San Diego County (travel built in) ---
+// Source: Project Rate_Card_Trio_Ensemble — B2C Outside San Diego County.
+// Used at 35+ miles (Alex 2026-10-03, port manifest R051). 3-hour minimum, no T1 row.
+export const MARIACHI_FULL_OUTSIDE_SD_RATES: FormatRates = {
+  "3": {
+    T2P: { anchor: 2900, floor: 2700 },
+    T2D: { anchor: 3100, floor: 2850 },
+    T3P: { anchor: 3200, floor: 3000 },
+    T3D: { anchor: 3500, floor: 3200 },
+  },
+  "4": {
+    T2P: { anchor: 3800, floor: 3500 },
+    T2D: { anchor: 4050, floor: 3750 },
+    T3P: { anchor: 4150, floor: 3900 },
+    T3D: { anchor: 4500, floor: 4200 },
+  },
+};
+
 // --- Mariachi Full Ensemble (Weekend, 8-10 Players) ---
 // Source: Rate_Card_Trio_Ensemble.md — B2C San Diego County
 export const MARIACHI_FULL_RATES: FormatRates = {

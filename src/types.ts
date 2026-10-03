@@ -445,4 +445,6 @@ export interface TravelComponent {
   zip: string;
   musician_stipend: number;
   custom_quote_required: boolean;
+  /** True when the rate table already includes travel (mariachi outside SD, R051). */
+  included_in_price?: boolean;
 }

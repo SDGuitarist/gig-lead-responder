@@ -3,7 +3,8 @@
 // differences only. Usage: npx tsx scripts/port-rate-compare.ts
 import { readFileSync } from "node:fs";
 import { homedir } from "node:os";
-import { RATE_TABLES } from "../src/data/rates.js";
+import { MARIACHI_FULL_OUTSIDE_SD_RATES, RATE_TABLES } from "../src/data/rates.js";
+const TABLES: Record<string, unknown> = { ...RATE_TABLES, mariachi_full_outside_sd: MARIACHI_FULL_OUTSIDE_SD_RATES };
 const DATA = `${homedir()}/Data/gig-lead-responder`;
 const extraction = readFileSync(`${DATA}/Gig_Lead_Response_System_4.0_Extraction.md`, "utf8").split("\n");
 function projectFile(n: number): string {
@@ -17,7 +18,7 @@ const cards: Array<[string, string, (sec: string, sub: string) => string | null]
     : sec.startsWith("Sourced Cultural Music") ? (sub === "solo" ? "sourced_cultural_solo" : sub === "duo" ? "sourced_cultural_duo" : null) : null],
   ["Trio/Ensemble", projectFile(3), (sec, sub) =>
     sub.startsWith("B2C Pricing: Flamenco Trio Full") ? "flamenco_trio_full" : sub.startsWith("B2C Pricing: Flamenco Trio Hybrid") ? "flamenco_trio"
-    : sec.startsWith("Mariachi: Full") ? (sub.startsWith("B2C Pricing: San Diego County") ? "mariachi_full" : null)
+    : sec.startsWith("Mariachi: Full") ? (sub.startsWith("B2C Pricing: San Diego County") ? "mariachi_full" : sub.startsWith("B2C Pricing: Outside San Diego County") ? "mariachi_full_outside_sd" : null)
     : sec.startsWith("Mariachi: 4-Piece") ? "mariachi_4piece"
     : sub.startsWith("Trio (3") ? "sourced_cultural_trio" : sub.startsWith("Quartet") ? "sourced_cultural_quartet" : sub.startsWith("5-Piece") ? "sourced_cultural_5piece" : null],
   ["Bolero", projectFile(4), (sec) => sec.startsWith("B2C Pricing: Bolero Trio") ? "bolero_trio" : null],
@@ -36,7 +37,7 @@ for (const [card, text, map] of cards) {
     const fmt = map(sec, sub); if (!fmt || !dur) continue;
     for (const t of line.matchAll(/(T1|T2P|T2D|T3P|T3D)(?::\*\*)?\s*\$([\d,]+)(?:\s*\/\s*\$([\d,]+))?/g)) {
       const tier = t[1], a = num(t[2]), f = t[3] ? num(t[3]) : a; parsed++;
-      const code = (RATE_TABLES as any)[fmt]?.[dur]?.[tier];
+      const code = (TABLES as any)[fmt]?.[dur]?.[tier];
       const tag = `${card} | ${fmt} | ${dur}h${variant ? " (" + variant + ")" : ""} | ${tier}`;
       if (!code) diffs.push(`${tag} | card $${a}/$${f} | code: (none)`);
       else if (code.anchor === a && code.floor === f) same++;

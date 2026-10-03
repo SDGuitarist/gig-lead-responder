@@ -1,6 +1,6 @@
-import { RATE_TABLES, type TierRates } from "../data/rates.js";
+import { MARIACHI_FULL_OUTSIDE_SD_RATES, RATE_TABLES, type TierRates } from "../data/rates.js";
 import { PricingError } from "../errors.js";
-import type { Classification, Format, PricingResult, BudgetGapResult, ScopedAlternative, TravelFeeData, TravelComponent } from "../types.js";
+import type { Classification, Format, PricingResult, BudgetGapResult, ScopedAlternative, TravelBand, TravelFeeData, TravelComponent } from "../types.js";
 
 const BUDGET_GAP_SMALL_THRESHOLD = 75;  // exclusive: gap < 75 is "small"
 const BUDGET_GAP_LARGE_THRESHOLD = 200; // inclusive: gap <= 200 is "large"
@@ -35,6 +35,10 @@ const CUSTOM_QUOTE_FORMATS: ReadonlySet<Format> = new Set([
   "sourced_cultural_5piece",
 ]);
 
+// Distance bands that count as outside San Diego County for full mariachi
+// (35+ miles; Alex 2026-10-03). Overnight stays a custom quote.
+const OUTSIDE_SD_BANDS: ReadonlySet<TravelBand> = new Set(["Near", "Regional", "Far", "Very Far"]);
+
 // Duo formats get the musician travel stipend (fair split per TRAVEL_FEES.md).
 const DUO_FORMATS: ReadonlySet<Format> = new Set([
   "duo",
@@ -58,8 +62,11 @@ export function lookupPrice(
     throw new PricingError('Cannot look up pricing for unresolved format');
   }
 
-  // 1. Find rate table for this format
-  const rateTable = RATE_TABLES[format_recommended];
+  // 1. Find rate table for this format. Full mariachi 35+ miles out uses the
+  // outside-San-Diego table, which already includes travel (port manifest R051).
+  const outsideSd =
+    format_recommended === "mariachi_full" && !!travelData && OUTSIDE_SD_BANDS.has(travelData.band);
+  const rateTable = outsideSd ? MARIACHI_FULL_OUTSIDE_SD_RATES : RATE_TABLES[format_recommended];
   if (!rateTable) {
     const available = Object.keys(RATE_TABLES).join(", ");
     throw new PricingError(`No rate table for format "${format_recommended}". Available: ${available}`);
@@ -122,11 +129,17 @@ export function lookupPrice(
   }
 
   // Build travel component when ZIP lookup returned data
-  const travel = travelData ? buildTravelComponent(travelData, format_recommended) : null;
+  const travel = !travelData
+    ? null
+    : outsideSd
+      ? { fee: 0, band: travelData.band, miles: travelData.miles, zip: travelData.zip, musician_stipend: 0,
+          custom_quote_required: false, included_in_price: true }
+      : buildTravelComponent(travelData, format_recommended);
 
   return {
     format: format_recommended,
-    duration_hours,
+    // The outside-SD table has a 3-hour minimum, so report the hours actually priced.
+    duration_hours: outsideSd ? snapped : duration_hours,
     tier_key: effectiveTierKey,
     anchor,
     floor,
