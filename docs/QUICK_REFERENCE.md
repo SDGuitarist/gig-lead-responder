@@ -176,17 +176,4 @@ number in the draft. (Pipeline adds contact info separately when appropriate.)
 
 ---
 
-## Pricing Shorthand
-
-→ For full rates by format/duration/tier: See PRICING.md
-
-| Format | Standard Range | Premium Range | Wedding |
-|--------|---------------|---------------|---------|
-| Solo | $400-500 | $550-650 | $500-650 |
-| Duo | $600-700 | $995 | $1,200 |
-| Flamenco Duo | $800-900 | $1,100-1,200 | — |
-| Flamenco Trio | $1,400-1,600 | $1,800 | $2,000-2,200 |
-
----
-
 *Pure reference. For context and logic, see PRINCIPLES.md, PROTOCOL.md, RESPONSE_CRAFT.md.*
