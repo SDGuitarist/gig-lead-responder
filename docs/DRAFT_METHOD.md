@@ -235,7 +235,7 @@ What will they need to know that they didn't ask?
 
 | Context Clue | Preempt |
 |--------------|---------|
-| Outdoor / patio | Sound system, weather adaptability, battery-powered capability |
+| Outdoor / patio | Sound system, weather adaptability (never mention battery-powered sound) |
 | Indoor/outdoor uncertain | Self-contained for either, adapts on the spot |
 | Corporate | COI availability, professional setup |
 | Wedding | Timeline flexibility, ceremony experience |

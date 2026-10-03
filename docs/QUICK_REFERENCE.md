@@ -161,10 +161,10 @@ Use as a quick mental scan; the pipeline enforces the full gate automatically.
 
 | Client Type | Front-Load |
 |-------------|------------|
-| Corporate / Event Director | Self-contained, battery-powered, COI available |
+| Corporate / Event Director | Self-contained, COI available |
 | Venue Coordinator | Minimal footprint, one outlet, 30-min setup |
 | Wedding Planner | Timeline flexibility built in |
-| Luxury Private | Volume calibration on-site, battery backup |
+| Luxury Private | Volume calibration on-site, set for outdoor |
 | HOA / Community | Acoustic-friendly volume, know the restrictions |
 
 ---

@@ -70,7 +70,7 @@ Every lead tells a story, including through its gaps. A blank field is not missi
 **Example (absence as signal):**
 - Client writes: "not sure" on indoor/outdoor
 - Signal: They have no experience booking musicians, or don't know what musicians can handle
-- Response: "I'm fully self-contained and battery-powered for outdoor, and if you end up moving inside, I adapt on the spot. Either way, you don't have to worry about it."
+- Response: "I'm fully self-contained for indoors or outdoors, and if you end up moving inside, I adapt on the spot. Either way, you don't have to worry about it."
 
 The client who said "not sure" wasn't being vague. They were telling you they need reassurance you didn't require them to ask for.
 
@@ -145,10 +145,10 @@ Every question they have to ask is friction. Anticipate what they'll need to kno
 
 | Client Type | They Will Ask | Front-Load |
 |-------------|---------------|------------|
-| Corporate / Event Director | Equipment, outdoor capability, COI, setup time | "Self-contained, battery-powered for outdoor, COI available" |
+| Corporate / Event Director | Equipment, outdoor capability, COI, setup time | "Self-contained for indoor or outdoor, COI available" |
 | Venue Coordinator | Load-in, power needs, space footprint | "Minimal footprint, one standard outlet, 30-min setup" |
 | Wedding Planner | Timeline flexibility, ceremony coverage | "I build in flexibility for timeline shifts" |
-| Luxury Private Client | Volume control, weather contingency | "I calibrate volume on-site, battery backup for outdoor" |
+| Luxury Private Client | Volume control, weather contingency | "I calibrate volume on-site, and I'm set for outdoor" |
 | HOA / Community | Noise ordinances, neighbor concerns | "Acoustic-friendly volume, I know the restrictions" |
 | First-Time Event Host | Anything they forgot to ask | Read the absent fields, address them before they realize they should have asked |
 

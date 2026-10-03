@@ -89,7 +89,7 @@ Saturday evening in July, 150 people arriving in waves, and the guitar already w
 
 You decided 150 people deserved live music. That changes the whole evening.
 
-For a cocktail setting this size outdoors, I play Spanish classical, Latin, and bossa nova on nylon string, warm enough to carry across the space, quiet enough that every conversation feels easy. I'm fully self-contained with battery-powered sound, no venue coordination, no setup on your end.
+For a cocktail setting this size outdoors, I play Spanish classical, Latin, and bossa nova on nylon string, warm enough to carry across the space, quiet enough that every conversation feels easy. I'm fully self-contained, no venue coordination, no setup on your end.
 
 Solo Spanish Guitar, [QUOTED_PRICE], 1.5 hours. I arrive early and have the sound dialed before your first guest walks in.
 

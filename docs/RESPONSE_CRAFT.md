@@ -100,7 +100,7 @@ Every flagged concern requires **integrated proof**, concern, experience, and so
 | Small space | "A [format] is perfect for that space, full sound without crowding your guests." |
 | COI / insurance | "I carry liability insurance ($1M/$2M) and can provide COI within a few days of booking." |
 | Noise restrictions | "I calibrate volume during setup to stay within limits while still filling the space." |
-| Indoor/outdoor uncertain | "I'm fully self-contained and battery-powered for outdoor, and if you end up moving inside, I adapt on the spot. Either way, I'm covered." |
+| Indoor/outdoor uncertain | "I'm fully self-contained for indoors or outdoors, and if you end up moving inside, I adapt on the spot. Either way, I'm covered." |
 
 ### Sourced Delivery Concern Patterns
 
