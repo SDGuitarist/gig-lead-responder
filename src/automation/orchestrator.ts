@@ -33,7 +33,8 @@ export async function processLead(
   config: AutomationConfig,
   auth: OAuth2Client,
   yelpClient: YelpPortalClient,
-  gigsaladClient: GigSaladPortalClient
+  gigsaladClient: GigSaladPortalClient,
+  deps: { runPipeline: typeof runPipeline } = { runPipeline },
 ): Promise<void> {
   const startTime = Date.now();
 
@@ -127,7 +128,7 @@ export async function processLead(
   console.log("Running pipeline...");
   let output;
   try {
-    output = await runPipeline(lead.rawText);
+    output = await deps.runPipeline(lead.rawText, undefined, platform);
   } catch (err) {
     const error = err instanceof Error ? err.message : String(err);
     console.error(`Pipeline failed: ${error}`);
