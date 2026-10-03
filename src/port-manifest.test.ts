@@ -6,7 +6,7 @@ import { existsSync, readFileSync } from "node:fs";
 // "port inventory fully accounted" (no UNREVIEWED rows) is added only when the
 // last row is reviewed; until then test:match on that name exits 3, by design.
 const DIR = "docs/research/2026-10-02-booking-hub";
-const STATUSES = ["UNREVIEWED", "PORTED", "ALREADY PRESENT", "NOT PORTED", "BLOCKED"];
+const STATUSES = ["UNREVIEWED", "TO PORT", "PORTED", "ALREADY PRESENT", "NOT PORTED", "BLOCKED"];
 
 function tableRows(path: string): string[][] {
   return readFileSync(path, "utf-8")
