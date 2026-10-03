@@ -31,6 +31,21 @@ export const MIGRATIONS: Migration[] = [
         )
       `),
   },
+  {
+    // Plan 0.2: same-host lease, so two processes on the Mac can't both poll or send.
+    version: 2,
+    name: "runtime_lease",
+    up: (db) =>
+      db.exec(`
+        CREATE TABLE runtime_lease (
+          id INTEGER PRIMARY KEY CHECK (id = 1),
+          host TEXT NOT NULL,
+          pid INTEGER NOT NULL,
+          boot INTEGER NOT NULL,
+          expires_at INTEGER NOT NULL
+        )
+      `),
+  },
 ];
 
 /** Throws if the DB was written by newer code; returns its current version. */

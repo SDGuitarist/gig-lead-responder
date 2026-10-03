@@ -13,7 +13,7 @@ process.env.DATABASE_PATH = dbPath;
 test("poller cursor migration v1: creates poller_state with a backup first", async () => {
   const { initDb } = await import("./db/migrate.js");
   const db = initDb();
-  assert.equal(db.pragma("user_version", { simple: true }), 1);
+  assert.ok((db.pragma("user_version", { simple: true }) as number) >= 1);
   const cols = (db.pragma("table_info(poller_state)") as Array<{ name: string }>).map((c) => c.name);
   assert.deepEqual(cols, ["id", "cursor_ts", "last_success_at", "auth"]);
   // A fresh DB still gets its pre-v1 backup.
