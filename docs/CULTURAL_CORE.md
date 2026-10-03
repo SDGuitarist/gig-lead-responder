@@ -164,7 +164,7 @@ After the wedge, before the solution unfolds:
 >
 > [Vehicle] "I've been performing flamenco in San Diego for over 30 years, and I work with artists who understand that when the room is full of Sevillanos, you don't perform at them. You ignite with them."
 >
-> [Solution] "Here's how this unfolds: Dinner elegant and warm..."
+> [Answer] "Here's how this unfolds: Dinner elegant and warm..."
 
 ### The Test
 

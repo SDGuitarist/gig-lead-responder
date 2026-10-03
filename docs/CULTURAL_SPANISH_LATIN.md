@@ -200,7 +200,7 @@ Bolero isn't background music, it's emotionally direct. The lyrics are about lov
 
 ### For Latin Heritage (Any Milestone)
 
-> "Your guests will hear the first bolero and something will unlock. They won't analyze it, they'll just feel like they're home."
+> "Your guests will hear the first bolero and something will open up. They won't analyze it, they'll just feel like they're home."
 
 ---
 

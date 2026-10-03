@@ -8,6 +8,8 @@
 
 **Answered 2026-10-03 (Alex):** q-e: cross-reference/navigation rows NOT PORTED. q-f: the stale "Pricing Shorthand" table removed from `docs/QUICK_REFERENCE.md` (test `stale price shorthand`). q-g: contact block stays name only (R252).
 
+**Deliberate wording changes from the Project (2026-10-03):** loaded docs never show the model wording its own checks would fail. Battery-powered mentions removed (Alex), and banned words swapped in 7 example lines ("investment" → rate/price/decision, "Absolutely", "offering", "unlock", "[Solution]"), mostly in `docs/Bolero_Trio_Negotiation_Playbook.md`. Enforced by the tests `battery never shown to the model` and `example lines in loaded docs pass the post-check`. Similarity scores against the Project will show these as small differences on purpose.
+
 **Public repo:** headings, statuses and repo locations only. No rates, no client names, no source text (the source lives in `~/Data/gig-lead-responder/`).
 
 | # | Source | Section | Status | Where / reason | Condition | Marker | Test |

@@ -14,7 +14,7 @@
 - Bolero trios are objectively scarce in San Diego (2-3 authentic ensembles total)
 - Traditional clients covet authentic bolero programming
 - They know it's rare and hard to find
-- But they still need to justify the investment
+- But they still need to justify the price
 
 **Your Positioning:**
 - Scarcity + cultural significance = pricing leverage
@@ -40,7 +40,7 @@ If a client specifically seeks out bolero trio (not just "any trio"), they're si
 - Assurance they won't find this elsewhere
 - Permission to say yes
 
-**Your job:** Make them feel great about the investment, not guilty about the price.
+**Your job:** Make them feel great about the decision, not guilty about the price.
 
 ---
 
@@ -48,7 +48,7 @@ If a client specifically seeks out bolero trio (not just "any trio"), they're si
 
 **When quoting T2D 2hrs at $2,013:**
 
-> "For authentic bolero trio programming, the investment is $2,013 for two hours. This includes [guitarist name], [requinto player], and [vocalist] — they're one of the only authentic bolero ensembles in San Diego who specialize in traditional Mexican romantic repertoire."
+> "For authentic bolero trio programming, the rate is $2,013 for two hours. This includes [guitarist name], [requinto player], and [vocalist] — they're one of the only authentic bolero ensembles in San Diego who specialize in traditional Mexican romantic repertoire."
 
 **Deliver with confidence, not apology.** The price is the price because the product is rare.
 
@@ -59,7 +59,7 @@ If a client specifically seeks out bolero trio (not just "any trio"), they're si
 
 **Your response to "we need to think about it":**
 
-> "Absolutely. This is a significant investment and you should feel great about the decision. I'll send you the formal quote. Take your time, and let me know if any questions come up."
+> "Of course. This is a significant decision, and you should feel great about it. I'll send you the formal quote. Take your time, and let me know if any questions come up."
 
 **Then stop talking.** Don't oversell. Let them process.
 
@@ -144,7 +144,7 @@ If a client specifically seeks out bolero trio (not just "any trio"), they're si
 
 **Then gracefully exit:**
 
-> "If you'd like, I can recommend [competitor name] who might have different pricing, or we could explore [solo Spanish guitar / Latin duo / flamenco duo] which would give you beautiful romantic atmosphere at a different investment level."
+> "If you'd like, I can recommend [competitor name] who might have different pricing, or we could explore [solo Spanish guitar / Latin duo / flamenco duo] which would give you beautiful romantic atmosphere at a different price point."
 
 **What happens:**
 - They either find the money and book → Great
@@ -171,7 +171,7 @@ If a client specifically seeks out bolero trio (not just "any trio"), they're si
 
 ### The Close (After Value Framing)
 
-> "For [anniversary/parent's celebration/cultural milestone], this is the investment that turns a nice event into an unforgettable one. That's what you're paying for — a memory that lasts."
+> "For [anniversary/parent's celebration/cultural milestone], this is what turns a nice event into an unforgettable one. That's what you're paying for — a memory that lasts."
 
 **Then stop talking.** Let them make the decision.
 
@@ -217,7 +217,7 @@ If a client specifically seeks out bolero trio (not just "any trio"), they're si
 
 **The graceful exit:**
 
-> "I really appreciate you considering us. At that price point, you're likely looking at a different type of ensemble than what we're offering. I want you to have authentic bolero programming for [occasion], and I'd rather you work with someone who can deliver that at your budget than for me to compromise on quality."
+> "I really appreciate you considering us. At that price point, you're likely looking at a different type of ensemble than what we bring. I want you to have authentic bolero programming for [occasion], and I'd rather you work with someone who can deliver that at your budget than for me to compromise on quality."
 
 **Why this works:**
 - You maintain positioning (not desperate)
