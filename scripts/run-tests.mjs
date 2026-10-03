@@ -36,6 +36,14 @@ nodeArgs.push(...TEST_FILES);
 const env = { ...process.env };
 delete env.NODE_TEST_CONTEXT;
 
+// No test may bill. The shell and .env both hold ANTHROPIC_API_KEY, and dotenv
+// never overwrites a variable that is already set, so set both to dead values
+// here. Any real call fails with a connection error before leaving the Mac.
+env.ANTHROPIC_API_KEY = "test-runner-no-key";
+env.ANTHROPIC_BASE_URL = "http://127.0.0.1:9";
+delete env.ANTHROPIC_AUTH_TOKEN;
+delete env.CLAUDE_CODE_OAUTH_TOKEN;
+
 const child = spawn(process.execPath, nodeArgs, { env, stdio: ["ignore", "pipe", "inherit"] });
 let out = "";
 child.stdout.on("data", (chunk) => {
