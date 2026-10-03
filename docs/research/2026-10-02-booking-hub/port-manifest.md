@@ -37,23 +37,23 @@
 | R023 | F1 | Re-derive for every lead (never copy) | UNREVIEWED | | | | |
 | R024 | F1 | Fixed by standing rules (always keep) | UNREVIEWED | | | | |
 | R025 | F1 | Known deviations from the protocol | UNREVIEWED | | | | |
-| R026 | F2 | Pacific Flow Entertainment: Voice Specification | UNREVIEWED | | | | |
-| R027 | F2 | Who Alex Is (For Voice Calibration) | UNREVIEWED | | | | |
-| R028 | F2 | Voice DNA | UNREVIEWED | | | | |
-| R029 | F2 | Core Voice Constants (Hold Across Every Lead) | UNREVIEWED | | | | |
-| R030 | F2 | Voice by Audience | UNREVIEWED | | | | |
-| R031 | F2 | Drafting Principles (Non-Negotiable) | UNREVIEWED | | | | |
-| R032 | F2 | Quality Checklist (Voice-Level Pass Before Verification Gate) | UNREVIEWED | | | | |
-| R033 | F2 | What NOT to Sound Like | UNREVIEWED | | | | |
-| R034 | F2 | Hard Language Rules | UNREVIEWED | | | | |
-| R035 | F2 | No em-dashes. Ever. | UNREVIEWED | | | | |
-| R036 | F2 | No hype punctuation. | UNREVIEWED | | | | |
-| R037 | F2 | Kill list (cut on sight) | UNREVIEWED | | | | |
-| R038 | F2 | Banned structural patterns | UNREVIEWED | | | | |
-| R039 | F2 | Confidence calibration | UNREVIEWED | | | | |
-| R040 | F2 | Self-Check Protocol | UNREVIEWED | | | | |
-| R041 | F2 | When in Doubt | UNREVIEWED | | | | |
-| R042 | F2 | Cross-References | UNREVIEWED | | | | |
+| R026 | F2 | Pacific Flow Entertainment: Voice Specification | PORTED | `docs/LEAD_RESPONSE_VOICE.md`, loaded for every lead by `selectContext` | always | `## LEAD RESPONSE VOICE` | `port manifest F2` |
+| R027 | F2 | Who Alex Is (For Voice Calibration) | PORTED | `docs/LEAD_RESPONSE_VOICE.md`, loaded for every lead by `selectContext` | always | `Who Alex Is` | `port manifest F2` |
+| R028 | F2 | Voice DNA | PORTED | `docs/LEAD_RESPONSE_VOICE.md`, loaded for every lead by `selectContext` | always | `Voice DNA` | `port manifest F2` |
+| R029 | F2 | Core Voice Constants (Hold Across Every Lead) | PORTED | `docs/LEAD_RESPONSE_VOICE.md`, loaded for every lead by `selectContext` | always | `Core Voice Constants` | `port manifest F2` |
+| R030 | F2 | Voice by Audience | PORTED | `docs/LEAD_RESPONSE_VOICE.md`, loaded for every lead by `selectContext` | always | `Voice by Audience` | `port manifest F2` |
+| R031 | F2 | Drafting Principles (Non-Negotiable) | PORTED | `docs/LEAD_RESPONSE_VOICE.md`, loaded for every lead by `selectContext` | always | `Drafting Principles` | `port manifest F2` |
+| R032 | F2 | Quality Checklist (Voice-Level Pass Before Verification Gate) | PORTED | `docs/LEAD_RESPONSE_VOICE.md`, loaded for every lead by `selectContext` | always | `Quality Checklist` | `port manifest F2` |
+| R033 | F2 | What NOT to Sound Like | PORTED | `docs/LEAD_RESPONSE_VOICE.md`, loaded for every lead by `selectContext` | always | `What NOT to Sound Like` | `port manifest F2` |
+| R034 | F2 | Hard Language Rules | PORTED | `docs/LEAD_RESPONSE_VOICE.md`, loaded for every lead by `selectContext`; mechanical rules also in `src/pipeline/post-check.ts` | always | `Hard Language Rules` | `port manifest F2`; `voice kill list` |
+| R035 | F2 | No em-dashes. Ever. | PORTED | `src/pipeline/post-check.ts` auto-replaces em dashes in prose (pre-existing); `docs/LEAD_RESPONSE_VOICE.md`, loaded for every lead by `selectContext` | always |  | `voice kill list` |
+| R036 | F2 | No hype punctuation. | PORTED | `src/pipeline/post-check.ts`: more than one `!` fails; ALL CAPS is a named judgment check in `src/prompts/verify.ts` §7b | always | `voice_exclamations` | `voice kill list`; `port manifest F2 verify` |
+| R037 | F2 | Kill list (cut on sight) | PORTED | `src/pipeline/post-check.ts` `VOICE_KILL_LIST` (mechanical words/phrases); words Alex uses in his own converted replies ("just", "really", plain "perfect", "dream") and context words ("foster", "journey", "vision") are judgment checks in `src/prompts/verify.ts` §7b | always | `VOICE_KILL_LIST` | `voice kill list`; `port manifest F2 verify` |
+| R038 | F2 | Banned structural patterns | PORTED | `src/prompts/verify.ts` §7b (false binary, triple strawman, FOMO, snappy triads, unearned profundity); the required Named Fear is written out as NOT a false binary; generic cinematic setups are in `src/pipeline/post-check.ts` | always | `False binary` | `port manifest F2 verify` |
+| R039 | F2 | Confidence calibration | PORTED | `src/prompts/verify.ts` §7b (overconfidence about what nobody controls) | always | `Overconfidence` | `port manifest F2 verify` |
+| R040 | F2 | Self-Check Protocol | PORTED | Self-check items 1–2 in `src/pipeline/post-check.ts`; 3, 6, 7 in `src/prompts/verify.ts` §7b; 4 is `validated_them`; 5 is `lead_specific_opening` (`src/prompts/verify.ts`) | always |  | `voice kill list`; `port manifest F2 verify` |
+| R041 | F2 | When in Doubt | ALREADY PRESENT | Points to an email-samples doc the app does not have; the app's equivalent is `src/data/voice-references.ts` (shown to generate and verify). Left out of the loaded doc | always |  |  |
+| R042 | F2 | Cross-References | NOT PORTED | Navigation table; approved by Alex 2026-10-03 (q-e) |  |  |  |
 | R043 | F3 | Tier Definitions (Quick Reference) | UNREVIEWED | | | | |
 | R044 | F3 | B2C Buyer Tiers (Private Events) | UNREVIEWED | | | | |
 | R045 | F3 | Recurring Programming Requests for Trio/Ensemble | UNREVIEWED | | | | |
