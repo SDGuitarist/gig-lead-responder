@@ -142,6 +142,15 @@ Set cultural_context_active = true and cultural_tradition = "spanish_latin" when
 - Music tradition mentions: "Las Mañanitas", "mariachi", "bolero", "ranchera", "norteña"
 - Venue/location cultural signals: Mexican restaurant, cultural center
 
+## EVENT ARC
+
+event_arc names the event's structure (each has its own phases and music):
+- "wedding": ceremony, cocktail hour, reception (any part of a wedding day)
+- "corporate": arrival/networking, remarks, social tail (company events, receptions, ribbon-cuttings)
+- "private_celebration": birthday, anniversary, milestone, private party
+- "memorial": memorial, celebration of life, funeral
+- null: none of these, or unclear
+
 ## OUTPUT FORMAT
 
 Return ONLY this JSON object (no markdown fences, no explanation):
@@ -166,6 +175,7 @@ Return ONLY this JSON object (no markdown fences, no explanation):
   "timeline_band": "comfortable" | "short" | "urgent",
   "close_type": "direct" | "soft_hold" | "hesitant",
   "event_energy": "background" | "performance" | null,
+  "event_arc": "wedding" | "corporate" | "private_celebration" | "memorial" | null,
   "cultural_context_active": boolean,
   "cultural_tradition": "spanish_latin" | null,
   "planner_effort_active": boolean,

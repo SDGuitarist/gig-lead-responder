@@ -23,6 +23,8 @@ export type Format =
 
 export type RecommendedFormat = Format | "unresolved";
 
+export type EventArc = "wedding" | "corporate" | "private_celebration" | "memorial";
+
 export interface Classification {
   // Mode & action
   mode: "confirmation" | "evaluation";
@@ -63,6 +65,10 @@ export interface Classification {
 
   // Event energy — LLM judgment for format routing
   event_energy: "background" | "performance" | null;
+
+  // Event arc — which EVENT_STRUCTURE_THEORY arc applies (port manifest F7).
+  // Normalized in classify.ts: anything else becomes null.
+  event_arc?: EventArc | null;
 
   // Cultural
   cultural_context_active: boolean;

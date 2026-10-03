@@ -2,12 +2,19 @@ import { callClaude } from "../claude.js";
 import { ClassificationError } from "../errors.js";
 import { buildClassifyPrompt } from "../prompts/classify.js";
 import { wrapUntrustedData } from "../utils/sanitize.js";
-import type { Classification } from "../types.js";
+import type { Classification, EventArc } from "../types.js";
 
 const VALID_COMPETITION = new Set(["low", "medium", "high", "extreme"]);
 const VALID_TIERS = new Set(["premium", "standard", "qualification"]);
 const VALID_RATE_TIERS = new Set(["T1", "T2", "T3"]);
 const VALID_ACTIONS = new Set(["quote", "assume_and_quote", "one_question"]);
+
+const VALID_ARCS = new Set<EventArc>(["wedding", "corporate", "private_celebration", "memorial"]);
+
+/** Parses the model's event_arc once; anything outside the four arcs is null. */
+export function normalizeEventArc(value: unknown): EventArc | null {
+  return typeof value === "string" && VALID_ARCS.has(value as EventArc) ? (value as EventArc) : null;
+}
 
 const validateClassification = (raw: unknown): Classification => {
   if (typeof raw !== "object" || raw === null || Array.isArray(raw)) throw new ClassificationError("Expected JSON object from LLM");
@@ -42,6 +49,7 @@ const validateClassification = (raw: unknown): Classification => {
   if (obj.stated_budget !== null && typeof obj.stated_budget !== "number") {
     throw new ClassificationError(`Classification invalid stated_budget: expected number or null, got "${typeof obj.stated_budget}"`);
   }
+  obj.event_arc = normalizeEventArc(obj.event_arc);
   return raw as Classification;
 };
 
