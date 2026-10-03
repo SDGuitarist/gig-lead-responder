@@ -41,6 +41,11 @@
 - ⚠ **HARD GATE: do NOT start the Mac poller (0.2 step 5).** Drafting still uses the paid API key (`src/claude.ts`), not
   Max. Unblock only via the §1.6 `claude -p` provider or with drafting disabled. Alex also still owes the C1 call.
 
+**Later still (same day):** Twilio fully removed (poller pinned to dry-run; alerts go through `src/alert.ts`, which
+reports not-delivered, so dashboard **Approve returns an error** until Module 1; `twilio` package uninstalled).
+**G1 FAILED:** Gmail replaces a supplied Message-ID (`spikes.md` G1), so plan §1.2's duplicate-send recovery must be
+redesigned in the Module 1 plan before any auto-send. Open for Alex: port questions (a)(b)(c), Full Disk Access (S3).
+
 **Queued, no Alex needed (next session, in this order):**
 - 0.3 **Twilio delete**. ⚠ `poller.ts` falls back to DRY RUN when Twilio creds are missing; deleting Twilio must replace that
   gate explicitly, or the poller could go LIVE. Write the "stays dry-run" test first.
