@@ -6,7 +6,7 @@
  */
 import { writeFileSync, existsSync, mkdirSync } from "node:fs";
 import { dirname } from "node:path";
-import { loadConfig } from "./config.js";
+import { loadConfig, type AutomationConfig } from "./config.js";
 import { setLogPath } from "./logger.js";
 import { loadAuthClient, pollForNewMessages } from "./gmail-watcher.js";
 import { processLead } from "./orchestrator.js";
@@ -34,6 +34,15 @@ let interval: ReturnType<typeof setInterval> | null = null;
 let yelpClient: YelpPortalClient | null = null;
 let authFailed = false;
 
+/**
+ * The poller never sends for real until Module 1 ships an alert channel to
+ * Alex (plan 0.3). This used to be decided by "are Twilio creds present";
+ * Twilio is gone, so it is now an explicit rule.
+ */
+export function resolvePollerDryRun(_config: AutomationConfig): boolean {
+  return true;
+}
+
 export async function startGmailPoller(): Promise<void> {
   authFailed = false;
   let config = loadConfig();
@@ -53,13 +62,11 @@ export async function startGmailPoller(): Promise<void> {
     return;
   }
 
-  // Live mode credential checks
+  // Phase 0: always dry-run (see resolvePollerDryRun)
   if (!config.dryRun) {
-    if (!config.twilio.accountSid || !config.twilio.authToken || !config.twilio.toNumber) {
-      console.warn("[gmail-poller] LIVE MODE requires Twilio credentials — falling back to DRY RUN");
-      config = { ...config, dryRun: true };
-    }
+    console.warn("[gmail-poller] DRY_RUN=false ignored — the poller stays DRY RUN until an alert channel exists");
   }
+  config = { ...config, dryRun: resolvePollerDryRun(config) };
 
   // Initialize portal clients
   yelpClient = new YelpPortalClient({
