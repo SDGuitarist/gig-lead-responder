@@ -82,6 +82,10 @@ All of these come from the research and Alex's answers on 2026-10-02.
 | Anthropic API key | **Claude Max subscription through `claude -p`** | Alex chose this. Every run checks first that no API key is in use (memory: never pay usage credits). |
 | EventHelper COI per event | **Annual policy Alex already has.** The app prepares the COI and Alex approves sending it. | Alex: "I already have the annual policy." |
 | Balance due on the day | **One week before for music performances, on the day for corporate**, with the full money terms | `~/.claude/docs/contract-and-payment-process.md`. The brainstorm was corrected in `f23c9c3`. |
+| Confidence decides auto-send (Key Decision 3) | **A send gate in code, plus a 20-lead review-only ramp** | The repo's "confidence" measures how much analysis ran, not whether a reply is safe (`repo.md` finding 3). Judges are overconfident, and OWASP LLM01 says to check outputs with code (`feasibility.md` §8). Alex's intent is kept: confident drafts still auto-send, but code decides what counts as confident. |
+| Trio/Ensemble decided line by line | **Kept.** Alex reviews `docs/research/2026-10-02-booking-hub/trio-ensemble-diff.md` | The diff shows every repo-only line is an old B2B residency table that the Project removed on Apr 26. The plan recommends a choice, and Alex still decides. |
+| Square card clients | **Square payment receipt emails, parsed like Venmo/Zelle. No Square developer app.** | Alex: Square is rare and used mostly by corporate card clients. This avoids a new account, and webhooks can't reach a Mac anyway. |
+| claude.ai Project retired once the repo matches it | **Retirement trigger:** after the 0.3 port AND the 20-lead ramp shows agreement, Alex archives the Project | It gives Key Decision 4 a concrete trigger. |
 | (not known) | **GigSalad payments follow a mixed path**: in-platform by default, direct when the client shares contact details. **Never ask for or share contact info on GigSalad.** | Alex, 2026-10-02. GigSalad bans off-platform payment on unmarked leads, with three strikes before removal (`crm-entertainment.md`). |
 
 ## Proposed Solution
@@ -208,9 +212,11 @@ The source is `~/Desktop/Gig_Lead_Response_System_4.0_Extraction.md`, plus
 hold rates and a real client lead and do not go in the repo.
 
 **Questions for Alex, asked one at a time during 0.3:**
-- **(a) Trio/Ensemble rate card.** The repo has old B2B residency tables (Apr 7). The Project
-  deliberately removed them on Apr 26 ("residency framework applies to solo Alex only"). The
-  recommendation is to adopt the Project's version. None of these tables reach a live quote today.
+- **(a) Trio/Ensemble rate card.** Alex reviews the side-by-side in
+  `docs/research/2026-10-02-booking-hub/trio-ensemble-diff.md` block by block. The repo has old
+  B2B residency tables (Apr 7); the Project deliberately removed them on Apr 26 ("residency
+  framework applies to solo Alex only"). The recommendation is to adopt the Project's version.
+  None of these tables reach a live quote today.
 - **(b) Battery-powered sound.** The rule "never mention battery-powered sound" contradicts some
   file passages. Which wins?
 - **(c) Missing files.** `AUTHENTICITY_SCREEN.md` and `FOLLOW_UP.md` are referenced but don't
@@ -301,6 +307,8 @@ changes the plan before any module depends on it.
      (`contract-and-payment-process.md`).
 2. **Invoice.** Reuse the `booking-to-invoice` skill's layout.
    - A 50% non-refundable retainer, due on signing.
+   - Cancellation inside 7 days of the event means the full total is owed, framed as a
+     reasonable estimate of actual damages (contract clause plus invoice note).
    - A balance schedule by client type.
    - Card payment adds 3.75%, itemized.
    - Checks payable to **Alejandro Guillen**.
@@ -312,8 +320,8 @@ changes the plan before any module depends on it.
    the Dannecker fix: the attachment is checked and surfaced, never assumed missing.
    - An e-sign service is deferred; the trigger to revisit it is two missed or forged returns.
 4. **Payment matching.**
-   - **Square:** card clients only. The Square API is polled from the Mac because webhooks can't
-     reach it.
+   - **Square:** card clients only. The app parses Square's payment receipt emails (sender
+     checked), the same way it handles Venmo and Zelle. No developer app is needed.
    - **Venmo, Zelle and bank emails:** the sender is checked (DKIM plus the domain allowlist).
    - **Bank texts in iMessage:** via S3.
    - Each detected payment is matched by amount, name and the open gig. Alex confirms it with one
@@ -402,7 +410,7 @@ reminders.
   - Verify: `npm test -- --test-name-pattern="payment match proposes"` passes
 - WHEN a music-performance gig is 7 days from its date with a balance open THE SYSTEM SHALL send the client balance reminder once
   - Verify: `npm test -- --test-name-pattern="balance reminder music"` passes
-- WHEN the system runs a draft THE SYSTEM SHALL report `apiKeySource` as `none` in the run log
+- WHEN the app starts a `claude -p` run for any lead, contract or invoice draft THE SYSTEM SHALL record `apiKeySource: none` in that run's log entry
   - Verify: `grep -c '"apiKeySource":"none"' <run log>` equals the number of runs
 
 ### Error cases
@@ -410,12 +418,12 @@ reminders.
   - Verify: `npm test -- --test-name-pattern="price mismatch holds"`
 - WHEN a GigSalad draft contains a phone number, email or URL, or asks for contact info THE SYSTEM SHALL HOLD it with reason `gigsalad_contact_info`
   - Verify: `npm test -- --test-name-pattern="gigsalad contact holds"`
-- WHEN a lead comes from Yelp THE SYSTEM SHALL never auto-send, whatever the gate result
+- WHEN a lead comes from Yelp THE SYSTEM SHALL HOLD it for Alex's approval regardless of the send-gate result
   - Verify: `npm test -- --test-name-pattern="yelp never auto"`
 - WHEN the auto-send path runs a lead THE SYSTEM SHALL pass the lead's platform into the pipeline (regression for `orchestrator.ts:130`)
   - Verify: `npm test -- --test-name-pattern="orchestrator passes platform"` fails on `main` and passes after the fix
 - WHEN the Gmail token returns `invalid_grant` THE SYSTEM SHALL alert Alex and show `auth: failed` on `/health`, never "0 new mail"
-  - Verify: `npm test -- --test-name-pattern="invalid_grant alerts"`; `curl -s localhost:$APP_PORT/health | jq .poller.auth`
+  - Verify: `npm test -- --test-name-pattern="invalid_grant alerts"`; `curl -s localhost:${PORT:-3000}/health | jq .poller.auth`
 - WHEN an alert cannot be confirmed as delivered THE SYSTEM SHALL retry by Telegram and list it as `ALERT FAILED` in the digest
   - Verify: `npm test -- --test-name-pattern="alert fallback"`
 - WHEN a payment email fails DKIM or comes from a non-allow-listed domain THE SYSTEM SHALL reject it without matching
@@ -427,18 +435,74 @@ reminders.
 - WHEN `claude -p` would run with an API key present THE SYSTEM SHALL refuse to run and alert
   - Verify: `ANTHROPIC_API_KEY=x npm test -- --test-name-pattern="preflight refuses api key"`
 
+### Phase 0 (spikes, port, baseline)
+Spikes are one-time manual checks. Each result is recorded in
+`docs/research/2026-10-02-booking-hub/spikes.md` as PASS or FAIL with evidence.
+- WHEN S1 runs `claude -p` on a fixture lead with `env -u ANTHROPIC_API_KEY` THE SYSTEM SHALL complete the draft and print `apiKeySource: none`
+  - Verify: `spikes.md` S1 row = PASS with the printed line pasted
+- WHEN S2 opens one real GigSalad lead unattended THE SYSTEM SHALL fill the reply box without pressing send
+  - Verify: `spikes.md` S2 row = PASS with a screenshot path, confirmed by Alex
+- WHEN Alex sends himself an iMessage containing a nonce THE SYSTEM SHALL read the same nonce back from `chat.db` (S3)
+  - Verify: `spikes.md` S3 row, with the nonce
+- WHEN the app sends Alex an iMessage containing a nonce THE SYSTEM SHALL find it in `chat.db` as delivered, and Alex SHALL see it on his phone (S4)
+  - Verify: `spikes.md` S4 row, with the nonce
+- WHEN a fixture draft is sent to the Telegram bot THE SYSTEM SHALL receive Alex's approve tap back (S5)
+  - Verify: `spikes.md` S5 row
+- WHEN the Gmail token is 8 days old THE SYSTEM SHALL still poll successfully (S6)
+  - Verify: `spikes.md` S6 row, dated
+- WHEN Alex opens the dashboard on his phone over cellular THE SYSTEM SHALL render it (S7)
+  - Verify: `spikes.md` S7 row
+- WHEN the context is assembled for a fixture lead THE SYSTEM SHALL include every ported rule listed in `docs/research/2026-10-02-booking-hub/port-manifest.md`
+  - Verify: `npm test -- --test-name-pattern="port manifest loaded"` (fails if any manifest rule id is absent from the assembled prompt)
+- WHEN step 0.4 completes THE SYSTEM SHALL have `baseline.md` with inquiries, bookings and win rate per platform for the last 12 months, plus the date range and sources used
+  - Verify: `baseline.md` has one row per platform (GigSalad, Yelp, email/form, texts/calls); Alex confirms the totals look right
+
+### Phase 1 (additional)
+- WHEN Alex replies in a lead's thread himself THE SYSTEM SHALL stop that lead's reply clock and cancel its pending automated follow-ups
+  - Verify: `npm test -- --test-name-pattern="alex reply stops bot"`
+
+### Phase 2 (additional)
+- WHEN a gig's deposit is confirmed THE SYSTEM SHALL schedule the music-call message (booking link + questionnaire) and lock the questionnaire on its configured date
+  - Verify: `npm test -- --test-name-pattern="music call scheduled"`
+- WHEN a gig is 14 and then 7 days out THE SYSTEM SHALL send the logistics checklist (load-in, parking, power, on-site contact, COI) to Alex once each
+  - Verify: `npm test -- --test-name-pattern="logistics checks"`
+- WHEN a gig's date has passed THE SYSTEM SHALL queue the thank-you, the review request for the gig's platform, and an outcome prompt to Alex
+  - Verify: `npm test -- --test-name-pattern="post-gig sequence"`
+- WHEN the daily digest runs THE SYSTEM SHALL list today's due items, balances owed by event date, unanswered leads, and any failed reminder or alert
+  - Verify: `npm test -- --test-name-pattern="daily digest sections"`
+- WHEN the calendar backfill runs THE SYSTEM SHALL show Alex the proposed gigs and save none until he approves
+  - Verify: `npm test -- --test-name-pattern="backfill requires approval"`
+
+### Phase 3 (additional)
+- WHEN Alex marks a quote accepted THE SYSTEM SHALL generate a filled Performance Agreement (date, times, venue, fee, retainer, 7-day clause) with Alex's signature applied, and send nothing until Alex approves
+  - Verify: `npm test -- --test-name-pattern="contract generated held"`
+- WHEN Alex approves a contract THE SYSTEM SHALL send it together with an invoice showing a 50% retainer due on signing, the balance due date for the client type, checks payable to "Alejandro Guillen", and a W-9 attached only for corporate clients
+  - Verify: `npm test -- --test-name-pattern="invoice terms by client type"`
+- WHEN the client pays by card THE SYSTEM SHALL itemize a 3.75% card fee on that invoice
+  - Verify: `npm test -- --test-name-pattern="card fee itemized"`
+- WHEN a Square receipt email from a sender that fails the allow-list or DKIM check arrives THE SYSTEM SHALL reject it without matching
+  - Verify: `npm test -- --test-name-pattern="forged square rejected"`
+
+### Phase 4 (COIs and venues)
+- WHEN a gig is confirmed at a venue flagged `coi_required` THE SYSTEM SHALL prepare the additional-insured details and send nothing to the venue until Alex approves
+  - Verify: `npm test -- --test-name-pattern="coi held for approval"`
+- WHEN Alex approves a COI THE SYSTEM SHALL store the PDF as a `documents` row of kind `coi` linked to the gig
+  - Verify: `npm test -- --test-name-pattern="coi stored"`
+- WHEN a venue is flagged `license_required` THE SYSTEM SHALL create a license document need with a reminder 21 days before the gig
+  - Verify: `npm test -- --test-name-pattern="license reminder"`
+
 ### Verification commands (every module)
 - `npx tsc --noEmit` → exit 0
 - `npm test` → all pass, count reported
 - `npm run plan:check docs/plans/2026-10-02-feat-booking-hub-plan.md` → `manual_only` (expected: needs human sign-off)
-- `curl -s localhost:$APP_PORT/health | jq` → shows the poller's last success and its auth state
+- `curl -s localhost:${PORT:-3000}/health | jq` → shows the poller's last success and its auth state
 
 ## Execution Path
 
 - **Target:** Alex's daily Mac (on about 95% of the time), plus Alex's iPhone for alerts and the
   dashboard (S7).
 - **Mechanism:**
-  - `APP_PORT=3000 npm start`, launched by a Terminal `.command` login item. Not port 5000, which
+  - `PORT=3000 npm start`, launched by a Terminal `.command` login item. Not port 5000, which
     is AirPlay; not a LaunchAgent (Full Disk Access, S3).
   - The helper is launched the same way.
   - Claude Code runs (`claude -p`, Max) are started by the app with `env -u ANTHROPIC_API_KEY`.
@@ -453,11 +517,10 @@ reminders.
   | Annual insurance policy | ALREADY HAVE |
   | GigSalad account | ALREADY HAVE |
   | Yelp business account | ALREADY HAVE |
-  | Full Disk Access grant for the helper's Terminal | MUST GRANT (Alex, System Settings; S3) |
+  | Full Disk Access grant for the helper's Terminal | MUST OBTAIN (verified need: S3; Alex grants it in System Settings) |
   | Telegram account + bot | MUST OBTAIN only if S4 fails (free) |
   | Tailscale | MUST OBTAIN only for S7 (free) |
-  | Square developer app | MUST OBTAIN in Phase 3, only if card-client polling is kept (free) |
-
+  
   Each MUST OBTAIN is verified as necessary by its spike before it is set up.
 - **Who:** Claude Code builds and runs the tests. **Alex** grants Full Disk Access, runs each
   spike's known-answer check with Claude, approves the first 20 Phase-1 leads, and reviews the
@@ -476,7 +539,8 @@ reminders.
    - The voice and pricing method (ported, not rewritten).
    - No contact info on GigSalad.
    - Yelp is never auto-sent.
-   - Nothing is marked paid, and no COI goes to a venue, without Alex's tap.
+   - Nothing is marked paid, no COI goes to a venue, and no refund or card charge happens
+     without Alex's tap.
    - No API-key billing.
    - The production DB is copied to `/tmp` before inspection.
 3. **How will we know it worked?** The EARS tests above, plus the success measures against the
