@@ -80,6 +80,12 @@ export function insertLead(input: InsertLeadInput): LeadRecord {
   return getLead(Number(result.lastInsertRowid))!;
 }
 
+/** The lead row a Gmail message created, if any (it is UNIQUE per message). */
+export function getLeadByMessageId(messageId: string): LeadRecord | undefined {
+  const row = stmt("SELECT id FROM leads WHERE mailgun_message_id = ?").get(messageId) as { id: number } | undefined;
+  return row ? getLead(row.id) : undefined;
+}
+
 export function getLead(id: number): LeadRecord | undefined {
   const row = stmt("SELECT * FROM leads WHERE id = ?")
     .get(id) as LeadRecord | undefined;

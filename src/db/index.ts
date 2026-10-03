@@ -11,6 +11,7 @@ export type { InsertLeadInput } from "./leads.js";
 export {
   insertLead,
   getLead,
+  getLeadByMessageId,
   getLeadsByStatus,
   updateLead,
   claimLeadForSending,

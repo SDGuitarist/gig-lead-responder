@@ -11,7 +11,7 @@ import { alertAlexSafe as sendSms } from "../alert.js";
 import { sendSquarespaceReply } from "./senders/gmail-sender.js";
 import { runPipeline } from "../run-pipeline.js";
 import type { PipelineOutput } from "../types.js";
-import { insertLead, updateLead } from "../db/leads.js";
+import { getLeadByMessageId, insertLead, updateLead } from "../db/leads.js";
 import { completeApproval } from "../db/follow-ups.js";
 import { YelpPortalClient } from "./portals/yelp-client.js";
 import { GigSaladPortalClient } from "./portals/gigsalad-client.js";
@@ -75,8 +75,17 @@ export async function processLead(
   // 3. Parse
   let lead: ParsedLead = parseLeadEmail(msg, platform);
 
-  // 3b. Persist to SQLite (so lead appears on dashboard immediately)
-  const dbLead = insertLead({
+  // 3b. Persist to SQLite (so lead appears on dashboard immediately).
+  // A retry after a mid-way failure finds the row it already made: resume it
+  // if the pipeline never finished, otherwise don't redo it (no double send).
+  const existing = getLeadByMessageId(msg.id);
+  if (existing && (existing.status !== "received" || existing.pipeline_completed_at)) {
+    console.warn(`Lead #${existing.id} for ${msg.id} already got past the pipeline; not redoing it`);
+    markProcessed(msg.id);
+    return;
+  }
+  if (existing) console.log(`Resuming half-done lead #${existing.id} for ${msg.id}`);
+  const dbLead = existing ?? insertLead({
     raw_email: lead.rawText,
     source_platform: platform,
     mailgun_message_id: msg.id,
