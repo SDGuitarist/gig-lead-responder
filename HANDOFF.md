@@ -2,7 +2,75 @@
 
 **Date:** 2026-10-03
 **Branch:** `feat/hub-phase0` (cut from `docs/booking-hub-brainstorm` at `c644210`; pushed; not merged)
-**Phase:** Work, Phase 0 **in progress**. 0.1 done; 0.3 three of eight defects done; the rest is blocked on Alex or queued (below). Module 1 not started.
+**Phase:** Work, Phase 0 **in progress**. 0.1, 0.2 (code), 0.3 (all but the alert half of `invalid_grant alerts`), 0.4, S1, S1-adv done. 0.5 port: 42 of 406 rows reviewed. 0.6 waits on Alex. Module 1 not started.
+
+## 2026-10-03 (session 33bddb35, ~09:10–09:45) — poller cursor, wake, lease, S1-adv, port start
+
+**Supersedes the "Queued" list and the prompt in the section below.** All results are rows in `spikes.md`.
+
+**Done (21 commits, `72ad079`..`e1fb163`, pushed):**
+- **0.3 poller cursor = migration v1** `poller_state`; `pollOnce()` resumes from it; the Gmail list follows page tokens
+  (was: first 20 only). `/health` now has `poller.last_success_at`, `poller.auth` (`never`/`ok`/`failed`), `lease.host`.
+- **Failed lead retried, not skipped (Alex caught it mid-session):** a failure holds the cursor (3 attempts, then
+  `GAVE UP` in the log); `processLead` resumes a half-done `received` row instead of dying on `UNIQUE`.
+- **0.3 wake catch-up:** `src/wake-watch.ts` (30 s tick, >2 min jump) → `pollNow()` + `kickFollowUpScheduler()`.
+- **0.2 same-host lease = migration v2** `runtime_lease`; each poll needs it, renewed every 20 s; `holdsLease()` ready
+  for Module 1's send check. **Send sites pinned** by file and count (7), with a planted-call control.
+- **0.7 S1-adv PASSED** (exact §1.6 env): 0 tool-use events, canary not leaked, 0 of 15 `.env` values in output.
+  Finding for Module 1: the model appended a "this looks like prompt injection" note under the draft.
+- **0.5 port started:** `port-manifest.md` (406 rows) + structure test; new status `TO PORT`. P1 (19) and F19 (23)
+  reviewed. **R008 PORTED:** the Bolero playbook now loads for `bolero_trio` leads. Helper: `scripts/port-section-sim.py`.
+- ⚠ **Incident (my error):** a failing-first test opened the real `data/leads.db` and applied migration v1 (one empty
+  table; 0 leads / 16 processed rows unchanged; backup `data/backups/pre-v1.db`). **Alex chose to keep it.** Guard added:
+  inside any test process, a DB path outside the temp folder becomes a throwaway DB. Real DB is at v1; v2 applies on
+  the next app start (backup first).
+
+**Open for Alex:**
+- **q-d:** 5 port rows (R007, R009–R011, R019) are chat-only tasks; proposed NOT PORTED, need his yes.
+- Full Disk Access (S3); 0.6 dashboards (ask first); the Module 1 §1.2 redesign (G1 failed) is unchanged.
+- A process from the earlier session may still be alive: `npx tsx scripts/gmail-auth.ts` (shell pid 69417).
+
+**Queued, no Alex needed (next session, in this order):**
+1. 0.5 port, file by file. Run `python3 scripts/port-section-sim.py` first. Rule used so far: identical text is
+   **not** ALREADY PRESENT unless something loads it at runtime (`selectContext`, a prompt builder, `rates.ts`).
+   Likely order: F16 PROTOCOL (0.96, vs `buildClassifyPrompt`), F10 PRINCIPLES / F9 / F14 (loaded docs, check the diffs),
+   F12 VERIFICATION and F15 DRAFT_METHOD (identical-ish but **not loaded**: loading them changes drafting, so list as
+   TO PORT with the question), F11/F13 (diverged), F2/F5/F7/F1 (no repo copy), rate cards F3/F4/F6 last: they diverge
+   (0.59–0.73) and prices live in `src/data/rates.ts`; (a) says the Project's Trio/Ensemble card wins, but Bolero and
+   Solo/Duo differences may need Alex.
+2. Add the test "port inventory fully accounted" only when no row is UNREVIEWED.
+3. R006 (CULTURAL_CORE for any tradition) and R018 (strategic reserve) need a design pass, not just a load.
+
+### Prompt for Next Session
+
+```
+Work in /Users/alejandroguillen/Projects/gig-lead-responder.
+FIRST gate (stop and ask Alex if anything differs):
+  pwd; git fetch origin; git branch --show-current          # expect: feat/hub-phase0
+  git rev-parse HEAD; git rev-parse origin/feat/hub-phase0  # expect: identical
+  git status --short                                        # expect: clean
+  git log --oneline HEAD..origin/main                       # expect: empty
+Read: HANDOFF.md (top section, session 33bddb35), CLAUDE.md,
+  docs/research/2026-10-02-booking-hub/spikes.md, docs/research/2026-10-02-booking-hub/port-manifest.md,
+  docs/plans/2026-10-02-feat-hub-phase0-lead-replies-plan.md §0.5.
+Task: continue the 0.5 port from the top-section queue, one source file per commit.
+Run python3 scripts/port-section-sim.py into the scratchpad first; never paste source text, rates or
+client names into the public repo. Verify with npm run test:match -- "port manifest" (exit 3 = zero matches).
+HARD GATE: never start the Mac poller or server against real mail. Never open data/leads.db from a test.
+STOP and ask Alex before: any real send; Full Disk Access; reading GigSalad/Yelp dashboards; any change to
+.env or production data; any rate change in src/data/rates.ts. Do not start Module 1. Update HANDOFF.md before stopping.
+```
+
+### Three Questions
+
+1. **Hardest implementation decision in this session?** Where the poller cursor should move after a failure. Moving it
+   always loses a lead; never moving it lets one bad email freeze polling. Settled on: hold for 3 attempts, then give up
+   loudly, plus resuming the half-done DB row so a retry can actually succeed.
+2. **What did you consider changing but left alone, and why?** Activating CULTURAL_CORE for every tradition (R006) and
+   loading DRAFT_METHOD/VERIFICATION. Both are one-line loads but change drafting, which can't be checked without live
+   runs on the Max provider (not built yet).
+3. **Least confident about going into review?** The wake and lease wiring is unit-tested only; nothing has run it on the
+   real Mac through a real sleep (S6). And the 3-attempt counter lives in memory, so a crash loop retries forever.
 
 ## 2026-10-03 — Phase 0 work session (supersedes the 10-02 "Prompt for Next Session")
 
@@ -46,11 +114,7 @@ reports not-delivered, so dashboard **Approve returns an error** until Module 1;
 **G1 FAILED:** Gmail replaces a supplied Message-ID (`spikes.md` G1), so plan §1.2's duplicate-send recovery must be
 redesigned in the Module 1 plan before any auto-send. Open for Alex: port questions (a)(b)(c), Full Disk Access (S3).
 
-**⚠ CLAIMED 2026-10-03 ~09:25 by session `33bddb35`:** the poller-cursor item below. Migration v1 `poller_state`
-is DONE (`72ad079`). Wiring the poller to it (`pollOnce`, test "poller gap recovery") is in progress, uncommitted,
-in that session. Paused because a peer session may also be active here. Do not start the poller-cursor item in another session.
-
-**Queued, no Alex needed (next session, in this order):** *(rewritten end of 2026-10-03)*
+**Queued** *(SUPERSEDED by the session-33bddb35 section above)*:
 - ~~Twilio delete~~ DONE. ~~0.4 migration runner~~ DONE. ~~port questions a/b/c~~ ANSWERED (plan §0.5).
 - 0.3 poller cursor = **migration v1** (`poller_state`), then wake catch-up and `/health` fields
   (`poller.last_success_at`, `poller.auth`, `lease.host`), each with its plan test name.
@@ -60,7 +124,7 @@ in that session. Paused because a peer session may also be active here. Do not s
 - 0.6 baseline: read-only GigSalad/Yelp dashboards + calendar in Chrome (Alex's accounts; ask first).
 **Still needs Alex:** Full Disk Access for the terminal (S3). **Module 1 plan must redesign §1.2** (G1 failed).
 
-### Prompt for Next Session
+### Prompt for Next Session — SUPERSEDED (see the top section)
 
 ```
 Work in /Users/alejandroguillen/Projects/gig-lead-responder.
