@@ -178,44 +178,44 @@
 | R166 | F8 | Common Bridges | UNREVIEWED | | | | |
 | R167 | F8 | Cultural Response Flow | UNREVIEWED | | | | |
 | R168 | F8 | Cross-References | UNREVIEWED | | | | |
-| R169 | F9 | Pacific Flow Entertainment: Spanish/Latin Cultural Patterns | UNREVIEWED | | | | |
-| R170 | F9 | Terminology by Tradition | UNREVIEWED | | | | |
-| R171 | F9 | Flamenco | UNREVIEWED | | | | |
-| R172 | F9 | Mariachi | UNREVIEWED | | | | |
-| R173 | F9 | Bolero/Latin | UNREVIEWED | | | | |
-| R174 | F9 | The Juerga Dynamic | UNREVIEWED | | | | |
-| R175 | F9 | Juerga Signals (Any 2+) | UNREVIEWED | | | | |
-| R176 | F9 | Why Trio (Not Duo) | UNREVIEWED | | | | |
-| R177 | F9 | Flamenco Configuration Recommendations | UNREVIEWED | | | | |
-| R178 | F9 | The Bolero Dynamic | UNREVIEWED | | | | |
-| R179 | F9 | Bolero Signals (Any 2+) | UNREVIEWED | | | | |
-| R180 | F9 | Why This Matters | UNREVIEWED | | | | |
-| R181 | F9 | Bolero/Latin Configuration Recommendations | UNREVIEWED | | | | |
-| R182 | F9 | Painting the Room: Spanish/Latin | UNREVIEWED | | | | |
-| R183 | F9 | Flamenco (Elder Birthday) | UNREVIEWED | | | | |
-| R184 | F9 | Flamenco (Juerga/Participatory) | UNREVIEWED | | | | |
-| R185 | F9 | Mariachi (Birthday for Elder) | UNREVIEWED | | | | |
-| R186 | F9 | Mariachi (Surprise Proposal) | UNREVIEWED | | | | |
-| R187 | F9 | Spanish Guitar (Anniversary) | UNREVIEWED | | | | |
-| R188 | F9 | Bolero (Anniversary Dinner) | UNREVIEWED | | | | |
-| R189 | F9 | Bolero (Latin Heritage Wedding) | UNREVIEWED | | | | |
-| R190 | F9 | Trova (Intimate Proposal) | UNREVIEWED | | | | |
-| R191 | F9 | Musical Bridges: Spanish/Latin | UNREVIEWED | | | | |
-| R192 | F9 | "Classical Guitar" → Spanish/Latin | UNREVIEWED | | | | |
-| R193 | F9 | "Acoustic Guitar" + Latino Heritage | UNREVIEWED | | | | |
-| R194 | F9 | "Gypsy Kings Style" → Flamenco Trio | UNREVIEWED | | | | |
-| R195 | F9 | "Spanish Guitar" + Coastal/Wine Country Venue | UNREVIEWED | | | | |
-| R196 | F9 | "Romantic Music" + Latino Heritage → Bolero | UNREVIEWED | | | | |
-| R197 | F9 | "Spanish Guitar" + Mexican Family → Ranchera/Bolero Mix | UNREVIEWED | | | | |
-| R198 | F9 | "Background Latin Music" → Trova | UNREVIEWED | | | | |
-| R199 | F9 | Cultural Wedge Patterns: Spanish/Latin | UNREVIEWED | | | | |
-| R200 | F9 | For Elder Milestones | UNREVIEWED | | | | |
-| R201 | F9 | For Heritage Celebrations | UNREVIEWED | | | | |
-| R202 | F9 | For Gift-Giver Validation | UNREVIEWED | | | | |
-| R203 | F9 | For Participatory Events | UNREVIEWED | | | | |
-| R204 | F9 | For Bolero/Latin (Anniversary) | UNREVIEWED | | | | |
-| R205 | F9 | For Latin Heritage (Any Milestone) | UNREVIEWED | | | | |
-| R206 | F9 | Cross-References | UNREVIEWED | | | | |
+| R169 | F9 | Pacific Flow Entertainment: Spanish/Latin Cultural Patterns | PORTED | `docs/CULTURAL_SPANISH_LATIN.md`, loaded by `selectContext` (`src/pipeline/context.ts:57`); replaced with the Project's version 2026-10-03 (was 0.98) | `cultural_tradition === "spanish_latin"` | `Bolero Signals (Any 2+)` | `port manifest F9` |
+| R170 | F9 | Terminology by Tradition | ALREADY PRESENT | `docs/CULTURAL_SPANISH_LATIN.md`, loaded by `selectContext` (`src/pipeline/context.ts:57`); matched the Project before the port | `cultural_tradition === "spanish_latin"` | | |
+| R171 | F9 | Flamenco | ALREADY PRESENT | `docs/CULTURAL_SPANISH_LATIN.md`, loaded by `selectContext` (`src/pipeline/context.ts:57`); matched the Project before the port | `cultural_tradition === "spanish_latin"` | | |
+| R172 | F9 | Mariachi | ALREADY PRESENT | `docs/CULTURAL_SPANISH_LATIN.md`, loaded by `selectContext` (`src/pipeline/context.ts:57`); matched the Project before the port | `cultural_tradition === "spanish_latin"` | | |
+| R173 | F9 | Bolero/Latin | PORTED | `docs/CULTURAL_SPANISH_LATIN.md`, loaded by `selectContext` (`src/pipeline/context.ts:57`); replaced with the Project's version 2026-10-03 (was 0.29) | `cultural_tradition === "spanish_latin"` | `Bolero Signals (Any 2+)` | `port manifest F9` |
+| R174 | F9 | The Juerga Dynamic | ALREADY PRESENT | `docs/CULTURAL_SPANISH_LATIN.md`, loaded by `selectContext` (`src/pipeline/context.ts:57`); matched the Project before the port | `cultural_tradition === "spanish_latin"` | | |
+| R175 | F9 | Juerga Signals (Any 2+) | ALREADY PRESENT | `docs/CULTURAL_SPANISH_LATIN.md`, loaded by `selectContext` (`src/pipeline/context.ts:57`); matched the Project before the port | `cultural_tradition === "spanish_latin"` | | |
+| R176 | F9 | Why Trio (Not Duo) | ALREADY PRESENT | `docs/CULTURAL_SPANISH_LATIN.md`, loaded by `selectContext` (`src/pipeline/context.ts:57`); matched the Project before the port | `cultural_tradition === "spanish_latin"` | | |
+| R177 | F9 | Flamenco Configuration Recommendations | ALREADY PRESENT | `docs/CULTURAL_SPANISH_LATIN.md`, loaded by `selectContext` (`src/pipeline/context.ts:57`); matched the Project before the port | `cultural_tradition === "spanish_latin"` | | |
+| R178 | F9 | The Bolero Dynamic | PORTED | `docs/CULTURAL_SPANISH_LATIN.md`, loaded by `selectContext` (`src/pipeline/context.ts:57`); replaced with the Project's version 2026-10-03 (was 0.67) | `cultural_tradition === "spanish_latin"` | `Bolero Signals (Any 2+)` | `port manifest F9` |
+| R179 | F9 | Bolero Signals (Any 2+) | PORTED | `docs/CULTURAL_SPANISH_LATIN.md`, loaded by `selectContext` (`src/pipeline/context.ts:57`); replaced with the Project's version 2026-10-03 (was 0.36) | `cultural_tradition === "spanish_latin"` | `Bolero Signals (Any 2+)` | `port manifest F9` |
+| R180 | F9 | Why This Matters | PORTED | `docs/CULTURAL_SPANISH_LATIN.md`, loaded by `selectContext` (`src/pipeline/context.ts:57`); replaced with the Project's version 2026-10-03 (was 0.39) | `cultural_tradition === "spanish_latin"` | `Bolero Signals (Any 2+)` | `port manifest F9` |
+| R181 | F9 | Bolero/Latin Configuration Recommendations | PORTED | `docs/CULTURAL_SPANISH_LATIN.md`, loaded by `selectContext` (`src/pipeline/context.ts:57`); replaced with the Project's version 2026-10-03 (was 0.31) | `cultural_tradition === "spanish_latin"` | `Bolero Signals (Any 2+)` | `port manifest F9` |
+| R182 | F9 | Painting the Room: Spanish/Latin | ALREADY PRESENT | `docs/CULTURAL_SPANISH_LATIN.md`, loaded by `selectContext` (`src/pipeline/context.ts:57`); matched the Project before the port | `cultural_tradition === "spanish_latin"` | | |
+| R183 | F9 | Flamenco (Elder Birthday) | ALREADY PRESENT | `docs/CULTURAL_SPANISH_LATIN.md`, loaded by `selectContext` (`src/pipeline/context.ts:57`); matched the Project before the port | `cultural_tradition === "spanish_latin"` | | |
+| R184 | F9 | Flamenco (Juerga/Participatory) | ALREADY PRESENT | `docs/CULTURAL_SPANISH_LATIN.md`, loaded by `selectContext` (`src/pipeline/context.ts:57`); matched the Project before the port | `cultural_tradition === "spanish_latin"` | | |
+| R185 | F9 | Mariachi (Birthday for Elder) | ALREADY PRESENT | `docs/CULTURAL_SPANISH_LATIN.md`, loaded by `selectContext` (`src/pipeline/context.ts:57`); matched the Project before the port | `cultural_tradition === "spanish_latin"` | | |
+| R186 | F9 | Mariachi (Surprise Proposal) | ALREADY PRESENT | `docs/CULTURAL_SPANISH_LATIN.md`, loaded by `selectContext` (`src/pipeline/context.ts:57`); matched the Project before the port | `cultural_tradition === "spanish_latin"` | | |
+| R187 | F9 | Spanish Guitar (Anniversary) | ALREADY PRESENT | `docs/CULTURAL_SPANISH_LATIN.md`, loaded by `selectContext` (`src/pipeline/context.ts:57`); matched the Project before the port | `cultural_tradition === "spanish_latin"` | | |
+| R188 | F9 | Bolero (Anniversary Dinner) | PORTED | `docs/CULTURAL_SPANISH_LATIN.md`, loaded by `selectContext` (`src/pipeline/context.ts:57`); replaced with the Project's version 2026-10-03 (was 0.37) | `cultural_tradition === "spanish_latin"` | `Bolero Signals (Any 2+)` | `port manifest F9` |
+| R189 | F9 | Bolero (Latin Heritage Wedding) | PORTED | `docs/CULTURAL_SPANISH_LATIN.md`, loaded by `selectContext` (`src/pipeline/context.ts:57`); replaced with the Project's version 2026-10-03 (was 0.38) | `cultural_tradition === "spanish_latin"` | `Bolero Signals (Any 2+)` | `port manifest F9` |
+| R190 | F9 | Trova (Intimate Proposal) | PORTED | `docs/CULTURAL_SPANISH_LATIN.md`, loaded by `selectContext` (`src/pipeline/context.ts:57`); replaced with the Project's version 2026-10-03 (was 0.36) | `cultural_tradition === "spanish_latin"` | `Bolero Signals (Any 2+)` | `port manifest F9` |
+| R191 | F9 | Musical Bridges: Spanish/Latin | ALREADY PRESENT | `docs/CULTURAL_SPANISH_LATIN.md`, loaded by `selectContext` (`src/pipeline/context.ts:57`); matched the Project before the port | `cultural_tradition === "spanish_latin"` | | |
+| R192 | F9 | "Classical Guitar" → Spanish/Latin | ALREADY PRESENT | `docs/CULTURAL_SPANISH_LATIN.md`, loaded by `selectContext` (`src/pipeline/context.ts:57`); matched the Project before the port | `cultural_tradition === "spanish_latin"` | | |
+| R193 | F9 | "Acoustic Guitar" + Latino Heritage | ALREADY PRESENT | `docs/CULTURAL_SPANISH_LATIN.md`, loaded by `selectContext` (`src/pipeline/context.ts:57`); matched the Project before the port | `cultural_tradition === "spanish_latin"` | | |
+| R194 | F9 | "Gypsy Kings Style" → Flamenco Trio | ALREADY PRESENT | `docs/CULTURAL_SPANISH_LATIN.md`, loaded by `selectContext` (`src/pipeline/context.ts:57`); matched the Project before the port | `cultural_tradition === "spanish_latin"` | | |
+| R195 | F9 | "Spanish Guitar" + Coastal/Wine Country Venue | ALREADY PRESENT | `docs/CULTURAL_SPANISH_LATIN.md`, loaded by `selectContext` (`src/pipeline/context.ts:57`); matched the Project before the port | `cultural_tradition === "spanish_latin"` | | |
+| R196 | F9 | "Romantic Music" + Latino Heritage → Bolero | PORTED | `docs/CULTURAL_SPANISH_LATIN.md`, loaded by `selectContext` (`src/pipeline/context.ts:57`); replaced with the Project's version 2026-10-03 (was 0.47) | `cultural_tradition === "spanish_latin"` | `Bolero Signals (Any 2+)` | `port manifest F9` |
+| R197 | F9 | "Spanish Guitar" + Mexican Family → Ranchera/Bolero Mix | PORTED | `docs/CULTURAL_SPANISH_LATIN.md`, loaded by `selectContext` (`src/pipeline/context.ts:57`); replaced with the Project's version 2026-10-03 (was 0.38) | `cultural_tradition === "spanish_latin"` | `Bolero Signals (Any 2+)` | `port manifest F9` |
+| R198 | F9 | "Background Latin Music" → Trova | PORTED | `docs/CULTURAL_SPANISH_LATIN.md`, loaded by `selectContext` (`src/pipeline/context.ts:57`); replaced with the Project's version 2026-10-03 (was 0.33) | `cultural_tradition === "spanish_latin"` | `Bolero Signals (Any 2+)` | `port manifest F9` |
+| R199 | F9 | Cultural Wedge Patterns: Spanish/Latin | ALREADY PRESENT | `docs/CULTURAL_SPANISH_LATIN.md`, loaded by `selectContext` (`src/pipeline/context.ts:57`); matched the Project before the port | `cultural_tradition === "spanish_latin"` | | |
+| R200 | F9 | For Elder Milestones | ALREADY PRESENT | `docs/CULTURAL_SPANISH_LATIN.md`, loaded by `selectContext` (`src/pipeline/context.ts:57`); matched the Project before the port | `cultural_tradition === "spanish_latin"` | | |
+| R201 | F9 | For Heritage Celebrations | ALREADY PRESENT | `docs/CULTURAL_SPANISH_LATIN.md`, loaded by `selectContext` (`src/pipeline/context.ts:57`); matched the Project before the port | `cultural_tradition === "spanish_latin"` | | |
+| R202 | F9 | For Gift-Giver Validation | ALREADY PRESENT | `docs/CULTURAL_SPANISH_LATIN.md`, loaded by `selectContext` (`src/pipeline/context.ts:57`); matched the Project before the port | `cultural_tradition === "spanish_latin"` | | |
+| R203 | F9 | For Participatory Events | ALREADY PRESENT | `docs/CULTURAL_SPANISH_LATIN.md`, loaded by `selectContext` (`src/pipeline/context.ts:57`); matched the Project before the port | `cultural_tradition === "spanish_latin"` | | |
+| R204 | F9 | For Bolero/Latin (Anniversary) | PORTED | `docs/CULTURAL_SPANISH_LATIN.md`, loaded by `selectContext` (`src/pipeline/context.ts:57`); replaced with the Project's version 2026-10-03 (was 0.45) | `cultural_tradition === "spanish_latin"` | `Bolero Signals (Any 2+)` | `port manifest F9` |
+| R205 | F9 | For Latin Heritage (Any Milestone) | PORTED | `docs/CULTURAL_SPANISH_LATIN.md`, loaded by `selectContext` (`src/pipeline/context.ts:57`); replaced with the Project's version 2026-10-03 (was 0.36) | `cultural_tradition === "spanish_latin"` | `Bolero Signals (Any 2+)` | `port manifest F9` |
+| R206 | F9 | Cross-References | BLOCKED | proposed NOT PORTED: navigation, same class as R019 (approved); needs Alex's yes (q-e) | | | |
 | R207 | F10 | Pacific Flow Entertainment: Core Operating Principles | ALREADY PRESENT | `docs/PRINCIPLES.md`, loaded for every lead by `selectContext` (`src/pipeline/context.ts:50`); text matches the Project (similarity 1.00) | always |  |  |
 | R208 | F10 | Prime Directive | ALREADY PRESENT | `docs/PRINCIPLES.md`, loaded for every lead by `selectContext` (`src/pipeline/context.ts:50`); text matches the Project (similarity 1.00) | always |  |  |
 | R209 | F10 | The Seven Principles | ALREADY PRESENT | `docs/PRINCIPLES.md`, loaded for every lead by `selectContext` (`src/pipeline/context.ts:50`); text matches the Project (similarity 1.00) | always |  |  |
