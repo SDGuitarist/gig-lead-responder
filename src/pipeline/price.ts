@@ -1,4 +1,4 @@
-import { MARIACHI_FULL_OUTSIDE_SD_RATES, RATE_TABLES, type TierRates } from "../data/rates.js";
+import { FLAMENCO_TRIO_3H_DANCER_2H_RATES, MARIACHI_FULL_OUTSIDE_SD_RATES, RATE_TABLES, type TierRates } from "../data/rates.js";
 import { PricingError } from "../errors.js";
 import type { Classification, Format, PricingResult, BudgetGapResult, ScopedAlternative, TravelBand, TravelFeeData, TravelComponent } from "../types.js";
 
@@ -76,7 +76,11 @@ export function lookupPrice(
   const validDurations = Object.keys(rateTable).map(Number).filter((n) => !Number.isNaN(n)).sort((a, b) => a - b);
   const snapped = validDurations.reduce((best, d) => Math.abs(d - duration_hours) < Math.abs(best - duration_hours) ? d : best);
   const durationKey = String(snapped);
-  const durationRates = rateTable[durationKey];
+  // A 3-hour flamenco trio with the dancer for 2 hours has its own row (R048).
+  const durationRates =
+    format_recommended === "flamenco_trio" && durationKey === "3" && classification.extended_dancer === true
+      ? FLAMENCO_TRIO_3H_DANCER_2H_RATES
+      : rateTable[durationKey];
   if (!durationRates) {
     const available = Object.keys(rateTable).join(", ");
     throw new PricingError(`No rates for duration "${durationKey}" in ${format_recommended}. Available: ${available}`);

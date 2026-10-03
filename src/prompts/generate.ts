@@ -46,7 +46,7 @@ No quote yet. The format is unresolved. Your job is to ask exactly one binary cl
 Quote price: $${pricing.quote_price}
 Anchor: $${pricing.anchor} | Floor: $${pricing.floor}
 Position: ${pricing.competition_position}
-Format: ${pricing.format} | Duration: ${pricing.duration_hours}hr | Tier: ${pricing.tier_key}
+Format: ${pricing.format} | Duration: ${pricing.duration_hours}hr | Tier: ${pricing.tier_key}${pricing.format === "flamenco_trio" && pricing.duration_hours === 3 && classification.extended_dancer ? "\nConfiguration: the dancer performs 2 of the 3 hours (the client asked for more dance time). Say so in the draft." : ""}
 ${buildTravelBlock(pricing)}
 `}
 

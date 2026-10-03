@@ -70,6 +70,10 @@ export interface Classification {
   // Normalized in classify.ts: anything else becomes null.
   event_arc?: EventArc | null;
 
+  // Lead asks for the flamenco dancer for more than one hour (port manifest R048).
+  // Normalized in classify.ts: only a real true counts.
+  extended_dancer?: boolean;
+
   // Cultural
   cultural_context_active: boolean;
   cultural_tradition: "spanish_latin" | null;

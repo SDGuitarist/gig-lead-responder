@@ -16,6 +16,11 @@ export function normalizeEventArc(value: unknown): EventArc | null {
   return typeof value === "string" && VALID_ARCS.has(value as EventArc) ? (value as EventArc) : null;
 }
 
+/** Parses the model's extended_dancer once; only a real boolean true counts. */
+export function normalizeExtendedDancer(value: unknown): boolean {
+  return value === true;
+}
+
 const validateClassification = (raw: unknown): Classification => {
   if (typeof raw !== "object" || raw === null || Array.isArray(raw)) throw new ClassificationError("Expected JSON object from LLM");
   const obj = raw as Record<string, unknown>;
@@ -50,6 +55,7 @@ const validateClassification = (raw: unknown): Classification => {
     throw new ClassificationError(`Classification invalid stated_budget: expected number or null, got "${typeof obj.stated_budget}"`);
   }
   obj.event_arc = normalizeEventArc(obj.event_arc);
+  obj.extended_dancer = normalizeExtendedDancer(obj.extended_dancer);
   return raw as Classification;
 };
 

@@ -172,6 +172,17 @@ export const MARIACHI_4PIECE_RATES: FormatRates = {
   },
 };
 
+// --- Flamenco Trio Hybrid, 3 hours with the dancer for 2 hours ---
+// Source: Project Rate_Card_Trio_Ensemble — "3-Hour Service / Dancer 2 Hours".
+// Used only when classify sets extended_dancer (Alex 2026-10-03, port manifest R048).
+export const FLAMENCO_TRIO_3H_DANCER_2H_RATES: TierRates = {
+  T1: { anchor: 1200, floor: 1200 },
+  T2P: { anchor: 2100, floor: 1900 },
+  T2D: { anchor: 2400, floor: 2200 },
+  T3P: { anchor: 2500, floor: 2300 },
+  T3D: { anchor: 2800, floor: 2600 },
+};
+
 // --- Mariachi Full Ensemble, outside San Diego County (travel built in) ---
 // Source: Project Rate_Card_Trio_Ensemble — B2C Outside San Diego County.
 // Used at 35+ miles (Alex 2026-10-03, port manifest R051). 3-hour minimum, no T1 row.

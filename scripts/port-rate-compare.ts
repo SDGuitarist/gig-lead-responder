@@ -3,8 +3,9 @@
 // differences only. Usage: npx tsx scripts/port-rate-compare.ts
 import { readFileSync } from "node:fs";
 import { homedir } from "node:os";
-import { MARIACHI_FULL_OUTSIDE_SD_RATES, RATE_TABLES } from "../src/data/rates.js";
-const TABLES: Record<string, unknown> = { ...RATE_TABLES, mariachi_full_outside_sd: MARIACHI_FULL_OUTSIDE_SD_RATES };
+import { FLAMENCO_TRIO_3H_DANCER_2H_RATES, MARIACHI_FULL_OUTSIDE_SD_RATES, RATE_TABLES } from "../src/data/rates.js";
+const TABLES: Record<string, unknown> = { ...RATE_TABLES, mariachi_full_outside_sd: MARIACHI_FULL_OUTSIDE_SD_RATES,
+  flamenco_trio_dancer_2h: { "3": FLAMENCO_TRIO_3H_DANCER_2H_RATES } };
 const DATA = `${homedir()}/Data/gig-lead-responder`;
 const extraction = readFileSync(`${DATA}/Gig_Lead_Response_System_4.0_Extraction.md`, "utf8").split("\n");
 function projectFile(n: number): string {
@@ -34,7 +35,7 @@ for (const [card, text, map] of cards) {
     if ((m = /^\*\*(Solo|Duo)\*\*/.exec(line))) { sub = m[1].toLowerCase(); continue; }
     if ((m = /^(?:#### |\*\*)([\d.]+)-Hour(.*)/.exec(line))) { dur = m[1]; variant = m[2].replace(/[*:]/g, "").trim(); }
     const inline = /^\*\*([\d.]+) hrs?\b[^:]*:\*\*/.exec(line); if (inline) dur = inline[1];
-    const fmt = map(sec, sub); if (!fmt || !dur) continue;
+    const base = map(sec, sub); const fmt = base === "flamenco_trio" && /Dancer 2 Hours/.test(variant) ? "flamenco_trio_dancer_2h" : base; if (!fmt || !dur) continue;
     for (const t of line.matchAll(/(T1|T2P|T2D|T3P|T3D)(?::\*\*)?\s*\$([\d,]+)(?:\s*\/\s*\$([\d,]+))?/g)) {
       const tier = t[1], a = num(t[2]), f = t[3] ? num(t[3]) : a; parsed++;
       const code = (TABLES as any)[fmt]?.[dur]?.[tier];

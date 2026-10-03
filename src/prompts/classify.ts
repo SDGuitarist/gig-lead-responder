@@ -152,6 +152,10 @@ Set cultural_context_active = true and cultural_tradition = "spanish_latin" when
 - Music tradition mentions: "Las Mañanitas", "mariachi", "bolero", "ranchera", "norteña"
 - Venue/location cultural signals: Mexican restaurant, cultural center
 
+## FLAMENCO DANCER TIME
+
+extended_dancer = true only when a flamenco trio lead asks for the dancer for more than one hour (e.g. "dancing for the last two hours"). Otherwise false. A dancer for the entire event is format flamenco_trio_full, not this flag.
+
 ## EVENT ARC
 
 event_arc names the event's structure (each has its own phases and music):
@@ -186,6 +190,7 @@ Return ONLY this JSON object (no markdown fences, no explanation):
   "close_type": "direct" | "soft_hold" | "hesitant",
   "event_energy": "background" | "performance" | null,
   "event_arc": "wedding" | "corporate" | "private_celebration" | "memorial" | null,
+  "extended_dancer": boolean,
   "cultural_context_active": boolean,
   "cultural_tradition": "spanish_latin" | null,
   "planner_effort_active": boolean,
