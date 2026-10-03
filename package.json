@@ -10,9 +10,10 @@
     "start": "tsx src/index.ts",
     "demo": "tsx src/index.ts < examples/quinceanera-lead.txt",
     "serve": "tsx src/server.ts",
-    "test": "node --import tsx --test src/*.test.ts scripts/*.test.ts",
+    "test": "node scripts/run-tests.mjs",
     "typecheck": "tsc --noEmit",
-    "plan:check": "tsx scripts/plan-gate.ts"
+    "plan:check": "tsx scripts/plan-gate.ts",
+    "test:match": "node scripts/run-tests.mjs --match"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.39.0",
