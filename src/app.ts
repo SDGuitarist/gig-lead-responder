@@ -10,6 +10,7 @@ import followUpApiRouter from "./follow-up-api.js";
 import { sessionAuth, csrfGuard, logout } from "./auth.js";
 import { errorHandler } from "./utils/error-handler.js";
 import { getRejectedEmailCount } from "./automation/source-validator.js";
+import { getPollerState } from "./db/poller-state.js";
 import { getBuildCommit, STARTED_AT } from "./build-info.js";
 
 /**
@@ -49,11 +50,14 @@ export function createApp() {
 
   // Healthcheck for Railway (before any auth middleware)
   app.get("/health", (_req, res) => {
+    const poller = getPollerState();
     res.json({
       status: "ok",
       rejectedEmails: getRejectedEmailCount(),
       commit: getBuildCommit(),
       startedAt: STARTED_AT,
+      // "never" = no poll has finished since this DB was made (plan 0.3).
+      poller: { last_success_at: poller.lastSuccessAt, auth: poller.auth ?? "never" },
     });
   });
 
