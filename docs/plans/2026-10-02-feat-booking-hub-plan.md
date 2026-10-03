@@ -211,6 +211,11 @@ The source is `~/Desktop/Gig_Lead_Response_System_4.0_Extraction.md`, plus
 `~/Desktop/Rate_Card_Solo_Duo.md` for file 6. **Move both into `~/Data/`** before the port; they
 hold rates and a real client lead and do not go in the repo.
 
+**Output of 0.3:** `docs/research/2026-10-02-booking-hub/port-manifest.md`, one row per ported rule:
+the rule id, its source (Project file or memory), where it lands (loaded doc, prompt builder or
+`rates.ts`), and a marker string the "port manifest loaded" test looks for. The manifest lists
+rule ids and landing places only, never rates or client text.
+
 **Questions for Alex, asked one at a time during 0.3:**
 - **(a) Trio/Ensemble rate card.** Alex reviews the side-by-side in
   `docs/research/2026-10-02-booking-hub/trio-ensemble-diff.md` block by block. The repo has old
