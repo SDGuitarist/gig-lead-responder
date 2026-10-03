@@ -31,12 +31,12 @@
 | R017 | P1 | COMPRESSED DRAFT ([X] words, [Competition Level]) | ALREADY PRESENT | `src/prompts/generate.ts`: `compressed_draft`, sized by competition level | always | `compressed_draft` |  |
 | R018 | P1 | STRATEGIC RESERVE (for follow-up) | TO PORT | No strategic reserve anywhere in `src/`. Destination: a `strategic_reserve` output of `buildGeneratePrompt`, read by the follow-up prompt (`src/prompts/follow-up.ts`) | always |  |  |
 | R019 | P1 | Cross-Reference Index | NOT PORTED | a navigation table for the chat Project; each file it points to has its own rows. Approved by Alex 2026-10-03 (q-d) |  |  |  |
-| R020 | F1 | When to use this template | UNREVIEWED | | | | |
-| R021 | F1 | The structure, in order | UNREVIEWED | | | | |
-| R022 | F1 | Fill-in template | UNREVIEWED | | | | |
-| R023 | F1 | Re-derive for every lead (never copy) | UNREVIEWED | | | | |
-| R024 | F1 | Fixed by standing rules (always keep) | UNREVIEWED | | | | |
-| R025 | F1 | Known deviations from the protocol | UNREVIEWED | | | | |
+| R020 | F1 | When to use this template | TO PORT | Plan 0.5: the `buildGeneratePrompt` few-shot block when `buyer_track = T4`. Blocked by R403 (T4 tier and `buyer_track` don't exist yet; T4 rates need Alex). The reply names a real client: anonymize before it enters the public repo | `buyer_track = T4` | | |
+| R021 | F1 | The structure, in order | TO PORT | Plan 0.5: the `buildGeneratePrompt` few-shot block when `buyer_track = T4`. Blocked by R403 (T4 tier and `buyer_track` don't exist yet; T4 rates need Alex). The reply names a real client: anonymize before it enters the public repo | `buyer_track = T4` | | |
+| R022 | F1 | Fill-in template | TO PORT | Plan 0.5: the `buildGeneratePrompt` few-shot block when `buyer_track = T4`. Blocked by R403 (T4 tier and `buyer_track` don't exist yet; T4 rates need Alex). The reply names a real client: anonymize before it enters the public repo | `buyer_track = T4` | | |
+| R023 | F1 | Re-derive for every lead (never copy) | TO PORT | Plan 0.5: the `buildGeneratePrompt` few-shot block when `buyer_track = T4`. Blocked by R403 (T4 tier and `buyer_track` don't exist yet; T4 rates need Alex). The reply names a real client: anonymize before it enters the public repo | `buyer_track = T4` | | |
+| R024 | F1 | Fixed by standing rules (always keep) | TO PORT | Plan 0.5: the `buildGeneratePrompt` few-shot block when `buyer_track = T4`. Blocked by R403 (T4 tier and `buyer_track` don't exist yet; T4 rates need Alex). The reply names a real client: anonymize before it enters the public repo | `buyer_track = T4` | | |
+| R025 | F1 | Known deviations from the protocol | TO PORT | Plan 0.5: the `buildGeneratePrompt` few-shot block when `buyer_track = T4`. Blocked by R403 (T4 tier and `buyer_track` don't exist yet; T4 rates need Alex). The reply names a real client: anonymize before it enters the public repo | `buyer_track = T4` | | |
 | R026 | F2 | Pacific Flow Entertainment: Voice Specification | PORTED | `docs/LEAD_RESPONSE_VOICE.md`, loaded for every lead by `selectContext` | always | `## LEAD RESPONSE VOICE` | `port manifest F2` |
 | R027 | F2 | Who Alex Is (For Voice Calibration) | PORTED | `docs/LEAD_RESPONSE_VOICE.md`, loaded for every lead by `selectContext` | always | `Who Alex Is` | `port manifest F2` |
 | R028 | F2 | Voice DNA | PORTED | `docs/LEAD_RESPONSE_VOICE.md`, loaded for every lead by `selectContext` | always | `Voice DNA` | `port manifest F2` |
