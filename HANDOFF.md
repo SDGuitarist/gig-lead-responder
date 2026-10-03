@@ -32,6 +32,15 @@
    today) / store it in `~/Data`. Not done.
 3. 0.2 steps 2–3 (stop Railway, revoke grant), 0.5 file move, S2/G1 real sends, Full Disk Access (S3) — unchanged, need his yes.
 
+**Update 2026-10-03 (later, same day; details in `spikes.md`):**
+- Railway: config read (live auto-send was on), deployment removed (`/health` → 404), **GitHub disconnected**.
+- Gmail: no grant existed on either mailbox, so nothing to revoke. App published to **"In production"**; Mac re-signed-in
+  at 08:21 and verified (`getProfile` → alex.guillen.music@gmail.com). S5 check due **2026-10-11**.
+- ZIP table committed (Alex OK'd public); Desktop extraction files moved to `~/Data/gig-lead-responder/`; direct
+  `node --test` runs can no longer bill.
+- ⚠ **HARD GATE: do NOT start the Mac poller (0.2 step 5).** Drafting still uses the paid API key (`src/claude.ts`), not
+  Max. Unblock only via the §1.6 `claude -p` provider or with drafting disabled. Alex also still owes the C1 call.
+
 **Queued, no Alex needed (next session, in this order):**
 - 0.3 **Twilio delete**. ⚠ `poller.ts` falls back to DRY RUN when Twilio creds are missing; deleting Twilio must replace that
   gate explicitly, or the poller could go LIVE. Write the "stays dry-run" test first.
