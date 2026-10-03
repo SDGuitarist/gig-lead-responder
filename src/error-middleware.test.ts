@@ -44,7 +44,8 @@ function request(
   method: string,
   path: string,
   body?: string,
-  contentType?: string
+  contentType?: string,
+  extraHeaders: Record<string, string> = {},
 ): Promise<{ status: number; headers: http.IncomingHttpHeaders; body: string }> {
   return new Promise((resolve, reject) => {
     const addr = server.address() as { port: number };
@@ -53,7 +54,7 @@ function request(
       port: addr.port,
       path,
       method,
-      headers: contentType ? { "Content-Type": contentType } : {},
+      headers: { ...(contentType ? { "Content-Type": contentType } : {}), ...extraHeaders },
     };
     const req = http.request(options, (res) => {
       const chunks: Buffer[] = [];
@@ -141,26 +142,42 @@ describe("Global error middleware", () => {
   });
 
   it("preserves legacy redirects, static assets, and 404s in the real app", async () => {
+    // The dashboard always requires a login now (plan 0.3), so log in.
+    const saved = { u: process.env.DASHBOARD_USER, p: process.env.DASHBOARD_PASS, c: process.env.COOKIE_SECRET };
+    process.env.DASHBOARD_USER = "alex";
+    process.env.DASHBOARD_PASS = "test-pass-123";
+    process.env.COOKIE_SECRET ??= "test-cookie-secret-0123456789";
+    const auth = { Authorization: "Basic " + Buffer.from("alex:test-pass-123").toString("base64") };
+    after(() => {
+      for (const [k, v] of [["DASHBOARD_USER", saved.u], ["DASHBOARD_PASS", saved.p], ["COOKIE_SECRET", saved.c]] as const) {
+        if (v === undefined) delete process.env[k]; else process.env[k] = v;
+      }
+    });
     const realApp = createApp();
 
     await withServer(realApp, async (srv) => {
-      const rootRes = await request(srv, "GET", "/");
+      const rootRes = await request(srv, "GET", "/", undefined, undefined, auth);
       assert.equal(rootRes.status, 302);
       assert.equal(rootRes.headers.location, "/dashboard.html");
 
-      const legacyRes = await request(srv, "GET", "/index.html");
+      const legacyRes = await request(srv, "GET", "/index.html", undefined, undefined, auth);
       assert.equal(legacyRes.status, 302);
       assert.equal(legacyRes.headers.location, "/dashboard.html");
 
-      const dashboardRes = await request(srv, "GET", "/dashboard.html");
+      const dashboardRes = await request(srv, "GET", "/dashboard.html", undefined, undefined, auth);
       assert.equal(dashboardRes.status, 200);
       assert.ok(
         dashboardRes.headers["content-type"]?.includes("text/html"),
         `Expected HTML content-type, got: ${dashboardRes.headers["content-type"]}`
       );
 
+      // Without a login an unknown path is 401: the API router's sessionAuth
+      // answers before the 404, so the route map isn't revealed.
+      const anonRes = await request(srv, "GET", "/nonexistent");
+      assert.equal(anonRes.status, 401);
+
       // Unmatched route returns 404 from the real middleware stack
-      const res = await request(srv, "GET", "/nonexistent");
+      const res = await request(srv, "GET", "/nonexistent", undefined, undefined, auth);
       assert.equal(res.status, 404);
       const json = JSON.parse(res.body);
       assert.equal(json.error, "Not found");

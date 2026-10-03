@@ -1,5 +1,5 @@
 import type { Request, Response, NextFunction } from "express";
-import { timingSafeEqual, createHmac, randomBytes } from "node:crypto";
+import { timingSafeEqual, createHmac } from "node:crypto";
 
 // --- Cookie config ---
 
@@ -7,14 +7,10 @@ const COOKIE_NAME = "session";
 const COOKIE_MAX_AGE_S = 14 * 24 * 60 * 60; // 14 days
 const COOKIE_MAX_AGE_MS = COOKIE_MAX_AGE_S * 1000;
 
-/** Get or generate COOKIE_SECRET. Falls back to random bytes in dev. */
+/** COOKIE_SECRET is required in every environment (plan 0.3). */
 function getCookieSecret(): string {
   if (process.env.COOKIE_SECRET) return process.env.COOKIE_SECRET;
-  if (process.env.NODE_ENV === "production" || process.env.RAILWAY_ENVIRONMENT) {
-    throw new Error("COOKIE_SECRET must be set in production");
-  }
-  console.warn("WARNING: Using random COOKIE_SECRET — sessions won't survive restarts");
-  return randomBytes(32).toString("hex");
+  throw new Error("COOKIE_SECRET must be set");
 }
 
 let cookieSecret: string | null = null;
@@ -114,14 +110,9 @@ export function sessionAuth(req: Request, res: Response, next: NextFunction): vo
   const user = process.env.DASHBOARD_USER;
   const pass = process.env.DASHBOARD_PASS;
 
-  // Dev bypass when creds aren't set
+  // No dev bypass: missing creds is a misconfiguration in every environment.
   if (!user || !pass) {
-    if (process.env.NODE_ENV === "production" || process.env.RAILWAY_ENVIRONMENT) {
-      res.status(500).json({ error: "Server misconfigured — auth credentials missing" });
-      return;
-    }
-    console.warn("WARNING: Auth disabled — DASHBOARD_USER/DASHBOARD_PASS not set");
-    next();
+    res.status(500).json({ error: "Server misconfigured — auth credentials missing" });
     return;
   }
 
