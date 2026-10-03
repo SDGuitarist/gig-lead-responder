@@ -117,18 +117,14 @@ export function initDb(): Database.Database {
   if (needsFollowUpRebuild) {
     console.log("Migration: rebuilding leads table to add 'replied' to follow_up_status CHECK...");
 
-    // Pre-check: deduplicate mailgun_message_id before rebuild (UNIQUE constraint would fail)
+    // Pre-check: duplicate mailgun_message_id would break the UNIQUE rebuild.
+    // Refuse instead of deleting rows (plan 0.4); a human decides which to keep.
     const dupes = db.prepare(
       "SELECT mailgun_message_id, COUNT(*) as cnt FROM leads WHERE mailgun_message_id IS NOT NULL GROUP BY mailgun_message_id HAVING cnt > 1",
     ).all() as Array<{ mailgun_message_id: string; cnt: number }>;
     if (dupes.length > 0) {
-      console.warn(`Migration: found ${dupes.length} duplicate mailgun_message_id(s) — deduplicating (keeping newest)...`);
-      for (const dupe of dupes) {
-        db.prepare(
-          "DELETE FROM leads WHERE mailgun_message_id = ? AND id NOT IN (SELECT MAX(id) FROM leads WHERE mailgun_message_id = ?)",
-        ).run(dupe.mailgun_message_id, dupe.mailgun_message_id);
-      }
-      console.log("Migration: duplicates resolved.");
+      const ids = dupes.map((d) => `${d.mailgun_message_id} (${d.cnt} rows)`).join(", ");
+      throw new Error(`Migration stopped: duplicate mailgun_message_id in leads: ${ids}. No rows were changed.`);
     }
 
     const colNames = (db.pragma("table_info(leads)") as Array<{ name: string }>).map(c => c.name);
