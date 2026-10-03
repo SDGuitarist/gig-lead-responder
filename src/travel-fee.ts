@@ -4,9 +4,9 @@ import { dirname, join } from "node:path";
 import type { TravelFeeResult, TravelFeeData, TravelBand } from "./types.js";
 
 // Load zip_distances.json once at module init.
-// Path resolution: src/travel-fee.ts → ../data/zip_distances.json
+// Path resolution: src/travel-fee.ts → ./data/zip_distances.json (tracked in git)
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const ZIP_DATA_PATH = join(__dirname, "..", "data", "zip_distances.json");
+const ZIP_DATA_PATH = join(__dirname, "data", "zip_distances.json");
 
 type ZipEntry = { miles: number; band: TravelBand };
 type ZipData = Record<string, ZipEntry>;

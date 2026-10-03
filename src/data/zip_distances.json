@@ -1,0 +1,5062 @@
+{
+  "85320": {
+    "miles": 306.9,
+    "band": "Overnight"
+  },
+  "85325": {
+    "miles": 269.7,
+    "band": "Overnight"
+  },
+  "85328": {
+    "miles": 208.5,
+    "band": "Overnight"
+  },
+  "85333": {
+    "miles": 250.4,
+    "band": "Overnight"
+  },
+  "85334": {
+    "miles": 225.2,
+    "band": "Overnight"
+  },
+  "85336": {
+    "miles": 193.9,
+    "band": "Very Far"
+  },
+  "85344": {
+    "miles": 267.0,
+    "band": "Overnight"
+  },
+  "85346": {
+    "miles": 250.2,
+    "band": "Overnight"
+  },
+  "85347": {
+    "miles": 217.8,
+    "band": "Overnight"
+  },
+  "85348": {
+    "miles": 283.3,
+    "band": "Overnight"
+  },
+  "85349": {
+    "miles": 199.2,
+    "band": "Very Far"
+  },
+  "85350": {
+    "miles": 189.4,
+    "band": "Very Far"
+  },
+  "85352": {
+    "miles": 214.2,
+    "band": "Overnight"
+  },
+  "85354": {
+    "miles": 321.3,
+    "band": "Overnight"
+  },
+  "85356": {
+    "miles": 204.8,
+    "band": "Overnight"
+  },
+  "85357": {
+    "miles": 309.0,
+    "band": "Overnight"
+  },
+  "85359": {
+    "miles": 241.8,
+    "band": "Overnight"
+  },
+  "85360": {
+    "miles": 384.1,
+    "band": "Overnight"
+  },
+  "85364": {
+    "miles": 175.9,
+    "band": "Very Far"
+  },
+  "85365": {
+    "miles": 183.7,
+    "band": "Very Far"
+  },
+  "85366": {
+    "miles": 185.5,
+    "band": "Very Far"
+  },
+  "85367": {
+    "miles": 188.8,
+    "band": "Very Far"
+  },
+  "85369": {
+    "miles": 173.3,
+    "band": "Very Far"
+  },
+  "85371": {
+    "miles": 252.4,
+    "band": "Overnight"
+  },
+  "86403": {
+    "miles": 306.1,
+    "band": "Overnight"
+  },
+  "86404": {
+    "miles": 313.6,
+    "band": "Overnight"
+  },
+  "86405": {
+    "miles": 305.4,
+    "band": "Overnight"
+  },
+  "86413": {
+    "miles": 386.2,
+    "band": "Overnight"
+  },
+  "86426": {
+    "miles": 339.3,
+    "band": "Overnight"
+  },
+  "86427": {
+    "miles": 338.7,
+    "band": "Overnight"
+  },
+  "86429": {
+    "miles": 358.6,
+    "band": "Overnight"
+  },
+  "86430": {
+    "miles": 359.2,
+    "band": "Overnight"
+  },
+  "86433": {
+    "miles": 349.3,
+    "band": "Overnight"
+  },
+  "86436": {
+    "miles": 324.0,
+    "band": "Overnight"
+  },
+  "86438": {
+    "miles": 344.1,
+    "band": "Overnight"
+  },
+  "86439": {
+    "miles": 358.4,
+    "band": "Overnight"
+  },
+  "86440": {
+    "miles": 330.0,
+    "band": "Overnight"
+  },
+  "86442": {
+    "miles": 345.9,
+    "band": "Overnight"
+  },
+  "86443": {
+    "miles": 381.8,
+    "band": "Overnight"
+  },
+  "86446": {
+    "miles": 328.3,
+    "band": "Overnight"
+  },
+  "89019": {
+    "miles": 305.3,
+    "band": "Overnight"
+  },
+  "89026": {
+    "miles": 309.2,
+    "band": "Overnight"
+  },
+  "89028": {
+    "miles": 343.4,
+    "band": "Overnight"
+  },
+  "89029": {
+    "miles": 345.2,
+    "band": "Overnight"
+  },
+  "89039": {
+    "miles": 333.0,
+    "band": "Overnight"
+  },
+  "89046": {
+    "miles": 324.6,
+    "band": "Overnight"
+  },
+  "89061": {
+    "miles": 336.9,
+    "band": "Overnight"
+  },
+  "90001": {
+    "miles": 131.4,
+    "band": "Far"
+  },
+  "90002": {
+    "miles": 129.7,
+    "band": "Far"
+  },
+  "90003": {
+    "miles": 131.5,
+    "band": "Far"
+  },
+  "90004": {
+    "miles": 134.9,
+    "band": "Far"
+  },
+  "90005": {
+    "miles": 134.4,
+    "band": "Far"
+  },
+  "90006": {
+    "miles": 133.3,
+    "band": "Far"
+  },
+  "90007": {
+    "miles": 133.0,
+    "band": "Far"
+  },
+  "90008": {
+    "miles": 139.1,
+    "band": "Far"
+  },
+  "90009": {
+    "miles": 130.7,
+    "band": "Far"
+  },
+  "90010": {
+    "miles": 134.8,
+    "band": "Far"
+  },
+  "90011": {
+    "miles": 135.3,
+    "band": "Far"
+  },
+  "90012": {
+    "miles": 130.8,
+    "band": "Far"
+  },
+  "90013": {
+    "miles": 130.3,
+    "band": "Far"
+  },
+  "90014": {
+    "miles": 131.8,
+    "band": "Far"
+  },
+  "90015": {
+    "miles": 131.7,
+    "band": "Far"
+  },
+  "90016": {
+    "miles": 136.4,
+    "band": "Far"
+  },
+  "90017": {
+    "miles": 132.5,
+    "band": "Far"
+  },
+  "90018": {
+    "miles": 134.7,
+    "band": "Far"
+  },
+  "90019": {
+    "miles": 136.2,
+    "band": "Far"
+  },
+  "90020": {
+    "miles": 135.7,
+    "band": "Far"
+  },
+  "90021": {
+    "miles": 129.8,
+    "band": "Far"
+  },
+  "90022": {
+    "miles": 125.3,
+    "band": "Far"
+  },
+  "90023": {
+    "miles": 127.0,
+    "band": "Far"
+  },
+  "90024": {
+    "miles": 143.0,
+    "band": "Very Far"
+  },
+  "90025": {
+    "miles": 141.8,
+    "band": "Very Far"
+  },
+  "90026": {
+    "miles": 132.7,
+    "band": "Far"
+  },
+  "90027": {
+    "miles": 137.6,
+    "band": "Far"
+  },
+  "90028": {
+    "miles": 136.9,
+    "band": "Far"
+  },
+  "90029": {
+    "miles": 134.9,
+    "band": "Far"
+  },
+  "90030": {
+    "miles": 130.7,
+    "band": "Far"
+  },
+  "90031": {
+    "miles": 131.5,
+    "band": "Far"
+  },
+  "90032": {
+    "miles": 132.0,
+    "band": "Far"
+  },
+  "90033": {
+    "miles": 129.7,
+    "band": "Far"
+  },
+  "90034": {
+    "miles": 140.6,
+    "band": "Very Far"
+  },
+  "90035": {
+    "miles": 138.7,
+    "band": "Far"
+  },
+  "90036": {
+    "miles": 138.6,
+    "band": "Far"
+  },
+  "90037": {
+    "miles": 134.2,
+    "band": "Far"
+  },
+  "90038": {
+    "miles": 136.0,
+    "band": "Far"
+  },
+  "90039": {
+    "miles": 135.5,
+    "band": "Far"
+  },
+  "90040": {
+    "miles": 123.2,
+    "band": "Far"
+  },
+  "90041": {
+    "miles": 137.4,
+    "band": "Far"
+  },
+  "90042": {
+    "miles": 135.1,
+    "band": "Far"
+  },
+  "90043": {
+    "miles": 137.3,
+    "band": "Far"
+  },
+  "90044": {
+    "miles": 131.3,
+    "band": "Far"
+  },
+  "90045": {
+    "miles": 136.1,
+    "band": "Far"
+  },
+  "90046": {
+    "miles": 140.2,
+    "band": "Very Far"
+  },
+  "90047": {
+    "miles": 132.5,
+    "band": "Far"
+  },
+  "90048": {
+    "miles": 140.2,
+    "band": "Very Far"
+  },
+  "90049": {
+    "miles": 144.7,
+    "band": "Very Far"
+  },
+  "90050": {
+    "miles": 130.7,
+    "band": "Far"
+  },
+  "90051": {
+    "miles": 130.7,
+    "band": "Far"
+  },
+  "90052": {
+    "miles": 130.7,
+    "band": "Far"
+  },
+  "90053": {
+    "miles": 130.7,
+    "band": "Far"
+  },
+  "90054": {
+    "miles": 130.7,
+    "band": "Far"
+  },
+  "90055": {
+    "miles": 130.7,
+    "band": "Far"
+  },
+  "90056": {
+    "miles": 135.6,
+    "band": "Far"
+  },
+  "90057": {
+    "miles": 133.4,
+    "band": "Far"
+  },
+  "90058": {
+    "miles": 127.8,
+    "band": "Far"
+  },
+  "90059": {
+    "miles": 128.3,
+    "band": "Far"
+  },
+  "90060": {
+    "miles": 130.7,
+    "band": "Far"
+  },
+  "90061": {
+    "miles": 129.6,
+    "band": "Far"
+  },
+  "90062": {
+    "miles": 135.3,
+    "band": "Far"
+  },
+  "90063": {
+    "miles": 128.0,
+    "band": "Far"
+  },
+  "90064": {
+    "miles": 140.6,
+    "band": "Very Far"
+  },
+  "90065": {
+    "miles": 134.2,
+    "band": "Far"
+  },
+  "90066": {
+    "miles": 139.8,
+    "band": "Far"
+  },
+  "90067": {
+    "miles": 142.7,
+    "band": "Very Far"
+  },
+  "90068": {
+    "miles": 137.7,
+    "band": "Far"
+  },
+  "90069": {
+    "miles": 141.2,
+    "band": "Very Far"
+  },
+  "90070": {
+    "miles": 130.7,
+    "band": "Far"
+  },
+  "90071": {
+    "miles": 133.3,
+    "band": "Far"
+  },
+  "90072": {
+    "miles": 130.7,
+    "band": "Far"
+  },
+  "90073": {
+    "miles": 129.7,
+    "band": "Far"
+  },
+  "90074": {
+    "miles": 130.7,
+    "band": "Far"
+  },
+  "90075": {
+    "miles": 130.7,
+    "band": "Far"
+  },
+  "90076": {
+    "miles": 130.7,
+    "band": "Far"
+  },
+  "90077": {
+    "miles": 148.3,
+    "band": "Very Far"
+  },
+  "90078": {
+    "miles": 130.7,
+    "band": "Far"
+  },
+  "90079": {
+    "miles": 129.7,
+    "band": "Far"
+  },
+  "90080": {
+    "miles": 130.7,
+    "band": "Far"
+  },
+  "90081": {
+    "miles": 130.7,
+    "band": "Far"
+  },
+  "90082": {
+    "miles": 130.7,
+    "band": "Far"
+  },
+  "90083": {
+    "miles": 130.7,
+    "band": "Far"
+  },
+  "90084": {
+    "miles": 130.7,
+    "band": "Far"
+  },
+  "90086": {
+    "miles": 130.7,
+    "band": "Far"
+  },
+  "90087": {
+    "miles": 130.7,
+    "band": "Far"
+  },
+  "90088": {
+    "miles": 130.7,
+    "band": "Far"
+  },
+  "90089": {
+    "miles": 129.7,
+    "band": "Far"
+  },
+  "90090": {
+    "miles": 133.0,
+    "band": "Far"
+  },
+  "90091": {
+    "miles": 130.7,
+    "band": "Far"
+  },
+  "90093": {
+    "miles": 130.7,
+    "band": "Far"
+  },
+  "90094": {
+    "miles": 138.5,
+    "band": "Far"
+  },
+  "90095": {
+    "miles": 129.7,
+    "band": "Far"
+  },
+  "90096": {
+    "miles": 130.7,
+    "band": "Far"
+  },
+  "90099": {
+    "miles": 130.7,
+    "band": "Far"
+  },
+  "90134": {
+    "miles": 130.7,
+    "band": "Far"
+  },
+  "90189": {
+    "miles": 131.9,
+    "band": "Far"
+  },
+  "90201": {
+    "miles": 122.7,
+    "band": "Far"
+  },
+  "90202": {
+    "miles": 130.3,
+    "band": "Far"
+  },
+  "90209": {
+    "miles": 144.7,
+    "band": "Very Far"
+  },
+  "90210": {
+    "miles": 148.5,
+    "band": "Very Far"
+  },
+  "90211": {
+    "miles": 140.5,
+    "band": "Very Far"
+  },
+  "90212": {
+    "miles": 143.8,
+    "band": "Very Far"
+  },
+  "90213": {
+    "miles": 144.7,
+    "band": "Very Far"
+  },
+  "90220": {
+    "miles": 124.7,
+    "band": "Far"
+  },
+  "90221": {
+    "miles": 123.9,
+    "band": "Far"
+  },
+  "90222": {
+    "miles": 127.2,
+    "band": "Far"
+  },
+  "90223": {
+    "miles": 125.0,
+    "band": "Far"
+  },
+  "90224": {
+    "miles": 129.7,
+    "band": "Far"
+  },
+  "90230": {
+    "miles": 137.2,
+    "band": "Far"
+  },
+  "90231": {
+    "miles": 139.3,
+    "band": "Far"
+  },
+  "90232": {
+    "miles": 139.1,
+    "band": "Far"
+  },
+  "90233": {
+    "miles": 139.3,
+    "band": "Far"
+  },
+  "90239": {
+    "miles": 121.5,
+    "band": "Far"
+  },
+  "90240": {
+    "miles": 120.4,
+    "band": "Far"
+  },
+  "90241": {
+    "miles": 120.6,
+    "band": "Far"
+  },
+  "90242": {
+    "miles": 122.8,
+    "band": "Far"
+  },
+  "90245": {
+    "miles": 135.3,
+    "band": "Far"
+  },
+  "90247": {
+    "miles": 126.7,
+    "band": "Far"
+  },
+  "90248": {
+    "miles": 124.9,
+    "band": "Far"
+  },
+  "90249": {
+    "miles": 128.8,
+    "band": "Far"
+  },
+  "90250": {
+    "miles": 130.4,
+    "band": "Far"
+  },
+  "90251": {
+    "miles": 131.8,
+    "band": "Far"
+  },
+  "90254": {
+    "miles": 130.9,
+    "band": "Far"
+  },
+  "90255": {
+    "miles": 131.6,
+    "band": "Far"
+  },
+  "90260": {
+    "miles": 128.8,
+    "band": "Far"
+  },
+  "90261": {
+    "miles": 128.4,
+    "band": "Far"
+  },
+  "90262": {
+    "miles": 127.0,
+    "band": "Far"
+  },
+  "90263": {
+    "miles": 164.8,
+    "band": "Very Far"
+  },
+  "90264": {
+    "miles": 164.8,
+    "band": "Very Far"
+  },
+  "90265": {
+    "miles": 161.1,
+    "band": "Very Far"
+  },
+  "90266": {
+    "miles": 131.5,
+    "band": "Far"
+  },
+  "90267": {
+    "miles": 129.7,
+    "band": "Far"
+  },
+  "90270": {
+    "miles": 125.2,
+    "band": "Far"
+  },
+  "90272": {
+    "miles": 147.5,
+    "band": "Very Far"
+  },
+  "90274": {
+    "miles": 136.4,
+    "band": "Far"
+  },
+  "90275": {
+    "miles": 135.8,
+    "band": "Far"
+  },
+  "90277": {
+    "miles": 131.6,
+    "band": "Far"
+  },
+  "90278": {
+    "miles": 129.5,
+    "band": "Far"
+  },
+  "90280": {
+    "miles": 128.2,
+    "band": "Far"
+  },
+  "90290": {
+    "miles": 165.9,
+    "band": "Very Far"
+  },
+  "90291": {
+    "miles": 140.9,
+    "band": "Very Far"
+  },
+  "90292": {
+    "miles": 141.3,
+    "band": "Very Far"
+  },
+  "90293": {
+    "miles": 137.6,
+    "band": "Far"
+  },
+  "90294": {
+    "miles": 140.6,
+    "band": "Very Far"
+  },
+  "90295": {
+    "miles": 129.7,
+    "band": "Far"
+  },
+  "90296": {
+    "miles": 129.7,
+    "band": "Far"
+  },
+  "90301": {
+    "miles": 134.2,
+    "band": "Far"
+  },
+  "90302": {
+    "miles": 135.6,
+    "band": "Far"
+  },
+  "90303": {
+    "miles": 132.6,
+    "band": "Far"
+  },
+  "90304": {
+    "miles": 132.8,
+    "band": "Far"
+  },
+  "90305": {
+    "miles": 133.7,
+    "band": "Far"
+  },
+  "90306": {
+    "miles": 134.8,
+    "band": "Far"
+  },
+  "90307": {
+    "miles": 129.7,
+    "band": "Far"
+  },
+  "90308": {
+    "miles": 134.8,
+    "band": "Far"
+  },
+  "90309": {
+    "miles": 129.7,
+    "band": "Far"
+  },
+  "90310": {
+    "miles": 129.7,
+    "band": "Far"
+  },
+  "90311": {
+    "miles": 134.8,
+    "band": "Far"
+  },
+  "90312": {
+    "miles": 134.8,
+    "band": "Far"
+  },
+  "90401": {
+    "miles": 143.8,
+    "band": "Very Far"
+  },
+  "90402": {
+    "miles": 145.3,
+    "band": "Very Far"
+  },
+  "90403": {
+    "miles": 144.1,
+    "band": "Very Far"
+  },
+  "90404": {
+    "miles": 142.5,
+    "band": "Very Far"
+  },
+  "90405": {
+    "miles": 143.3,
+    "band": "Very Far"
+  },
+  "90406": {
+    "miles": 143.9,
+    "band": "Very Far"
+  },
+  "90407": {
+    "miles": 143.9,
+    "band": "Very Far"
+  },
+  "90408": {
+    "miles": 143.9,
+    "band": "Very Far"
+  },
+  "90409": {
+    "miles": 143.9,
+    "band": "Very Far"
+  },
+  "90410": {
+    "miles": 143.9,
+    "band": "Very Far"
+  },
+  "90411": {
+    "miles": 143.9,
+    "band": "Very Far"
+  },
+  "90501": {
+    "miles": 127.7,
+    "band": "Far"
+  },
+  "90502": {
+    "miles": 126.2,
+    "band": "Far"
+  },
+  "90503": {
+    "miles": 129.5,
+    "band": "Far"
+  },
+  "90504": {
+    "miles": 126.6,
+    "band": "Far"
+  },
+  "90505": {
+    "miles": 131.0,
+    "band": "Far"
+  },
+  "90506": {
+    "miles": 129.7,
+    "band": "Far"
+  },
+  "90507": {
+    "miles": 129.7,
+    "band": "Far"
+  },
+  "90508": {
+    "miles": 129.7,
+    "band": "Far"
+  },
+  "90509": {
+    "miles": 129.7,
+    "band": "Far"
+  },
+  "90510": {
+    "miles": 129.7,
+    "band": "Far"
+  },
+  "90601": {
+    "miles": 124.7,
+    "band": "Far"
+  },
+  "90602": {
+    "miles": 119.2,
+    "band": "Far"
+  },
+  "90603": {
+    "miles": 116.5,
+    "band": "Far"
+  },
+  "90604": {
+    "miles": 116.7,
+    "band": "Far"
+  },
+  "90605": {
+    "miles": 117.4,
+    "band": "Far"
+  },
+  "90606": {
+    "miles": 121.9,
+    "band": "Far"
+  },
+  "90607": {
+    "miles": 119.8,
+    "band": "Far"
+  },
+  "90608": {
+    "miles": 119.8,
+    "band": "Far"
+  },
+  "90609": {
+    "miles": 119.8,
+    "band": "Far"
+  },
+  "90610": {
+    "miles": 119.8,
+    "band": "Far"
+  },
+  "90620": {
+    "miles": 112.1,
+    "band": "Far"
+  },
+  "90621": {
+    "miles": 111.5,
+    "band": "Far"
+  },
+  "90622": {
+    "miles": 111.2,
+    "band": "Far"
+  },
+  "90623": {
+    "miles": 113.7,
+    "band": "Far"
+  },
+  "90624": {
+    "miles": 111.5,
+    "band": "Far"
+  },
+  "90630": {
+    "miles": 111.0,
+    "band": "Far"
+  },
+  "90631": {
+    "miles": 115.6,
+    "band": "Far"
+  },
+  "90632": {
+    "miles": 114.1,
+    "band": "Far"
+  },
+  "90633": {
+    "miles": 115.6,
+    "band": "Far"
+  },
+  "90637": {
+    "miles": 116.0,
+    "band": "Far"
+  },
+  "90638": {
+    "miles": 114.1,
+    "band": "Far"
+  },
+  "90639": {
+    "miles": 114.7,
+    "band": "Far"
+  },
+  "90640": {
+    "miles": 124.0,
+    "band": "Far"
+  },
+  "90650": {
+    "miles": 116.5,
+    "band": "Far"
+  },
+  "90651": {
+    "miles": 115.9,
+    "band": "Far"
+  },
+  "90652": {
+    "miles": 115.9,
+    "band": "Far"
+  },
+  "90660": {
+    "miles": 122.5,
+    "band": "Far"
+  },
+  "90661": {
+    "miles": 122.1,
+    "band": "Far"
+  },
+  "90662": {
+    "miles": 122.1,
+    "band": "Far"
+  },
+  "90670": {
+    "miles": 119.2,
+    "band": "Far"
+  },
+  "90671": {
+    "miles": 119.2,
+    "band": "Far"
+  },
+  "90680": {
+    "miles": 110.3,
+    "band": "Far"
+  },
+  "90701": {
+    "miles": 115.8,
+    "band": "Far"
+  },
+  "90702": {
+    "miles": 116.3,
+    "band": "Far"
+  },
+  "90703": {
+    "miles": 114.5,
+    "band": "Far"
+  },
+  "90706": {
+    "miles": 118.6,
+    "band": "Far"
+  },
+  "90707": {
+    "miles": 119.5,
+    "band": "Far"
+  },
+  "90710": {
+    "miles": 125.0,
+    "band": "Far"
+  },
+  "90711": {
+    "miles": 129.7,
+    "band": "Far"
+  },
+  "90712": {
+    "miles": 117.4,
+    "band": "Far"
+  },
+  "90713": {
+    "miles": 116.4,
+    "band": "Far"
+  },
+  "90714": {
+    "miles": 117.9,
+    "band": "Far"
+  },
+  "90715": {
+    "miles": 115.0,
+    "band": "Far"
+  },
+  "90716": {
+    "miles": 114.7,
+    "band": "Far"
+  },
+  "90717": {
+    "miles": 126.3,
+    "band": "Far"
+  },
+  "90720": {
+    "miles": 112.7,
+    "band": "Far"
+  },
+  "90721": {
+    "miles": 112.8,
+    "band": "Far"
+  },
+  "90723": {
+    "miles": 121.5,
+    "band": "Far"
+  },
+  "90731": {
+    "miles": 128.7,
+    "band": "Far"
+  },
+  "90732": {
+    "miles": 129.2,
+    "band": "Far"
+  },
+  "90733": {
+    "miles": 129.7,
+    "band": "Far"
+  },
+  "90734": {
+    "miles": 129.7,
+    "band": "Far"
+  },
+  "90740": {
+    "miles": 110.5,
+    "band": "Far"
+  },
+  "90742": {
+    "miles": 107.7,
+    "band": "Regional"
+  },
+  "90743": {
+    "miles": 113.4,
+    "band": "Far"
+  },
+  "90744": {
+    "miles": 123.7,
+    "band": "Far"
+  },
+  "90745": {
+    "miles": 121.9,
+    "band": "Far"
+  },
+  "90746": {
+    "miles": 123.7,
+    "band": "Far"
+  },
+  "90747": {
+    "miles": 125.5,
+    "band": "Far"
+  },
+  "90748": {
+    "miles": 123.9,
+    "band": "Far"
+  },
+  "90749": {
+    "miles": 129.7,
+    "band": "Far"
+  },
+  "90755": {
+    "miles": 116.1,
+    "band": "Far"
+  },
+  "90801": {
+    "miles": 116.4,
+    "band": "Far"
+  },
+  "90802": {
+    "miles": 115.8,
+    "band": "Far"
+  },
+  "90803": {
+    "miles": 114.0,
+    "band": "Far"
+  },
+  "90804": {
+    "miles": 113.0,
+    "band": "Far"
+  },
+  "90805": {
+    "miles": 119.7,
+    "band": "Far"
+  },
+  "90806": {
+    "miles": 117.8,
+    "band": "Far"
+  },
+  "90807": {
+    "miles": 117.6,
+    "band": "Far"
+  },
+  "90808": {
+    "miles": 114.5,
+    "band": "Far"
+  },
+  "90809": {
+    "miles": 129.7,
+    "band": "Far"
+  },
+  "90810": {
+    "miles": 120.3,
+    "band": "Far"
+  },
+  "90813": {
+    "miles": 119.3,
+    "band": "Far"
+  },
+  "90814": {
+    "miles": 113.7,
+    "band": "Far"
+  },
+  "90815": {
+    "miles": 112.9,
+    "band": "Far"
+  },
+  "90822": {
+    "miles": 117.0,
+    "band": "Far"
+  },
+  "90831": {
+    "miles": 123.1,
+    "band": "Far"
+  },
+  "90832": {
+    "miles": 116.4,
+    "band": "Far"
+  },
+  "90833": {
+    "miles": 123.1,
+    "band": "Far"
+  },
+  "90834": {
+    "miles": 123.1,
+    "band": "Far"
+  },
+  "90835": {
+    "miles": 123.1,
+    "band": "Far"
+  },
+  "90840": {
+    "miles": 112.5,
+    "band": "Far"
+  },
+  "90842": {
+    "miles": 129.7,
+    "band": "Far"
+  },
+  "90844": {
+    "miles": 116.4,
+    "band": "Far"
+  },
+  "90846": {
+    "miles": 115.9,
+    "band": "Far"
+  },
+  "90847": {
+    "miles": 129.7,
+    "band": "Far"
+  },
+  "90848": {
+    "miles": 129.7,
+    "band": "Far"
+  },
+  "90853": {
+    "miles": 129.7,
+    "band": "Far"
+  },
+  "90895": {
+    "miles": 120.4,
+    "band": "Far"
+  },
+  "90899": {
+    "miles": 116.4,
+    "band": "Far"
+  },
+  "91001": {
+    "miles": 147.6,
+    "band": "Very Far"
+  },
+  "91003": {
+    "miles": 147.1,
+    "band": "Very Far"
+  },
+  "91006": {
+    "miles": 136.1,
+    "band": "Far"
+  },
+  "91007": {
+    "miles": 136.4,
+    "band": "Far"
+  },
+  "91008": {
+    "miles": 136.0,
+    "band": "Far"
+  },
+  "91009": {
+    "miles": 135.5,
+    "band": "Far"
+  },
+  "91010": {
+    "miles": 134.7,
+    "band": "Far"
+  },
+  "91011": {
+    "miles": 144.0,
+    "band": "Very Far"
+  },
+  "91012": {
+    "miles": 143.6,
+    "band": "Very Far"
+  },
+  "91016": {
+    "miles": 137.2,
+    "band": "Far"
+  },
+  "91017": {
+    "miles": 137.6,
+    "band": "Far"
+  },
+  "91020": {
+    "miles": 142.7,
+    "band": "Very Far"
+  },
+  "91021": {
+    "miles": 142.2,
+    "band": "Very Far"
+  },
+  "91023": {
+    "miles": 160.9,
+    "band": "Very Far"
+  },
+  "91024": {
+    "miles": 141.0,
+    "band": "Very Far"
+  },
+  "91025": {
+    "miles": 140.7,
+    "band": "Very Far"
+  },
+  "91030": {
+    "miles": 132.3,
+    "band": "Far"
+  },
+  "91031": {
+    "miles": 132.6,
+    "band": "Far"
+  },
+  "91040": {
+    "miles": 150.2,
+    "band": "Very Far"
+  },
+  "91041": {
+    "miles": 148.6,
+    "band": "Very Far"
+  },
+  "91042": {
+    "miles": 147.1,
+    "band": "Very Far"
+  },
+  "91043": {
+    "miles": 147.2,
+    "band": "Very Far"
+  },
+  "91046": {
+    "miles": 143.8,
+    "band": "Very Far"
+  },
+  "91066": {
+    "miles": 140.3,
+    "band": "Very Far"
+  },
+  "91077": {
+    "miles": 140.3,
+    "band": "Very Far"
+  },
+  "91101": {
+    "miles": 145.2,
+    "band": "Very Far"
+  },
+  "91102": {
+    "miles": 139.1,
+    "band": "Far"
+  },
+  "91103": {
+    "miles": 147.2,
+    "band": "Very Far"
+  },
+  "91104": {
+    "miles": 145.3,
+    "band": "Very Far"
+  },
+  "91105": {
+    "miles": 137.7,
+    "band": "Far"
+  },
+  "91106": {
+    "miles": 144.9,
+    "band": "Very Far"
+  },
+  "91107": {
+    "miles": 142.0,
+    "band": "Very Far"
+  },
+  "91108": {
+    "miles": 134.7,
+    "band": "Far"
+  },
+  "91109": {
+    "miles": 139.1,
+    "band": "Far"
+  },
+  "91110": {
+    "miles": 139.1,
+    "band": "Far"
+  },
+  "91114": {
+    "miles": 139.1,
+    "band": "Far"
+  },
+  "91115": {
+    "miles": 139.1,
+    "band": "Far"
+  },
+  "91116": {
+    "miles": 139.1,
+    "band": "Far"
+  },
+  "91117": {
+    "miles": 139.1,
+    "band": "Far"
+  },
+  "91118": {
+    "miles": 134.7,
+    "band": "Far"
+  },
+  "91121": {
+    "miles": 139.1,
+    "band": "Far"
+  },
+  "91123": {
+    "miles": 139.1,
+    "band": "Far"
+  },
+  "91124": {
+    "miles": 139.1,
+    "band": "Far"
+  },
+  "91125": {
+    "miles": 139.1,
+    "band": "Far"
+  },
+  "91126": {
+    "miles": 139.1,
+    "band": "Far"
+  },
+  "91129": {
+    "miles": 139.1,
+    "band": "Far"
+  },
+  "91182": {
+    "miles": 139.1,
+    "band": "Far"
+  },
+  "91184": {
+    "miles": 139.1,
+    "band": "Far"
+  },
+  "91185": {
+    "miles": 139.1,
+    "band": "Far"
+  },
+  "91188": {
+    "miles": 139.1,
+    "band": "Far"
+  },
+  "91189": {
+    "miles": 139.1,
+    "band": "Far"
+  },
+  "91199": {
+    "miles": 145.8,
+    "band": "Very Far"
+  },
+  "91201": {
+    "miles": 139.7,
+    "band": "Far"
+  },
+  "91202": {
+    "miles": 139.4,
+    "band": "Far"
+  },
+  "91203": {
+    "miles": 139.1,
+    "band": "Far"
+  },
+  "91204": {
+    "miles": 138.3,
+    "band": "Far"
+  },
+  "91205": {
+    "miles": 138.4,
+    "band": "Far"
+  },
+  "91206": {
+    "miles": 138.6,
+    "band": "Far"
+  },
+  "91207": {
+    "miles": 139.7,
+    "band": "Far"
+  },
+  "91208": {
+    "miles": 141.3,
+    "band": "Very Far"
+  },
+  "91209": {
+    "miles": 138.3,
+    "band": "Far"
+  },
+  "91210": {
+    "miles": 138.3,
+    "band": "Far"
+  },
+  "91214": {
+    "miles": 144.2,
+    "band": "Very Far"
+  },
+  "91221": {
+    "miles": 138.3,
+    "band": "Far"
+  },
+  "91222": {
+    "miles": 138.3,
+    "band": "Far"
+  },
+  "91224": {
+    "miles": 143.6,
+    "band": "Very Far"
+  },
+  "91225": {
+    "miles": 138.3,
+    "band": "Far"
+  },
+  "91226": {
+    "miles": 138.3,
+    "band": "Far"
+  },
+  "91301": {
+    "miles": 170.1,
+    "band": "Very Far"
+  },
+  "91302": {
+    "miles": 163.2,
+    "band": "Very Far"
+  },
+  "91303": {
+    "miles": 159.9,
+    "band": "Very Far"
+  },
+  "91304": {
+    "miles": 162.5,
+    "band": "Very Far"
+  },
+  "91305": {
+    "miles": 160.0,
+    "band": "Very Far"
+  },
+  "91306": {
+    "miles": 159.0,
+    "band": "Very Far"
+  },
+  "91307": {
+    "miles": 163.2,
+    "band": "Very Far"
+  },
+  "91308": {
+    "miles": 163.1,
+    "band": "Very Far"
+  },
+  "91309": {
+    "miles": 160.0,
+    "band": "Very Far"
+  },
+  "91310": {
+    "miles": 170.2,
+    "band": "Very Far"
+  },
+  "91311": {
+    "miles": 160.7,
+    "band": "Very Far"
+  },
+  "91313": {
+    "miles": 161.9,
+    "band": "Very Far"
+  },
+  "91316": {
+    "miles": 153.7,
+    "band": "Very Far"
+  },
+  "91319": {
+    "miles": 177.6,
+    "band": "Very Far"
+  },
+  "91320": {
+    "miles": 179.3,
+    "band": "Very Far"
+  },
+  "91321": {
+    "miles": 160.8,
+    "band": "Very Far"
+  },
+  "91322": {
+    "miles": 161.2,
+    "band": "Very Far"
+  },
+  "91324": {
+    "miles": 159.7,
+    "band": "Very Far"
+  },
+  "91325": {
+    "miles": 158.0,
+    "band": "Very Far"
+  },
+  "91326": {
+    "miles": 160.6,
+    "band": "Very Far"
+  },
+  "91327": {
+    "miles": 158.5,
+    "band": "Very Far"
+  },
+  "91328": {
+    "miles": 158.5,
+    "band": "Very Far"
+  },
+  "91329": {
+    "miles": 158.5,
+    "band": "Very Far"
+  },
+  "91330": {
+    "miles": 158.5,
+    "band": "Very Far"
+  },
+  "91331": {
+    "miles": 149.9,
+    "band": "Very Far"
+  },
+  "91333": {
+    "miles": 150.3,
+    "band": "Very Far"
+  },
+  "91334": {
+    "miles": 150.3,
+    "band": "Very Far"
+  },
+  "91335": {
+    "miles": 157.9,
+    "band": "Very Far"
+  },
+  "91337": {
+    "miles": 156.2,
+    "band": "Very Far"
+  },
+  "91340": {
+    "miles": 152.5,
+    "band": "Very Far"
+  },
+  "91341": {
+    "miles": 152.0,
+    "band": "Very Far"
+  },
+  "91342": {
+    "miles": 155.0,
+    "band": "Very Far"
+  },
+  "91343": {
+    "miles": 155.7,
+    "band": "Very Far"
+  },
+  "91344": {
+    "miles": 154.6,
+    "band": "Very Far"
+  },
+  "91345": {
+    "miles": 152.4,
+    "band": "Very Far"
+  },
+  "91346": {
+    "miles": 157.1,
+    "band": "Very Far"
+  },
+  "91350": {
+    "miles": 165.4,
+    "band": "Very Far"
+  },
+  "91351": {
+    "miles": 164.7,
+    "band": "Very Far"
+  },
+  "91352": {
+    "miles": 145.2,
+    "band": "Very Far"
+  },
+  "91353": {
+    "miles": 145.3,
+    "band": "Very Far"
+  },
+  "91354": {
+    "miles": 168.9,
+    "band": "Very Far"
+  },
+  "91355": {
+    "miles": 163.8,
+    "band": "Very Far"
+  },
+  "91356": {
+    "miles": 155.1,
+    "band": "Very Far"
+  },
+  "91357": {
+    "miles": 157.3,
+    "band": "Very Far"
+  },
+  "91358": {
+    "miles": 173.1,
+    "band": "Very Far"
+  },
+  "91359": {
+    "miles": 170.8,
+    "band": "Very Far"
+  },
+  "91360": {
+    "miles": 177.6,
+    "band": "Very Far"
+  },
+  "91361": {
+    "miles": 173.2,
+    "band": "Very Far"
+  },
+  "91362": {
+    "miles": 174.7,
+    "band": "Very Far"
+  },
+  "91364": {
+    "miles": 159.1,
+    "band": "Very Far"
+  },
+  "91365": {
+    "miles": 158.7,
+    "band": "Very Far"
+  },
+  "91367": {
+    "miles": 159.6,
+    "band": "Very Far"
+  },
+  "91371": {
+    "miles": 158.7,
+    "band": "Very Far"
+  },
+  "91372": {
+    "miles": 160.5,
+    "band": "Very Far"
+  },
+  "91376": {
+    "miles": 169.9,
+    "band": "Very Far"
+  },
+  "91377": {
+    "miles": 171.1,
+    "band": "Very Far"
+  },
+  "91380": {
+    "miles": 163.2,
+    "band": "Very Far"
+  },
+  "91381": {
+    "miles": 164.4,
+    "band": "Very Far"
+  },
+  "91382": {
+    "miles": 163.2,
+    "band": "Very Far"
+  },
+  "91383": {
+    "miles": 163.2,
+    "band": "Very Far"
+  },
+  "91384": {
+    "miles": 170.9,
+    "band": "Very Far"
+  },
+  "91385": {
+    "miles": 167.0,
+    "band": "Very Far"
+  },
+  "91386": {
+    "miles": 164.9,
+    "band": "Very Far"
+  },
+  "91387": {
+    "miles": 166.1,
+    "band": "Very Far"
+  },
+  "91390": {
+    "miles": 170.1,
+    "band": "Very Far"
+  },
+  "91392": {
+    "miles": 156.4,
+    "band": "Very Far"
+  },
+  "91393": {
+    "miles": 156.1,
+    "band": "Very Far"
+  },
+  "91394": {
+    "miles": 160.3,
+    "band": "Very Far"
+  },
+  "91395": {
+    "miles": 157.1,
+    "band": "Very Far"
+  },
+  "91396": {
+    "miles": 159.1,
+    "band": "Very Far"
+  },
+  "91401": {
+    "miles": 145.6,
+    "band": "Very Far"
+  },
+  "91402": {
+    "miles": 150.4,
+    "band": "Very Far"
+  },
+  "91403": {
+    "miles": 149.9,
+    "band": "Very Far"
+  },
+  "91404": {
+    "miles": 153.5,
+    "band": "Very Far"
+  },
+  "91405": {
+    "miles": 154.6,
+    "band": "Very Far"
+  },
+  "91406": {
+    "miles": 154.0,
+    "band": "Very Far"
+  },
+  "91407": {
+    "miles": 153.5,
+    "band": "Very Far"
+  },
+  "91408": {
+    "miles": 153.5,
+    "band": "Very Far"
+  },
+  "91409": {
+    "miles": 153.5,
+    "band": "Very Far"
+  },
+  "91410": {
+    "miles": 153.5,
+    "band": "Very Far"
+  },
+  "91411": {
+    "miles": 151.8,
+    "band": "Very Far"
+  },
+  "91412": {
+    "miles": 150.4,
+    "band": "Very Far"
+  },
+  "91413": {
+    "miles": 151.5,
+    "band": "Very Far"
+  },
+  "91416": {
+    "miles": 153.0,
+    "band": "Very Far"
+  },
+  "91423": {
+    "miles": 152.4,
+    "band": "Very Far"
+  },
+  "91426": {
+    "miles": 153.0,
+    "band": "Very Far"
+  },
+  "91436": {
+    "miles": 152.8,
+    "band": "Very Far"
+  },
+  "91470": {
+    "miles": 153.5,
+    "band": "Very Far"
+  },
+  "91482": {
+    "miles": 153.5,
+    "band": "Very Far"
+  },
+  "91495": {
+    "miles": 151.5,
+    "band": "Very Far"
+  },
+  "91496": {
+    "miles": 153.5,
+    "band": "Very Far"
+  },
+  "91499": {
+    "miles": 153.5,
+    "band": "Very Far"
+  },
+  "91501": {
+    "miles": 141.0,
+    "band": "Very Far"
+  },
+  "91502": {
+    "miles": 140.7,
+    "band": "Very Far"
+  },
+  "91503": {
+    "miles": 140.5,
+    "band": "Very Far"
+  },
+  "91504": {
+    "miles": 142.4,
+    "band": "Very Far"
+  },
+  "91505": {
+    "miles": 142.5,
+    "band": "Very Far"
+  },
+  "91506": {
+    "miles": 141.6,
+    "band": "Very Far"
+  },
+  "91507": {
+    "miles": 140.5,
+    "band": "Very Far"
+  },
+  "91508": {
+    "miles": 140.5,
+    "band": "Very Far"
+  },
+  "91510": {
+    "miles": 140.5,
+    "band": "Very Far"
+  },
+  "91521": {
+    "miles": 140.5,
+    "band": "Very Far"
+  },
+  "91522": {
+    "miles": 140.5,
+    "band": "Very Far"
+  },
+  "91523": {
+    "miles": 140.5,
+    "band": "Very Far"
+  },
+  "91526": {
+    "miles": 140.5,
+    "band": "Very Far"
+  },
+  "91601": {
+    "miles": 144.0,
+    "band": "Very Far"
+  },
+  "91602": {
+    "miles": 143.0,
+    "band": "Very Far"
+  },
+  "91603": {
+    "miles": 143.1,
+    "band": "Very Far"
+  },
+  "91604": {
+    "miles": 141.7,
+    "band": "Very Far"
+  },
+  "91605": {
+    "miles": 146.2,
+    "band": "Very Far"
+  },
+  "91606": {
+    "miles": 144.7,
+    "band": "Very Far"
+  },
+  "91607": {
+    "miles": 143.2,
+    "band": "Very Far"
+  },
+  "91608": {
+    "miles": 139.7,
+    "band": "Far"
+  },
+  "91609": {
+    "miles": 143.1,
+    "band": "Very Far"
+  },
+  "91610": {
+    "miles": 129.7,
+    "band": "Far"
+  },
+  "91611": {
+    "miles": 143.1,
+    "band": "Very Far"
+  },
+  "91612": {
+    "miles": 143.1,
+    "band": "Very Far"
+  },
+  "91614": {
+    "miles": 144.9,
+    "band": "Very Far"
+  },
+  "91615": {
+    "miles": 143.1,
+    "band": "Very Far"
+  },
+  "91616": {
+    "miles": 143.1,
+    "band": "Very Far"
+  },
+  "91617": {
+    "miles": 142.9,
+    "band": "Very Far"
+  },
+  "91618": {
+    "miles": 143.1,
+    "band": "Very Far"
+  },
+  "91701": {
+    "miles": 129.9,
+    "band": "Far"
+  },
+  "91702": {
+    "miles": 131.8,
+    "band": "Far"
+  },
+  "91706": {
+    "miles": 132.2,
+    "band": "Far"
+  },
+  "91708": {
+    "miles": 115.6,
+    "band": "Far"
+  },
+  "91709": {
+    "miles": 119.7,
+    "band": "Far"
+  },
+  "91710": {
+    "miles": 119.9,
+    "band": "Far"
+  },
+  "91711": {
+    "miles": 130.1,
+    "band": "Far"
+  },
+  "91714": {
+    "miles": 126.3,
+    "band": "Far"
+  },
+  "91715": {
+    "miles": 126.3,
+    "band": "Far"
+  },
+  "91716": {
+    "miles": 126.3,
+    "band": "Far"
+  },
+  "91722": {
+    "miles": 130.2,
+    "band": "Far"
+  },
+  "91723": {
+    "miles": 128.7,
+    "band": "Far"
+  },
+  "91724": {
+    "miles": 127.5,
+    "band": "Far"
+  },
+  "91729": {
+    "miles": 123.0,
+    "band": "Far"
+  },
+  "91730": {
+    "miles": 123.1,
+    "band": "Far"
+  },
+  "91731": {
+    "miles": 131.6,
+    "band": "Far"
+  },
+  "91732": {
+    "miles": 130.8,
+    "band": "Far"
+  },
+  "91733": {
+    "miles": 128.9,
+    "band": "Far"
+  },
+  "91734": {
+    "miles": 130.5,
+    "band": "Far"
+  },
+  "91735": {
+    "miles": 130.5,
+    "band": "Far"
+  },
+  "91737": {
+    "miles": 129.5,
+    "band": "Far"
+  },
+  "91739": {
+    "miles": 128.4,
+    "band": "Far"
+  },
+  "91740": {
+    "miles": 130.5,
+    "band": "Far"
+  },
+  "91741": {
+    "miles": 130.3,
+    "band": "Far"
+  },
+  "91743": {
+    "miles": 120.5,
+    "band": "Far"
+  },
+  "91744": {
+    "miles": 126.2,
+    "band": "Far"
+  },
+  "91745": {
+    "miles": 125.7,
+    "band": "Far"
+  },
+  "91746": {
+    "miles": 128.7,
+    "band": "Far"
+  },
+  "91747": {
+    "miles": 126.5,
+    "band": "Far"
+  },
+  "91748": {
+    "miles": 119.2,
+    "band": "Far"
+  },
+  "91749": {
+    "miles": 126.5,
+    "band": "Far"
+  },
+  "91750": {
+    "miles": 129.7,
+    "band": "Far"
+  },
+  "91752": {
+    "miles": 115.2,
+    "band": "Far"
+  },
+  "91754": {
+    "miles": 130.3,
+    "band": "Far"
+  },
+  "91755": {
+    "miles": 133.3,
+    "band": "Far"
+  },
+  "91756": {
+    "miles": 131.4,
+    "band": "Far"
+  },
+  "91758": {
+    "miles": 122.6,
+    "band": "Far"
+  },
+  "91759": {
+    "miles": 136.2,
+    "band": "Far"
+  },
+  "91761": {
+    "miles": 119.0,
+    "band": "Far"
+  },
+  "91762": {
+    "miles": 123.7,
+    "band": "Far"
+  },
+  "91763": {
+    "miles": 127.5,
+    "band": "Far"
+  },
+  "91764": {
+    "miles": 122.5,
+    "band": "Far"
+  },
+  "91765": {
+    "miles": 120.6,
+    "band": "Far"
+  },
+  "91766": {
+    "miles": 123.5,
+    "band": "Far"
+  },
+  "91767": {
+    "miles": 126.8,
+    "band": "Far"
+  },
+  "91768": {
+    "miles": 124.8,
+    "band": "Far"
+  },
+  "91769": {
+    "miles": 124.4,
+    "band": "Far"
+  },
+  "91770": {
+    "miles": 131.3,
+    "band": "Far"
+  },
+  "91771": {
+    "miles": 131.1,
+    "band": "Far"
+  },
+  "91772": {
+    "miles": 131.1,
+    "band": "Far"
+  },
+  "91773": {
+    "miles": 126.0,
+    "band": "Far"
+  },
+  "91775": {
+    "miles": 136.9,
+    "band": "Far"
+  },
+  "91776": {
+    "miles": 133.8,
+    "band": "Far"
+  },
+  "91778": {
+    "miles": 134.4,
+    "band": "Far"
+  },
+  "91780": {
+    "miles": 134.6,
+    "band": "Far"
+  },
+  "91784": {
+    "miles": 128.1,
+    "band": "Far"
+  },
+  "91785": {
+    "miles": 126.3,
+    "band": "Far"
+  },
+  "91786": {
+    "miles": 126.3,
+    "band": "Far"
+  },
+  "91788": {
+    "miles": 119.9,
+    "band": "Far"
+  },
+  "91789": {
+    "miles": 120.5,
+    "band": "Far"
+  },
+  "91790": {
+    "miles": 130.7,
+    "band": "Far"
+  },
+  "91791": {
+    "miles": 128.6,
+    "band": "Far"
+  },
+  "91792": {
+    "miles": 122.9,
+    "band": "Far"
+  },
+  "91793": {
+    "miles": 131.1,
+    "band": "Far"
+  },
+  "91801": {
+    "miles": 132.0,
+    "band": "Far"
+  },
+  "91802": {
+    "miles": 132.7,
+    "band": "Far"
+  },
+  "91803": {
+    "miles": 130.5,
+    "band": "Far"
+  },
+  "91804": {
+    "miles": 132.7,
+    "band": "Far"
+  },
+  "91896": {
+    "miles": 132.7,
+    "band": "Far"
+  },
+  "91899": {
+    "miles": 132.7,
+    "band": "Far"
+  },
+  "91901": {
+    "miles": 34.3,
+    "band": "Local"
+  },
+  "91902": {
+    "miles": 7.2,
+    "band": "Local"
+  },
+  "91903": {
+    "miles": 32.9,
+    "band": "Local"
+  },
+  "91905": {
+    "miles": 65.8,
+    "band": "Near"
+  },
+  "91906": {
+    "miles": 59.9,
+    "band": "Near"
+  },
+  "91908": {
+    "miles": 6.6,
+    "band": "Local"
+  },
+  "91909": {
+    "miles": 4.6,
+    "band": "Local"
+  },
+  "91910": {
+    "miles": 3.1,
+    "band": "Local"
+  },
+  "91911": {
+    "miles": 1.0,
+    "band": "Local"
+  },
+  "91912": {
+    "miles": 4.6,
+    "band": "Local"
+  },
+  "91913": {
+    "miles": 6.4,
+    "band": "Local"
+  },
+  "91914": {
+    "miles": 8.5,
+    "band": "Local"
+  },
+  "91915": {
+    "miles": 7.3,
+    "band": "Local"
+  },
+  "91916": {
+    "miles": 46.3,
+    "band": "Near"
+  },
+  "91917": {
+    "miles": 25.6,
+    "band": "Local"
+  },
+  "91921": {
+    "miles": 4.6,
+    "band": "Local"
+  },
+  "91931": {
+    "miles": 46.5,
+    "band": "Near"
+  },
+  "91932": {
+    "miles": 6.2,
+    "band": "Local"
+  },
+  "91933": {
+    "miles": 5.8,
+    "band": "Local"
+  },
+  "91934": {
+    "miles": 76.1,
+    "band": "Regional"
+  },
+  "91935": {
+    "miles": 27.2,
+    "band": "Local"
+  },
+  "91941": {
+    "miles": 15.2,
+    "band": "Local"
+  },
+  "91942": {
+    "miles": 17.7,
+    "band": "Local"
+  },
+  "91943": {
+    "miles": 15.4,
+    "band": "Local"
+  },
+  "91944": {
+    "miles": 15.4,
+    "band": "Local"
+  },
+  "91945": {
+    "miles": 13.4,
+    "band": "Local"
+  },
+  "91946": {
+    "miles": 15.2,
+    "band": "Local"
+  },
+  "91948": {
+    "miles": 58.3,
+    "band": "Near"
+  },
+  "91950": {
+    "miles": 7.4,
+    "band": "Local"
+  },
+  "91951": {
+    "miles": 8.0,
+    "band": "Local"
+  },
+  "91962": {
+    "miles": 48.8,
+    "band": "Near"
+  },
+  "91963": {
+    "miles": 36.1,
+    "band": "Local"
+  },
+  "91976": {
+    "miles": 15.8,
+    "band": "Local"
+  },
+  "91977": {
+    "miles": 12.6,
+    "band": "Local"
+  },
+  "91978": {
+    "miles": 14.3,
+    "band": "Local"
+  },
+  "91979": {
+    "miles": 15.8,
+    "band": "Local"
+  },
+  "91980": {
+    "miles": 33.7,
+    "band": "Local"
+  },
+  "91987": {
+    "miles": 32.9,
+    "band": "Local"
+  },
+  "92003": {
+    "miles": 55.5,
+    "band": "Near"
+  },
+  "92004": {
+    "miles": 92.7,
+    "band": "Regional"
+  },
+  "92007": {
+    "miles": 34.7,
+    "band": "Local"
+  },
+  "92008": {
+    "miles": 44.8,
+    "band": "Near"
+  },
+  "92009": {
+    "miles": 42.4,
+    "band": "Near"
+  },
+  "92010": {
+    "miles": 46.3,
+    "band": "Near"
+  },
+  "92011": {
+    "miles": 41.9,
+    "band": "Near"
+  },
+  "92013": {
+    "miles": 45.2,
+    "band": "Near"
+  },
+  "92014": {
+    "miles": 32.0,
+    "band": "Local"
+  },
+  "92018": {
+    "miles": 45.2,
+    "band": "Near"
+  },
+  "92019": {
+    "miles": 22.1,
+    "band": "Local"
+  },
+  "92020": {
+    "miles": 18.4,
+    "band": "Local"
+  },
+  "92021": {
+    "miles": 23.1,
+    "band": "Local"
+  },
+  "92022": {
+    "miles": 19.9,
+    "band": "Local"
+  },
+  "92023": {
+    "miles": 36.5,
+    "band": "Local"
+  },
+  "92024": {
+    "miles": 38.1,
+    "band": "Local"
+  },
+  "92025": {
+    "miles": 38.6,
+    "band": "Local"
+  },
+  "92026": {
+    "miles": 43.3,
+    "band": "Near"
+  },
+  "92027": {
+    "miles": 41.2,
+    "band": "Near"
+  },
+  "92028": {
+    "miles": 62.8,
+    "band": "Near"
+  },
+  "92029": {
+    "miles": 38.7,
+    "band": "Local"
+  },
+  "92030": {
+    "miles": 40.0,
+    "band": "Local"
+  },
+  "92033": {
+    "miles": 40.0,
+    "band": "Local"
+  },
+  "92036": {
+    "miles": 61.9,
+    "band": "Near"
+  },
+  "92037": {
+    "miles": 25.8,
+    "band": "Local"
+  },
+  "92038": {
+    "miles": 26.5,
+    "band": "Local"
+  },
+  "92039": {
+    "miles": 26.5,
+    "band": "Local"
+  },
+  "92040": {
+    "miles": 24.9,
+    "band": "Local"
+  },
+  "92046": {
+    "miles": 40.0,
+    "band": "Local"
+  },
+  "92049": {
+    "miles": 48.4,
+    "band": "Near"
+  },
+  "92051": {
+    "miles": 48.4,
+    "band": "Near"
+  },
+  "92052": {
+    "miles": 48.4,
+    "band": "Near"
+  },
+  "92054": {
+    "miles": 48.7,
+    "band": "Near"
+  },
+  "92056": {
+    "miles": 50.8,
+    "band": "Near"
+  },
+  "92057": {
+    "miles": 54.0,
+    "band": "Near"
+  },
+  "92058": {
+    "miles": 48.4,
+    "band": "Near"
+  },
+  "92059": {
+    "miles": 62.6,
+    "band": "Near"
+  },
+  "92060": {
+    "miles": 69.7,
+    "band": "Near"
+  },
+  "92061": {
+    "miles": 60.1,
+    "band": "Near"
+  },
+  "92064": {
+    "miles": 31.7,
+    "band": "Local"
+  },
+  "92065": {
+    "miles": 44.2,
+    "band": "Near"
+  },
+  "92066": {
+    "miles": 79.9,
+    "band": "Regional"
+  },
+  "92067": {
+    "miles": 34.7,
+    "band": "Local"
+  },
+  "92068": {
+    "miles": 52.6,
+    "band": "Near"
+  },
+  "92069": {
+    "miles": 44.6,
+    "band": "Near"
+  },
+  "92070": {
+    "miles": 62.0,
+    "band": "Near"
+  },
+  "92071": {
+    "miles": 22.0,
+    "band": "Local"
+  },
+  "92072": {
+    "miles": 22.1,
+    "band": "Local"
+  },
+  "92074": {
+    "miles": 31.3,
+    "band": "Local"
+  },
+  "92075": {
+    "miles": 32.6,
+    "band": "Local"
+  },
+  "92078": {
+    "miles": 46.4,
+    "band": "Near"
+  },
+  "92079": {
+    "miles": 44.1,
+    "band": "Near"
+  },
+  "92081": {
+    "miles": 49.3,
+    "band": "Near"
+  },
+  "92082": {
+    "miles": 51.0,
+    "band": "Near"
+  },
+  "92083": {
+    "miles": 50.6,
+    "band": "Near"
+  },
+  "92084": {
+    "miles": 51.9,
+    "band": "Near"
+  },
+  "92085": {
+    "miles": 51.1,
+    "band": "Near"
+  },
+  "92086": {
+    "miles": 77.9,
+    "band": "Regional"
+  },
+  "92088": {
+    "miles": 61.9,
+    "band": "Near"
+  },
+  "92091": {
+    "miles": 30.9,
+    "band": "Local"
+  },
+  "92092": {
+    "miles": 26.5,
+    "band": "Local"
+  },
+  "92093": {
+    "miles": 26.5,
+    "band": "Local"
+  },
+  "92096": {
+    "miles": 44.1,
+    "band": "Near"
+  },
+  "92101": {
+    "miles": 14.3,
+    "band": "Local"
+  },
+  "92102": {
+    "miles": 11.9,
+    "band": "Local"
+  },
+  "92103": {
+    "miles": 15.7,
+    "band": "Local"
+  },
+  "92104": {
+    "miles": 13.4,
+    "band": "Local"
+  },
+  "92105": {
+    "miles": 12.3,
+    "band": "Local"
+  },
+  "92106": {
+    "miles": 18.3,
+    "band": "Local"
+  },
+  "92107": {
+    "miles": 21.8,
+    "band": "Local"
+  },
+  "92108": {
+    "miles": 17.0,
+    "band": "Local"
+  },
+  "92109": {
+    "miles": 22.8,
+    "band": "Local"
+  },
+  "92110": {
+    "miles": 18.9,
+    "band": "Local"
+  },
+  "92111": {
+    "miles": 19.2,
+    "band": "Local"
+  },
+  "92112": {
+    "miles": 13.6,
+    "band": "Local"
+  },
+  "92113": {
+    "miles": 9.6,
+    "band": "Local"
+  },
+  "92114": {
+    "miles": 10.6,
+    "band": "Local"
+  },
+  "92115": {
+    "miles": 15.2,
+    "band": "Local"
+  },
+  "92116": {
+    "miles": 13.7,
+    "band": "Local"
+  },
+  "92117": {
+    "miles": 20.8,
+    "band": "Local"
+  },
+  "92118": {
+    "miles": 15.3,
+    "band": "Local"
+  },
+  "92119": {
+    "miles": 19.0,
+    "band": "Local"
+  },
+  "92120": {
+    "miles": 17.6,
+    "band": "Local"
+  },
+  "92121": {
+    "miles": 24.2,
+    "band": "Local"
+  },
+  "92122": {
+    "miles": 23.1,
+    "band": "Local"
+  },
+  "92123": {
+    "miles": 16.6,
+    "band": "Local"
+  },
+  "92124": {
+    "miles": 18.7,
+    "band": "Local"
+  },
+  "92126": {
+    "miles": 26.2,
+    "band": "Local"
+  },
+  "92127": {
+    "miles": 33.0,
+    "band": "Local"
+  },
+  "92128": {
+    "miles": 32.6,
+    "band": "Local"
+  },
+  "92129": {
+    "miles": 28.6,
+    "band": "Local"
+  },
+  "92130": {
+    "miles": 29.8,
+    "band": "Local"
+  },
+  "92131": {
+    "miles": 25.6,
+    "band": "Local"
+  },
+  "92132": {
+    "miles": 10.8,
+    "band": "Local"
+  },
+  "92134": {
+    "miles": 14.4,
+    "band": "Local"
+  },
+  "92135": {
+    "miles": 13.6,
+    "band": "Local"
+  },
+  "92136": {
+    "miles": 9.9,
+    "band": "Local"
+  },
+  "92137": {
+    "miles": 20.9,
+    "band": "Local"
+  },
+  "92138": {
+    "miles": 13.6,
+    "band": "Local"
+  },
+  "92139": {
+    "miles": 8.1,
+    "band": "Local"
+  },
+  "92140": {
+    "miles": 17.5,
+    "band": "Local"
+  },
+  "92142": {
+    "miles": 13.6,
+    "band": "Local"
+  },
+  "92143": {
+    "miles": 78.7,
+    "band": "Regional"
+  },
+  "92145": {
+    "miles": 23.5,
+    "band": "Local"
+  },
+  "92147": {
+    "miles": 13.6,
+    "band": "Local"
+  },
+  "92149": {
+    "miles": 13.6,
+    "band": "Local"
+  },
+  "92150": {
+    "miles": 13.6,
+    "band": "Local"
+  },
+  "92152": {
+    "miles": 13.6,
+    "band": "Local"
+  },
+  "92153": {
+    "miles": 13.6,
+    "band": "Local"
+  },
+  "92154": {
+    "miles": 3.8,
+    "band": "Local"
+  },
+  "92155": {
+    "miles": 12.9,
+    "band": "Local"
+  },
+  "92158": {
+    "miles": 13.6,
+    "band": "Local"
+  },
+  "92159": {
+    "miles": 13.6,
+    "band": "Local"
+  },
+  "92160": {
+    "miles": 13.6,
+    "band": "Local"
+  },
+  "92161": {
+    "miles": 26.1,
+    "band": "Local"
+  },
+  "92163": {
+    "miles": 13.6,
+    "band": "Local"
+  },
+  "92165": {
+    "miles": 13.6,
+    "band": "Local"
+  },
+  "92166": {
+    "miles": 13.6,
+    "band": "Local"
+  },
+  "92167": {
+    "miles": 13.6,
+    "band": "Local"
+  },
+  "92168": {
+    "miles": 13.6,
+    "band": "Local"
+  },
+  "92169": {
+    "miles": 13.6,
+    "band": "Local"
+  },
+  "92170": {
+    "miles": 13.6,
+    "band": "Local"
+  },
+  "92171": {
+    "miles": 13.6,
+    "band": "Local"
+  },
+  "92172": {
+    "miles": 13.6,
+    "band": "Local"
+  },
+  "92173": {
+    "miles": 5.1,
+    "band": "Local"
+  },
+  "92174": {
+    "miles": 13.6,
+    "band": "Local"
+  },
+  "92175": {
+    "miles": 13.6,
+    "band": "Local"
+  },
+  "92176": {
+    "miles": 13.6,
+    "band": "Local"
+  },
+  "92177": {
+    "miles": 13.6,
+    "band": "Local"
+  },
+  "92178": {
+    "miles": 15.5,
+    "band": "Local"
+  },
+  "92179": {
+    "miles": 13.6,
+    "band": "Local"
+  },
+  "92182": {
+    "miles": 17.1,
+    "band": "Local"
+  },
+  "92186": {
+    "miles": 13.6,
+    "band": "Local"
+  },
+  "92187": {
+    "miles": 13.6,
+    "band": "Local"
+  },
+  "92190": {
+    "miles": 13.6,
+    "band": "Local"
+  },
+  "92191": {
+    "miles": 13.6,
+    "band": "Local"
+  },
+  "92192": {
+    "miles": 13.6,
+    "band": "Local"
+  },
+  "92193": {
+    "miles": 13.6,
+    "band": "Local"
+  },
+  "92195": {
+    "miles": 13.6,
+    "band": "Local"
+  },
+  "92196": {
+    "miles": 13.6,
+    "band": "Local"
+  },
+  "92197": {
+    "miles": 13.6,
+    "band": "Local"
+  },
+  "92198": {
+    "miles": 13.6,
+    "band": "Local"
+  },
+  "92199": {
+    "miles": 16.9,
+    "band": "Local"
+  },
+  "92201": {
+    "miles": 168.2,
+    "band": "Very Far"
+  },
+  "92202": {
+    "miles": 178.2,
+    "band": "Very Far"
+  },
+  "92203": {
+    "miles": 165.4,
+    "band": "Very Far"
+  },
+  "92210": {
+    "miles": 131.6,
+    "band": "Far"
+  },
+  "92211": {
+    "miles": 161.4,
+    "band": "Very Far"
+  },
+  "92220": {
+    "miles": 125.5,
+    "band": "Far"
+  },
+  "92222": {
+    "miles": 179.8,
+    "band": "Very Far"
+  },
+  "92223": {
+    "miles": 121.4,
+    "band": "Far"
+  },
+  "92225": {
+    "miles": 219.5,
+    "band": "Overnight"
+  },
+  "92226": {
+    "miles": 215.7,
+    "band": "Overnight"
+  },
+  "92227": {
+    "miles": 131.1,
+    "band": "Far"
+  },
+  "92230": {
+    "miles": 132.5,
+    "band": "Far"
+  },
+  "92231": {
+    "miles": 121.1,
+    "band": "Far"
+  },
+  "92232": {
+    "miles": 121.0,
+    "band": "Far"
+  },
+  "92233": {
+    "miles": 149.2,
+    "band": "Very Far"
+  },
+  "92234": {
+    "miles": 154.7,
+    "band": "Very Far"
+  },
+  "92235": {
+    "miles": 156.4,
+    "band": "Very Far"
+  },
+  "92236": {
+    "miles": 174.5,
+    "band": "Very Far"
+  },
+  "92239": {
+    "miles": 224.9,
+    "band": "Overnight"
+  },
+  "92240": {
+    "miles": 148.9,
+    "band": "Very Far"
+  },
+  "92241": {
+    "miles": 158.7,
+    "band": "Very Far"
+  },
+  "92242": {
+    "miles": 269.2,
+    "band": "Overnight"
+  },
+  "92243": {
+    "miles": 116.9,
+    "band": "Far"
+  },
+  "92244": {
+    "miles": 110.1,
+    "band": "Far"
+  },
+  "92247": {
+    "miles": 137.2,
+    "band": "Far"
+  },
+  "92248": {
+    "miles": 137.2,
+    "band": "Far"
+  },
+  "92249": {
+    "miles": 126.2,
+    "band": "Far"
+  },
+  "92250": {
+    "miles": 128.8,
+    "band": "Far"
+  },
+  "92251": {
+    "miles": 120.5,
+    "band": "Far"
+  },
+  "92252": {
+    "miles": 170.5,
+    "band": "Very Far"
+  },
+  "92253": {
+    "miles": 138.2,
+    "band": "Far"
+  },
+  "92254": {
+    "miles": 146.8,
+    "band": "Very Far"
+  },
+  "92255": {
+    "miles": 129.6,
+    "band": "Far"
+  },
+  "92256": {
+    "miles": 153.4,
+    "band": "Very Far"
+  },
+  "92257": {
+    "miles": 168.4,
+    "band": "Very Far"
+  },
+  "92258": {
+    "miles": 146.0,
+    "band": "Very Far"
+  },
+  "92259": {
+    "miles": 90.8,
+    "band": "Regional"
+  },
+  "92260": {
+    "miles": 129.6,
+    "band": "Far"
+  },
+  "92261": {
+    "miles": 122.6,
+    "band": "Far"
+  },
+  "92262": {
+    "miles": 148.0,
+    "band": "Very Far"
+  },
+  "92263": {
+    "miles": 153.2,
+    "band": "Very Far"
+  },
+  "92264": {
+    "miles": 151.9,
+    "band": "Very Far"
+  },
+  "92266": {
+    "miles": 195.0,
+    "band": "Very Far"
+  },
+  "92267": {
+    "miles": 283.5,
+    "band": "Overnight"
+  },
+  "92268": {
+    "miles": 171.6,
+    "band": "Very Far"
+  },
+  "92270": {
+    "miles": 160.2,
+    "band": "Very Far"
+  },
+  "92273": {
+    "miles": 110.2,
+    "band": "Far"
+  },
+  "92274": {
+    "miles": 142.6,
+    "band": "Very Far"
+  },
+  "92275": {
+    "miles": 121.7,
+    "band": "Far"
+  },
+  "92276": {
+    "miles": 157.9,
+    "band": "Very Far"
+  },
+  "92277": {
+    "miles": 184.1,
+    "band": "Very Far"
+  },
+  "92278": {
+    "miles": 191.6,
+    "band": "Very Far"
+  },
+  "92280": {
+    "miles": 264.6,
+    "band": "Overnight"
+  },
+  "92281": {
+    "miles": 133.0,
+    "band": "Far"
+  },
+  "92282": {
+    "miles": 144.5,
+    "band": "Very Far"
+  },
+  "92283": {
+    "miles": 197.0,
+    "band": "Very Far"
+  },
+  "92284": {
+    "miles": 167.2,
+    "band": "Very Far"
+  },
+  "92285": {
+    "miles": 179.7,
+    "band": "Very Far"
+  },
+  "92286": {
+    "miles": 171.6,
+    "band": "Very Far"
+  },
+  "92301": {
+    "miles": 156.1,
+    "band": "Very Far"
+  },
+  "92304": {
+    "miles": 233.4,
+    "band": "Overnight"
+  },
+  "92305": {
+    "miles": 141.4,
+    "band": "Very Far"
+  },
+  "92307": {
+    "miles": 160.0,
+    "band": "Very Far"
+  },
+  "92308": {
+    "miles": 156.9,
+    "band": "Very Far"
+  },
+  "92309": {
+    "miles": 253.1,
+    "band": "Overnight"
+  },
+  "92310": {
+    "miles": 222.3,
+    "band": "Overnight"
+  },
+  "92311": {
+    "miles": 184.0,
+    "band": "Very Far"
+  },
+  "92312": {
+    "miles": 185.0,
+    "band": "Very Far"
+  },
+  "92313": {
+    "miles": 110.6,
+    "band": "Far"
+  },
+  "92314": {
+    "miles": 166.8,
+    "band": "Very Far"
+  },
+  "92315": {
+    "miles": 168.2,
+    "band": "Very Far"
+  },
+  "92316": {
+    "miles": 112.6,
+    "band": "Far"
+  },
+  "92317": {
+    "miles": 139.7,
+    "band": "Far"
+  },
+  "92318": {
+    "miles": 117.3,
+    "band": "Far"
+  },
+  "92320": {
+    "miles": 126.2,
+    "band": "Far"
+  },
+  "92321": {
+    "miles": 142.2,
+    "band": "Very Far"
+  },
+  "92322": {
+    "miles": 135.1,
+    "band": "Far"
+  },
+  "92323": {
+    "miles": 290.7,
+    "band": "Overnight"
+  },
+  "92324": {
+    "miles": 113.6,
+    "band": "Far"
+  },
+  "92325": {
+    "miles": 132.6,
+    "band": "Far"
+  },
+  "92327": {
+    "miles": 192.6,
+    "band": "Very Far"
+  },
+  "92329": {
+    "miles": 145.0,
+    "band": "Very Far"
+  },
+  "92331": {
+    "miles": 124.9,
+    "band": "Far"
+  },
+  "92332": {
+    "miles": 243.2,
+    "band": "Overnight"
+  },
+  "92333": {
+    "miles": 151.6,
+    "band": "Very Far"
+  },
+  "92334": {
+    "miles": 116.9,
+    "band": "Far"
+  },
+  "92335": {
+    "miles": 123.7,
+    "band": "Far"
+  },
+  "92336": {
+    "miles": 128.1,
+    "band": "Far"
+  },
+  "92337": {
+    "miles": 116.1,
+    "band": "Far"
+  },
+  "92338": {
+    "miles": 235.2,
+    "band": "Overnight"
+  },
+  "92339": {
+    "miles": 137.1,
+    "band": "Far"
+  },
+  "92340": {
+    "miles": 149.2,
+    "band": "Very Far"
+  },
+  "92341": {
+    "miles": 142.7,
+    "band": "Very Far"
+  },
+  "92342": {
+    "miles": 169.7,
+    "band": "Very Far"
+  },
+  "92344": {
+    "miles": 144.8,
+    "band": "Very Far"
+  },
+  "92345": {
+    "miles": 149.0,
+    "band": "Very Far"
+  },
+  "92346": {
+    "miles": 122.5,
+    "band": "Far"
+  },
+  "92347": {
+    "miles": 189.8,
+    "band": "Very Far"
+  },
+  "92350": {
+    "miles": 113.8,
+    "band": "Far"
+  },
+  "92352": {
+    "miles": 138.8,
+    "band": "Far"
+  },
+  "92354": {
+    "miles": 115.7,
+    "band": "Far"
+  },
+  "92356": {
+    "miles": 173.1,
+    "band": "Very Far"
+  },
+  "92357": {
+    "miles": 113.8,
+    "band": "Far"
+  },
+  "92358": {
+    "miles": 136.0,
+    "band": "Far"
+  },
+  "92359": {
+    "miles": 124.4,
+    "band": "Far"
+  },
+  "92363": {
+    "miles": 331.2,
+    "band": "Overnight"
+  },
+  "92364": {
+    "miles": 296.8,
+    "band": "Overnight"
+  },
+  "92365": {
+    "miles": 203.2,
+    "band": "Overnight"
+  },
+  "92366": {
+    "miles": 282.7,
+    "band": "Overnight"
+  },
+  "92368": {
+    "miles": 160.4,
+    "band": "Very Far"
+  },
+  "92369": {
+    "miles": 122.5,
+    "band": "Far"
+  },
+  "92371": {
+    "miles": 149.3,
+    "band": "Very Far"
+  },
+  "92372": {
+    "miles": 148.1,
+    "band": "Very Far"
+  },
+  "92373": {
+    "miles": 117.3,
+    "band": "Far"
+  },
+  "92374": {
+    "miles": 120.5,
+    "band": "Far"
+  },
+  "92375": {
+    "miles": 119.5,
+    "band": "Far"
+  },
+  "92376": {
+    "miles": 120.3,
+    "band": "Far"
+  },
+  "92377": {
+    "miles": 124.1,
+    "band": "Far"
+  },
+  "92378": {
+    "miles": 135.6,
+    "band": "Far"
+  },
+  "92382": {
+    "miles": 137.9,
+    "band": "Far"
+  },
+  "92384": {
+    "miles": 303.5,
+    "band": "Overnight"
+  },
+  "92385": {
+    "miles": 138.6,
+    "band": "Far"
+  },
+  "92386": {
+    "miles": 167.6,
+    "band": "Very Far"
+  },
+  "92389": {
+    "miles": 304.3,
+    "band": "Overnight"
+  },
+  "92391": {
+    "miles": 135.3,
+    "band": "Far"
+  },
+  "92392": {
+    "miles": 148.4,
+    "band": "Very Far"
+  },
+  "92393": {
+    "miles": 154.7,
+    "band": "Very Far"
+  },
+  "92394": {
+    "miles": 156.3,
+    "band": "Very Far"
+  },
+  "92395": {
+    "miles": 153.1,
+    "band": "Very Far"
+  },
+  "92397": {
+    "miles": 146.9,
+    "band": "Very Far"
+  },
+  "92398": {
+    "miles": 196.3,
+    "band": "Very Far"
+  },
+  "92399": {
+    "miles": 121.4,
+    "band": "Far"
+  },
+  "92401": {
+    "miles": 116.3,
+    "band": "Far"
+  },
+  "92402": {
+    "miles": 116.2,
+    "band": "Far"
+  },
+  "92403": {
+    "miles": 116.2,
+    "band": "Far"
+  },
+  "92404": {
+    "miles": 121.3,
+    "band": "Far"
+  },
+  "92405": {
+    "miles": 118.8,
+    "band": "Far"
+  },
+  "92406": {
+    "miles": 116.2,
+    "band": "Far"
+  },
+  "92407": {
+    "miles": 124.8,
+    "band": "Far"
+  },
+  "92408": {
+    "miles": 115.1,
+    "band": "Far"
+  },
+  "92410": {
+    "miles": 115.5,
+    "band": "Far"
+  },
+  "92411": {
+    "miles": 117.2,
+    "band": "Far"
+  },
+  "92413": {
+    "miles": 116.2,
+    "band": "Far"
+  },
+  "92415": {
+    "miles": 116.2,
+    "band": "Far"
+  },
+  "92418": {
+    "miles": 116.2,
+    "band": "Far"
+  },
+  "92423": {
+    "miles": 116.2,
+    "band": "Far"
+  },
+  "92427": {
+    "miles": 116.2,
+    "band": "Far"
+  },
+  "92501": {
+    "miles": 108.2,
+    "band": "Regional"
+  },
+  "92502": {
+    "miles": 106.9,
+    "band": "Regional"
+  },
+  "92503": {
+    "miles": 111.5,
+    "band": "Far"
+  },
+  "92504": {
+    "miles": 113.0,
+    "band": "Far"
+  },
+  "92505": {
+    "miles": 110.0,
+    "band": "Regional"
+  },
+  "92506": {
+    "miles": 105.4,
+    "band": "Regional"
+  },
+  "92507": {
+    "miles": 105.0,
+    "band": "Regional"
+  },
+  "92508": {
+    "miles": 99.3,
+    "band": "Regional"
+  },
+  "92509": {
+    "miles": 112.3,
+    "band": "Far"
+  },
+  "92513": {
+    "miles": 106.9,
+    "band": "Regional"
+  },
+  "92514": {
+    "miles": 106.9,
+    "band": "Regional"
+  },
+  "92515": {
+    "miles": 106.9,
+    "band": "Regional"
+  },
+  "92516": {
+    "miles": 106.9,
+    "band": "Regional"
+  },
+  "92517": {
+    "miles": 106.9,
+    "band": "Regional"
+  },
+  "92518": {
+    "miles": 106.9,
+    "band": "Regional"
+  },
+  "92519": {
+    "miles": 106.9,
+    "band": "Regional"
+  },
+  "92521": {
+    "miles": 106.9,
+    "band": "Regional"
+  },
+  "92522": {
+    "miles": 106.9,
+    "band": "Regional"
+  },
+  "92530": {
+    "miles": 85.5,
+    "band": "Regional"
+  },
+  "92531": {
+    "miles": 84.6,
+    "band": "Regional"
+  },
+  "92532": {
+    "miles": 91.5,
+    "band": "Regional"
+  },
+  "92536": {
+    "miles": 88.6,
+    "band": "Regional"
+  },
+  "92539": {
+    "miles": 99.5,
+    "band": "Regional"
+  },
+  "92543": {
+    "miles": 96.1,
+    "band": "Regional"
+  },
+  "92544": {
+    "miles": 98.6,
+    "band": "Regional"
+  },
+  "92545": {
+    "miles": 93.8,
+    "band": "Regional"
+  },
+  "92546": {
+    "miles": 96.6,
+    "band": "Regional"
+  },
+  "92548": {
+    "miles": 91.1,
+    "band": "Regional"
+  },
+  "92549": {
+    "miles": 119.1,
+    "band": "Far"
+  },
+  "92551": {
+    "miles": 97.6,
+    "band": "Regional"
+  },
+  "92552": {
+    "miles": 105.0,
+    "band": "Regional"
+  },
+  "92553": {
+    "miles": 101.5,
+    "band": "Regional"
+  },
+  "92554": {
+    "miles": 105.0,
+    "band": "Regional"
+  },
+  "92555": {
+    "miles": 108.0,
+    "band": "Regional"
+  },
+  "92556": {
+    "miles": 105.0,
+    "band": "Regional"
+  },
+  "92557": {
+    "miles": 104.9,
+    "band": "Regional"
+  },
+  "92561": {
+    "miles": 115.0,
+    "band": "Far"
+  },
+  "92562": {
+    "miles": 82.1,
+    "band": "Regional"
+  },
+  "92563": {
+    "miles": 74.4,
+    "band": "Near"
+  },
+  "92564": {
+    "miles": 74.1,
+    "band": "Near"
+  },
+  "92567": {
+    "miles": 95.0,
+    "band": "Regional"
+  },
+  "92570": {
+    "miles": 95.2,
+    "band": "Regional"
+  },
+  "92571": {
+    "miles": 90.8,
+    "band": "Regional"
+  },
+  "92572": {
+    "miles": 89.8,
+    "band": "Regional"
+  },
+  "92581": {
+    "miles": 99.7,
+    "band": "Regional"
+  },
+  "92582": {
+    "miles": 98.7,
+    "band": "Regional"
+  },
+  "92583": {
+    "miles": 103.3,
+    "band": "Regional"
+  },
+  "92584": {
+    "miles": 80.2,
+    "band": "Regional"
+  },
+  "92585": {
+    "miles": 87.8,
+    "band": "Regional"
+  },
+  "92586": {
+    "miles": 84.8,
+    "band": "Regional"
+  },
+  "92587": {
+    "miles": 88.3,
+    "band": "Regional"
+  },
+  "92589": {
+    "miles": 67.4,
+    "band": "Near"
+  },
+  "92590": {
+    "miles": 71.6,
+    "band": "Near"
+  },
+  "92591": {
+    "miles": 70.0,
+    "band": "Near"
+  },
+  "92592": {
+    "miles": 70.1,
+    "band": "Near"
+  },
+  "92593": {
+    "miles": 67.4,
+    "band": "Near"
+  },
+  "92595": {
+    "miles": 78.5,
+    "band": "Regional"
+  },
+  "92596": {
+    "miles": 81.6,
+    "band": "Regional"
+  },
+  "92599": {
+    "miles": 89.8,
+    "band": "Regional"
+  },
+  "92602": {
+    "miles": 96.8,
+    "band": "Regional"
+  },
+  "92603": {
+    "miles": 95.0,
+    "band": "Regional"
+  },
+  "92604": {
+    "miles": 94.0,
+    "band": "Regional"
+  },
+  "92605": {
+    "miles": 104.0,
+    "band": "Regional"
+  },
+  "92606": {
+    "miles": 96.7,
+    "band": "Regional"
+  },
+  "92607": {
+    "miles": 83.8,
+    "band": "Regional"
+  },
+  "92609": {
+    "miles": 87.3,
+    "band": "Regional"
+  },
+  "92610": {
+    "miles": 92.0,
+    "band": "Regional"
+  },
+  "92612": {
+    "miles": 94.4,
+    "band": "Regional"
+  },
+  "92614": {
+    "miles": 95.2,
+    "band": "Regional"
+  },
+  "92615": {
+    "miles": 102.0,
+    "band": "Regional"
+  },
+  "92616": {
+    "miles": 95.3,
+    "band": "Regional"
+  },
+  "92617": {
+    "miles": 93.4,
+    "band": "Regional"
+  },
+  "92618": {
+    "miles": 96.5,
+    "band": "Regional"
+  },
+  "92619": {
+    "miles": 92.1,
+    "band": "Regional"
+  },
+  "92620": {
+    "miles": 93.4,
+    "band": "Regional"
+  },
+  "92623": {
+    "miles": 97.1,
+    "band": "Regional"
+  },
+  "92624": {
+    "miles": 73.3,
+    "band": "Near"
+  },
+  "92625": {
+    "miles": 95.1,
+    "band": "Regional"
+  },
+  "92626": {
+    "miles": 98.2,
+    "band": "Regional"
+  },
+  "92627": {
+    "miles": 98.5,
+    "band": "Regional"
+  },
+  "92628": {
+    "miles": 99.1,
+    "band": "Regional"
+  },
+  "92629": {
+    "miles": 76.0,
+    "band": "Regional"
+  },
+  "92630": {
+    "miles": 89.1,
+    "band": "Regional"
+  },
+  "92637": {
+    "miles": 86.8,
+    "band": "Regional"
+  },
+  "92646": {
+    "miles": 102.3,
+    "band": "Regional"
+  },
+  "92647": {
+    "miles": 105.0,
+    "band": "Regional"
+  },
+  "92648": {
+    "miles": 104.9,
+    "band": "Regional"
+  },
+  "92649": {
+    "miles": 106.6,
+    "band": "Regional"
+  },
+  "92650": {
+    "miles": 93.0,
+    "band": "Regional"
+  },
+  "92651": {
+    "miles": 83.0,
+    "band": "Regional"
+  },
+  "92652": {
+    "miles": 89.7,
+    "band": "Regional"
+  },
+  "92653": {
+    "miles": 84.1,
+    "band": "Regional"
+  },
+  "92654": {
+    "miles": 85.8,
+    "band": "Regional"
+  },
+  "92655": {
+    "miles": 104.2,
+    "band": "Regional"
+  },
+  "92656": {
+    "miles": 83.5,
+    "band": "Regional"
+  },
+  "92657": {
+    "miles": 93.1,
+    "band": "Regional"
+  },
+  "92658": {
+    "miles": 93.5,
+    "band": "Regional"
+  },
+  "92659": {
+    "miles": 100.6,
+    "band": "Regional"
+  },
+  "92660": {
+    "miles": 93.4,
+    "band": "Regional"
+  },
+  "92661": {
+    "miles": 103.0,
+    "band": "Regional"
+  },
+  "92662": {
+    "miles": 95.9,
+    "band": "Regional"
+  },
+  "92663": {
+    "miles": 100.7,
+    "band": "Regional"
+  },
+  "92672": {
+    "miles": 70.7,
+    "band": "Near"
+  },
+  "92673": {
+    "miles": 74.5,
+    "band": "Near"
+  },
+  "92674": {
+    "miles": 71.7,
+    "band": "Near"
+  },
+  "92675": {
+    "miles": 77.1,
+    "band": "Regional"
+  },
+  "92676": {
+    "miles": 107.3,
+    "band": "Regional"
+  },
+  "92677": {
+    "miles": 80.3,
+    "band": "Regional"
+  },
+  "92678": {
+    "miles": 92.3,
+    "band": "Regional"
+  },
+  "92679": {
+    "miles": 92.2,
+    "band": "Regional"
+  },
+  "92683": {
+    "miles": 104.7,
+    "band": "Regional"
+  },
+  "92684": {
+    "miles": 105.9,
+    "band": "Regional"
+  },
+  "92685": {
+    "miles": 104.8,
+    "band": "Regional"
+  },
+  "92688": {
+    "miles": 90.6,
+    "band": "Regional"
+  },
+  "92690": {
+    "miles": 86.2,
+    "band": "Regional"
+  },
+  "92691": {
+    "miles": 85.1,
+    "band": "Regional"
+  },
+  "92692": {
+    "miles": 86.4,
+    "band": "Regional"
+  },
+  "92693": {
+    "miles": 76.4,
+    "band": "Regional"
+  },
+  "92694": {
+    "miles": 82.7,
+    "band": "Regional"
+  },
+  "92697": {
+    "miles": 94.0,
+    "band": "Regional"
+  },
+  "92698": {
+    "miles": 95.0,
+    "band": "Regional"
+  },
+  "92701": {
+    "miles": 99.1,
+    "band": "Regional"
+  },
+  "92702": {
+    "miles": 100.3,
+    "band": "Regional"
+  },
+  "92703": {
+    "miles": 101.8,
+    "band": "Regional"
+  },
+  "92704": {
+    "miles": 100.1,
+    "band": "Regional"
+  },
+  "92705": {
+    "miles": 98.1,
+    "band": "Regional"
+  },
+  "92706": {
+    "miles": 102.7,
+    "band": "Regional"
+  },
+  "92707": {
+    "miles": 98.7,
+    "band": "Regional"
+  },
+  "92708": {
+    "miles": 101.0,
+    "band": "Regional"
+  },
+  "92711": {
+    "miles": 100.4,
+    "band": "Regional"
+  },
+  "92712": {
+    "miles": 101.0,
+    "band": "Regional"
+  },
+  "92728": {
+    "miles": 100.8,
+    "band": "Regional"
+  },
+  "92735": {
+    "miles": 99.5,
+    "band": "Regional"
+  },
+  "92780": {
+    "miles": 96.6,
+    "band": "Regional"
+  },
+  "92781": {
+    "miles": 96.4,
+    "band": "Regional"
+  },
+  "92782": {
+    "miles": 96.0,
+    "band": "Regional"
+  },
+  "92799": {
+    "miles": 99.7,
+    "band": "Regional"
+  },
+  "92801": {
+    "miles": 107.9,
+    "band": "Regional"
+  },
+  "92802": {
+    "miles": 104.8,
+    "band": "Regional"
+  },
+  "92803": {
+    "miles": 106.8,
+    "band": "Regional"
+  },
+  "92804": {
+    "miles": 108.0,
+    "band": "Regional"
+  },
+  "92805": {
+    "miles": 106.2,
+    "band": "Regional"
+  },
+  "92806": {
+    "miles": 105.7,
+    "band": "Regional"
+  },
+  "92807": {
+    "miles": 107.7,
+    "band": "Regional"
+  },
+  "92808": {
+    "miles": 109.4,
+    "band": "Regional"
+  },
+  "92809": {
+    "miles": 106.8,
+    "band": "Regional"
+  },
+  "92811": {
+    "miles": 106.6,
+    "band": "Regional"
+  },
+  "92812": {
+    "miles": 105.3,
+    "band": "Regional"
+  },
+  "92814": {
+    "miles": 107.4,
+    "band": "Regional"
+  },
+  "92815": {
+    "miles": 105.3,
+    "band": "Regional"
+  },
+  "92816": {
+    "miles": 105.9,
+    "band": "Regional"
+  },
+  "92817": {
+    "miles": 106.7,
+    "band": "Regional"
+  },
+  "92821": {
+    "miles": 111.8,
+    "band": "Far"
+  },
+  "92822": {
+    "miles": 111.1,
+    "band": "Far"
+  },
+  "92823": {
+    "miles": 115.9,
+    "band": "Far"
+  },
+  "92825": {
+    "miles": 106.8,
+    "band": "Regional"
+  },
+  "92831": {
+    "miles": 110.1,
+    "band": "Far"
+  },
+  "92832": {
+    "miles": 110.1,
+    "band": "Far"
+  },
+  "92833": {
+    "miles": 110.5,
+    "band": "Far"
+  },
+  "92834": {
+    "miles": 108.8,
+    "band": "Regional"
+  },
+  "92835": {
+    "miles": 111.4,
+    "band": "Far"
+  },
+  "92836": {
+    "miles": 109.2,
+    "band": "Regional"
+  },
+  "92837": {
+    "miles": 109.5,
+    "band": "Regional"
+  },
+  "92838": {
+    "miles": 112.3,
+    "band": "Far"
+  },
+  "92840": {
+    "miles": 104.7,
+    "band": "Regional"
+  },
+  "92841": {
+    "miles": 107.9,
+    "band": "Regional"
+  },
+  "92842": {
+    "miles": 106.3,
+    "band": "Regional"
+  },
+  "92843": {
+    "miles": 104.9,
+    "band": "Regional"
+  },
+  "92844": {
+    "miles": 106.8,
+    "band": "Regional"
+  },
+  "92845": {
+    "miles": 108.0,
+    "band": "Regional"
+  },
+  "92846": {
+    "miles": 108.5,
+    "band": "Regional"
+  },
+  "92850": {
+    "miles": 107.4,
+    "band": "Regional"
+  },
+  "92856": {
+    "miles": 101.7,
+    "band": "Regional"
+  },
+  "92857": {
+    "miles": 105.6,
+    "band": "Regional"
+  },
+  "92859": {
+    "miles": 102.6,
+    "band": "Regional"
+  },
+  "92860": {
+    "miles": 107.9,
+    "band": "Regional"
+  },
+  "92861": {
+    "miles": 104.0,
+    "band": "Regional"
+  },
+  "92862": {
+    "miles": 103.8,
+    "band": "Regional"
+  },
+  "92863": {
+    "miles": 103.4,
+    "band": "Regional"
+  },
+  "92864": {
+    "miles": 103.6,
+    "band": "Regional"
+  },
+  "92865": {
+    "miles": 104.6,
+    "band": "Regional"
+  },
+  "92866": {
+    "miles": 101.4,
+    "band": "Regional"
+  },
+  "92867": {
+    "miles": 103.3,
+    "band": "Regional"
+  },
+  "92868": {
+    "miles": 102.6,
+    "band": "Regional"
+  },
+  "92869": {
+    "miles": 102.9,
+    "band": "Regional"
+  },
+  "92870": {
+    "miles": 107.7,
+    "band": "Regional"
+  },
+  "92871": {
+    "miles": 110.2,
+    "band": "Far"
+  },
+  "92877": {
+    "miles": 106.0,
+    "band": "Regional"
+  },
+  "92878": {
+    "miles": 106.0,
+    "band": "Regional"
+  },
+  "92879": {
+    "miles": 105.0,
+    "band": "Regional"
+  },
+  "92880": {
+    "miles": 111.5,
+    "band": "Far"
+  },
+  "92881": {
+    "miles": 100.3,
+    "band": "Regional"
+  },
+  "92882": {
+    "miles": 105.4,
+    "band": "Regional"
+  },
+  "92883": {
+    "miles": 96.4,
+    "band": "Regional"
+  },
+  "92885": {
+    "miles": 108.6,
+    "band": "Regional"
+  },
+  "92886": {
+    "miles": 111.5,
+    "band": "Far"
+  },
+  "92887": {
+    "miles": 109.2,
+    "band": "Regional"
+  },
+  "92899": {
+    "miles": 105.4,
+    "band": "Regional"
+  },
+  "93001": {
+    "miles": 212.7,
+    "band": "Overnight"
+  },
+  "93002": {
+    "miles": 201.2,
+    "band": "Overnight"
+  },
+  "93003": {
+    "miles": 198.3,
+    "band": "Very Far"
+  },
+  "93004": {
+    "miles": 196.3,
+    "band": "Very Far"
+  },
+  "93005": {
+    "miles": 201.2,
+    "band": "Overnight"
+  },
+  "93006": {
+    "miles": 201.2,
+    "band": "Overnight"
+  },
+  "93007": {
+    "miles": 201.2,
+    "band": "Overnight"
+  },
+  "93009": {
+    "miles": 201.3,
+    "band": "Overnight"
+  },
+  "93010": {
+    "miles": 187.1,
+    "band": "Very Far"
+  },
+  "93011": {
+    "miles": 185.4,
+    "band": "Very Far"
+  },
+  "93012": {
+    "miles": 185.5,
+    "band": "Very Far"
+  },
+  "93013": {
+    "miles": 217.8,
+    "band": "Overnight"
+  },
+  "93014": {
+    "miles": 217.7,
+    "band": "Overnight"
+  },
+  "93015": {
+    "miles": 186.1,
+    "band": "Very Far"
+  },
+  "93016": {
+    "miles": 186.1,
+    "band": "Very Far"
+  },
+  "93020": {
+    "miles": 177.2,
+    "band": "Very Far"
+  },
+  "93021": {
+    "miles": 177.7,
+    "band": "Very Far"
+  },
+  "93022": {
+    "miles": 211.2,
+    "band": "Overnight"
+  },
+  "93023": {
+    "miles": 215.7,
+    "band": "Overnight"
+  },
+  "93024": {
+    "miles": 216.3,
+    "band": "Overnight"
+  },
+  "93030": {
+    "miles": 193.9,
+    "band": "Very Far"
+  },
+  "93032": {
+    "miles": 194.9,
+    "band": "Very Far"
+  },
+  "93033": {
+    "miles": 196.8,
+    "band": "Very Far"
+  },
+  "93035": {
+    "miles": 201.2,
+    "band": "Overnight"
+  },
+  "93036": {
+    "miles": 194.2,
+    "band": "Very Far"
+  },
+  "93040": {
+    "miles": 181.6,
+    "band": "Very Far"
+  },
+  "93041": {
+    "miles": 197.9,
+    "band": "Very Far"
+  },
+  "93042": {
+    "miles": 194.7,
+    "band": "Very Far"
+  },
+  "93043": {
+    "miles": 197.8,
+    "band": "Very Far"
+  },
+  "93044": {
+    "miles": 196.9,
+    "band": "Very Far"
+  },
+  "93060": {
+    "miles": 196.3,
+    "band": "Very Far"
+  },
+  "93061": {
+    "miles": 195.1,
+    "band": "Very Far"
+  },
+  "93062": {
+    "miles": 171.9,
+    "band": "Very Far"
+  },
+  "93063": {
+    "miles": 169.8,
+    "band": "Very Far"
+  },
+  "93064": {
+    "miles": 169.1,
+    "band": "Very Far"
+  },
+  "93065": {
+    "miles": 171.5,
+    "band": "Very Far"
+  },
+  "93066": {
+    "miles": 190.2,
+    "band": "Very Far"
+  },
+  "93067": {
+    "miles": 222.8,
+    "band": "Overnight"
+  },
+  "93094": {
+    "miles": 171.9,
+    "band": "Very Far"
+  },
+  "93099": {
+    "miles": 171.9,
+    "band": "Very Far"
+  },
+  "93101": {
+    "miles": 229.5,
+    "band": "Overnight"
+  },
+  "93102": {
+    "miles": 228.5,
+    "band": "Overnight"
+  },
+  "93103": {
+    "miles": 227.9,
+    "band": "Overnight"
+  },
+  "93105": {
+    "miles": 231.8,
+    "band": "Overnight"
+  },
+  "93106": {
+    "miles": 237.6,
+    "band": "Overnight"
+  },
+  "93107": {
+    "miles": 239.9,
+    "band": "Overnight"
+  },
+  "93108": {
+    "miles": 225.7,
+    "band": "Overnight"
+  },
+  "93109": {
+    "miles": 230.7,
+    "band": "Overnight"
+  },
+  "93110": {
+    "miles": 233.5,
+    "band": "Overnight"
+  },
+  "93111": {
+    "miles": 236.0,
+    "band": "Overnight"
+  },
+  "93116": {
+    "miles": 237.4,
+    "band": "Overnight"
+  },
+  "93117": {
+    "miles": 239.0,
+    "band": "Overnight"
+  },
+  "93118": {
+    "miles": 237.4,
+    "band": "Overnight"
+  },
+  "93120": {
+    "miles": 228.5,
+    "band": "Overnight"
+  },
+  "93121": {
+    "miles": 228.5,
+    "band": "Overnight"
+  },
+  "93130": {
+    "miles": 228.5,
+    "band": "Overnight"
+  },
+  "93140": {
+    "miles": 228.5,
+    "band": "Overnight"
+  },
+  "93150": {
+    "miles": 228.5,
+    "band": "Overnight"
+  },
+  "93160": {
+    "miles": 228.5,
+    "band": "Overnight"
+  },
+  "93190": {
+    "miles": 228.5,
+    "band": "Overnight"
+  },
+  "93203": {
+    "miles": 232.9,
+    "band": "Overnight"
+  },
+  "93205": {
+    "miles": 283.2,
+    "band": "Overnight"
+  },
+  "93206": {
+    "miles": 256.6,
+    "band": "Overnight"
+  },
+  "93207": {
+    "miles": 304.2,
+    "band": "Overnight"
+  },
+  "93215": {
+    "miles": 272.2,
+    "band": "Overnight"
+  },
+  "93216": {
+    "miles": 272.1,
+    "band": "Overnight"
+  },
+  "93220": {
+    "miles": 249.0,
+    "band": "Overnight"
+  },
+  "93222": {
+    "miles": 217.6,
+    "band": "Overnight"
+  },
+  "93224": {
+    "miles": 253.7,
+    "band": "Overnight"
+  },
+  "93225": {
+    "miles": 210.2,
+    "band": "Overnight"
+  },
+  "93226": {
+    "miles": 279.4,
+    "band": "Overnight"
+  },
+  "93238": {
+    "miles": 288.5,
+    "band": "Overnight"
+  },
+  "93240": {
+    "miles": 287.6,
+    "band": "Overnight"
+  },
+  "93241": {
+    "miles": 232.6,
+    "band": "Overnight"
+  },
+  "93243": {
+    "miles": 206.0,
+    "band": "Overnight"
+  },
+  "93250": {
+    "miles": 267.2,
+    "band": "Overnight"
+  },
+  "93251": {
+    "miles": 269.8,
+    "band": "Overnight"
+  },
+  "93252": {
+    "miles": 242.1,
+    "band": "Overnight"
+  },
+  "93254": {
+    "miles": 274.6,
+    "band": "Overnight"
+  },
+  "93255": {
+    "miles": 255.2,
+    "band": "Overnight"
+  },
+  "93260": {
+    "miles": 286.8,
+    "band": "Overnight"
+  },
+  "93261": {
+    "miles": 276.9,
+    "band": "Overnight"
+  },
+  "93263": {
+    "miles": 256.2,
+    "band": "Overnight"
+  },
+  "93268": {
+    "miles": 249.0,
+    "band": "Overnight"
+  },
+  "93276": {
+    "miles": 247.2,
+    "band": "Overnight"
+  },
+  "93280": {
+    "miles": 273.6,
+    "band": "Overnight"
+  },
+  "93283": {
+    "miles": 276.6,
+    "band": "Overnight"
+  },
+  "93285": {
+    "miles": 292.5,
+    "band": "Overnight"
+  },
+  "93287": {
+    "miles": 274.7,
+    "band": "Overnight"
+  },
+  "93301": {
+    "miles": 243.2,
+    "band": "Overnight"
+  },
+  "93302": {
+    "miles": 241.8,
+    "band": "Overnight"
+  },
+  "93303": {
+    "miles": 236.1,
+    "band": "Overnight"
+  },
+  "93304": {
+    "miles": 239.5,
+    "band": "Overnight"
+  },
+  "93305": {
+    "miles": 244.8,
+    "band": "Overnight"
+  },
+  "93306": {
+    "miles": 247.1,
+    "band": "Overnight"
+  },
+  "93307": {
+    "miles": 238.9,
+    "band": "Overnight"
+  },
+  "93308": {
+    "miles": 244.6,
+    "band": "Overnight"
+  },
+  "93309": {
+    "miles": 240.1,
+    "band": "Overnight"
+  },
+  "93311": {
+    "miles": 238.8,
+    "band": "Overnight"
+  },
+  "93312": {
+    "miles": 246.3,
+    "band": "Overnight"
+  },
+  "93313": {
+    "miles": 236.5,
+    "band": "Overnight"
+  },
+  "93314": {
+    "miles": 251.0,
+    "band": "Overnight"
+  },
+  "93380": {
+    "miles": 236.1,
+    "band": "Overnight"
+  },
+  "93383": {
+    "miles": 236.1,
+    "band": "Overnight"
+  },
+  "93384": {
+    "miles": 241.8,
+    "band": "Overnight"
+  },
+  "93385": {
+    "miles": 236.1,
+    "band": "Overnight"
+  },
+  "93386": {
+    "miles": 236.1,
+    "band": "Overnight"
+  },
+  "93387": {
+    "miles": 236.1,
+    "band": "Overnight"
+  },
+  "93388": {
+    "miles": 236.1,
+    "band": "Overnight"
+  },
+  "93389": {
+    "miles": 236.1,
+    "band": "Overnight"
+  },
+  "93390": {
+    "miles": 236.1,
+    "band": "Overnight"
+  },
+  "93427": {
+    "miles": 272.0,
+    "band": "Overnight"
+  },
+  "93436": {
+    "miles": 282.9,
+    "band": "Overnight"
+  },
+  "93437": {
+    "miles": 294.0,
+    "band": "Overnight"
+  },
+  "93438": {
+    "miles": 282.0,
+    "band": "Overnight"
+  },
+  "93440": {
+    "miles": 273.3,
+    "band": "Overnight"
+  },
+  "93441": {
+    "miles": 261.9,
+    "band": "Overnight"
+  },
+  "93455": {
+    "miles": 290.4,
+    "band": "Overnight"
+  },
+  "93460": {
+    "miles": 258.0,
+    "band": "Overnight"
+  },
+  "93463": {
+    "miles": 276.3,
+    "band": "Overnight"
+  },
+  "93464": {
+    "miles": 262.8,
+    "band": "Overnight"
+  },
+  "93501": {
+    "miles": 224.6,
+    "band": "Overnight"
+  },
+  "93502": {
+    "miles": 224.9,
+    "band": "Overnight"
+  },
+  "93504": {
+    "miles": 220.9,
+    "band": "Overnight"
+  },
+  "93505": {
+    "miles": 216.0,
+    "band": "Overnight"
+  },
+  "93510": {
+    "miles": 180.9,
+    "band": "Very Far"
+  },
+  "93516": {
+    "miles": 191.3,
+    "band": "Very Far"
+  },
+  "93518": {
+    "miles": 277.6,
+    "band": "Overnight"
+  },
+  "93519": {
+    "miles": 229.9,
+    "band": "Overnight"
+  },
+  "93523": {
+    "miles": 212.7,
+    "band": "Overnight"
+  },
+  "93524": {
+    "miles": 211.0,
+    "band": "Overnight"
+  },
+  "93527": {
+    "miles": 239.0,
+    "band": "Overnight"
+  },
+  "93528": {
+    "miles": 212.7,
+    "band": "Overnight"
+  },
+  "93531": {
+    "miles": 259.1,
+    "band": "Overnight"
+  },
+  "93532": {
+    "miles": 202.0,
+    "band": "Overnight"
+  },
+  "93534": {
+    "miles": 200.9,
+    "band": "Overnight"
+  },
+  "93535": {
+    "miles": 177.7,
+    "band": "Very Far"
+  },
+  "93536": {
+    "miles": 215.0,
+    "band": "Overnight"
+  },
+  "93539": {
+    "miles": 188.6,
+    "band": "Very Far"
+  },
+  "93542": {
+    "miles": 257.3,
+    "band": "Overnight"
+  },
+  "93543": {
+    "miles": 170.4,
+    "band": "Very Far"
+  },
+  "93544": {
+    "miles": 155.5,
+    "band": "Very Far"
+  },
+  "93550": {
+    "miles": 170.3,
+    "band": "Very Far"
+  },
+  "93551": {
+    "miles": 186.3,
+    "band": "Very Far"
+  },
+  "93552": {
+    "miles": 175.8,
+    "band": "Very Far"
+  },
+  "93553": {
+    "miles": 170.1,
+    "band": "Very Far"
+  },
+  "93554": {
+    "miles": 218.9,
+    "band": "Overnight"
+  },
+  "93555": {
+    "miles": 232.9,
+    "band": "Overnight"
+  },
+  "93556": {
+    "miles": 232.9,
+    "band": "Overnight"
+  },
+  "93558": {
+    "miles": 209.6,
+    "band": "Overnight"
+  },
+  "93560": {
+    "miles": 221.9,
+    "band": "Overnight"
+  },
+  "93561": {
+    "miles": 243.8,
+    "band": "Overnight"
+  },
+  "93562": {
+    "miles": 246.6,
+    "band": "Overnight"
+  },
+  "93563": {
+    "miles": 156.3,
+    "band": "Very Far"
+  },
+  "93581": {
+    "miles": 243.8,
+    "band": "Overnight"
+  },
+  "93584": {
+    "miles": 188.6,
+    "band": "Very Far"
+  },
+  "93586": {
+    "miles": 188.6,
+    "band": "Very Far"
+  },
+  "93590": {
+    "miles": 179.2,
+    "band": "Very Far"
+  },
+  "93591": {
+    "miles": 168.4,
+    "band": "Very Far"
+  },
+  "93592": {
+    "miles": 246.7,
+    "band": "Overnight"
+  },
+  "93596": {
+    "miles": 190.5,
+    "band": "Very Far"
+  },
+  "93599": {
+    "miles": 179.2,
+    "band": "Very Far"
+  }
+}
