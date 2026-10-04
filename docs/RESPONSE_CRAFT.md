@@ -219,13 +219,15 @@ The ambiguity is not "vague lead, assume and move on." It is a configuration que
 
 **Category examples and their format ranges:**
 
-| Category Request | Possible Formats | Price Range (T2P 2hrs) |
-|---|---|---|
-| "Latin Band" | Duo, trio, quartet, 5-piece, mariachi | $1,100 – $2,695+ |
-| "Spanish music" | Solo, duo, flamenco duo, flamenco trio | $595 – $1,800 |
-| "Entertainment" | Solo, duo, trio, ensemble (any tradition) | $595 – $2,695+ |
-| "A group" / "band" | Duo, trio, quartet, 5-piece | $1,100 – $2,695+ |
-| "Musicians" | Solo, duo, trio, any size | $595 – $2,695+ |
+| Category Request | Possible Formats |
+|---|---|
+| "Latin Band" | Duo, trio, quartet, 5-piece, mariachi |
+| "Spanish music" | Solo, duo, flamenco duo, flamenco trio |
+| "Entertainment" | Solo, duo, trio, ensemble (any tradition) |
+| "A group" / "band" | Duo, trio, quartet, 5-piece |
+| "Musicians" | Solo, duo, trio, any size |
+
+*(Price column removed 2026-10-03: drafts quote one number from the rate card, never a range.)*
 
 **Format examples (no ambiguity, proceed to quote):**
 
