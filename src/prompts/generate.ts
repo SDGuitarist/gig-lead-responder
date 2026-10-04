@@ -86,7 +86,12 @@ If the lead involves a memorial, tribute, celebration of life, or grief context:
 4. **Recommendation + price** — Format recommendation, quote price, positioning${clarificationMode ? " (SKIP in clarification mode)" : ""}
 5. **CTA** — Clear next step (${classification.close_type} close)${clarificationMode ? " and the CTA is the single binary clarifying question" : ""}
 
-${buildStyleRulesBlock(classification, pricing)}
+${classification.tier === "qualification" ? `## QUALIFICATION RESPONSE (budget mismatch or vague request)
+1. Brief validation: acknowledge their vision without overcommitting.
+2. Reframe: position the right option as BETTER, not cheaper (see PRINCIPLES.md "Reframe, Don't Downgrade"). Never say "cheaper" or "budget option".
+${classification.competition_level === "low" ? "3. Ask ONE strategic binary question that shows expertise (not budget, not songs).\n4." : "3."} Warm indication: you'll recommend the right fit once you understand what they need.
+
+` : ""}${buildStyleRulesBlock(classification, pricing)}
 
 ## EVALUATOR CHECKLIST (what you will be graded on)
 
