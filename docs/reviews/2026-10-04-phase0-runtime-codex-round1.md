@@ -173,3 +173,30 @@ Do not modify unrelated port work. Do not run real Gmail, real sends, or product
 ```
 
 Round 0 was satisfied: the server has been booted with Gmail disabled and the deterministic focused tests ran. Real polling, two-process contention, and overnight wake remain execution-only evidence gaps, not review defects.
+---
+
+## Fixes (session 0153v273, 2026-10-04)
+
+| # | Finding | Root cause | Fix | Test (red first) |
+|---|---|---|---|---|
+| 1 | P1 pipeline failure skipped for good | the catch marked the lead `failed` + processed; the early return treats any non-`received` row as done | `ab30889` (Alex: retry once, then hold): first failure writes `pipeline attempt 1 failed: ...` on the row and rethrows (poller holds the cursor); a second failure is final (failed, SMS, processed); a successful retry clears the note | `pipeline failure retried once` ×2 (red: `Missing expected rejection`; note-clearing shown red by removing the line). Two existing tests updated on purpose: a first failure now rethrows |
+| 2 | P1 lease renewed after invalid_grant | auth branch cleared the poll interval only | `49f1352`: auth failure stops renewal; a first poll that fails auth no longer starts the interval; `/health` names a holder only while the lease is live | `poller lease lifecycle: invalid_grant stops lease renewal` (red: renewed after auth failure); control: non-auth error keeps renewing; `health reports lease host: an expired lease reports no host` |
+| 3 | P1 lease renewal can throw out of its timer | `setInterval(acquireOwnLease)` unwrapped; SQLITE_BUSY possible under IMMEDIATE | `49f1352`: renewal wrapped, logged, next tick retries | `poller lease lifecycle: a throwing renewal is caught...` (red: `database is locked` escaped) |
+| 3 (class) | background callbacks escaping their boundary | -- | `f6bcdae`: wake callback wrapped; SIGTERM `stopGmailPoller()` rejection caught | `wake catch-up: a throwing wake callback is caught...` (red). Shutdown: not unit-tested (`server.ts` exits at import without a key and listens at import); verified by reading |
+| 4 | P1 retry attempts in memory | `failedAttempts` is a process Map | **DEFERRED** (Alex 2026-10-04): needs a new persistent store (migration v3), which leaves the review loop. Consequence: each restart gives a poison message 3 more attempts, each holding the cursor. Owner Claude; trigger: before the poller runs unattended overnight (S6). Pipeline failures specifically are now capped across restarts by finding 1's row note | -- |
+| 5 | P2 Gmail data trusted | list pages type-asserted; id-less entries skipped; repeated token looped; missing fetched id became `""` | `44a396c`: `parseListPage` parses each page once (object, array, URL-safe string ids, string token) or throws; a repeated page token throws; a fetched message must carry the requested id | `gmail boundary` ×5 (red: 3 of 4 first tests; the loop test only stopped at the test's own 5-page bail-out); control: empty page, null fields, real ids |
+| 6 | P2 wake threshold 150 s vs "2 minutes" | -- | **Kept, documented** (`f6bcdae`): the plan's EARS line is "wakes after more than 2 minutes **asleep**"; asleep = gap − the 30 s tick, so the boundary is a 150 s gap. Firing at a 120 s gap would fire after 90 s asleep | `wake catch-up: fires at just over 2 minutes asleep, not at exactly 2` (pins current behaviour; no code change) |
+| 7 | P2 no invalid_grant alert | no alert channel until Module 1 | **DEFERRED, unchanged**: owner Claude; trigger after the Module 1 alert channel exists. `invalid_grant alerts` still exits 3 (no test written, none faked) | -- |
+
+**Background-callback inventory (5 sites):** lease renewal timer (fixed), poll interval (already protected: `poll()`
+catches everything), wake callback (fixed), follow-up scheduler (protected: `alertAlex` is async and every call is
+awaited inside a try or has `.catch`), SIGTERM shutdown promise (fixed). Shape: local wrappers at each site; no new
+mechanism.
+
+**Found while fixing (the class's own question asked of the fix):** the poller treats ANY error text containing `401`
+as an auth failure and stops for good (`isAuthError`, pre-existing). The new boundary errors therefore never echo a
+provider value (a hex id can contain `401`); test `gmail boundary: errors never echo provider values`. The substring
+rule itself is unchanged and is a remaining risk: any other error that happens to contain `401` stops polling.
+
+Suite 519 pass / 0 fail / 4 skip; `tsc` and `git diff --check` clean.
+UNEXECUTED (unchanged): a real poll, two real processes racing for the lease, an overnight sleep (S6).

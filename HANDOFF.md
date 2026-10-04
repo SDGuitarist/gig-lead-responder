@@ -101,7 +101,9 @@ design pass + live drafting runs, per its row); group 5 needs Alex's numbers; gr
 
 **⚠ TWO Codex round-1 reviews OUT, separate change sets (record each verdict in `docs/reviews/`):**
 - **Review #1 (poller/lease/wake, `2f2ec7d..e1fb163`): round 1 = NO-GO, 4 P1 + 3 P2** (2026-10-04,
-  `docs/reviews/2026-10-04-phase0-runtime-codex-round1.md`). Fixes NOT started; files stay frozen until review #1 closes.
+  `docs/reviews/2026-10-04-phase0-runtime-codex-round1.md`). **5 fixed, 2 deferred with owner + trigger** (retry counter
+  persistence: before unattended overnight runs; invalid_grant alert: after Module 1's alert channel). Next: round 2.
+  Files stay frozen until review #1 closes.
 - **Review #2 round 1 = NO-GO** (4 findings, `docs/reviews/2026-10-03-port-pricing-codex-round1.md`), all fixed in
   `2c24998`..`68af85b` with tests, plus two Alex-raised money fixes (quoted hours = priced hours; stale PRICING_TABLES
   prices removed). **Round 2 = NO-GO, 2 findings, both fixed** (see the 2026-10-03 evening section above).
@@ -150,7 +152,7 @@ Read: HANDOFF.md (top section, session 33bddb35, incl. the two Codex reviews), C
   docs/reviews/2026-10-03-port-pricing-codex-round1.md, docs/research/2026-10-02-booking-hub/port-manifest.md,
   docs/research/2026-10-02-booking-hub/spikes.md.
 Two Codex reviews are open. Ask Alex for any verdict he hasn't pasted yet:
-  - Review #1 (poller/lease/wake, 2f2ec7d..e1fb163): round 1 NO-GO (docs/reviews/2026-10-04-phase0-runtime-codex-round1.md); fixes pending.
+  - Review #1 (poller/lease/wake, 2f2ec7d..e1fb163): round 1 NO-GO, fixed (docs/reviews/2026-10-04-phase0-runtime-codex-round1.md); round 2 next.
   - Review #2 (port/pricing): CLOSED, round 3 GO (docs/reviews/2026-10-03-port-pricing-codex-round3.md).
 Record each verdict in docs/reviews/, then work its fix prompt under ~/.claude/docs/mandatory-review-workflow.md.
 Then the remaining 56 TO PORT rows (see the top section for what blocks each), one concern per commit.
