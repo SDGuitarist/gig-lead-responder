@@ -46,6 +46,13 @@ export const MIGRATIONS: Migration[] = [
         )
       `),
   },
+  {
+    // Port manifest R018: insights the first reply didn't use, banked for follow-ups
+    // (JSON array of strings). Alex approved 2026-10-04.
+    version: 3,
+    name: "strategic_reserve",
+    up: (db) => db.exec("ALTER TABLE leads ADD COLUMN strategic_reserve_json TEXT"),
+  },
 ];
 
 /** Throws if the DB was written by newer code; returns its current version. */

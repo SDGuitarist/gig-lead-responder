@@ -112,7 +112,7 @@ const UPDATE_ALLOWED_COLUMNS = new Set<string>([
   "edit_round", "edit_instructions", "done_reason",
   "outcome", "outcome_reason", "actual_price", "outcome_at",
   "follow_up_status", "follow_up_count", "follow_up_due_at", "follow_up_draft",
-  "snoozed_until", "updated_at",
+  "snoozed_until", "updated_at", "strategic_reserve_json",
 ]);
 
 export function updateLead(

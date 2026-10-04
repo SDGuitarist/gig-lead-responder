@@ -427,6 +427,8 @@ export interface LeadRecord {
   follow_up_due_at: string | null;
   follow_up_draft: string | null;
   snoozed_until: string | null;
+  /** JSON array of reserve insights for follow-ups (migration v3, port manifest R018). */
+  strategic_reserve_json?: string | null;
   created_at: string;
   updated_at: string;
 }

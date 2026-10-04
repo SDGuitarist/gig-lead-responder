@@ -14,7 +14,10 @@ const alive = () => true;
 const T = 1_791_000_000_000;
 
 test("lease expiry and stale holder: migration v2 creates runtime_lease", () => {
-  assert.equal(initDb().pragma("user_version", { simple: true }), 2);
+  // At least v2 (later migrations may follow); the table v2 creates exists.
+  const db = initDb();
+  assert.ok((db.pragma("user_version", { simple: true }) as number) >= 2);
+  assert.ok(db.prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'runtime_lease'").get());
 });
 
 test("lease expiry and stale holder: one holder at a time, renewable by itself", () => {
