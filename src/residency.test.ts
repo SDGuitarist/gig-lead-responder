@@ -3,6 +3,8 @@ import assert from "node:assert/strict";
 import { setClaudeRequesterForTests } from "./claude.js";
 import { classifyLead, normalizeEngagement } from "./pipeline/classify.js";
 import { buildClassifyPrompt } from "./prompts/classify.js";
+import { lookupResidencyRate } from "./pipeline/price.js";
+import type { ResidencyCadence, ResidencyTier } from "./types.js";
 
 // Port manifest R220/R276–R280 (engagement type) and R281–R283 (residency tier):
 // is this a private event or a recurring residency? Alex 2026-10-04: residency
@@ -54,4 +56,37 @@ test("residency classify: classifyLead returns the normalized fields", async () 
   const plain = await classifyAs(valid);
   assert.equal(plain.engagement_type, "private");
   assert.equal(plain.residency_tier, null);
+});
+
+// R221/R108–R111/R116: residency rates per night, solo Alex (Alex approved the
+// R2/R3 numbers 2026-10-04). R1, 4+ hours and an unknown cadence have no rate:
+// held for Alex, never invented.
+test("residency price: R2 and R3 per night, exactly as approved", () => {
+  const want: Array<[ResidencyTier, number, ResidencyCadence, number]> = [
+    ["R2", 2, "weekly", 350], ["R2", 2, "biweekly", 400], ["R2", 2, "monthly", 450],
+    ["R2", 3, "weekly", 450], ["R2", 3, "biweekly", 525], ["R2", 3, "monthly", 600],
+    ["R3", 2, "weekly", 500], ["R3", 2, "biweekly", 550], ["R3", 2, "monthly", 600],
+    ["R3", 3, "weekly", 600], ["R3", 3, "biweekly", 675], ["R3", 3, "monthly", 750],
+  ];
+  for (const [tier, hours, cadence, rate] of want) {
+    const q = lookupResidencyRate(tier, hours, cadence);
+    assert.equal(q.rate, rate, `${tier} ${hours}h ${cadence}`);
+    assert.equal(q.hours, hours);
+    assert.equal(q.reason, null);
+  }
+  assert.equal(lookupResidencyRate("R2", 2, "weekly").floor, 350);
+  assert.equal(lookupResidencyRate("R3", 2, "weekly").floor, 400);
+});
+
+test("residency price: between card lengths rounds up; no rate for R1, 4 hours or an unknown cadence", () => {
+  assert.deepEqual([lookupResidencyRate("R2", 2.5, "monthly").hours, lookupResidencyRate("R2", 2.5, "monthly").rate], [3, 600]);
+  assert.deepEqual([lookupResidencyRate("R3", 1, "weekly").hours, lookupResidencyRate("R3", 1, "weekly").rate], [2, 500]);
+  for (const q of [lookupResidencyRate("R1", 2, "monthly"), lookupResidencyRate("R2", 4, "weekly"), lookupResidencyRate("R3", 2, null)]) {
+    assert.equal(q.rate, null);
+    assert.equal(q.floor, null);
+    assert.ok(q.reason && q.reason.length > 0);
+  }
+  assert.match(lookupResidencyRate("R1", 2, "monthly").reason ?? "", /R1/);
+  assert.match(lookupResidencyRate("R2", 4, "weekly").reason ?? "", /4/);
+  assert.match(lookupResidencyRate("R3", 2, null).reason ?? "", /cadence/);
 });

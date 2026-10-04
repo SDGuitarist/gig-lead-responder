@@ -417,3 +417,13 @@ export const RATE_TABLES: Record<Format, FormatRates> = {
   sourced_cultural_quartet: SOURCED_CULTURAL_QUARTET_RATES,
   sourced_cultural_5piece: SOURCED_CULTURAL_5PIECE_RATES,
 };
+
+// Residency (B2B, solo Alex only), price per night by hours and cadence
+// (Project Rate_Card_Solo_Duo, approved by Alex 2026-10-04). R1 has no table:
+// each owner-operator residency is Alex's own conversation, so it is held.
+// No 4-hour or holiday/peak rates exist; those are held too.
+export const RESIDENCY_FLOORS = { R2: 350, R3: 400 } as const;
+export const RESIDENCY_RATES: Record<"R2" | "R3", Record<"2" | "3", Record<"weekly" | "biweekly" | "monthly", number>>> = {
+  R2: { "2": { weekly: 350, biweekly: 400, monthly: 450 }, "3": { weekly: 450, biweekly: 525, monthly: 600 } },
+  R3: { "2": { weekly: 500, biweekly: 550, monthly: 600 }, "3": { weekly: 600, biweekly: 675, monthly: 750 } },
+};

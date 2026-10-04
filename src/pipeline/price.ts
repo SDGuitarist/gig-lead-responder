@@ -1,6 +1,6 @@
-import { FLAMENCO_TRIO_3H_DANCER_2H_RATES, MARIACHI_FULL_OUTSIDE_SD_RATES, RATE_TABLES, type FormatRates, type TierRates } from "../data/rates.js";
+import { FLAMENCO_TRIO_3H_DANCER_2H_RATES, MARIACHI_FULL_OUTSIDE_SD_RATES, RATE_TABLES, RESIDENCY_FLOORS, RESIDENCY_RATES, type FormatRates, type TierRates } from "../data/rates.js";
 import { PricingError } from "../errors.js";
-import type { Classification, Format, PricingResult, BudgetGapResult, ScopedAlternative, TravelBand, TravelFeeData, TravelComponent } from "../types.js";
+import type { Classification, Format, PricingResult, ResidencyCadence, ResidencyTier, BudgetGapResult, ScopedAlternative, TravelBand, TravelFeeData, TravelComponent } from "../types.js";
 
 const BUDGET_GAP_SMALL_THRESHOLD = 75;  // exclusive: gap < 75 is "small"
 const BUDGET_GAP_LARGE_THRESHOLD = 200; // inclusive: gap <= 200 is "large"
@@ -288,4 +288,29 @@ export function rateTableFor(pricing: Pick<PricingResult, "format" | "rate_table
 export function budgetGapFor(classification: Classification, pricing: PricingResult): BudgetGapResult {
   return detectBudgetGap(classification.stated_budget, pricing.floor, pricing.format as Format,
     pricing.duration_hours, pricing.tier_key, rateTableFor(pricing));
+}
+
+export interface ResidencyQuote {
+  tier: ResidencyTier;
+  cadence: ResidencyCadence | null;
+  /** Hours priced (a request between 2 and 3 rounds up); null when there is no rate. */
+  hours: number | null;
+  rate: number | null;
+  floor: number | null;
+  /** Why there is no rate (held for Alex); null when there is one. */
+  reason: string | null;
+}
+
+/**
+ * Residency price per night, solo Alex (port manifest R221/R108–R111). Pure.
+ * No rate (null + reason) for R1, above 3 hours, or an unknown cadence:
+ * those go to Alex, never to an invented number.
+ */
+export function lookupResidencyRate(tier: ResidencyTier, hours: number, cadence: ResidencyCadence | null): ResidencyQuote {
+  const none = (reason: string): ResidencyQuote => ({ tier, cadence, hours: null, rate: null, floor: null, reason });
+  if (tier === "R1") return none("R1 owner-operator residency: Alex sets the rate in conversation");
+  if (hours > 3) return none(`no residency rate for ${hours} hours (the card stops at 3)`);
+  if (cadence === null) return none("residency cadence unknown (weekly, bi-weekly or monthly)");
+  const priced = hours <= 2 ? 2 : 3;
+  return { tier, cadence, hours: priced, rate: RESIDENCY_RATES[tier][priced === 2 ? "2" : "3"][cadence], floor: RESIDENCY_FLOORS[tier], reason: null };
 }
