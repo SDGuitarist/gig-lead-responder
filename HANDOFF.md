@@ -31,11 +31,13 @@ Codex CLI runs reviews with `-s workspace-write` (16 tests are sandbox-blocked, 
   every residency lead is held. **Recurring duo/trio/ensemble = normal private-event price, no discount, held.**
   Not in the source, so held, never invented: R1 rates, 4-hour residency, holiday/peak.
 
-**Waiting on Alex (asked 2026-10-04, not yet answered):**
-1. **R285 Encuentro exception:** Claude proposes NOT PORTED (one client's deal; keeps it out of the public repo; that
-   venue's residency is held anyway). Needs Alex's OK before the row changes.
-2. **Residency deposit:** the source gives none, so residency drafts omit the 50% deposit line. Right, or a deposit?
-3. **GigSalad build:** which account and which lead page Claude may open, at the time it is built.
+**Alex answered 2026-10-04 (later):**
+- **Residency deposit:** leave the 50% deposit OUT of residency drafts (as built).
+- **GigSalad:** Claude may log in to BOTH GigSalad accounts and open any lead. Claude cannot type passwords, so Alex
+  signs in to each account in Chrome first; then Claude opens leads read-only to build the parser against real pages.
+
+**Waiting on Alex:** R285 Encuentro exception NOT PORTED? (one client's deal; keeps it out of the public repo; that
+venue's residency is held anyway; nothing about the deal changes). Explained to Alex 2026-10-04; answer pending.
 
 **Next pricing rows (Alex: Project numbers, shown before commit):** holiday/peak + context modifiers (R058/R072/R104/
 R292), $150 minimum profit (R295/R362), quote formatting by tier (R300–R302), T4/NP tiers (R403, then F1 R020–R025).
@@ -56,8 +58,8 @@ data/leads.db at the next server start (backup first).
    seen on a real lead. A residency mislabeled "private" gets the private price and is NOT held by the residency rule
    (only by other holds). Run a real or realistic venue inquiry before trusting it.
 
-**Next phase:** Work: the next pricing group (show Alex the Project's numbers first), or GigSalad portal reading once
-Alex names the account and lead.
+**Next phase:** Work: GigSalad portal reading (Alex signs in to both accounts first), or the next pricing group
+(show Alex the Project's numbers first).
 
 ### Prompt for Next Session
 
@@ -68,7 +70,7 @@ FIRST gate (stop and ask Alex if anything differs):
   git rev-parse HEAD; git rev-parse origin/feat/hub-phase0  # expect: identical
   git status --short                                        # expect: clean
 Read: HANDOFF.md "START HERE" section, CLAUDE.md, docs/research/2026-10-02-booking-hub/port-manifest.md.
-No Codex review is open. Ask Alex the three "Waiting on Alex" items. Then the next pricing group: pull the
+No Codex review is open. Ask Alex the "Waiting on Alex" item if still open. Then the next pricing group: pull the
 Project's numbers from ~/Data/gig-lead-responder/ and SHOW ALEX EVERY PRICE BEFORE WRITING CODE; build only what
 he approves, one concern per commit, failing test first, verify with npm run test:match (exit 3 = zero matches).
 For each finished range: Codex round 1 via `codex exec -s workspace-write` (check git status after), record every
