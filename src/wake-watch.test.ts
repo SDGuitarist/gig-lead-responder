@@ -61,3 +61,29 @@ test("wake catch-up: after a sleep, the poll reads from the stored cursor", asyn
   await Promise.all(polls);
   assert.deepEqual(asked, [sleptAt - 300]);
 });
+
+// Codex round 1 (Phase 0 runtime), finding 6: the plan's EARS line is "wakes after more
+// than 2 minutes asleep". Time asleep = gap − the 30 s tick, so the boundary is a 150 s gap.
+test("wake catch-up: fires at just over 2 minutes asleep, not at exactly 2", () => {
+  for (const [asleepMs, want] of [[120_000, 0], [120_001, 1]] as const) {
+    let t = 0;
+    const fired: number[] = [];
+    const check = createWakeCheck(() => t, (gap) => fired.push(gap));
+    t += 30_000 + asleepMs;
+    check.tick();
+    assert.equal(fired.length, want, `asleep ${asleepMs} ms`);
+  }
+});
+
+// Codex round 1 (Phase 0 runtime), finding 3's class: a throwing wake callback must
+// not escape the 30-second timer, and the next wake still fires.
+test("wake catch-up: a throwing wake callback is caught and the next wake still fires", () => {
+  let t = 0;
+  let calls = 0;
+  const check = createWakeCheck(() => t, () => { calls += 1; if (calls === 1) throw new Error("boom"); });
+  t += 10 * 60_000;
+  assert.doesNotThrow(() => check.tick());
+  t += 10 * 60_000;
+  check.tick();
+  assert.equal(calls, 2);
+});

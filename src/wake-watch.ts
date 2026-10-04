@@ -11,7 +11,14 @@ export function createWakeCheck(now: () => number, onWake: (gapMs: number) => vo
       const t = now();
       const gap = t - last;
       last = t;
-      if (gap > TICK_MS + JUMP_MS) onWake(gap);
+      // Gap minus the normal tick = time asleep; the plan's rule is "more than 2 minutes asleep".
+      if (gap <= TICK_MS + JUMP_MS) return;
+      // A throwing callback must not escape the timer (Codex round 1, Phase 0 runtime).
+      try {
+        onWake(gap);
+      } catch (err) {
+        console.error(`[wake] catch-up failed: ${err instanceof Error ? err.message : String(err)}`);
+      }
     },
   };
 }

@@ -65,7 +65,8 @@ const server = app.listen(PORT, HOST, () => {
 process.on("SIGTERM", () => {
   console.log("SIGTERM received, shutting down...");
   stopFollowUpScheduler();
-  stopGmailPoller();
+  // Its Yelp browser close can reject; don't leave that unhandled on the way out (Codex round 1, Phase 0 runtime).
+  stopGmailPoller().catch(err => console.error("[shutdown] poller stop failed:", err instanceof Error ? err.message : err));
   server.close(() => {
     console.log("HTTP server closed");
   });
