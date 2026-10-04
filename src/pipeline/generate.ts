@@ -27,6 +27,10 @@ interface GenerateResponse {
 const SIGN_OFF = `\nAlex Guillen`;
 const PRICE_SIGNAL_PATTERN = /\$\s?\d|\brate\b|\bquote\b|\banchor\b|\bfloor\b|\binvestment\b/i;
 
+const RESERVE_MAX_CHARS = 240;
+// A dollar amount, or a number followed by a currency word.
+const RESERVE_PRICE = /\$\s?\d|\b\d[\d,.]*\s*(?:dollars?|usd|bucks)\b/i;
+
 /**
  * Port manifest R018: insights the first reply didn't use, banked for follow-ups.
  * Parsed once: up to 3 trimmed non-empty strings; anything else is dropped. A bad
@@ -34,7 +38,13 @@ const PRICE_SIGNAL_PATTERN = /\$\s?\d|\brate\b|\bquote\b|\banchor\b|\bfloor\b|\b
  */
 export function normalizeStrategicReserve(value: unknown): string[] {
   if (!Array.isArray(value)) return [];
-  return value.filter((v): v is string => typeof v === "string").map((v) => v.trim()).filter(Boolean).slice(0, 3);
+  return value
+    .filter((v): v is string => typeof v === "string")
+    .map((v) => v.replace(/\s+/g, " ").trim())
+    // "One sentence, never a price" is enforced here, not trusted to the prompt
+    // (Codex round 1, reserve/auth range): an entry that breaks it is dropped.
+    .filter((v) => v.length > 0 && v.length <= RESERVE_MAX_CHARS && !RESERVE_PRICE.test(v))
+    .slice(0, 3);
 }
 
 const validateGenerateResponse = (raw: unknown): GenerateResponse => {

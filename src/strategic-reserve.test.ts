@@ -85,3 +85,36 @@ test("port manifest R018: follow-up n uses the n-th reserve insight, and only wh
   }
   assert.ok(!buildFollowUpPrompt(lead(banked), 3).includes("FRESH ANGLE"), "no third insight banked");
 });
+
+// Codex round 1 (reserve/auth range), finding 1: the prompt said "one sentence, never a
+// price" but nothing enforced it. Enforced at parse, which runs before saving AND when
+// the follow-up reads the stored reserve.
+test("port manifest R018: a reserve entry with a price or past one sentence's length is dropped", () => {
+  const long = "Her grandmother ".repeat(30) + "sang.";
+  assert.deepEqual(normalizeStrategicReserve(["Quote $1,800 if they push back", "Offer 2 hours for 900 dollars", long,
+    "Her abuela sang Las Mañanitas at every birthday — keep that in mind"]), ["Her abuela sang Las Mañanitas at every birthday — keep that in mind"]);
+  assert.deepEqual(normalizeStrategicReserve(["Two lines\n\nwith a gap"]), ["Two lines with a gap"], "whitespace collapsed");
+  assert.deepEqual(normalizeStrategicReserve(["The ceremony starts at 4:30 for 120 guests"]), ["The ceremony starts at 4:30 for 120 guests"],
+    "overshoot control: times and guest counts are not prices");
+});
+
+// Codex round 1 (reserve/auth range), finding 3: the generic migration tests use made-up
+// migrations; these run the app's real MIGRATIONS list (temp DBs only).
+test("port manifest R018: the real migration list backs up, reruns as a no-op, and refuses a newer DB", async () => {
+  const { readdirSync } = await import("node:fs");
+  const Database = (await import("better-sqlite3")).default;
+  const { MIGRATIONS, runMigrations, assertDbNotNewer } = await import("./db/migrations.js");
+  initDb(); // applies v1..v3 with backups if no earlier test did
+  const backups = join(dirname(process.env.DATABASE_PATH!), "backups");
+  const pre = new Database(join(backups, "pre-v3.db"), { readonly: true });
+  const preCols = (pre.pragma("table_info(leads)") as Array<{ name: string }>).map((c) => c.name);
+  assert.ok(preCols.includes("raw_email") && !preCols.includes("strategic_reserve_json"), "pre-v3 backup has the old schema");
+  pre.close();
+  const before = readdirSync(backups).sort();
+  assert.deepEqual(runMigrations(initDb(), MIGRATIONS, backups), [], "already at v3: nothing applied");
+  assert.deepEqual(readdirSync(backups).sort(), before, "and no new backup");
+  const newer = new Database(join(mkdtempSync(join(tmpdir(), "glr-newer-")), "leads.db"));
+  newer.pragma(`user_version = ${MIGRATIONS.length + 1}`);
+  assert.throws(() => assertDbNotNewer(newer, MIGRATIONS), /newer than this code/);
+  newer.close();
+});
