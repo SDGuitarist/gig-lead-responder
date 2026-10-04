@@ -232,7 +232,7 @@ ${clarificationMode || pricing.budget.tier === "no_viable_scope"
 ### Compressed Draft
 - Send-ready for ${classification.lead_source_column === "P" ? (classification.platform === "gigsalad" ? "GigSalad messaging system" : classification.platform === "thebash" ? "The Bash messaging system" : "platform messaging system") : "direct reply"}
 - Target: ${compressedTarget.target} words (max ${compressedTarget.max})
-- Must retain: wedge, validation sentence, price, close${classification.platform === "gigsalad" ? "" : ", contact block"}
+- Must retain: wedge, validation sentence, at least one fear resolution (explicit or inferred), price, close${classification.delivery_mode === "alex_sources" || classification.delivery_mode === "hybrid" ? ", one sentence of curation credibility (sourced integrity)" : ""}${classification.platform === "gigsalad" ? "" : ", contact block"}
 - Trim: extended scene painting, logistics detail, secondary concerns
 - Compression removes detail, not voice. All VOICE RULES apply to both drafts.
 
