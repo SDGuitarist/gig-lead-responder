@@ -118,3 +118,18 @@ test("port manifest R018: the real migration list backs up, reruns as a no-op, a
   assert.throws(() => assertDbNotNewer(newer, MIGRATIONS), /newer than this code/);
   newer.close();
 });
+
+// Codex round 2 (reserve/auth range), finding 3: the price filter missed "€900", "USD 900",
+// "for 900"; and two sentences under 240 chars got through. One shared price detector now.
+test("port manifest R018: every price form is dropped, near-misses are kept, and only one sentence", () => {
+  for (const p of ["Offer €900 for the ceremony", "USD 900 is their ceiling", "They said 900 USD", "I can do it for 900",
+    "Floor is 1,800.", "They budgeted 1500 dollars", "Around £700 works", "Quote them at 950!", "She has a budget of 1200"]) {
+    assert.deepEqual(normalizeStrategicReserve([p]), [], p);
+  }
+  for (const ok of ["The ceremony starts at 4:30 for 120 guests", "Doors open at 7pm and it runs for 2 hours",
+    "It is her parents' 40th anniversary", "The venue is in 92583 near the lake", "About 150 people, mostly family",
+    "Sus abuelos llegan desde Oaxaca para la boda"]) {
+    assert.deepEqual(normalizeStrategicReserve([ok]), [ok], ok);
+  }
+  assert.deepEqual(normalizeStrategicReserve(["Her dad plays requinto. He might sit in for one song."]), [], "two sentences");
+});

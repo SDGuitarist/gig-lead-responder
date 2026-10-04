@@ -3,6 +3,7 @@ import { GenerationError } from "../errors.js";
 import { buildGeneratePrompt } from "../prompts/generate.js";
 import type { Classification, Drafts, GateResult, PricingResult } from "../types.js";
 import { escapeForPrompt, wrapEditInstructions } from "../utils/sanitize.js";
+import { mentionsPrice } from "../utils/price-mention.js";
 
 /** Positive signals from a failed gate — what worked and should be kept. */
 export interface PositiveSignals {
@@ -28,8 +29,9 @@ const SIGN_OFF = `\nAlex Guillen`;
 const PRICE_SIGNAL_PATTERN = /\$\s?\d|\brate\b|\bquote\b|\banchor\b|\bfloor\b|\binvestment\b/i;
 
 const RESERVE_MAX_CHARS = 240;
-// A dollar amount, or a number followed by a currency word.
-const RESERVE_PRICE = /\$\s?\d|\b\d[\d,.]*\s*(?:dollars?|usd|bucks)\b/i;
+// More than one sentence: an end mark followed by more text. Errs toward dropping
+// (an abbreviation like "Mrs. Lopez" drops the insight, which is the safe side).
+const MULTI_SENTENCE = /[.!?](?=\s+\S)/;
 
 /**
  * Port manifest R018: insights the first reply didn't use, banked for follow-ups.
@@ -43,7 +45,7 @@ export function normalizeStrategicReserve(value: unknown): string[] {
     .map((v) => v.replace(/\s+/g, " ").trim())
     // "One sentence, never a price" is enforced here, not trusted to the prompt
     // (Codex round 1, reserve/auth range): an entry that breaks it is dropped.
-    .filter((v) => v.length > 0 && v.length <= RESERVE_MAX_CHARS && !RESERVE_PRICE.test(v))
+    .filter((v) => v.length > 0 && v.length <= RESERVE_MAX_CHARS && !mentionsPrice(v) && !MULTI_SENTENCE.test(v))
     .slice(0, 3);
 }
 
