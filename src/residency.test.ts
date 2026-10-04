@@ -3,8 +3,9 @@ import assert from "node:assert/strict";
 import { setClaudeRequesterForTests } from "./claude.js";
 import { classifyLead, normalizeEngagement } from "./pipeline/classify.js";
 import { buildClassifyPrompt } from "./prompts/classify.js";
-import { lookupResidencyRate } from "./pipeline/price.js";
-import type { ResidencyCadence, ResidencyTier } from "./types.js";
+import { lookupPrice, lookupResidencyRate } from "./pipeline/price.js";
+import { verifyClassificationHeuristics } from "./pipeline/classify-verify.js";
+import { withoutHoldNotes, type Classification, type ResidencyCadence, type ResidencyTier } from "./types.js";
 
 // Port manifest R220/R276–R280 (engagement type) and R281–R283 (residency tier):
 // is this a private event or a recurring residency? Alex 2026-10-04: residency
@@ -89,4 +90,34 @@ test("residency price: between card lengths rounds up; no rate for R1, 4 hours o
   assert.match(lookupResidencyRate("R1", 2, "monthly").reason ?? "", /R1/);
   assert.match(lookupResidencyRate("R2", 4, "weekly").reason ?? "", /4/);
   assert.match(lookupResidencyRate("R3", 2, null).reason ?? "", /cadence/);
+});
+
+// R278/R281/R286: a solo residency carries its residency quote on the pricing
+// result; a non-solo recurring request is priced as private events (no discount,
+// Alex 2026-10-04). Every residency lead is held for Alex.
+const cls = (over: Partial<Classification> = {}) =>
+  ({ ...valid, engagement_type: "private", residency_tier: null, residency_cadence: null, price_asked: false, ...over }) as Classification;
+
+test("residency hold: a solo residency's pricing carries its residency quote; private and non-solo do not", () => {
+  const solo = lookupPrice(cls({ engagement_type: "residency", residency_tier: "R2", residency_cadence: "weekly" }));
+  assert.equal(solo.residency?.rate, 350);
+  assert.equal(lookupPrice(cls()).residency, undefined);
+  const duo = lookupPrice(cls({ engagement_type: "residency", residency_tier: "R2", residency_cadence: "weekly", format_recommended: "duo" }));
+  assert.equal(duo.residency, undefined);
+});
+
+test("residency hold: every residency lead is held with a reason; a private lead is not", () => {
+  const note = (c: Classification) => verifyClassificationHeuristics("lead text", c).classification.flagged_concerns.filter((f) => f.startsWith("residency:"));
+  assert.match(note(cls({ engagement_type: "residency", residency_tier: "R2", residency_cadence: "weekly" }))[0], /residency: R2 weekly/);
+  assert.match(note(cls({ engagement_type: "residency", residency_tier: "R1", residency_cadence: "monthly" }))[0], /Alex sets the rate/);
+  assert.match(note(cls({ engagement_type: "residency", residency_tier: "R2", format_recommended: "duo" }))[0],
+    /recurring duo priced as private events, no discount/);
+  assert.deepEqual(note(cls()), []);
+  assert.deepEqual(note(cls({ engagement_type: "wedding_adjacent" })), []);
+});
+
+test("residency hold: the hold note never reaches the draft or the gate", () => {
+  const held = verifyClassificationHeuristics("lead text", cls({ engagement_type: "residency", residency_tier: "R3", residency_cadence: "monthly" })).classification;
+  assert.ok(held.flagged_concerns.some((f) => f.startsWith("residency:")));
+  assert.ok(!withoutHoldNotes(held).flagged_concerns.some((f) => f.startsWith("residency:")));
 });

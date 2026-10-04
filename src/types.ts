@@ -5,7 +5,7 @@ export const CONCERN_FULL_ENSEMBLE = "mention_full_ensemble_upgrade" as const;
 // Hold notes for Alex ride in flagged_concerns so the router holds the lead (any
 // flagged concern holds), but they are not concerns a draft answers: the generate
 // and verify prompts see the classification without them.
-export const HOLD_NOTE_PREFIXES = ["classification_verify:", "graceful_decline:"] as const;
+export const HOLD_NOTE_PREFIXES = ["classification_verify:", "graceful_decline:", "residency:"] as const;
 export function withoutHoldNotes<T extends { flagged_concerns: string[] }>(c: T): T {
   return { ...c, flagged_concerns: c.flagged_concerns.filter((f) => !HOLD_NOTE_PREFIXES.some((p) => f.startsWith(p))) };
 }
@@ -36,6 +36,17 @@ export type DeliveryMode = "alex_performs" | "alex_sources" | "hybrid";
 export type EngagementType = "private" | "residency" | "wedding_adjacent";
 export type ResidencyTier = "R1" | "R2" | "R3";
 export type ResidencyCadence = "weekly" | "biweekly" | "monthly";
+
+export interface ResidencyQuote {
+  tier: ResidencyTier;
+  cadence: ResidencyCadence | null;
+  /** Hours priced (a request between 2 and 3 rounds up); null when there is no rate. */
+  hours: number | null;
+  rate: number | null;
+  floor: number | null;
+  /** Why there is no rate (held for Alex); null when there is one. */
+  reason: string | null;
+}
 
 export type EventArc = "wedding" | "corporate" | "private_celebration" | "memorial";
 
@@ -184,6 +195,8 @@ export interface PricingResult {
   travel?: TravelComponent | null;
   /** Which rate table priced this (absent = the format's standard table). Read via rateTableFor(). */
   rate_table?: "mariachi_full_outside_sd";
+  /** Solo residency only (port manifest R281): the per-night residency quote; rate null = held for Alex. */
+  residency?: ResidencyQuote;
 }
 
 export interface Drafts {

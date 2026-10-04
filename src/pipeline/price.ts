@@ -1,6 +1,6 @@
 import { FLAMENCO_TRIO_3H_DANCER_2H_RATES, MARIACHI_FULL_OUTSIDE_SD_RATES, RATE_TABLES, RESIDENCY_FLOORS, RESIDENCY_RATES, type FormatRates, type TierRates } from "../data/rates.js";
 import { PricingError } from "../errors.js";
-import type { Classification, Format, PricingResult, ResidencyCadence, ResidencyTier, BudgetGapResult, ScopedAlternative, TravelBand, TravelFeeData, TravelComponent } from "../types.js";
+import type { Classification, Format, PricingResult, ResidencyCadence, ResidencyQuote, ResidencyTier, BudgetGapResult, ScopedAlternative, TravelBand, TravelFeeData, TravelComponent } from "../types.js";
 
 const BUDGET_GAP_SMALL_THRESHOLD = 75;  // exclusive: gap < 75 is "small"
 const BUDGET_GAP_LARGE_THRESHOLD = 200; // inclusive: gap <= 200 is "large"
@@ -154,6 +154,11 @@ export function lookupPrice(
     budget: { tier: "none" },
     travel,
     ...(outsideSd ? { rate_table: "mariachi_full_outside_sd" as const } : {}),
+    // Residency is solo Alex only; any other recurring format stays a series of
+    // private events at private-event prices (R286, Alex 2026-10-04: no discount).
+    ...(classification.engagement_type === "residency" && format_recommended === "solo"
+      ? { residency: lookupResidencyRate(classification.residency_tier ?? "R2", duration_hours, classification.residency_cadence ?? null) }
+      : {}),
   };
 }
 
@@ -288,17 +293,6 @@ export function rateTableFor(pricing: Pick<PricingResult, "format" | "rate_table
 export function budgetGapFor(classification: Classification, pricing: PricingResult): BudgetGapResult {
   return detectBudgetGap(classification.stated_budget, pricing.floor, pricing.format as Format,
     pricing.duration_hours, pricing.tier_key, rateTableFor(pricing));
-}
-
-export interface ResidencyQuote {
-  tier: ResidencyTier;
-  cadence: ResidencyCadence | null;
-  /** Hours priced (a request between 2 and 3 rounds up); null when there is no rate. */
-  hours: number | null;
-  rate: number | null;
-  floor: number | null;
-  /** Why there is no rate (held for Alex); null when there is one. */
-  reason: string | null;
 }
 
 /**

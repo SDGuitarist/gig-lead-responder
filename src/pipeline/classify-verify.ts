@@ -1,4 +1,5 @@
 import { TIER_A_VENUES } from "../data/venues.js";
+import { lookupResidencyRate } from "./price.js";
 import type { Classification } from "../types.js";
 
 interface ClassificationVerificationResult {
@@ -83,6 +84,20 @@ export function verifyClassificationHeuristics(
   // Graceful decline (port manifest R320): never auto-sent; Alex reads it first.
   if (classification.graceful_decline === true) {
     addWarning(warnings, "graceful_decline: format/fit or sensitivity trigger; Alex reviews before it goes out");
+  }
+
+  // Residency (port manifest R278/R286): every residency lead is held for Alex,
+  // with what the app would quote or why it quotes nothing.
+  if (classification.engagement_type === "residency") {
+    if (classification.format_recommended !== "solo") {
+      addWarning(warnings, `residency: recurring ${classification.format_recommended} priced as private events, no discount; Alex decides`);
+    } else {
+      const tier = classification.residency_tier ?? "R2";
+      const q = lookupResidencyRate(tier, classification.duration_hours, classification.residency_cadence ?? null);
+      addWarning(warnings, q.rate === null
+        ? `residency: ${tier}, no price stated: ${q.reason}`
+        : `residency: ${tier} ${q.cadence} ${q.hours}h at $${q.rate} per night; Alex reviews every residency`);
+    }
   }
 
   const hasCulturalSignal = CULTURAL_CONTEXT_PATTERNS.some((pattern) => pattern.test(rawText));
