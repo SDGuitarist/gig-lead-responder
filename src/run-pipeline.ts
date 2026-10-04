@@ -258,6 +258,7 @@ export async function runPipeline(
     full_draft: postCheck.full_draft,
     compressed_draft: postCheck.compressed_draft,
     compressed_word_count: drafts.compressed_word_count,
+    strategic_reserve: drafts.strategic_reserve,
   };
 
   // Append code-detected violations to gate fail_reasons
@@ -323,6 +324,7 @@ export async function runEditPipeline(
     full_draft: postCheck.full_draft,
     compressed_draft: postCheck.compressed_draft,
     compressed_word_count: drafts.compressed_word_count,
+    strategic_reserve: drafts.strategic_reserve,
   };
   const finalGate: GateResult = postCheck.violations.length > 0
     ? { ...gate, gate_status: "fail", fail_reasons: [...gate.fail_reasons, ...postCheck.violations] }

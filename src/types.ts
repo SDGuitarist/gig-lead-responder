@@ -178,6 +178,8 @@ export interface Drafts {
   full_draft: string;
   compressed_draft: string;
   compressed_word_count: number;
+  /** Unused insights banked for follow-ups (port manifest R018). */
+  strategic_reserve?: string[];
 }
 
 // Gut check keys — single source of truth for count and threshold

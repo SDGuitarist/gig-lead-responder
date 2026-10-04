@@ -103,7 +103,8 @@ test("pipeline failure retried once: a retry that succeeds clears the failure no
       flagged_concerns: [], venue_name: null, client_first_name: "Sarah" },
     pricing: { format: "solo", duration_hours: 2, tier_key: "T2P", anchor: 595, floor: 550, quote_price: 595,
       competition_position: "at anchor", budget: { tier: "none" } },
-    drafts: { full_draft: "Hi Sarah", compressed_draft: "Hi Sarah. Alex Guillen", compressed_word_count: 4 },
+    drafts: { full_draft: "Hi Sarah", compressed_draft: "Hi Sarah. Alex Guillen", compressed_word_count: 4,
+      strategic_reserve: ["Her sister is the maid of honor and sings"] },
     gate: { validation_line: "", best_line: "", concern_traceability: [], scene_quote: "", scene_type: "structural",
       competitor_test: true, gut_checks: Object.fromEntries(GUT_CHECK_KEYS.map((k) => [k, true])),
       gate_status: "pass", fail_reasons: [] },
@@ -116,6 +117,9 @@ test("pipeline failure retried once: a retry that succeeds clears the failure no
   await processLead(gigsalad("pf-ok"), config, {} as never, {} as never, {} as never, flaky);
   assert.equal(calls, 2);
   assert.equal(statusOf("pf-ok").error_message, null);
+  // Port manifest R018: the poller path saves the reserve on the lead.
+  const saved = initDb().prepare("SELECT strategic_reserve_json AS r FROM leads WHERE mailgun_message_id = ?").get("pf-ok") as { r: string };
+  assert.equal(saved.r, '["Her sister is the maid of honor and sings"]');
   assert.ok(statusOf("pf-ok").pipeline_completed_at);
   assert.equal(isEmailProcessed("pf-ok"), true);
 });

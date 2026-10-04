@@ -272,8 +272,11 @@ Return ONLY this JSON (no markdown fences, no explanation):
     "fears_to_address": [{"fear": "what they worry about", "answer": "the draft sentence that answers it"}]
   },
   "full_draft": "The complete response text including contact block",
-  "compressed_draft": "The compressed response text including contact block"
-}`;
+  "compressed_draft": "The compressed response text including contact block",
+  "strategic_reserve": ["up to 3 insights you did NOT use in the drafts, banked for a follow-up"]
+}
+
+STRATEGIC RESERVE: up to 3 one-sentence insights you did NOT use in the drafts, specific to this lead, so a follow-up has a fresh angle instead of "just checking in". Draw from: emotional details, a deeper wedge angle, inferred details about the honoree, unused cultural depth, absence-based insights; for a sourced lead, a configuration alternative (shorter set, smaller ensemble) or why these musicians book early; for a bolero lead, the next step of the negotiation playbook; after a graceful decline, how to answer if they book anyway. Each is never a price.`;
 }
 
 function getCompressedTarget(level: string): { target: number; max: number } {

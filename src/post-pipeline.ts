@@ -23,6 +23,7 @@ export async function postPipeline(
     compressed_draft: output.drafts.compressed_draft,
     gate_passed: output.gate.gate_status === "pass",
     gate_json: JSON.stringify(output.gate),
+    strategic_reserve_json: JSON.stringify(output.drafts.strategic_reserve ?? []),
     confidence_score: output.confidence_score,
     pipeline_completed_at: now,
   });

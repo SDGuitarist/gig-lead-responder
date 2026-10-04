@@ -21,10 +21,21 @@ interface GenerateResponse {
   };
   full_draft: string;
   compressed_draft: string;
+  strategic_reserve?: unknown;
 }
 
 const SIGN_OFF = `\nAlex Guillen`;
 const PRICE_SIGNAL_PATTERN = /\$\s?\d|\brate\b|\bquote\b|\banchor\b|\bfloor\b|\binvestment\b/i;
+
+/**
+ * Port manifest R018: insights the first reply didn't use, banked for follow-ups.
+ * Parsed once: up to 3 trimmed non-empty strings; anything else is dropped. A bad
+ * reserve never blocks a draft (it only feeds a later follow-up).
+ */
+export function normalizeStrategicReserve(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  return value.filter((v): v is string => typeof v === "string").map((v) => v.trim()).filter(Boolean).slice(0, 3);
+}
 
 const validateGenerateResponse = (raw: unknown): GenerateResponse => {
   if (typeof raw !== "object" || raw === null || Array.isArray(raw)) throw new GenerationError("Expected JSON object from LLM");
@@ -100,6 +111,7 @@ export async function generateResponse(
     full_draft: fullDraft,
     compressed_draft: compressedDraft,
     compressed_word_count: compressedWordCount,
+    strategic_reserve: normalizeStrategicReserve(result.strategic_reserve),
   };
 }
 
