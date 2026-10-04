@@ -16,6 +16,11 @@ const validateGateResult = (raw: unknown): GateResult => {
   if (!Array.isArray(obj.concern_traceability)) {
     throw new VerificationError("LLM response missing concern_traceability array");
   }
+  // A reported sourced-integrity failure always fails the gate, whatever status
+  // the model wrote (port manifest R338: the Project's gate fails on it).
+  if (obj.fail_reasons.some((r) => typeof r === "string" && r.startsWith("Sourced integrity failed"))) {
+    obj.gate_status = "fail";
+  }
   return raw as GateResult;
 };
 

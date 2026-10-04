@@ -94,7 +94,17 @@ The kill list's fixed words are checked in code. These need judgment. If any app
 - ALL CAPS for emphasis, or a spaced hyphen (" - ") used as a dash.
 - Uniform rhythm: every sentence the same length, or all fragments.
 
-${classification.platform === "gigsalad"
+${classification.delivery_mode === "alex_sources" || classification.delivery_mode === "hybrid"
+    ? `### 7c. SOURCED INTEGRITY (Alex coordinates the musicians on this lead)
+Check each; if any fails, add "Sourced integrity failed: <which>" to fail_reasons and set gate_status = "fail":
+- Transparency: the draft says Alex curates/coordinates the musicians, positioned as expertise, never apologetic, and NOT in the opening line.
+- Cultural authenticity: shows specific knowledge of what makes this tradition real (1-2 tradition terms), not just "authentic".
+- Accountability: Alex is the client's single point of contact; logistics are handled, the client manages no musicians.
+- Musician quality: signals a personal relationship ("musicians I know personally", "artists I've performed alongside"), not just "professional".
+- Pricing: one client-facing number; no musician cost, markup or "coordination fee" breakdown.
+
+`
+    : ""}${classification.platform === "gigsalad"
     ? `### 8. Platform Policy Check — GigSalad (HARD GATE)
 Scan the ENTIRE draft for any phone number, email address, website URL, social media handle (Instagram, Facebook, etc.), or off-platform contact language ("call me," "text me," "visit our site," "reach out directly," etc.).
 If ANY of the above appears anywhere in the draft → gate_status = "fail" with fail_reason: "GigSalad platform policy violation: response contains external contact information."
