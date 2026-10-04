@@ -66,6 +66,9 @@ design pass + live drafting runs, per its row); group 5 needs Alex's numbers; gr
   sentence. Consequences: R358's code check has no displayed count to compare against (the email never shows one);
   real GigSalad lead details live only on the GigSalad page (portal enrichment = Alex's call: "reading GigSalad
   dashboards" is on the ask-first list). R358 NOT built. Needs Alex's decision before more GigSalad work.
+  **Also:** every link in the real email is a `tracking.gigsalad.com` redirect (8 in the one checked; 0 `www.gigsalad.com`
+  links), and all three `extractPortalUrl` patterns require `www.gigsalad.com`, so a real lead gets no `portalUrl` and
+  `gigsaladClient.submitReply` has nowhere to go. Same root: the parser was written against invented emails.
 - Next: Alex's call on the GigSalad finding; a Codex round 1 on `79929a0..HEAD`.
 
 **Review #3 (round-up + R320 + hold-note filter, `97eec2b..58352b1`): CLOSED, round 2 GO** (round 1 prompt: session scratchpad
