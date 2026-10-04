@@ -38,7 +38,9 @@ const validateGateResult = (raw: unknown): GateResult => {
   const failReasons = obj.fail_reasons as string[];
   // A reported sourced-integrity failure always fails the gate, whatever status
   // the model wrote (port manifest R338: the Project's gate fails on it).
-  const gateStatus = failReasons.some((r) => r.startsWith("Sourced integrity failed")) ? "fail" : obj.gate_status;
+  // Likewise a graceful-decline failure (port manifest R320).
+  const gateStatus = failReasons.some((r) => r.startsWith("Sourced integrity failed") || r.startsWith("Graceful decline failed"))
+    ? "fail" : obj.gate_status;
 
   return {
     validation_line: str("validation_line"),

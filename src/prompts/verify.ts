@@ -122,6 +122,15 @@ Check each; if any fails, add "Sourced integrity failed: <which>" to fail_reason
 - Pricing: one client-facing number; no musician cost, markup or "coordination fee" breakdown.
 
 `
+    : ""}${classification.graceful_decline === true
+    ? `### 7d. GRACEFUL DECLINE (fit mismatch or sensitive moment)
+Check each; if any fails, add "Graceful decline failed: <which>" to fail_reasons and set gate_status = "fail":
+- Format honesty (what the client actually gets, and the trade-off) comes BEFORE the price.
+- The exit line names a specific alternative, not just "no pressure, let me know".
+- Any grief or sensitivity acknowledgment is one sentence at the top, not threaded through.
+- It is neither a soft refusal that guilts the client nor a pitch disguised as a decline.
+
+`
     : ""}${classification.platform === "gigsalad"
     ? `### 8. Platform Policy Check — GigSalad (HARD GATE)
 Scan the ENTIRE draft for any phone number, email address, website URL, social media handle (Instagram, Facebook, etc.), or off-platform contact language ("call me," "text me," "visit our site," "reach out directly," etc.).

@@ -62,13 +62,19 @@ const VOICE_KILL_LIST = [
 // Catches AI drafts that undermine Alex's capability for an eligible format.
 // These should never appear — the LR voice rules prohibit vendor-speak.
 // Ships 6 tight patterns; 2 broader ones deferred (false-positive risk).
+const YOU_MIGHT_LOOK_ELSEWHERE = /\byou might (?:want to |be better off )(?:look|search|try)\b/i;
+const RECOMMEND_LOOKING_ELSEWHERE = /\bi(?:'d| would) recommend (?:looking|searching|trying) elsewhere\b/i;
+// A graceful decline's exit line names where else to look (port manifest R320), so
+// these two pass when the decline mode is active. Every other soft refusal still fails.
+const DECLINE_EXIT_PATTERNS: ReadonlySet<RegExp> = new Set([YOU_MIGHT_LOOK_ELSEWHERE, RECOMMEND_LOOKING_ELSEWHERE]);
+
 const SOFT_REFUSAL_PATTERNS: RegExp[] = [
   /\bnot (?:really )?my (?:main |primary )?(?:specialty|instrument|focus)\b/i,
   /\bmay not be the best fit\b/i,
   /\bif you're set on\b/i,
   /\bnot (?:really )?(?:something|what) (?:I|we) (?:typically |usually )?(?:do|offer|play)\b/i,
-  /\byou might (?:want to |be better off )(?:look|search|try)\b/i,
-  /\bi(?:'d| would) recommend (?:looking|searching|trying) elsewhere\b/i,
+  YOU_MIGHT_LOOK_ELSEWHERE,
+  RECOMMEND_LOOKING_ELSEWHERE,
   /\bprimarily (?:focus|specialize)(?:s)? (?:on|in) (?:other|different)\b/i,
   /\bwhile\b.{1,30}\bisn't my (?:main|primary)\b/i,
 ];
@@ -96,6 +102,7 @@ export function postCheckDrafts(
   fullDraft: string,
   compressedDraft: string,
   platform?: string,
+  options: { gracefulDecline?: boolean } = {},
 ): PostCheckResult {
   const violations: string[] = [];
 
@@ -137,6 +144,7 @@ export function postCheckDrafts(
 
   // --- Check: soft refusal / fit-undermining language ---
   for (const pattern of SOFT_REFUSAL_PATTERNS) {
+    if (options.gracefulDecline === true && DECLINE_EXIT_PATTERNS.has(pattern)) continue;
     if (pattern.test(cleanedFull)) {
       violations.push(`soft_refusal_full: "${pattern.source}"`);
     }

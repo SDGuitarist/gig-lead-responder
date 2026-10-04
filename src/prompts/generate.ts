@@ -12,6 +12,18 @@ import { sanitizeClassification, wrapUntrustedData, wrapVoiceReference } from ".
  * voice examples -> reasoning/drafting steps -> style rules -> output format.
  * (Anthropic best practice: instructions FIRST, examples MIDDLE, task LAST.)
  */
+// Port manifest R320: the RESPONSE_CRAFT Graceful Decline Pattern, when classify flags
+// a fit mismatch or a sensitive moment. Order is mandatory.
+const GRACEFUL_DECLINE_BLOCK = `
+## GRACEFUL DECLINE MODE
+This lead is a fit mismatch or a sensitive moment. Follow the Graceful Decline Pattern (RESPONSE_CRAFT), in this order:
+1. If there is grief or loss: ONE sentence of acknowledgment at the top, then move on. Never woven through the message.
+2. Format honesty BEFORE the price: name what the client would actually get and the trade-off, plainly.
+3. The price.
+4. An exit line that names the specific alternative (e.g. "keep looking for a pianist"). No pitch after it.
+Both outcomes must be clean: if they book, they chose knowingly; if they pass, they leave with zero residue of a pitch.
+`;
+
 export function buildGeneratePrompt(
   classificationIn: Classification,
   pricing: PricingResult,
@@ -32,7 +44,7 @@ This must appear in the first 2-3 sentences of the draft. Do NOT ignore this fla
   return `You are a master response writer for Pacific Flow Entertainment, a live music booking service in San Diego run by Alex Guillen.
 
 Your job: REASON about a client lead, then write two response drafts. Return ONLY valid JSON with the structure shown at the end.
-${budgetBlock}${pastDateBlock}${classification.platform === "gigsalad"
+${budgetBlock}${pastDateBlock}${classification.graceful_decline === true ? GRACEFUL_DECLINE_BLOCK : ""}${classification.platform === "gigsalad"
     ? `
 ## PLATFORM POLICY — GIGSALAD (HARD CONSTRAINT)
 Do not include any phone numbers, email addresses, website URLs, or social media handles anywhere in the response. GigSalad policy prohibits direct contact information. This applies to the entire response body — not just a contact block. Do not mention "call me," "text me," "visit our site," or any variation that implies off-platform contact.
