@@ -101,7 +101,7 @@ export interface GmailMessage {
 /** Fetch and parse a single Gmail message by ID */
 /** The id of a fetched message: it must be the id we asked for (Codex round 1, Phase 0 runtime). */
 export function fetchedMessageId(requested: string, got: string | null | undefined): string {
-  // No ids in the message: the poller reads "401" in any error text as an auth failure.
+  // No ids in the message: provider values stay out of error text.
   if (got !== requested) throw new Error("Gmail message fetch returned a different or missing id");
   return got;
 }

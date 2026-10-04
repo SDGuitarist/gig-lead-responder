@@ -101,7 +101,7 @@ function stopLeaseRenewal(): void {
 /** What a failed poll does: invalid_grant stops polling for good; anything else is logged. */
 export function handlePollError(err: unknown): void {
   const msg = err instanceof Error ? err.message : String(err);
-  if (isAuthError(msg)) {
+  if (isAuthError(err)) {
     console.error("[gmail-poller] Gmail auth token expired — stopping poller. Run: npx tsx scripts/gmail-auth.ts");
     authFailed = true;
     if (interval) {
@@ -133,8 +133,7 @@ export async function pollOnce(deps: PollDeps): Promise<void> {
   try {
     messages = await deps.fetchSince(cursor);
   } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
-    if (isAuthError(msg)) savePollAuthFailed();
+    if (isAuthError(err)) savePollAuthFailed();
     throw err;
   }
 
@@ -165,8 +164,20 @@ export async function pollOnce(deps: PollDeps): Promise<void> {
   savePollSuccess(hold ? cursor : startedS - CURSOR_OVERLAP_S, new Date(startedMs).toISOString());
 }
 
-function isAuthError(msg: string): boolean {
-  return msg.includes("invalid_grant") || msg.includes("401");
+/**
+ * Gmail auth failed: an HTTP 401, or Google's OAuth "invalid_grant" (expired or
+ * revoked token, sent as a 400). Read from the error's fields, never from "401"
+ * in free text, which stopped the poller for good on unrelated errors (Alex 2026-10-04).
+ */
+export function isAuthError(err: unknown): boolean {
+  const e = (typeof err === "object" && err !== null ? err : {}) as {
+    status?: unknown; message?: unknown; response?: { status?: unknown; data?: unknown };
+  };
+  if (e.status === 401 || e.response?.status === 401) return true;
+  const data = e.response?.data as { error?: unknown } | undefined;
+  if (data?.error === "invalid_grant") return true;
+  const msg = typeof e.message === "string" ? e.message : String(err);
+  return /\binvalid_grant\b/.test(msg);
 }
 
 export async function startGmailPoller(): Promise<void> {
