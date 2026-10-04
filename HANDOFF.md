@@ -33,7 +33,11 @@
 **Round 3 = GO (Alex authorized it). Review #2 is CLOSED** (`docs/reviews/2026-10-03-port-pricing-codex-round3.md`).
 The port's files are no longer frozen by review #2.
 
-**Next phase:** Work. Build the round-up rounding decision (failing test first), then the TO PORT rows.
+**BUILT 2026-10-04: requests between card lengths round UP** (`lookupPrice`; test `duration rounds up`). Above the longest
+card length it stays at the longest. Also fixed by it: solo/duo have no 1.5 h row, so 1.5 h was priced as 1 h; now 2 h.
+Not executed on a real lead or Codex-reviewed.
+
+**Next phase:** Work. The remaining 57 TO PORT rows.
 
 ## 2026-10-03 (session 33bddb35, ~09:10–15:30) — poller cursor, wake, lease, S1-adv, the whole port review
 
@@ -97,10 +101,7 @@ The port's files are no longer frozen by review #2.
 they move). Nothing in Part 2 touched them. Prompt: session scratchpad `codex-round1-phase0-runtime.md`.
 
 **Fixed (Alex caught it):** `lookupPrice` now always reports the hours it priced (`e0e11fd`).
-**DECIDED, NOT BUILT (Alex 2026-10-03): a request between card lengths ROUNDS UP** (2.5 h → 3 h; today the snap in
-`lookupPrice` rounds 2.5 down to 2). Build it right after the round-2 verdict (it touches `src/pipeline/price.ts`, which
-round 2 is reviewing): failing test first, update the `quoted hours are the hours priced` test, check the budget
-scoped-alternative path still offers the next shorter card length.
+**BUILT 2026-10-04 (Alex decided 2026-10-03): a request between card lengths ROUNDS UP** (2.5 h → 3 h). See the top section.
 
 **Queued, no Alex needed (next session):** the 75 TO PORT rows, grouped (each row names its destination):
 1. **Delivery mode** (R349–R353, R397, R406, R335, R257): a `delivery_mode` classify field (Instrument Rule: guitar
@@ -133,7 +134,6 @@ Two Codex reviews are open. Ask Alex for any verdict he hasn't pasted yet:
   - Review #1 (poller/lease/wake, 2f2ec7d..e1fb163): round 1, verdict not yet received.
   - Review #2 (port/pricing): CLOSED, round 3 GO (docs/reviews/2026-10-03-port-pricing-codex-round3.md).
 Record each verdict in docs/reviews/, then work its fix prompt under ~/.claude/docs/mandatory-review-workflow.md.
-Next: build Alex's rounding decision (requests between card lengths round UP), failing test first.
 Then the remaining 57 TO PORT rows (groups 3-6 in the top section), one concern per commit.
 Do NOT edit files frozen by an open review (listed in the top section) until its verdict is in.
 Never put source text, client names or contact data into the public repo.

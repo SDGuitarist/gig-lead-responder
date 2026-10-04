@@ -72,9 +72,10 @@ export function lookupPrice(
     throw new PricingError(`No rate table for format "${format_recommended}". Available: ${available}`);
   }
 
-  // 2. Find duration entry (snap to nearest valid if classifier returns e.g. 2.5)
+  // 2. Find duration entry: a request between card lengths rounds UP (2.5 h → 3 h,
+  // Alex 2026-10-03); above the longest card length, the longest.
   const validDurations = Object.keys(rateTable).map(Number).filter((n) => !Number.isNaN(n)).sort((a, b) => a - b);
-  const snapped = validDurations.reduce((best, d) => Math.abs(d - duration_hours) < Math.abs(best - duration_hours) ? d : best);
+  const snapped = validDurations.find((d) => d >= duration_hours) ?? validDurations[validDurations.length - 1];
   const durationKey = String(snapped);
   // A 3-hour flamenco trio with the dancer for 2 hours has its own row (R048).
   const durationRates =
