@@ -80,3 +80,17 @@ Keep the change limited to this finding. Do not edit the frozen poller/lease/wak
 ```
 
 No files were modified during this review.
+---
+
+## Fix (session 0153v273, 2026-10-04)
+
+| Finding | Root cause | Fix | Test (red first) |
+|---|---|---|---|
+| P1 backstop case/whitespace-sensitive | model-written `fail_reasons` matched with exact `startsWith()` | `b9eaa0c`: one `ALWAYS_FAIL_PREFIXES` list, compared after trim + lowercase | `gate backstop: either failure phrase forces a fail...` (red: `"graceful decline failed"` → `pass`); control: unrelated reasons, including one that mentions "decline", stay `pass` |
+
+Inventory: 2 sentinel checks, both in `src/pipeline/verify.ts`, fixed together. No other decision in `src/pipeline`,
+`src/prompts` or `src/run-pipeline.ts` matches model-written text (`hard-gate.ts:94` reads normalized format text;
+`generate.ts:118` is the contact-block check). Shape: a structured failure code would remove the string match; deferred
+as a verifier redesign (Codex: "do not redesign the verifier").
+Suite 506 pass / 0 fail / 4 skip; `tsc` and `git diff --check` clean. Codex's note on `callClaude()` turning typed
+validation errors into a generic `Error` is pre-existing, not in this range.
