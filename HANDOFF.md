@@ -72,7 +72,10 @@ design pass + live drafting runs, per its row); group 5 needs Alex's numbers; gr
   **Alex 2026-10-04: there are TWO GigSalad accounts** (music email and business email, separate logins), and leads
   from both land in BOTH inboxes. So the same lead can arrive twice, and any portal read or reply must use the
   account the lead belongs to. Portal reading itself is still undecided.
-- Next: Alex's call on the GigSalad finding; a Codex round 1 on `79929a0..HEAD`.
+- **Codex round 1 on `79929a0..07a5376` = NO-GO (2 P1 + 1 P2), all fixed** (`4023ef8`, `b7b4754`;
+  `docs/reviews/2026-10-04-reserve-auth-codex-round1.md`). Next: round 2 with `-s workspace-write` so Codex runs the
+  tests itself (probe: 515/531 runnable there, the 16 others are sandbox-blocked and need the Mac).
+- Next also: Alex's call on the GigSalad finding.
 
 **Review #3 (round-up + R320 + hold-note filter, `97eec2b..58352b1`): CLOSED, round 2 GO** (round 1 prompt: session scratchpad
 `codex-round1-rounding-decline.md`, gate at `58352b1`). **Round 1 = NO-GO, 1 finding (backstop case-sensitive), FIXED**

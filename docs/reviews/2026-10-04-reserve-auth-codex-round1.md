@@ -169,3 +169,23 @@ Before stopping, report:
 ```
 
 This is round 1 NO-GO. Per the pre-registered budget, any next review should verify only these named fixes, not perform another broad sweep.
+---
+
+## Fixes (session 0153v273, 2026-10-04)
+
+| Finding | Root cause | Fix | Test (red first) |
+|---|---|---|---|
+| P1 reserve not bounded | the prompt's "one sentence, never a price" was trusted, not enforced | `b7b4754`: `normalizeStrategicReserve` collapses whitespace and drops entries over 240 chars or with a price (`$` + digit, or a number + dollars/usd/bucks). It runs before saving AND when the follow-up reads the stored reserve | `a reserve entry with a price or past one sentence's length is dropped` (red); overshoot control: times and guest counts kept, accented Spanish kept |
+| P1 wrapper delimiter-escapable | `wrapUntrustedData` put content between tags raw | `4023ef8`: `<` and `>` in content escaped to `&lt;` `&gt;` | `untrusted wrapper: content cannot close its block or open a new one` (red without the fix, shown by stashing it); control: Spanish lead text with accents, ¿, quotes and $ unchanged |
+| P2 migration coverage | tests used made-up migrations | `b7b4754` | `the real migration list backs up, reruns as a no-op, and refuses a newer DB` (pins current behaviour; no code change) |
+
+Inventory (`wrapUntrustedData`): 6 call sites, all fixed by the one shared change: classify `lead_email`, generate and
+verify `lead_classification`, follow-up `lead_context`, `original_response`, `strategic_reserve`. `wrapVoiceReference`
+is separate and carries only Alex's own fixed examples from `src/data/voice-references.ts` (not lead text). Codex counted 9.
+Suite 531 pass / 0 fail / 4 skip on the Mac; `tsc` and `git diff --check` clean.
+
+**Independence note (Alex, 2026-10-04):** in this round and both review-#1 rounds, Codex's read-only sandbox could not
+run tests, so its verdicts used Claude's reported numbers. Probe: `codex exec -s workspace-write` CAN run the suite:
+515 pass / 16 fail of the same 531; all 16 are sandbox-blocked (`listen EPERM` on localhost, `sysctl` EPERM, one runner
+self-test); the repo was unchanged after. The 16 (incl. the 3 `/health` tests changed today) can only be confirmed
+on the Mac.
