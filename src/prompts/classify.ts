@@ -128,6 +128,8 @@ You must determine the RECOMMENDED format, which may differ from what the client
 - Generic "Spanish guitar" or "Latin music" → **solo** (background) or **duo** (cocktail/dinner)
 - Bolero, romantic Mexican trio → **bolero_trio**
 
+INSTRUMENT RULE: Alex himself plays guitar (any style, any song) and ukulele (any style). A guitar or ukulele request in any tradition (Hawaiian ukulele, Celtic or Italian guitar, Spanish guitar) → **solo** or **duo**. Choose a sourced format (mariachi or bolero_trio) only when an instrument Alex doesn't play is required, the configuration needs 3+ musicians, or the lead says Alex is unavailable. Style or tradition never decides on its own.
+
 Valid format values (use EXACTLY one): solo, duo, flamenco_duo, flamenco_trio, mariachi_4piece, mariachi_full, bolero_trio, unresolved
 
 ## DURATION EXTRACTION

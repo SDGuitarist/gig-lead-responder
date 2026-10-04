@@ -23,3 +23,11 @@ test("delivery mode follows the format: enrich keeps it in step when it switches
   const out = enrichClassification(c, { budget: { tier: "none" } } as never, "2026-10-03");
   assert.equal(out.delivery_mode, deliveryModeFor(out.format_recommended));
 });
+
+test("delivery mode follows the format: classify routes guitar and ukulele to Alex", async () => {
+  const { buildClassifyPrompt } = await import("./prompts/classify.js");
+  const p = buildClassifyPrompt("2026-10-03");
+  assert.ok(p.includes("INSTRUMENT RULE"));
+  assert.ok(p.includes("ukulele"));
+  assert.ok(p.includes("Style or tradition never decides"));
+});
