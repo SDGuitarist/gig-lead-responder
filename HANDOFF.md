@@ -30,9 +30,8 @@
 3. **Least confident going into review?** The Tier A hold may hold more real leads than expected (any model that
    picks T2 for a Tier A venue); no real lead has been run.
 
-**Round 3 AUTHORIZED by Alex and sent** (prompt: session scratchpad `codex-round3-port-pricing.md`, gate at `9d6a373`).
-GO closes review #2. Any NO-GO fires the cap: no round 4, no automatic fixing; give Alex options (different approach,
-revert, accept). Until the verdict, do not edit the round-3 gated paths (src, scripts, loaded docs, port-manifest).
+**Round 3 = GO (Alex authorized it). Review #2 is CLOSED** (`docs/reviews/2026-10-03-port-pricing-codex-round3.md`).
+The port's files are no longer frozen by review #2.
 
 **Next phase:** Work. Build the round-up rounding decision (failing test first), then the TO PORT rows.
 
@@ -83,12 +82,11 @@ revert, accept). Until the verdict, do not edit the round-3 gated paths (src, sc
 - **Review #2 round 1 = NO-GO** (4 findings, `docs/reviews/2026-10-03-port-pricing-codex-round1.md`), all fixed in
   `2c24998`..`68af85b` with tests, plus two Alex-raised money fixes (quoted hours = priced hours; stale PRICING_TABLES
   prices removed). **Round 2 = NO-GO, 2 findings, both fixed** (see the 2026-10-03 evening section above).
-  Review loop CLOSED for automatic iteration: round 3 only with `Round 3 authorized by Alejandro: YES`.
+  **Round 3 = GO: review #2 CLOSED** (`docs/reviews/2026-10-03-port-pricing-codex-round3.md`).
 - **Review #2 (port, pricing, draft rules, `e1fb163..198d94d`):** prompt in the session scratchpad
-  `codex-round1-port-pricing.md` (also sent to Alex). Until its verdict is back, ALSO do not edit `src/pipeline`,
-  `src/prompts`, `src/data`, `src/types.ts`, `scripts`, or the loaded docs (RESPONSE_CRAFT, PRICING_TABLES, PRINCIPLES,
-  LEAD_RESPONSE_VOICE, CULTURAL_SPANISH_LATIN, CULTURAL_CORE, EVENT_STRUCTURE_THEORY, Bolero playbook, QUICK_REFERENCE,
-  SOURCED_DRAFTING). The port is PAUSED: every remaining TO PORT row lives in those files.
+  `codex-round1-port-pricing.md`. **CLOSED 2026-10-03 (round 3 GO):** its file freeze is lifted and the port is
+  unpaused. Review #1's frozen files (src/db, src/app.ts, src/server.ts, src/wake-watch.ts, src/follow-up-scheduler.ts)
+  stay frozen until its verdict.
 - Since the first handoff, groups 1–2 of the queue were done (`9425cb5`..`198d94d`): delivery mode (derived from
   format), Instrument Rule, sourced drafting + sourced integrity (gate backstop in code), compressed draft keeps a fear
   resolution, qualification block, request type + fears pre-work, urgency phrases, present-vs-excellent rubric.
@@ -133,8 +131,7 @@ Read: HANDOFF.md (top section, session 33bddb35, incl. the two Codex reviews), C
   docs/research/2026-10-02-booking-hub/spikes.md.
 Two Codex reviews are open. Ask Alex for any verdict he hasn't pasted yet:
   - Review #1 (poller/lease/wake, 2f2ec7d..e1fb163): round 1, verdict not yet received.
-  - Review #2 (port/pricing): round 2 NO-GO, fixed (docs/reviews/2026-10-03-port-pricing-codex-round2.md). Closed
-    for automatic iteration; round 3 only with Alex's explicit yes.
+  - Review #2 (port/pricing): CLOSED, round 3 GO (docs/reviews/2026-10-03-port-pricing-codex-round3.md).
 Record each verdict in docs/reviews/, then work its fix prompt under ~/.claude/docs/mandatory-review-workflow.md.
 Next: build Alex's rounding decision (requests between card lengths round UP), failing test first.
 Then the remaining 57 TO PORT rows (groups 3-6 in the top section), one concern per commit.
