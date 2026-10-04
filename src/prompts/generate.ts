@@ -63,9 +63,11 @@ Before writing a single word of the draft, you MUST fill the "reasoning" block i
 
 - **details_present**: List EVERY concrete detail from the classification and lead — event type, date, venue, format, guest count, cultural context, concerns, anything specific. If the lead is sparse, list what little you have.
 - **absences**: List what's MISSING from the lead and what each absence signals. Example: "No venue mentioned → client may be early in planning or comparing options." "Said 'not sure' on indoor/outdoor → either no event planning experience or doesn't know what musicians can handle."
+- **request_type**: "format" if the lead asks for a specific format (solo guitar, flamenco trio, mariachi), or "category" if it names only a category ("Latin band", "music", "entertainment"). For "category", apply the Category vs. Format Rule from RESPONSE_CRAFT.md before quoting.
 - **emotional_core**: In one sentence, what is this person actually trying to create or protect? Not "they want music" — what emotional outcome are they after? For corporate events specifically: they want background music that adds to the ambience without overwhelming conversation, and they want to know the musician handles everything — setup, volume, professionalism — so they can stop thinking about it.
 - **cinematic_opening**: Write the EXACT first sentence of the full_draft here, standalone. It MUST contain a concrete detail from details_present (event type, date, location, format). If you remove that detail and the sentence still works for any lead, rewrite it.
 - **validation_line**: Write the EXACT validation sentence here, standalone. It must validate the PERSON, not the event.
+- **fears_to_address**: Every explicit concern AND every fear inferred from the lead and its gaps, each with the exact sentence that will answer it in the draft.
 
 ## SALUTATION
 ${classification.client_first_name ? `Start every draft with "Hi ${classification.client_first_name}," on its own line, followed by a blank line before the body. Do NOT skip the salutation.` : "No client name available — omit salutation and start directly with the cinematic opening."}
@@ -246,7 +248,9 @@ Return ONLY this JSON (no markdown fences, no explanation):
     "absences": ["what is missing and what each absence signals"],
     "emotional_core": "what is this person actually trying to create or protect?",
     "cinematic_opening": "the exact first sentence, written standalone",
-    "validation_line": "the exact validation sentence, written standalone"
+    "validation_line": "the exact validation sentence, written standalone",
+    "request_type": "format" | "category",
+    "fears_to_address": [{"fear": "what they worry about", "answer": "the draft sentence that answers it"}]
   },
   "full_draft": "The complete response text including contact block",
   "compressed_draft": "The compressed response text including contact block"
