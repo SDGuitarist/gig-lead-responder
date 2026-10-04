@@ -81,6 +81,11 @@ design pass + live drafting runs, per its row); group 5 needs Alex's numbers; gr
   prompts raw; the reserve's price filter misses forms like "€900", "USD 900", "for 900", and allows 2 sentences.
   **Round 3 authorized by Alejandro: YES** (2026-10-04). Fixed in `700ecfd`, `aabe142`, `0e3882e`; round 3 = the last:
   a NO-GO fires the cap (no round 4; Alex picks: different approach, revert, or accept).
+  ⚠ **Known gap (Alex flagged 2026-10-04):** a follow-up draft that breaks the rules is retried, then the scheduler marks
+  the lead `skipped`; its "skipped" alert goes through `alertAlex`, which cannot deliver until Module 1, and the
+  dashboard shows `skipped` exactly like a skip Alex pressed himself. So a system-skipped follow-up is silent today.
+  Pre-existing for any follow-up failure; this change adds one more route into it. Owner Claude; trigger: Module 1's
+  alert channel, or sooner a dashboard label for system skips (reason stored on the lead).
 - **The app's Gmail token is `alex.guillen.music@gmail.com`** (checked 2026-10-04 with a read-only `getProfile`). Yelp and
   Squarespace leads arrive ONLY there, GigSalad in both, so the poller does see all three platforms.
 - `a484455` real redacted lead emails in `examples/emails/` (GigSalad, Yelp, Squarespace): Yelp and Squarespace parse
