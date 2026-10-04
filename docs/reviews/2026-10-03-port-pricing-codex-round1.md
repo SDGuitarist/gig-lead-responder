@@ -21,3 +21,17 @@ Not found: frozen-file changes, client names/contact data/credentials, battery m
 Codex's sandbox could not run the full suite (localhost + `sysctl`): 454 pass, 15 environment failures, 4 skips.
 
 Fix prompt: the pasted verdict's "Claude Code fix prompt" (narrow fix pass; a second NO-GO stops automatic iteration).
+
+## Fixes (session 33bddb35, 2026-10-03) — round 2 prompt sent to Alex
+
+| Finding | Root cause | Fix | Test |
+|---|---|---|---|
+| 1 Outside-SD budget | table chosen only inside `lookupPrice` | `2c24998`: `rateTableFor()` + `budgetGapFor()`; `findMinFloor` reads the same table | `outside-SD budget` |
+| 2 Gate trusted | arrays checked, elements cast | `70edbb5`: field-by-field parse or reject | `gate result parse` |
+| 2 (second instance) Classify cast | 8 checks then cast | `666d616`: branch-driving fields parse or reject | `classify parse` |
+| 3 Ranges in loaded docs | range check covered one doc; example scan skipped tables | `711f101`: price column removed; every loaded line scanned | `loaded docs model no price ranges` |
+| 3 sweep: post-check gap | pattern needed `$` on both numbers | `07c71ab` | `post-check catches every price range form` |
+| 4 Manifest contract | test checked statuses + files only | `68af85b`: marker must exist, named test must exist; R035/R040/R094/R097 fixed | `port manifest PORTED rows name a marker and a real test`; `voice self-check` |
+
+Also in the range (Alex): `e0e11fd` quoted hours = priced hours; `6a89523` stale PRICING_TABLES prices removed.
+Full suite after fixes: 488 pass, 0 fail, 4 skip; `tsc` clean.

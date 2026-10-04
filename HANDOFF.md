@@ -48,6 +48,10 @@
 
 **⚠ TWO Codex round-1 reviews OUT, separate change sets (record each verdict in `docs/reviews/`):**
 - **Review #1 (poller/lease/wake, `2f2ec7d..e1fb163`):** see the paragraph below.
+- **Review #2 round 1 = NO-GO** (4 findings, `docs/reviews/2026-10-03-port-pricing-codex-round1.md`), all fixed in
+  `2c24998`..`68af85b` with tests, plus two Alex-raised money fixes (quoted hours = priced hours; stale PRICING_TABLES
+  prices removed). **Round 2 prompt sent** (scratchpad `codex-round2-port-pricing.md`): narrow re-check of those fixes.
+  If round 2 is NO-GO, automatic iteration STOPS (round 3 only with Alex's explicit yes). Frozen files unchanged.
 - **Review #2 (port, pricing, draft rules, `e1fb163..198d94d`):** prompt in the session scratchpad
   `codex-round1-port-pricing.md` (also sent to Alex). Until its verdict is back, ALSO do not edit `src/pipeline`,
   `src/prompts`, `src/data`, `src/types.ts`, `scripts`, or the loaded docs (RESPONSE_CRAFT, PRICING_TABLES, PRINCIPLES,
@@ -62,8 +66,8 @@
 `src/db/`, `src/app.ts`, `src/server.ts`, `src/wake-watch.ts`, `src/follow-up-scheduler.ts` (its gate stops Codex if
 they move). Nothing in Part 2 touched them. Prompt: session scratchpad `codex-round1-phase0-runtime.md`.
 
-**Known, not fixed (pre-existing):** `lookupPrice` returns the requested duration, not the one it priced (2.5 h is
-priced as 3 h but labelled 2.5). Only the new outside-SD mariachi path reports the priced hours.
+**Fixed (Alex caught it):** `lookupPrice` now always reports the hours it priced (`e0e11fd`). Still open, his call:
+a 2.5 h request rounds DOWN to 2 h (nearest card length); whether it should round up is a pricing decision.
 
 **Queued, no Alex needed (next session):** the 75 TO PORT rows, grouped (each row names its destination):
 1. **Delivery mode** (R349–R353, R397, R406, R335, R257): a `delivery_mode` classify field (Instrument Rule: guitar
