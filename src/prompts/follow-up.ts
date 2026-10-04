@@ -1,5 +1,6 @@
 import type { Classification, LeadRecord } from "../types.js";
 import { wrapUntrustedData } from "../utils/sanitize.js";
+import { normalizeStrategicReserve } from "../pipeline/generate.js";
 
 /**
  * Value-add type per follow-up number.
@@ -19,6 +20,14 @@ const VALUE_ADD_TYPES = [
  */
 export function buildFollowUpPrompt(lead: LeadRecord, followUpNumber: number): string {
   const valueAddType = VALUE_ADD_TYPES[followUpNumber - 1] ?? VALUE_ADD_TYPES[2];
+
+  // Port manifest R018: follow-up n uses the n-th insight banked at the first reply.
+  let freshAngle: string | undefined;
+  try {
+    freshAngle = normalizeStrategicReserve(JSON.parse(lead.strategic_reserve_json ?? "null"))[followUpNumber - 1];
+  } catch {
+    // corrupt reserve: proceed without it
+  }
 
   // Parse classification for event context (if available)
   let eventContext = "";
@@ -52,7 +61,7 @@ ${wrapUntrustedData("lead_context", `- Event type: ${lead.event_type || "unknown
 - Client name: ${lead.client_name || "unknown"}
 ${eventContext ? `- ${eventContext}` : ""}`)}
 ${lead.compressed_draft ? `\n${wrapUntrustedData("original_response", lead.compressed_draft)}` : ""}
-
+${freshAngle ? `\n## FRESH ANGLE (banked from the first reply)\nBuild this follow-up around this insight about the client, which the first reply did not use:\n${wrapUntrustedData("strategic_reserve", freshAngle)}\n` : ""}
 ## YOUR TASK: Follow-up #${followUpNumber} — ${valueAddType.replace(/_/g, " ")}
 
 ${getValueAddInstructions(valueAddType, lead)}

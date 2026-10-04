@@ -69,3 +69,19 @@ test("port manifest R018: the dashboard path saves the reserve on the lead", asy
   await postPipeline(lead.id, output as never).catch(() => {});
   assert.equal(getLead(lead.id)?.strategic_reserve_json, '["Wedding is on her parents\' 40th"]');
 });
+
+// Follow-up #n gets the n-th banked insight as its fresh angle; none = today's prompt.
+test("port manifest R018: follow-up n uses the n-th reserve insight, and only when there is one", async () => {
+  const { buildFollowUpPrompt } = await import("./prompts/follow-up.js");
+  const lead = (reserve: string | null) => ({ event_type: "Wedding", event_date: null, venue: null, client_name: "Ana",
+    classification_json: null, compressed_draft: "Hi Ana.", strategic_reserve_json: reserve }) as never;
+  const banked = JSON.stringify(["Her dad played requinto at his own wedding", "The ceremony is outdoors at sunset"]);
+  const first = buildFollowUpPrompt(lead(banked), 1);
+  assert.ok(first.includes("FRESH ANGLE (banked from the first reply)"));
+  assert.ok(first.includes("Her dad played requinto") && !first.includes("ceremony is outdoors"));
+  assert.ok(buildFollowUpPrompt(lead(banked), 2).includes("ceremony is outdoors"));
+  for (const r of [null, "not json", "[]", '{"a":1}']) {
+    assert.ok(!buildFollowUpPrompt(lead(r), 1).includes("FRESH ANGLE"), `absent for ${r}`);
+  }
+  assert.ok(!buildFollowUpPrompt(lead(banked), 3).includes("FRESH ANGLE"), "no third insight banked");
+});
