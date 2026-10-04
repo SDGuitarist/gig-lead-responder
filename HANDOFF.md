@@ -18,6 +18,16 @@ only be confirmed on the Mac); check `git status --short` after every Codex run.
    GigSalad `todo` test)
 2. Pricing numbers for the "needs Alex" TO PORT rows (residency, T4/NP tiers, holiday/peak, quote formatting by tier).
 
+**Alex decided 2026-10-04 (session after 0153v273):**
+- **GigSalad:** read lead details from the GigSalad lead page (like Yelp), in the account the lead belongs to.
+  Reading the pages to build it is still ask-first at the moment it happens (which account, which lead).
+- **Pricing:** port the Project's own numbers; Alex sees every price before it is committed.
+- **Residency (R1–R3), answered on the numbers shown:** R2/R3 as written in `Rate_Card_Solo_Duo.md` (2 h / 3 h ×
+  weekly / bi-weekly / monthly). **R1 = hold for Alex, no price.** A residency reply states a price **only if the venue
+  asked**; every residency lead is held. **Recurring duo/trio/ensemble = normal private-event price, no discount, held.**
+  Not given by the source, so held, never invented: R1 rates, 4-hour residency, holiday/peak. The Encuentro exception
+  names a client's deal: stays out of the public repo.
+
 **Known gaps, owner + trigger recorded below:** system-skipped follow-ups are silent until Module 1's alert channel;
 the poller's restart-proof retry counter (deferred); invalid_grant alert (Module 1); migration v3 runs on the real
 data/leads.db at the next server start (backup first).
