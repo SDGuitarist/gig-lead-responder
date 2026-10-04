@@ -2,7 +2,7 @@ import { callClaude } from "../claude.js";
 import { GenerationError } from "../errors.js";
 import { buildGeneratePrompt } from "../prompts/generate.js";
 import type { Classification, Drafts, GateResult, PricingResult } from "../types.js";
-import { wrapEditInstructions } from "../utils/sanitize.js";
+import { escapeForPrompt, wrapEditInstructions } from "../utils/sanitize.js";
 
 /** Positive signals from a failed gate — what worked and should be kept. */
 export interface PositiveSignals {
@@ -86,8 +86,8 @@ export async function generateResponse(
 
     if (positiveSignals) {
       userMessage += "\n\nKEEP THESE (they worked well in the previous draft):"
-        + `\n- Best line: "${positiveSignals.best_line}"`
-        + `\n- Validation line: "${positiveSignals.validation_line}"`
+        + `\n- Best line: "${escapeForPrompt(positiveSignals.best_line)}"`
+        + `\n- Validation line: "${escapeForPrompt(positiveSignals.validation_line)}"`
         + "\nPreserve these lines or improve them — do not discard what already works.";
     }
   }
