@@ -41,6 +41,20 @@ Codex CLI runs reviews with `-s workspace-write` (16 tests are sandbox-blocked, 
   one account, Alex signs in himself, the session is saved in that account's profile folder. No password in `.env`;
   an expired session holds the lead and tells Alex to sign in again.
 
+**GigSalad portal reading: in progress (NOT Codex-reviewed yet; review when the range below is finished):**
+- DONE `7906f2a` pure page parser `src/automation/parsers/gigsalad-page.ts` (test `gigsalad page`, 6 tests incl. a
+  mutation-proven phone test). Competition = shown count or "unknown", never 0.
+- NEXT, in order: (1) per-account app login command (opens the app's browser on screen, Alex signs in; one profile
+  folder per account under `data/browser/`); (2) `fetchLeadDetails` in `gigsalad-client.ts` (region "Event info"
+  text + title → parser; logged-out page → hold + tell Alex to sign in); (3) email → gig id: the email's
+  `tracking.gigsalad.com` link (following one real link needs Alex's OK) or match in the inbox by first name +
+  event type + date; also which account a lead belongs to; (4) wire into the orchestrator in place of the email
+  parser's rawText; (5) Codex round 1 on the whole GigSalad range.
+- Open for Alex (pricing, no rush): business-account leads show NO competition count, so classify's rule makes them
+  competition 0 = quoted at anchor. Keep, or treat "unknown" differently (a new pricing rule)?
+- Unverified: the page text the app's own browser returns may break lines differently from Chrome's; the parser
+  accepts both layouts seen, and the fetch step must be checked on a real page.
+
 **Waiting on Alex:** R285 Encuentro exception NOT PORTED? (one client's deal; keeps it out of the public repo; that
 venue's residency is held anyway; nothing about the deal changes). Explained to Alex 2026-10-04; answer pending.
 
@@ -63,8 +77,8 @@ data/leads.db at the next server start (backup first).
    seen on a real lead. A residency mislabeled "private" gets the private price and is NOT held by the residency rule
    (only by other holds). Run a real or realistic venue inquiry before trusting it.
 
-**Next phase:** Work: GigSalad portal reading (Alex signs in to both accounts first), or the next pricing group
-(show Alex the Project's numbers first).
+**Next phase:** Work: GigSalad portal reading steps (1)–(5) above, or the next pricing group (show Alex the
+Project's numbers first).
 
 ### Prompt for Next Session
 
