@@ -69,6 +69,9 @@ design pass + live drafting runs, per its row); group 5 needs Alex's numbers; gr
   **Also:** every link in the real email is a `tracking.gigsalad.com` redirect (8 in the one checked; 0 `www.gigsalad.com`
   links), and all three `extractPortalUrl` patterns require `www.gigsalad.com`, so a real lead gets no `portalUrl` and
   `gigsaladClient.submitReply` has nowhere to go. Same root: the parser was written against invented emails.
+  **Alex 2026-10-04: there are TWO GigSalad accounts** (music email and business email, separate logins), and leads
+  from both land in BOTH inboxes. So the same lead can arrive twice, and any portal read or reply must use the
+  account the lead belongs to. Portal reading itself is still undecided.
 - Next: Alex's call on the GigSalad finding; a Codex round 1 on `79929a0..HEAD`.
 
 **Review #3 (round-up + R320 + hold-note filter, `97eec2b..58352b1`): CLOSED, round 2 GO** (round 1 prompt: session scratchpad
