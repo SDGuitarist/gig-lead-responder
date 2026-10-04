@@ -46,6 +46,8 @@ export interface ResidencyQuote {
   floor: number | null;
   /** Why there is no rate (held for Alex); null when there is one. */
   reason: string | null;
+  /** Non-solo recurring request: a series of private events at the normal private price, no discount (R286). */
+  series?: true;
 }
 
 export type EventArc = "wedding" | "corporate" | "private_celebration" | "memorial";
@@ -195,7 +197,7 @@ export interface PricingResult {
   travel?: TravelComponent | null;
   /** Which rate table priced this (absent = the format's standard table). Read via rateTableFor(). */
   rate_table?: "mariachi_full_outside_sd";
-  /** Solo residency only (port manifest R281): the per-night residency quote; rate null = held for Alex. */
+  /** Every residency (port manifest R281/R286): per-night residency quote (solo) or a private-event series (non-solo); rate null = held for Alex. */
   residency?: ResidencyQuote;
 }
 

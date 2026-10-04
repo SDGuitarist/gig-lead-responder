@@ -22,7 +22,9 @@ const COMPONENT_QUALITY_TABLE = `| Component | Present (Minimum) | Excellent (St
 
 function residencyPriceRule(classification: Classification, q: ResidencyQuote): string {
   return residencyStatesPrice(classification, q)
-    ? `Residency: the programming idea, cadence and logistics addressed; the price is stated once as $${q.rate} per night, never as a discount and never a private-event price.`
+    ? q.series
+      ? `Residency: the programming idea, cadence and logistics addressed; the price is stated once as $${q.rate} per night as a series of private events (plus any travel the draft was told to include), never as a discount or a residency rate.`
+      : `Residency: the programming idea, cadence and logistics addressed; the price is stated once as $${q.rate} per night, never as a discount and never a private-event price.`
     : "Residency: no price is stated (the venue did not ask, or Alex sets the rate); the programming idea, cadence and logistics are addressed. Any dollar figure in the draft fails this check.";
 }
 

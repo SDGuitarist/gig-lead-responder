@@ -7,6 +7,7 @@ import { buildGeneratePrompt } from "./prompts/generate.js";
 import { buildVerifyPrompt } from "./prompts/verify.js";
 import { lookupPrice, lookupResidencyRate } from "./pipeline/price.js";
 import { verifyClassificationHeuristics } from "./pipeline/classify-verify.js";
+import { enrichClassification } from "./pipeline/enrich.js";
 import { withoutHoldNotes, type Classification, type ResidencyCadence, type ResidencyTier } from "./types.js";
 
 // Port manifest R220/R276–R280 (engagement type) and R281–R283 (residency tier):
@@ -104,8 +105,10 @@ test("residency hold: a solo residency's pricing carries its residency quote; pr
   const solo = lookupPrice(cls({ engagement_type: "residency", residency_tier: "R2", residency_cadence: "weekly" }));
   assert.equal(solo.residency?.rate, 350);
   assert.equal(lookupPrice(cls()).residency, undefined);
+  // A non-solo residency is a series of private events: its normal price, no discount (Codex round 1 P1).
   const duo = lookupPrice(cls({ engagement_type: "residency", residency_tier: "R2", residency_cadence: "weekly", format_recommended: "duo" }));
-  assert.equal(duo.residency, undefined);
+  assert.equal(duo.residency?.series, true);
+  assert.equal(duo.residency?.rate, duo.quote_price);
 });
 
 test("residency hold: every residency lead is held with a reason; a private lead is not", () => {
@@ -156,4 +159,48 @@ test("residency draft: a private lead keeps the private-event price block", () =
   const prompt = buildGeneratePrompt(cls(), lookupPrice(cls()), "ctx");
   assert.ok(prompt.includes("Quote price: $"));
   assert.ok(!prompt.includes("RESIDENCY (B2B)"));
+});
+
+// Codex round 1 P1: a NON-solo residency fell back to the private PRICING block
+// and showed "Quote price: $..." although the venue never asked. Every residency
+// drafts in residency mode; a series states its private price only if asked.
+const series = (over: Partial<Classification> = {}) => res({ format_recommended: "duo", ...over });
+
+test("residency series: a non-solo residency that did not ask states no price", () => {
+  const c = series();
+  const prompt = buildGeneratePrompt(c, lookupPrice(c), "ctx");
+  assert.ok(prompt.includes("## PRICING: RESIDENCY (B2B)"));
+  assert.ok(prompt.includes("Do NOT state any price"));
+  assert.ok(!prompt.includes("Quote price: $"));
+  assert.ok(!/\$\d/.test(prompt.split("## PRICING: RESIDENCY (B2B)")[1].split("##")[0]));
+  assert.ok(buildVerifyPrompt(c, lookupPrice(c)).includes("Residency: no price is stated"));
+});
+
+test("residency series: asked, it states the normal private price per night as a series, no discount", () => {
+  const c = series({ price_asked: true });
+  const pricing = lookupPrice(c);
+  const prompt = buildGeneratePrompt(c, pricing, "ctx");
+  assert.ok(prompt.includes("series of private events"));
+  assert.ok(prompt.includes(`$${pricing.quote_price} per night`));
+  assert.ok(!prompt.includes("Quote price: $"));
+  assert.ok(!prompt.includes("50% deposit holds the date"));
+  // Verify must accept that price: for a series it IS the private-event price.
+  const v = buildVerifyPrompt(c, pricing);
+  assert.ok(v.includes(`$${pricing.quote_price} per night as a series of private events`));
+  assert.ok(!v.includes("never a private-event price"));
+});
+
+test("residency series: re-pricing after enrichment changes the format stays in residency mode", () => {
+  // A Saturday: the 4-piece is weekday-only, so enrichment switches to the full ensemble.
+  const c = res({ format_recommended: "mariachi_4piece", format_requested: "mariachi", duration_hours: 2, event_date_iso: "2026-10-10" });
+  const first = lookupPrice(c);
+  const enriched = enrichClassification(c, first, "2026-10-04");
+  assert.equal(enriched.format_recommended, "mariachi_full");
+  const repriced = lookupPrice(enriched);
+  assert.notEqual(repriced.quote_price, first.quote_price);
+  assert.equal(repriced.residency?.series, true);
+  assert.equal(repriced.residency?.rate, repriced.quote_price);
+  const prompt = buildGeneratePrompt(enriched, repriced, "ctx");
+  assert.ok(prompt.includes("Do NOT state any price"));
+  assert.ok(!prompt.includes("Quote price: $"));
 });

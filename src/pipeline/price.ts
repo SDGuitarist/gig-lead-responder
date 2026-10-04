@@ -154,11 +154,14 @@ export function lookupPrice(
     budget: { tier: "none" },
     travel,
     ...(outsideSd ? { rate_table: "mariachi_full_outside_sd" as const } : {}),
-    // Residency is solo Alex only; any other recurring format stays a series of
-    // private events at private-event prices (R286, Alex 2026-10-04: no discount).
-    ...(classification.engagement_type === "residency" && format_recommended === "solo"
-      ? { residency: lookupResidencyRate(classification.residency_tier ?? "R2", duration_hours, classification.residency_cadence ?? null) }
-      : {}),
+    // Residency pricing is solo Alex only; any other recurring format is a series of
+    // private events at its private-event price (R286, Alex 2026-10-04: no discount).
+    // Every residency carries a quote so drafting stays in residency mode (Codex round 1 P1).
+    ...(classification.engagement_type !== "residency" ? {}
+      : format_recommended === "solo"
+        ? { residency: lookupResidencyRate(classification.residency_tier ?? "R2", duration_hours, classification.residency_cadence ?? null) }
+        : { residency: { tier: classification.residency_tier ?? "R2", cadence: classification.residency_cadence ?? null, hours: snapped,
+            rate: quote_price, floor, reason: null, series: true as const } }),
   };
 }
 

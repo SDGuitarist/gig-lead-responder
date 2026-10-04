@@ -57,7 +57,7 @@ Do not include any phone numbers, email addresses, website URLs, or social media
 ${wrapUntrustedData("lead_classification", JSON.stringify(sanitizeClassification(classification), null, 2))}
 
 ${residency
-    ? buildResidencyPricingBlock(classification, residency)
+    ? buildResidencyPricingBlock(classification, pricing, residency)
     : clarificationMode
     ? `## PRICING
 No quote yet. The format is unresolved. Your job is to ask exactly one binary clarifying question before pricing.
@@ -210,13 +210,17 @@ ${active.map((ref, i) => wrapVoiceReference(i + 1, ref.type, ref.text)).join('\n
 References have had pricing removed. Do NOT infer, reconstruct, or comment on pricing from reference context. All pricing comes exclusively from the PRICING block above.`;
 }
 
-function buildResidencyPricingBlock(classification: Classification, q: ResidencyQuote): string {
-  const cadence = q.cadence === "biweekly" ? "bi-weekly" : q.cadence;
-  const frame = `This is a residency (B2B): recurring programming the venue books, not a private event. Lead with the programming idea: what the music does for their room, at the cadence they described. The residency rate is its own product, not a discount off private-event prices; never mention private-event prices or a discount.`;
+function buildResidencyPricingBlock(classification: Classification, pricing: PricingResult, q: ResidencyQuote): string {
+  const cadence = q.cadence === "biweekly" ? "bi-weekly" : q.cadence ?? "at the cadence they described";
+  const frame = q.series
+    ? `This venue wants recurring ${pricing.format} programming. That is a series of private events at the normal per-night price, not a residency: never call it a residency rate and never offer a discount. Lead with the programming idea: what the music does for their room, at the cadence they described.`
+    : `This is a residency (B2B): recurring programming the venue books, not a private event. Lead with the programming idea: what the music does for their room, at the cadence they described. The residency rate is its own product, not a discount off private-event prices; never mention private-event prices or a discount.`;
   return residencyStatesPrice(classification, q)
     ? `## PRICING: RESIDENCY (B2B)
 ${frame}
-The venue asked about price. State it once, plainly: $${q.rate} per night for ${q.hours} hours of solo guitar, ${cadence}. Offer to revisit at 3 or 6 months based on how the program performs for them. Do not apologize for the number.
+The venue asked about price. State it once, plainly: ${q.series
+    ? `a ${cadence} ${pricing.format} series at $${q.rate} per night for ${q.hours} hours (a series of private events, no discount).${buildTravelBlock(pricing)}`
+    : `$${q.rate} per night for ${q.hours} hours of solo guitar, ${cadence}. Offer to revisit at 3 or 6 months based on how the program performs for them.`} Do not apologize for the number.
 `
     : `## PRICING: RESIDENCY (B2B)
 ${frame}
