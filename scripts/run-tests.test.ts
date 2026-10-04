@@ -38,6 +38,14 @@ test("instrument: a name matching only a skipped test exits 3", () => {
   assert.deepEqual(r.counts, { pass: 0, fail: 0, skip: 1 });
 });
 
+// A todo is a KNOWN failing check, not a skip: counting it as "skip" made a known gap
+// read as harmless (Alex, 2026-10-04). It still proves nothing, so exit 3.
+test("instrument: a todo test is counted as todo, not skip", () => {
+  const r = runMatch("parses real GigSalad fixture");
+  assert.equal(r.code, 3, r.out);
+  assert.deepEqual(r.counts, { pass: 0, fail: 0, skip: 0, todo: 1 });
+});
+
 test("instrument: a failing matched test exits 1, not 3", () => {
   const r = runMatch("selftest deliberate failure", { TEST_MATCH_SELFTEST: "1" });
   assert.equal(r.code, 1, r.out);
