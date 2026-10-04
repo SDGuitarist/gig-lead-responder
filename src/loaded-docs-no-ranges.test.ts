@@ -6,13 +6,11 @@ import { PRICE_RANGE_PATTERN } from "./pipeline/post-check.js";
 // Codex round 1 (port range) finding 3: no doc the model can be shown may model a
 // price range, because the post-check fails any draft with one. Scans EVERY line
 // (tables too) of every doc selectContext loads, with the post-check's own pattern.
-// Exception, Alex 2026-10-03 (q-i): PRICING_TABLES.md keeps its per-tier price tables.
 const loaded = [...readFileSync("src/pipeline/context.ts", "utf-8").matchAll(/readDoc\("([^"]+)"/g)].map((m) => m[1]);
 
 // Reviewed internal-reference lines (not draft wording). Each must still exist;
 // any other range line fails until someone reviews it and adds it here.
 const ALLOWED: Array<{ doc: string; text: string; why: string }> = [
-  { doc: "PRICING_TABLES.md", text: "**Extension Rate:** $150-200 per half hour", why: "price reference data (Alex q-i: keep the tables)" },
   { doc: "Bolero_Trio_Negotiation_Playbook.md", text: '"We were hoping for closer to $1,200-1,400..."', why: "what a client says, not what Alex says" },
   { doc: "Bolero_Trio_Negotiation_Playbook.md", text: "or $1,650-1,750 when trio does flex", why: "internal floor note" },
   { doc: "Bolero_Trio_Negotiation_Playbook.md", text: "willing to quote $100-200 less for off-peak", why: "internal flexibility note" },
@@ -25,9 +23,8 @@ test("loaded docs model no price ranges", () => {
   const hits: string[] = [];
   for (const doc of loaded) {
     readFileSync(`docs/${doc}`, "utf-8").split("\n").forEach((line, i) => {
-      const priceTableRow = doc === "PRICING_TABLES.md" && line.startsWith("|"); // Alex q-i: keep the price tables
       const allowed = ALLOWED.some((a) => a.doc === doc && line.includes(a.text));
-      if (!priceTableRow && !allowed && PRICE_RANGE_PATTERN.test(line)) hits.push(`${doc}:${i + 1} ${line.slice(0, 60)}`);
+      if (!allowed && PRICE_RANGE_PATTERN.test(line)) hits.push(`${doc}:${i + 1} ${line.slice(0, 60)}`);
     });
   }
   assert.deepEqual(hits, []);

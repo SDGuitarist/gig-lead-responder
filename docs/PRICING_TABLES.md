@@ -2,7 +2,7 @@
 ## Pacific Flow Entertainment — Quote Reference
 
 <purpose>
-Price data by tier and format. Tier determination happens in CORE_METHODOLOGY.md—this file provides the numbers.
+Pricing rules and format guidance. **No prices live here** (removed 2026-10-03: the old tables were out of date). Every draft gets its price from the PRICING block, computed from `src/data/rates.ts`, which matches Alex's rate cards (`npx tsx scripts/port-rate-compare.ts`).
 </purpose>
 
 ---
@@ -13,61 +13,15 @@ Price data by tier and format. Tier determination happens in CORE_METHODOLOGY.md
 
 1. **Quote full hours only.** No 30-minute increments.
 2. **$500 minimum booking floor.** No booking under $500 regardless of tier, duration, or configuration.
-3. **Every quote is a single confident number** (e.g., "$995"), never a range: the anchor from `src/data/rates.ts`.
-4. **Wedding is a pricing modifier**, not a response tier. Apply Wedding prices when wedding indicators present.
+3. **Every quote is a single confident number**, never a range: the quote price the code computes from `src/data/rates.ts`.
+4. **Wedding is a pricing modifier**, not a response tier. Quote exactly the price in the PRICING block; never add a modifier yourself.
 5. **Never quote until performer availability is confirmed** (operational—Alex handles this).
 
 </pricing_rules>
 
 ---
 
-<spanish_guitar_latin>
-
-## Spanish Guitar / Latin
-
-### Solo (with or without Vocals)
-
-| Tier | Duration | Price |
-|------|----------|-------|
-| Standard | 1 hour | $550-595 |
-| Standard | 2 hours | $595-700 |
-| Premium | 1-2 hours | $600-895 |
-| Premium | 3 hours | $895-1,200 |
-| Wedding | 1 hour | $550-600 |
-| Wedding | 2 hours | $700-895 |
-
-### Duo (with or without Vocals)
-
-| Tier | Duration | Price |
-|------|----------|-------|
-| Standard | 2 hours | $600-700 |
-| Premium | 2-3 hours | $995 |
-| Wedding | 2 hours | $1,200 |
-
-</spanish_guitar_latin>
-
----
-
-<flamenco>
-
 ## Flamenco
-
-### Flamenco Duo (Guitar + Cajón)
-
-| Tier | Duration | Price |
-|------|----------|-------|
-| Standard | 2 hours | $800-900 |
-| Premium | 2-3 hours | $1,100-1,200 |
-
-### Flamenco Trio (Guitar + Cajón + Dancer)
-
-| Tier | Duration | Price |
-|------|----------|-------|
-| Standard | 2 hours | $1,400-1,600 |
-| Premium | 3-3.5 hours | $1,800 |
-| Wedding | 2-3 hours | $2,000-2,200 |
-
-**Extension Rate:** $150-200 per half hour for trio configurations.
 
 ### When to Recommend Which
 
@@ -85,62 +39,17 @@ Price data by tier and format. Tier determination happens in CORE_METHODOLOGY.md
 - Budget is primary concern but flamenco sound desired
 - Cocktail hour or dinner-only event
 
-</flamenco>
 
 ---
 
-<mariachi>
-
 ## Mariachi
-
-### Full Ensemble (up to 10 players)
-
-| Day | Zone | Duration | Price |
-|-----|------|----------|-------|
-| Weekend | Central SD | 1 hour | $1,050-1,100 |
-| Weekend | Central SD | 2 hours | $1,600 |
-| Weekend | North/East County | 3 hours (min) | $2,200 |
-| Weekday | Central SD | 1 hour | $800 |
-| Weekday | North/East County | 2 hours (min) | $1,600 |
-
-### 4-Piece Group (Weekday Only)
-
-| Zone | Duration | Price |
-|------|----------|-------|
-| Central SD | 1 hour | $650 |
-| North/East County | 2 hours (min) | $1,100 |
 
 ### Zone Definitions
 - **Central SD:** Core San Diego metro area
 - **North County:** Escondido, Oceanside, Carlsbad, Vista, San Marcos and surrounding
 - **East County:** El Cajon, La Mesa, Santee, Alpine, Lakeside and surrounding
 
-</mariachi>
 
 ---
 
-<budget_qualification_language>
-
-## Budget Qualification Language
-
-### Duo (Premium)
-State single confident number in structured format:
-```
-Spanish/Classical Guitar Duo — $995
-Includes professional sound system, all setup/breakdown, and curated repertoire.
-```
-
-### Flamenco Trio (Premium)
-```
-Flamenco Trio (Guitar, Cajón, Dancer) — $1,800
-Includes [hours], professional sound calibrated for both phases, and flexibility for pauses during speeches. Extension available at $200/half hour.
-```
-
-### Wedding Duo
-"For a duo at a wedding, that typically runs around $1,200 for a 2-hour set. Does that work for your budget?"
-
-</budget_qualification_language>
-
----
-
-*Reference this file for numbers. Tier determination happens in CORE_METHODOLOGY.md.*
+*Reference this file for rules and format guidance, never for numbers.*
