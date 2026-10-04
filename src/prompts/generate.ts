@@ -1,5 +1,6 @@
 import { RATE_TABLES, type FormatRates, type TierRates } from "../data/rates.js";
 import { rateTableFor } from "../pipeline/price.js";
+import { SETUP_SPACE } from "../data/setup-space.js";
 import { VOICE_REFERENCES } from "../data/voice-references.js";
 import { withoutHoldNotes, CONCERN_4PIECE_ALT, CONCERN_FULL_ENSEMBLE, GUT_CHECK_KEYS, GUT_CHECK_THRESHOLD, GUT_CHECK_TOTAL, type Classification, type Format, type PricingResult } from "../types.js";
 import { sanitizeClassification, wrapUntrustedData, wrapVoiceReference } from "../utils/sanitize.js";
@@ -212,6 +213,7 @@ References have had pricing removed. Do NOT infer, reconstruct, or comment on pr
 function buildStyleRulesBlock(classification: Classification, pricing: PricingResult): string {
   const clarificationMode = classification.action === "one_question" && classification.format_recommended === "unresolved";
   const compressedTarget = getCompressedTarget(classification.competition_level);
+  const setupSpace = classification.format_recommended === "unresolved" ? undefined : SETUP_SPACE[classification.format_recommended];
   return `## STYLE RULES
 
 **Punctuation — Minimize Em Dashes:**
@@ -243,7 +245,8 @@ ${clarificationMode || pricing.budget.tier === "no_viable_scope"
 **Quote Terms (every quote, both drafts):**
 - A 50% deposit holds the date. Say it plainly, once, near the price.
 - Setup needs: one standard 110V outlet within about 25 ft of where I play (the only electrical need) and one armless chair. Keep it to one short clause in the compressed draft.
-`}
+${setupSpace ? `- Space and setup time for this format: ${setupSpace}. Use it only when the lead raises space, the layout, load-in or start time; otherwise leave it out.
+` : ""}`}
 
 ### Full Draft
 - All 5 steps naturally woven (no visible structure/labels)

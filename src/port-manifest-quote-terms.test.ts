@@ -32,3 +32,22 @@ test("port manifest M5 M9: a clarifying-question reply does not", () => {
   assert.ok(!prompt.includes("50% deposit holds the date"));
   assert.ok(!prompt.includes("one armless chair"));
 });
+
+// Port manifest R099 (F5 Standard Setup Requirements): space and setup time
+// for each configuration Alex plays. Formats the table does not cover get no
+// line rather than a guess.
+test("port manifest R099: a quote gives the space and setup time for its format", () => {
+  const solo = buildGeneratePrompt(c(), p, "ctx");
+  assert.ok(solo.includes("Space and setup time"));
+  assert.ok(solo.includes("6 x 6 ft") && solo.includes("20-30 minutes"));
+  const duo = buildGeneratePrompt(c({ format_recommended: "flamenco_duo" }), p, "ctx");
+  assert.ok(duo.includes("8 x 8 ft") && duo.includes("30 minutes"));
+  const trio = buildGeneratePrompt(c({ format_recommended: "flamenco_trio_full" }), p, "ctx");
+  assert.ok(trio.includes("15 x 6 ft") && trio.includes("15 x 10 ft") && trio.includes("45 minutes"));
+});
+
+test("port manifest R099: no space line for a format the table does not cover, or without a quote", () => {
+  assert.ok(!buildGeneratePrompt(c({ format_recommended: "mariachi_full" }), p, "ctx").includes("Space and setup time"));
+  const q = buildGeneratePrompt(c({ action: "one_question", format_recommended: "unresolved" }), p, "ctx");
+  assert.ok(!q.includes("Space and setup time"));
+});
