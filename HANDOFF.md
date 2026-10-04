@@ -50,8 +50,11 @@ Suite 504 / 0 / 4, `tsc` clean. Commits `c4273f5` onward are NOT pushed and NOT 
 `src/db` frozen by review #1); R358 code half (GigSalad parser, `src/automation` frozen by review #1); R006 (needs a
 design pass + live drafting runs, per its row); group 5 needs Alex's numbers; group 6 other repos/data.
 
-**Next phase:** Review. Codex round 1 on `97eec2b..HEAD` (round-up rounding + R320 + hold-note filter), and get
-review #1's verdict, which unblocks R018 and R358.
+**Review #3 (round-up + R320 + hold-note filter, `97eec2b..58352b1`): Codex round 1 SENT** (prompt: session scratchpad
+`codex-round1-rounding-decline.md`, gate at `58352b1`). Record its verdict in docs/reviews/. Until then do not edit the
+gated paths (src, scripts, loaded docs, port-manifest). Also get review #1's verdict (unblocks R018 and R358).
+
+**Next phase:** Review.
 
 ## 2026-10-03 (session 33bddb35, ~09:10–15:30) — poller cursor, wake, lease, S1-adv, the whole port review
 
