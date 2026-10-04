@@ -1,8 +1,8 @@
 import { RATE_TABLES, type FormatRates, type TierRates } from "../data/rates.js";
-import { rateTableFor } from "../pipeline/price.js";
+import { rateTableFor, residencyStatesPrice } from "../pipeline/price.js";
 import { SETUP_SPACE } from "../data/setup-space.js";
 import { VOICE_REFERENCES } from "../data/voice-references.js";
-import { withoutHoldNotes, CONCERN_4PIECE_ALT, CONCERN_FULL_ENSEMBLE, GUT_CHECK_KEYS, GUT_CHECK_THRESHOLD, GUT_CHECK_TOTAL, type Classification, type Format, type PricingResult } from "../types.js";
+import { withoutHoldNotes, CONCERN_4PIECE_ALT, CONCERN_FULL_ENSEMBLE, GUT_CHECK_KEYS, GUT_CHECK_THRESHOLD, GUT_CHECK_TOTAL, type Classification, type Format, type PricingResult, type ResidencyQuote } from "../types.js";
 import { sanitizeClassification, wrapUntrustedData, wrapVoiceReference } from "../utils/sanitize.js";
 
 /**
@@ -32,7 +32,10 @@ export function buildGeneratePrompt(
 ): string {
   const classification = withoutHoldNotes(classificationIn);
   const clarificationMode = classification.action === "one_question" && classification.format_recommended === "unresolved";
-  const budgetBlock = buildBudgetModeBlock(classification, pricing);
+  // A solo residency is priced per night, not by the private-event card (R281): its own
+  // block, no budget gap against the private price, and a number only if asked (R284).
+  const residency = pricing.residency;
+  const budgetBlock = residency ? "" : buildBudgetModeBlock(classification, pricing);
 
   const pastDateBlock = classification.past_date_detected
     ? `
@@ -53,7 +56,9 @@ Do not include any phone numbers, email addresses, website URLs, or social media
     : ""}
 ${wrapUntrustedData("lead_classification", JSON.stringify(sanitizeClassification(classification), null, 2))}
 
-${clarificationMode
+${residency
+    ? buildResidencyPricingBlock(classification, residency)
+    : clarificationMode
     ? `## PRICING
 No quote yet. The format is unresolved. Your job is to ask exactly one binary clarifying question before pricing.
 `
@@ -98,7 +103,7 @@ If the lead involves a memorial, tribute, celebration of life, or grief context:
 1. **Cinematic hook + validation** — Opens with a story moment (the reader SEEs it), then the client sees themselves acknowledged
 2. **Differentiator + Named Fear** — Name what typically goes wrong with this type of booking, then show why you're different. This is not a feature list. It is one specific failure mode — the thing a lesser vendor does that this client is right to worry about — followed by the one behavior that makes you different. The fear must be named explicitly, not implied. Example: "A guitarist who shows up, plays their set at whatever volume they feel like, and never once adjusts for the room — that's the version of background music no one remembers fondly. What I do is different: I read the room in real time..."
 3. **Fear/concern resolution** — Every explicit AND inferred question answered (use absences from reasoning)
-4. **Recommendation + price** — Format recommendation, quote price, positioning${clarificationMode ? " (SKIP in clarification mode)" : ""}
+4. **Recommendation + price** — Format recommendation, quote price, positioning${clarificationMode ? " (SKIP in clarification mode)" : residency && !residencyStatesPrice(classification, residency) ? " (residency: the programming idea and cadence, NO price)" : ""}
 5. **CTA** — Clear next step (${classification.close_type} close)${clarificationMode ? " and the CTA is the single binary clarifying question" : ""}
 
 ${classification.tier === "qualification" ? `## QUALIFICATION RESPONSE (budget mismatch or vague request)
@@ -205,6 +210,20 @@ ${active.map((ref, i) => wrapVoiceReference(i + 1, ref.type, ref.text)).join('\n
 References have had pricing removed. Do NOT infer, reconstruct, or comment on pricing from reference context. All pricing comes exclusively from the PRICING block above.`;
 }
 
+function buildResidencyPricingBlock(classification: Classification, q: ResidencyQuote): string {
+  const cadence = q.cadence === "biweekly" ? "bi-weekly" : q.cadence;
+  const frame = `This is a residency (B2B): recurring programming the venue books, not a private event. Lead with the programming idea: what the music does for their room, at the cadence they described. The residency rate is its own product, not a discount off private-event prices; never mention private-event prices or a discount.`;
+  return residencyStatesPrice(classification, q)
+    ? `## PRICING: RESIDENCY (B2B)
+${frame}
+The venue asked about price. State it once, plainly: $${q.rate} per night for ${q.hours} hours of solo guitar, ${cadence}. Offer to revisit at 3 or 6 months based on how the program performs for them. Do not apologize for the number.
+`
+    : `## PRICING: RESIDENCY (B2B)
+${frame}
+Do NOT state any price, rate or number in either draft. ${classification.price_asked ? "Say Alex will confirm the rate for their schedule personally." : "Let the venue raise price."}
+`;
+}
+
 /**
  * Build the STYLE RULES section of the prompt.
  * Contains: em dash prohibition, validation compression, dual format,
@@ -239,7 +258,7 @@ ${classification.platform === "gigsalad"
     ? `**Contact Block: OMIT** — GigSalad prohibits direct contact info in platform messages. Do NOT include phone number, email, or website URL anywhere in the response.`
     : `**Sign-Off (ALWAYS append to both drafts):**
 End with "Alex Guillen" on its own line. No business name, no phone number — just the name.`}
-${clarificationMode || pricing.budget.tier === "no_viable_scope"
+${clarificationMode || pricing.budget.tier === "no_viable_scope" || pricing.residency
     ? ""
     : `
 **Quote Terms (every quote, both drafts):**
@@ -256,7 +275,7 @@ ${setupSpace ? `- Space and setup time for this format: ${setupSpace}. Use it on
 ### Compressed Draft
 - Send-ready for ${classification.lead_source_column === "P" ? (classification.platform === "gigsalad" ? "GigSalad messaging system" : classification.platform === "thebash" ? "The Bash messaging system" : "platform messaging system") : "direct reply"}
 - Target: ${compressedTarget.target} words (max ${compressedTarget.max})
-- Must retain: wedge, validation sentence, at least one fear resolution (explicit or inferred), price, close${classification.delivery_mode === "alex_sources" || classification.delivery_mode === "hybrid" ? ", one sentence of curation credibility (sourced integrity)" : ""}${classification.platform === "gigsalad" ? "" : ", contact block"}
+- Must retain: wedge, validation sentence, at least one fear resolution (explicit or inferred), ${pricing.residency && !residencyStatesPrice(classification, pricing.residency) ? "" : "price, "}close${classification.delivery_mode === "alex_sources" || classification.delivery_mode === "hybrid" ? ", one sentence of curation credibility (sourced integrity)" : ""}${classification.platform === "gigsalad" ? "" : ", contact block"}
 - Trim: extended scene painting, logistics detail, secondary concerns
 - Compression removes detail, not voice. All VOICE RULES apply to both drafts.
 

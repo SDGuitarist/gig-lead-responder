@@ -3,6 +3,8 @@ import assert from "node:assert/strict";
 import { setClaudeRequesterForTests } from "./claude.js";
 import { classifyLead, normalizeEngagement } from "./pipeline/classify.js";
 import { buildClassifyPrompt } from "./prompts/classify.js";
+import { buildGeneratePrompt } from "./prompts/generate.js";
+import { buildVerifyPrompt } from "./prompts/verify.js";
 import { lookupPrice, lookupResidencyRate } from "./pipeline/price.js";
 import { verifyClassificationHeuristics } from "./pipeline/classify-verify.js";
 import { withoutHoldNotes, type Classification, type ResidencyCadence, type ResidencyTier } from "./types.js";
@@ -120,4 +122,38 @@ test("residency hold: the hold note never reaches the draft or the gate", () => 
   const held = verifyClassificationHeuristics("lead text", cls({ engagement_type: "residency", residency_tier: "R3", residency_cadence: "monthly" })).classification;
   assert.ok(held.flagged_concerns.some((f) => f.startsWith("residency:")));
   assert.ok(!withoutHoldNotes(held).flagged_concerns.some((f) => f.startsWith("residency:")));
+});
+
+// R284/R303: residency drafting. A price only when the venue asked and a rate
+// exists; never the private-event price, never as a discount; otherwise the
+// programming idea and no number (Alex 2026-10-04).
+const res = (over: Partial<Classification> = {}) =>
+  cls({ engagement_type: "residency", residency_tier: "R2", residency_cadence: "weekly", ...over });
+
+test("residency draft: price asked and a rate exists, the draft states the per-night rate only", () => {
+  const c = res({ price_asked: true });
+  const prompt = buildGeneratePrompt(c, lookupPrice(c), "ctx");
+  assert.ok(prompt.includes("## PRICING: RESIDENCY (B2B)"));
+  assert.ok(prompt.includes("$350 per night"));
+  assert.ok(prompt.includes("not a discount off private-event prices"));
+  assert.ok(!prompt.includes("Quote price: $"));
+  assert.ok(!prompt.includes("50% deposit holds the date"));
+});
+
+test("residency draft: not asked, or no rate, means no number at all", () => {
+  for (const c of [res(), res({ price_asked: true, residency_tier: "R1" }), res({ price_asked: true, residency_cadence: null })]) {
+    const prompt = buildGeneratePrompt(c, lookupPrice(c), "ctx");
+    assert.ok(prompt.includes("Do NOT state any price"), c.residency_tier ?? "");
+    assert.ok(!prompt.includes("per night"));
+    assert.ok(!prompt.includes("Quote price: $"));
+    assert.ok(!/Must retain: [^\n]*\bprice\b/.test(prompt));
+  }
+  const v = buildVerifyPrompt(res(), lookupPrice(res()));
+  assert.ok(v.includes("Residency: no price is stated"));
+});
+
+test("residency draft: a private lead keeps the private-event price block", () => {
+  const prompt = buildGeneratePrompt(cls(), lookupPrice(cls()), "ctx");
+  assert.ok(prompt.includes("Quote price: $"));
+  assert.ok(!prompt.includes("RESIDENCY (B2B)"));
 });

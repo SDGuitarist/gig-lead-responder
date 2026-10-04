@@ -1,5 +1,6 @@
 import { VOICE_REFERENCES } from "../data/voice-references.js";
-import { CONCERN_4PIECE_ALT, CONCERN_FULL_ENSEMBLE, GUT_CHECK_THRESHOLD, GUT_CHECK_TOTAL, withoutHoldNotes, type Classification, type PricingResult } from "../types.js";
+import { residencyStatesPrice } from "../pipeline/price.js";
+import { CONCERN_4PIECE_ALT, CONCERN_FULL_ENSEMBLE, GUT_CHECK_THRESHOLD, GUT_CHECK_TOTAL, withoutHoldNotes, type Classification, type PricingResult, type ResidencyQuote } from "../types.js";
 import { sanitizeClassification, wrapUntrustedData, wrapVoiceReference } from "../utils/sanitize.js";
 
 /**
@@ -19,9 +20,15 @@ const COMPONENT_QUALITY_TABLE = `| Component | Present (Minimum) | Excellent (St
 | **Logistics** | Answers questions | Preempts every question AND addresses inferred fears. Weaved into the scene naturally. No visible FAQ section. |
 | **Close** | Has a next step | The next step feels like the natural conclusion. Not a sales push—an invitation. |`;
 
+function residencyPriceRule(classification: Classification, q: ResidencyQuote): string {
+  return residencyStatesPrice(classification, q)
+    ? `Residency: the programming idea, cadence and logistics addressed; the price is stated once as $${q.rate} per night, never as a discount and never a private-event price.`
+    : "Residency: no price is stated (the venue did not ask, or Alex sets the rate); the programming idea, cadence and logistics are addressed. Any dollar figure in the draft fails this check.";
+}
+
 export function buildVerifyPrompt(
   classificationIn: Classification,
-  pricing: Pick<PricingResult, "budget">,
+  pricing: Pick<PricingResult, "budget" | "residency">,
 ): string {
   const classification = withoutHoldNotes(classificationIn);
   const budget = pricing.budget;
@@ -79,13 +86,13 @@ Does the opening sentence reference a CONCRETE DETAIL from the classification? T
 - validated_them: Draft validates the person, not just the event
 - named_fear: Draft acknowledges what could go wrong or what burned them before
 - differentiated: At least one line only THIS vendor would write
-- preempted_questions: ${clarificationMode ? "For clarification mode: the draft narrows the decision with one smart binary question instead of trying to answer price, logistics, and format prematurely." : "Price, logistics, format all addressed"}
+- preempted_questions: ${clarificationMode ? "For clarification mode: the draft narrows the decision with one smart binary question instead of trying to answer price, logistics, and format prematurely." : pricing.residency ? residencyPriceRule(classification, pricing.residency) : "Price, logistics, format all addressed"}
 - creates_relief: Reader would think "this person gets it"
 - best_line_present: There's a genuinely strong line
 - prose_flows: Reads as one continuous movement, not assembled sections
 - competitor_test: false means PASS (no competitor would write this)
 - lead_specific_opening: First sentence references a concrete detail from the classification (not generic)
-- budget_acknowledged: ${clarificationMode ? "Always true — clarification mode does not quote yet." : buildBudgetInstruction(budget, classification)}
+- budget_acknowledged: ${clarificationMode ? "Always true — clarification mode does not quote yet." : pricing.residency ? "Always true — residency pricing is Alex's call (every residency is held)." : buildBudgetInstruction(budget, classification)}
 - past_date_acknowledged: ${buildPastDateInstruction(classification)}
 - mariachi_pricing_format: ${buildMariachiPricingInstruction(classification)}
 - cultural_vocabulary_used: ${buildCulturalVocabInstruction(classification)}

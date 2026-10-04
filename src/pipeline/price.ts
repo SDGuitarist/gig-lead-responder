@@ -308,3 +308,8 @@ export function lookupResidencyRate(tier: ResidencyTier, hours: number, cadence:
   const priced = hours <= 2 ? 2 : 3;
   return { tier, cadence, hours: priced, rate: RESIDENCY_RATES[tier][priced === 2 ? "2" : "3"][cadence], floor: RESIDENCY_FLOORS[tier], reason: null };
 }
+
+/** A residency draft states a number only when the venue asked and a rate exists (Alex 2026-10-04). */
+export function residencyStatesPrice(classification: Pick<Classification, "price_asked">, q: ResidencyQuote): boolean {
+  return classification.price_asked === true && q.rate !== null;
+}
