@@ -89,6 +89,21 @@ const validateClassification = (raw: unknown): Classification => {
   oneOf("close_type", ["direct", "soft_hold", "hesitant"]);
   oneOf("cultural_context_active", [true, false]);
   oneOf("cultural_tradition", ["spanish_latin", null]);
+  oneOf("stealth_premium", [true, false]);
+  oneOf("event_energy", ["background", "performance", null]);
+  const count = obj.competition_quote_count;
+  if (typeof count !== "number" || !Number.isFinite(count) || count < 0) {
+    throw new ClassificationError(`Classification invalid competition_quote_count: "${String(count)}"`);
+  }
+  if (typeof obj.format_requested !== "string") {
+    throw new ClassificationError("Classification invalid format_requested: expected a string");
+  }
+  // Absent is allowed here (classifyLead fills null); anything else must be a string.
+  for (const k of ["venue_name", "client_first_name"]) {
+    if (obj[k] !== undefined && obj[k] !== null && typeof obj[k] !== "string") {
+      throw new ClassificationError(`Classification invalid ${k}: expected a string or null`);
+    }
+  }
   for (const k of ["flagged_concerns", "stealth_premium_signals", "context_modifiers"]) {
     const v = obj[k];
     if (!Array.isArray(v) || !v.every((x) => typeof x === "string")) {
