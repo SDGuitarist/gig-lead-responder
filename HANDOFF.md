@@ -35,6 +35,11 @@ Codex CLI runs reviews with `-s workspace-write` (16 tests are sandbox-blocked, 
 - **Residency deposit:** leave the 50% deposit OUT of residency drafts (as built).
 - **GigSalad:** Claude may log in to BOTH GigSalad accounts and open any lead. Claude cannot type passwords, so Alex
   signs in to each account in Chrome first; then Claude opens leads read-only to build the parser against real pages.
+  DONE for both accounts: `docs/research/2026-10-04-gigsalad-lead-page.md` (one layout; business account shows no
+  competition counts).
+- **App login (option 1):** the app gets its OWN login per account: a command opens the app's browser on screen for
+  one account, Alex signs in himself, the session is saved in that account's profile folder. No password in `.env`;
+  an expired session holds the lead and tells Alex to sign in again.
 
 **Waiting on Alex:** R285 Encuentro exception NOT PORTED? (one client's deal; keeps it out of the public repo; that
 venue's residency is held anyway; nothing about the deal changes). Explained to Alex 2026-10-04; answer pending.

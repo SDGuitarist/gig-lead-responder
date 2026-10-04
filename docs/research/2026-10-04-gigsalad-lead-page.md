@@ -1,4 +1,4 @@
-# GigSalad lead page: real structure (music account, 2026-10-04)
+# GigSalad lead page: real structure (both accounts, 2026-10-04)
 
 **Reader and trigger:** whoever builds GigSalad portal reading (`src/automation/portals/gigsalad-client.ts`
 fetch + a pure page parser). Read before writing the parser or its fixture.
@@ -43,8 +43,26 @@ A heading in the thread holding the client's request. On both pages it was GigSa
 quote.", so for many leads the Event info block is the whole lead. The thread also contains Alex's own replies and
 GigSalad notices ("Changes have been made to this event ..."); the parser must not take those as the client's words.
 
+## Business account (2 more leads, read-only, same day)
+
+Same page, same "Event info" region, same label/value layout, so **one parser serves both accounts**. Differences:
+
+- **No competition counts at all** (no responded / sent quotes / active lines) on either lead. Membership-dependent
+  (the page offers "Upgrade to see it now"). So R358's "displayed count" exists only on music-account leads; for
+  business-account leads the count is absent, not zero.
+- **Phone masked** (`(xxx) ***-****`) or missing entirely, with "Phone number revealed after booking". Drop it either way.
+- **More optional labels:** `Details:` (the client's own free text: the richest field), `Group size preferred:`
+  (`N person`), `Expenses covered:`, `Performance area size:`, `Song requests:`.
+- The two accounts' inboxes hold **different gig ids**: a lead belongs to one account's portal (the earlier finding
+  that lead emails land in both mailboxes is about email, not the portal).
+
+## Parser rules that follow
+
+- Unknown labels are kept as extra details (GigSalad adds fields); a missing optional label is absent, never guessed.
+- Competition: quotes-sent count when shown; **absent** (not 0) when the page shows none.
+- Phone: never extracted, masked or not.
+
 ## Open before building
 
-1. The second (business) account: same layout? (Alex signs in next.)
-2. Email → gig id mapping (above).
-3. A lead that has never been answered (both pages read had replies); the thread may differ.
+1. Email → gig id mapping (above).
+2. A lead that has never been answered (all four pages read had replies); the thread may differ.
