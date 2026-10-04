@@ -78,6 +78,23 @@ const validateClassification = (raw: unknown): Classification => {
   if (obj.stated_budget !== null && typeof obj.stated_budget !== "number") {
     throw new ClassificationError(`Classification invalid stated_budget: expected number or null, got "${typeof obj.stated_budget}"`);
   }
+  // Fields the code branches on: parse, don't trust (Codex round 1, finding 2's second instance).
+  const oneOf = (k: string, allowed: readonly unknown[]) => {
+    if (!allowed.includes(obj[k])) throw new ClassificationError(`Classification invalid ${k}: "${String(obj[k])}"`);
+  };
+  oneOf("lead_source_column", ["P", "D"]);
+  oneOf("mode", ["confirmation", "evaluation"]);
+  oneOf("vagueness", ["clear", "vague"]);
+  oneOf("timeline_band", ["comfortable", "short", "urgent"]);
+  oneOf("close_type", ["direct", "soft_hold", "hesitant"]);
+  oneOf("cultural_context_active", [true, false]);
+  oneOf("cultural_tradition", ["spanish_latin", null]);
+  for (const k of ["flagged_concerns", "stealth_premium_signals", "context_modifiers"]) {
+    const v = obj[k];
+    if (!Array.isArray(v) || !v.every((x) => typeof x === "string")) {
+      throw new ClassificationError(`Classification invalid ${k}: expected an array of strings`);
+    }
+  }
   obj.event_arc = normalizeEventArc(obj.event_arc);
   obj.extended_dancer = normalizeExtendedDancer(obj.extended_dancer);
   obj.delivery_mode = deliveryModeFor(obj.format_recommended);
