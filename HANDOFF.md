@@ -58,8 +58,15 @@ design pass + live drafting runs, per its row); group 5 needs Alex's numbers; gr
   price), both save paths store them, follow-up n builds on the n-th one. Model quality UNEXECUTED.
 - `e887ec4` **(Alex flagged) auth detection**: the poller stopped for good on ANY error text containing "401"; now it
   reads the HTTP status and `invalid_grant`. Also fixes the reverse (a real 401 without the digits was missed).
-- Suite 527 / 0 / 4. Next: R358 (Alex OK'd reading 2-3 real GigSalad emails, read-only, format only into the repo),
-  then a Codex round 1 on `79929a0..HEAD`.
+- Suite 527 / 0 / 4.
+- ⚠ **FINDING (2026-10-04, 3 real GigSalad "New lead" emails, both mailboxes, read-only; HTML checked too):** the
+  email holds ONLY the client's first name, event type, date and time window, plus a "View the details & reply" link.
+  **No quote count, budget, guest count, genre or message.** `src/automation/parsers/gigsalad.ts` expects those fields
+  (its fixtures are hand-written: "Quotes received: 4"), so on a real email the pipeline would classify from one
+  sentence. Consequences: R358's code check has no displayed count to compare against (the email never shows one);
+  real GigSalad lead details live only on the GigSalad page (portal enrichment = Alex's call: "reading GigSalad
+  dashboards" is on the ask-first list). R358 NOT built. Needs Alex's decision before more GigSalad work.
+- Next: Alex's call on the GigSalad finding; a Codex round 1 on `79929a0..HEAD`.
 
 **Review #3 (round-up + R320 + hold-note filter, `97eec2b..58352b1`): CLOSED, round 2 GO** (round 1 prompt: session scratchpad
 `codex-round1-rounding-decline.md`, gate at `58352b1`). **Round 1 = NO-GO, 1 finding (backstop case-sensitive), FIXED**
