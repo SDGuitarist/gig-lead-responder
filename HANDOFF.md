@@ -55,8 +55,8 @@ Codex CLI runs reviews with `-s workspace-write` (16 tests are sandbox-blocked, 
 - Unverified: the page text the app's own browser returns may break lines differently from Chrome's; the parser
   accepts both layouts seen, and the fetch step must be checked on a real page.
 
-**Waiting on Alex:** R285 Encuentro exception NOT PORTED? Claude recommended YES 2026-10-04 (R1 is already held with no
-price, the deal is time-limited, the repo is public). (one client's deal; keeps it out of the public repo; that
+**Alex approved 2026-10-04:** R285 Encuentro exception NOT PORTED (R1 is held with no price; deal is time-limited;
+repo is public). 29 rows remain TO PORT. (one client's deal; keeps it out of the public repo; that
 venue's residency is held anyway; nothing about the deal changes). Explained to Alex 2026-10-04; answer pending.
 
 **Next pricing rows (Alex: Project numbers, shown before commit):** holiday/peak + context modifiers (R058/R072/R104/
@@ -90,7 +90,7 @@ FIRST gate (stop and ask Alex if anything differs):
   git rev-parse HEAD; git rev-parse origin/feat/hub-phase0  # expect: identical
   git status --short                                        # expect: clean
 Read: HANDOFF.md "START HERE" section, CLAUDE.md, docs/research/2026-10-02-booking-hub/port-manifest.md.
-No Codex review is open. Ask Alex the "Waiting on Alex" item if still open. Then the next pricing group: pull the
+No Codex review is open. Then the next pricing group: pull the
 Project's numbers from ~/Data/gig-lead-responder/ and SHOW ALEX EVERY PRICE BEFORE WRITING CODE; build only what
 he approves, one concern per commit, failing test first, verify with npm run test:match (exit 3 = zero matches).
 For each finished range: Codex round 1 via `codex exec -s workspace-write` (check git status after), record every
