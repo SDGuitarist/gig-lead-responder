@@ -46,6 +46,18 @@
   reads the numbers himself.
 - Codex round 1 verdict (paste it in; record in `docs/reviews/`). Full Disk Access (S3). Module 1 §1.2 redesign (G1).
 
+**⚠ TWO Codex round-1 reviews OUT, separate change sets (record each verdict in `docs/reviews/`):**
+- **Review #1 (poller/lease/wake, `2f2ec7d..e1fb163`):** see the paragraph below.
+- **Review #2 (port, pricing, draft rules, `e1fb163..198d94d`):** prompt in the session scratchpad
+  `codex-round1-port-pricing.md` (also sent to Alex). Until its verdict is back, ALSO do not edit `src/pipeline`,
+  `src/prompts`, `src/data`, `src/types.ts`, `scripts`, or the loaded docs (RESPONSE_CRAFT, PRICING_TABLES, PRINCIPLES,
+  LEAD_RESPONSE_VOICE, CULTURAL_SPANISH_LATIN, CULTURAL_CORE, EVENT_STRUCTURE_THEORY, Bolero playbook, QUICK_REFERENCE,
+  SOURCED_DRAFTING). The port is PAUSED: every remaining TO PORT row lives in those files.
+- Since the first handoff, groups 1–2 of the queue were done (`9425cb5`..`198d94d`): delivery mode (derived from
+  format), Instrument Rule, sourced drafting + sourced integrity (gate backstop in code), compressed draft keeps a fear
+  resolution, qualification block, request type + fears pre-work, urgency phrases, present-vs-excellent rubric.
+  Manifest now: 197 ALREADY PRESENT, 120 PORTED, 32 NOT PORTED, 57 TO PORT.
+
 **⚠ Codex round 1 OUT (~13:15):** reviews `2f2ec7d..e1fb163`. Until the verdict is back, do NOT edit `src/automation/`,
 `src/db/`, `src/app.ts`, `src/server.ts`, `src/wake-watch.ts`, `src/follow-up-scheduler.ts` (its gate stops Codex if
 they move). Nothing in Part 2 touched them. Prompt: session scratchpad `codex-round1-phase0-runtime.md`.
@@ -80,11 +92,11 @@ FIRST gate (stop and ask Alex if anything differs):
 Read: HANDOFF.md (top section, session 33bddb35), CLAUDE.md,
   docs/research/2026-10-02-booking-hub/spikes.md, docs/research/2026-10-02-booking-hub/port-manifest.md,
   docs/plans/2026-10-02-feat-hub-phase0-lead-replies-plan.md §0.5.
-First: if Alex has pasted the Codex round-1 verdict, record it in docs/reviews/ and work its fix prompt under the fix
-contract before anything else. Otherwise: port the TO PORT rows from the top-section queue, group 1 (delivery mode)
-first, one concern per commit, failing test first, verify with npm run test:match (exit 3 = zero matches).
-Do NOT edit src/automation, src/db, src/app.ts, src/server.ts, src/wake-watch.ts, src/follow-up-scheduler.ts until
-the Codex verdict is in. Never put source text, client names or contact data into the public repo.
+First: if Alex has pasted either Codex round-1 verdict (#1 poller, #2 port/pricing), record it in docs/reviews/ and
+work its fix prompt under the fix contract before anything else. While review #2 is out, the port is paused (its
+files are frozen). After both verdicts: port the remaining TO PORT rows, groups 3-6, one concern per commit,
+failing test first, verify with npm run test:match (exit 3 = zero matches).
+Do NOT edit the files frozen by either open review (listed in the top section) until its verdict is in. Never put source text, client names or contact data into the public repo.
 HARD GATE: never start the Mac poller or server against real mail. Never open data/leads.db from a test.
 STOP and ask Alex before: any real send; Full Disk Access; reading GigSalad/Yelp dashboards; any change to
 .env or production data; any new or changed price. Do not start Module 1. Update HANDOFF.md before stopping.
