@@ -1,21 +1,10 @@
+import { TIER_A_VENUES } from "../data/venues.js";
 import type { Classification } from "../types.js";
 
 interface ClassificationVerificationResult {
   classification: Classification;
   warnings: string[];
 }
-
-const LUXURY_VENUE_PATTERNS = [
-  /\btorrey pines\b/i,
-  /\bestancia\b/i,
-  /\bgrand del mar\b/i,
-  /\brancho valencia\b/i,
-  /\bfairmont grand del mar\b/i,
-  /\bhotel del coronado\b/i,
-  /\bla valencia\b/i,
-  /\bwestgate\b/i,
-  /\blodge at torrey pines\b/i,
-];
 
 const CULTURAL_CONTEXT_PATTERNS = [
   /\bquincea(?:ñ|n)era\b/i,
@@ -83,9 +72,12 @@ export function verifyClassificationHeuristics(
     );
   }
 
-  const hasLuxuryVenue = LUXURY_VENUE_PATTERNS.some((pattern) => pattern.test(rawText));
-  if (hasLuxuryVenue && !classification.stealth_premium) {
-    addWarning(warnings, "classification_verify: raw lead mentions a luxury venue but stealth_premium is false");
+  // A Tier A venue is auto-premium and premium means T3; pricing reads rate_card_tier,
+  // so check that, not just the flag. Any warning holds the lead for Alex.
+  const tierA = TIER_A_VENUES.find((v) => v.pattern.test(rawText));
+  if (tierA && (classification.rate_card_tier !== "T3" || !classification.stealth_premium)) {
+    addWarning(warnings, `classification_verify: Tier A venue ${tierA.name} but priced at ${classification.rate_card_tier}` +
+      `${classification.stealth_premium ? "" : " and stealth_premium is false"}`);
   }
 
   const hasCulturalSignal = CULTURAL_CONTEXT_PATTERNS.some((pattern) => pattern.test(rawText));
