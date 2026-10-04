@@ -1,8 +1,37 @@
 # HANDOFF -- Gig Lead Responder
 
-**Date:** 2026-10-03
+**Date:** 2026-10-04
 **Branch:** `feat/hub-phase0` (cut from `docs/booking-hub-brainstorm` at `c644210`; pushed; not merged)
 **Phase:** Work, Phase 0 **in progress**. 0.1, 0.2 (code), 0.3 (all but the alert half of `invalid_grant alerts`), 0.4, S1, S1-adv done. **0.5 port: all 406 rows reviewed; 75 TO PORT remain** (build work). 0.6 blocked (see below). Codex round 1 out. Module 1 not started.
+
+## START HERE — end of session 0153v273 (2026-10-04)
+
+**State:** branch `feat/hub-phase0`, pushed. **No Codex review is open.** All four review loops CLOSED with GO:
+port/pricing (round 3), round-up + R320 (round 2), Phase 0 runtime (round 2), reserve/auth/model-text (round 3,
+`docs/reviews/2026-10-04-reserve-auth-codex-round3.md`). Suite on the Mac: 539 pass / 0 fail / 1 skip / 1 todo.
+Codex CLI now runs reviews with `-s workspace-write` so it runs the tests itself (16 tests are sandbox-blocked and can
+only be confirmed on the Mac); check `git status --short` after every Codex run.
+
+**Waiting on Alex (decisions, not code):**
+1. GigSalad: real lead emails carry no details and no usable reply link; there are TWO GigSalad accounts and leads
+   land in both inboxes. Read lead details from the GigSalad page (like Yelp), or another way? (blocks R358 and the
+   GigSalad `todo` test)
+2. Pricing numbers for the "needs Alex" TO PORT rows (residency, T4/NP tiers, holiday/peak, quote formatting by tier).
+
+**Known gaps, owner + trigger recorded below:** system-skipped follow-ups are silent until Module 1's alert channel;
+the poller's restart-proof retry counter (deferred); invalid_grant alert (Module 1); migration v3 runs on the real
+data/leads.db at the next server start (backup first).
+
+### Three Questions (session 0153v273)
+1. **Hardest implementation decision?** How to stop chasing price patterns. Each review found a new form ("€900",
+   "for 900"); the answer was one shared detector that errs toward "price" plus a check on the follow-up draft itself,
+   the text that actually reaches a person, instead of more per-site regexes.
+2. **Considered changing but left alone?** Building GigSalad portal reading and the dashboard label for system skips:
+   both are real gaps, both need Alex's call (ask-first list; Module 1 scope), so they are recorded, not built.
+3. **Least confident going into the next phase?** Nothing here has met a real model or a real lead. The new checks
+   (graceful decline flag, reserve, follow-up rules, Tier A hold) may reject or hold far more real output than intended.
+
+**Next phase:** Work, once Alex decides item 1 or 2 above; otherwise the remaining TO PORT rows that need neither.
 
 ## 2026-10-03 evening (session 0153v273) — port review #2, round 2 fixes + two Alex money fixes
 
@@ -190,17 +219,12 @@ FIRST gate (stop and ask Alex if anything differs):
   pwd; git fetch origin; git branch --show-current          # expect: feat/hub-phase0
   git rev-parse HEAD; git rev-parse origin/feat/hub-phase0  # expect: identical
   git status --short                                        # expect: clean
-  git log --oneline HEAD..origin/main                       # expect: empty
-Read: HANDOFF.md (top section, session 33bddb35, incl. the two Codex reviews), CLAUDE.md,
-  docs/reviews/2026-10-03-port-pricing-codex-round1.md, docs/research/2026-10-02-booking-hub/port-manifest.md,
-  docs/research/2026-10-02-booking-hub/spikes.md.
-Two Codex reviews are open. Ask Alex for any verdict he hasn't pasted yet:
-  - Review #1 (poller/lease/wake, 2f2ec7d..e1fb163): CLOSED, round 2 GO (docs/reviews/2026-10-04-phase0-runtime-codex-round2.md).
-  - Review #2 (port/pricing): CLOSED, round 3 GO (docs/reviews/2026-10-03-port-pricing-codex-round3.md).
-Record each verdict in docs/reviews/, then work its fix prompt under ~/.claude/docs/mandatory-review-workflow.md.
-Then the remaining 56 TO PORT rows (see the top section for what blocks each), one concern per commit.
-Do NOT edit files frozen by an open review (listed in the top section) until its verdict is in.
-Never put source text, client names or contact data into the public repo.
+Read: HANDOFF.md "START HERE" section, CLAUDE.md, docs/research/2026-10-02-booking-hub/port-manifest.md.
+No Codex review is open. Ask Alex for his decision on the two "Waiting on Alex" items before any GigSalad or pricing work.
+Then the remaining TO PORT rows that need neither, one concern per commit, failing test first, verify with
+npm run test:match (exit 3 = zero matches). For each finished range: Codex round 1 via the CLI with
+`codex exec -s workspace-write` (check git status after), record every verdict in docs/reviews/.
+Never put source text, client names or contact data into the public repo (fixtures: redact, then verify).
 HARD GATE: never start the Mac poller or server against real mail. Never open data/leads.db from a test.
 STOP and ask Alex before: any real send; Full Disk Access; reading GigSalad/Yelp dashboards; any change to
 .env or production data; any new or changed price. Do not start Module 1. Update HANDOFF.md before stopping.
