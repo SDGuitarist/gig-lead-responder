@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { buildVerifyPrompt } from "./prompts/verify.js";
-import type { Classification } from "./types.js";
+import { GUT_CHECK_KEYS, type Classification } from "./types.js";
 
 // Port manifest R257 + R338 (#8 Sourced Integrity): verify checks sourced and
 // hybrid drafts for curation-as-expertise, authenticity, accountability and
@@ -28,7 +28,8 @@ test("sourced integrity is checked: a reported failure always fails the gate", a
     id: "msg-test", type: "message" as const, role: "assistant" as const, model: "test", stop_reason: "end_turn" as const,
     stop_sequence: null, usage: { input_tokens: 1, output_tokens: 1 },
     content: [{ type: "text" as const, text: JSON.stringify({ validation_line: "", best_line: "", concern_traceability: [],
-      scene_quote: "", scene_type: "cinematic", competitor_test: false, gut_checks: {}, ...gate }) }],
+      scene_quote: "", scene_type: "cinematic", competitor_test: false,
+      gut_checks: Object.fromEntries(GUT_CHECK_KEYS.map((k) => [k, true])), ...gate }) }],
   });
   const drafts = { full_draft: "x", compressed_draft: "x", compressed_word_count: 1 };
   try {

@@ -1,3 +1,4 @@
+import { GUT_CHECK_KEYS } from "./types.js";
 import { describe, it, after } from "node:test";
 import assert from "node:assert/strict";
 import { setClaudeRequesterForTests } from "./claude.js";
@@ -48,6 +49,10 @@ const MOCK_GENERATION = {
 };
 
 const MOCK_GATE_PASS = {
+  scene_quote: "your evening is going to be something special",
+  scene_type: "cinematic",
+  competitor_test: false,
+  gut_checks: Object.fromEntries(GUT_CHECK_KEYS.map((k) => [k, true])),
   gate_status: "pass",
   fail_reasons: [],
   concern_traceability: [],

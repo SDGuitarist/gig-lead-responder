@@ -2,26 +2,55 @@ import { callClaude } from "../claude.js";
 import { VerificationError } from "../errors.js";
 import { buildVerifyPrompt } from "../prompts/verify.js";
 import { generateResponse, type PositiveSignals } from "./generate.js";
-import type { Classification, Drafts, GateResult, PricingResult } from "../types.js";
+import { GUT_CHECK_KEYS, type Classification, type Drafts, type GateResult, type PricingResult } from "../types.js";
 
+// Parses the model's gate result field by field into a trusted GateResult, or
+// throws (callClaude retries once, then the lead fails safe). Before, two fields
+// were checked to be arrays and the rest was cast (Codex round 1, finding 2).
 const validateGateResult = (raw: unknown): GateResult => {
-  if (typeof raw !== "object" || raw === null || Array.isArray(raw)) throw new VerificationError("Expected JSON object from LLM");
+  const fail = (what: string): never => {
+    throw new VerificationError(`LLM gate result invalid: ${what}`);
+  };
+  if (typeof raw !== "object" || raw === null || Array.isArray(raw)) fail("expected a JSON object");
   const obj = raw as Record<string, unknown>;
-  if (obj.gate_status !== "pass" && obj.gate_status !== "fail") {
-    throw new VerificationError(`LLM response invalid gate_status: ${obj.gate_status}`);
+  const str = (k: string): string => (typeof obj[k] === "string" ? (obj[k] as string) : fail(`${k} must be a string`));
+  const bool = (v: unknown, k: string): boolean => (typeof v === "boolean" ? v : fail(`${k} must be a boolean`));
+
+  if (obj.gate_status !== "pass" && obj.gate_status !== "fail") fail(`gate_status "${String(obj.gate_status)}"`);
+  if (obj.scene_type !== "cinematic" && obj.scene_type !== "structural") fail(`scene_type "${String(obj.scene_type)}"`);
+  if (!Array.isArray(obj.fail_reasons) || !obj.fail_reasons.every((r) => typeof r === "string")) {
+    fail("fail_reasons must be an array of strings");
   }
-  if (!Array.isArray(obj.fail_reasons)) {
-    throw new VerificationError("LLM response missing fail_reasons array");
-  }
-  if (!Array.isArray(obj.concern_traceability)) {
-    throw new VerificationError("LLM response missing concern_traceability array");
-  }
+  if (!Array.isArray(obj.concern_traceability)) fail("concern_traceability must be an array");
+  const traceability = (obj.concern_traceability as unknown[]).map((e, i) => {
+    const row = e as Record<string, unknown> | null;
+    if (typeof row !== "object" || row === null || typeof row.concern !== "string" || typeof row.draft_sentence !== "string") {
+      return fail(`concern_traceability[${i}] must be {concern, draft_sentence} strings`);
+    }
+    return { concern: row.concern, draft_sentence: row.draft_sentence };
+  });
+  const gc = obj.gut_checks;
+  if (typeof gc !== "object" || gc === null || Array.isArray(gc)) fail("gut_checks must be an object");
+  const gutChecks = Object.fromEntries(
+    GUT_CHECK_KEYS.map((k) => [k, bool((gc as Record<string, unknown>)[k], `gut_checks.${k}`)]),
+  ) as GateResult["gut_checks"];
+
+  const failReasons = obj.fail_reasons as string[];
   // A reported sourced-integrity failure always fails the gate, whatever status
   // the model wrote (port manifest R338: the Project's gate fails on it).
-  if (obj.fail_reasons.some((r) => typeof r === "string" && r.startsWith("Sourced integrity failed"))) {
-    obj.gate_status = "fail";
-  }
-  return raw as GateResult;
+  const gateStatus = failReasons.some((r) => r.startsWith("Sourced integrity failed")) ? "fail" : obj.gate_status;
+
+  return {
+    validation_line: str("validation_line"),
+    best_line: str("best_line"),
+    concern_traceability: traceability,
+    scene_quote: str("scene_quote"),
+    scene_type: obj.scene_type as GateResult["scene_type"],
+    competitor_test: bool(obj.competitor_test, "competitor_test"),
+    gut_checks: gutChecks,
+    gate_status: gateStatus as GateResult["gate_status"],
+    fail_reasons: failReasons,
+  };
 };
 
 /**
