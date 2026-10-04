@@ -1,5 +1,5 @@
 import { VOICE_REFERENCES } from "../data/voice-references.js";
-import { CONCERN_4PIECE_ALT, CONCERN_FULL_ENSEMBLE, GUT_CHECK_THRESHOLD, GUT_CHECK_TOTAL, type Classification, type PricingResult } from "../types.js";
+import { CONCERN_4PIECE_ALT, CONCERN_FULL_ENSEMBLE, GUT_CHECK_THRESHOLD, GUT_CHECK_TOTAL, withoutHoldNotes, type Classification, type PricingResult } from "../types.js";
 import { sanitizeClassification, wrapUntrustedData, wrapVoiceReference } from "../utils/sanitize.js";
 
 /**
@@ -20,9 +20,10 @@ const COMPONENT_QUALITY_TABLE = `| Component | Present (Minimum) | Excellent (St
 | **Close** | Has a next step | The next step feels like the natural conclusion. Not a sales push—an invitation. |`;
 
 export function buildVerifyPrompt(
-  classification: Classification,
+  classificationIn: Classification,
   pricing: Pick<PricingResult, "budget">,
 ): string {
+  const classification = withoutHoldNotes(classificationIn);
   const budget = pricing.budget;
   const clarificationMode = classification.action === "one_question" && classification.format_recommended === "unresolved";
   const voiceReferences = VOICE_REFERENCES

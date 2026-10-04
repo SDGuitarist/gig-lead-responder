@@ -162,6 +162,14 @@ Set cultural_context_active = true and cultural_tradition = "spanish_latin" when
 
 extended_dancer = true only when a flamenco trio lead asks for the dancer for more than one hour (e.g. "dancing for the last two hours"). Otherwise false. A dancer for the entire event is format flamenco_trio_full, not this flag.
 
+## GRACEFUL DECLINE
+
+graceful_decline = true only when the lead is a genuine fit mismatch or a sensitive moment (RESPONSE_CRAFT "Graceful Decline Pattern"):
+- the requested song, instrument or format doesn't translate to what Alex or the sourced ensemble delivers (e.g. a piano song requested on guitar)
+- funeral, memorial, hospice, anniversary of a loss, end of life
+- grief or stress signals: "just need someone to", skipping straight to price under a short timeline
+Otherwise false. Never true when the request is within what Alex offers.
+
 ## EVENT ARC
 
 event_arc names the event's structure (each has its own phases and music):
@@ -197,6 +205,7 @@ Return ONLY this JSON object (no markdown fences, no explanation):
   "event_energy": "background" | "performance" | null,
   "event_arc": "wedding" | "corporate" | "private_celebration" | "memorial" | null,
   "extended_dancer": boolean,
+  "graceful_decline": boolean,
   "cultural_context_active": boolean,
   "cultural_tradition": "spanish_latin" | null,
   "planner_effort_active": boolean,

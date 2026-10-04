@@ -2,6 +2,14 @@
 export const CONCERN_4PIECE_ALT = "mention_4piece_alternative" as const;
 export const CONCERN_FULL_ENSEMBLE = "mention_full_ensemble_upgrade" as const;
 
+// Hold notes for Alex ride in flagged_concerns so the router holds the lead (any
+// flagged concern holds), but they are not concerns a draft answers: the generate
+// and verify prompts see the classification without them.
+export const HOLD_NOTE_PREFIXES = ["classification_verify:", "graceful_decline:"] as const;
+export function withoutHoldNotes<T extends { flagged_concerns: string[] }>(c: T): T {
+  return { ...c, flagged_concerns: c.flagged_concerns.filter((f) => !HOLD_NOTE_PREFIXES.some((p) => f.startsWith(p))) };
+}
+
 // Platform — single source of truth for all lead sources
 export type Platform = "gigsalad" | "thebash" | "direct" | "yelp" | "squarespace";
 
@@ -75,6 +83,10 @@ export interface Classification {
   // Lead asks for the flamenco dancer for more than one hour (port manifest R048).
   // Normalized in classify.ts: only a real true counts.
   extended_dancer?: boolean;
+
+  // Format/fit mismatch or sensitive context (port manifest R320). Normalized in
+  // classify.ts: only a real true counts. A true lead is always held for Alex.
+  graceful_decline?: boolean;
 
   // Who delivers the gig (port manifest R349): derived in code from the format
   // by the Instrument Rule (classify.ts deliveryModeFor), never guessed by the model.

@@ -80,6 +80,11 @@ export function verifyClassificationHeuristics(
       `${classification.stealth_premium ? "" : " and stealth_premium is false"}`);
   }
 
+  // Graceful decline (port manifest R320): never auto-sent; Alex reads it first.
+  if (classification.graceful_decline === true) {
+    addWarning(warnings, "graceful_decline: format/fit or sensitivity trigger; Alex reviews before it goes out");
+  }
+
   const hasCulturalSignal = CULTURAL_CONTEXT_PATTERNS.some((pattern) => pattern.test(rawText));
   if (hasCulturalSignal && !classification.cultural_context_active) {
     addWarning(warnings, "classification_verify: raw lead has cultural signals but cultural_context_active is false");

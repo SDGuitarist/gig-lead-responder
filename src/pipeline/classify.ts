@@ -40,6 +40,11 @@ export function deliveryModeFor(format: unknown): DeliveryMode | null {
   return typeof format === "string" && Object.hasOwn(DELIVERY_MODE, format) ? DELIVERY_MODE[format as Format] : null;
 }
 
+/** Parses the model's graceful_decline once; only a real boolean true counts (port manifest R320). */
+export function normalizeGracefulDecline(value: unknown): boolean {
+  return value === true;
+}
+
 /** Parses the model's extended_dancer once; only a real boolean true counts. */
 export function normalizeExtendedDancer(value: unknown): boolean {
   return value === true;
@@ -112,6 +117,7 @@ const validateClassification = (raw: unknown): Classification => {
   }
   obj.event_arc = normalizeEventArc(obj.event_arc);
   obj.extended_dancer = normalizeExtendedDancer(obj.extended_dancer);
+  obj.graceful_decline = normalizeGracefulDecline(obj.graceful_decline);
   obj.delivery_mode = deliveryModeFor(obj.format_recommended);
   return raw as Classification;
 };

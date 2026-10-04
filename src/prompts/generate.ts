@@ -1,7 +1,7 @@
 import { RATE_TABLES, type FormatRates, type TierRates } from "../data/rates.js";
 import { rateTableFor } from "../pipeline/price.js";
 import { VOICE_REFERENCES } from "../data/voice-references.js";
-import { CONCERN_4PIECE_ALT, CONCERN_FULL_ENSEMBLE, GUT_CHECK_KEYS, GUT_CHECK_THRESHOLD, GUT_CHECK_TOTAL, type Classification, type Format, type PricingResult } from "../types.js";
+import { withoutHoldNotes, CONCERN_4PIECE_ALT, CONCERN_FULL_ENSEMBLE, GUT_CHECK_KEYS, GUT_CHECK_THRESHOLD, GUT_CHECK_TOTAL, type Classification, type Format, type PricingResult } from "../types.js";
 import { sanitizeClassification, wrapUntrustedData, wrapVoiceReference } from "../utils/sanitize.js";
 
 /**
@@ -13,10 +13,11 @@ import { sanitizeClassification, wrapUntrustedData, wrapVoiceReference } from ".
  * (Anthropic best practice: instructions FIRST, examples MIDDLE, task LAST.)
  */
 export function buildGeneratePrompt(
-  classification: Classification,
+  classificationIn: Classification,
   pricing: PricingResult,
   context: string
 ): string {
+  const classification = withoutHoldNotes(classificationIn);
   const clarificationMode = classification.action === "one_question" && classification.format_recommended === "unresolved";
   const budgetBlock = buildBudgetModeBlock(classification, pricing);
 
