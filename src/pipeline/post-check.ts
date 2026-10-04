@@ -76,7 +76,9 @@ const SOFT_REFUSAL_PATTERNS: RegExp[] = [
 // --- Price format checks ---
 
 // Matches price ranges like "$800-$1,000" or "$800 - $1,000" or "$800 to $1,000"
-export const PRICE_RANGE_PATTERN = /\$[\d,]+\s*[-–—]\s*\$[\d,]+|\$[\d,]+\s+to\s+\$[\d,]+/i;
+// The second number may omit "$" ("$550-595"); both need 3+ digits so hours or song
+// counts after a price ("$1,100 — 2 hours") are not ranges.
+export const PRICE_RANGE_PATTERN = /\$[\d,]{3,}\s*(?:[-–—]|to)\s*\$?[\d,]{3,}/i;
 
 // Matches "starting at $X" or "from $X" pricing language
 const SOFT_PRICE_PATTERN = /\b(starting at|from|as low as|prices? start)\s+\$/i;
