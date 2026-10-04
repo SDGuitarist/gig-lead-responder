@@ -30,6 +30,10 @@
 3. **Least confident going into review?** The Tier A hold may hold more real leads than expected (any model that
    picks T2 for a Tier A venue); no real lead has been run.
 
+**Round 3 AUTHORIZED by Alex and sent** (prompt: session scratchpad `codex-round3-port-pricing.md`, gate at `9d6a373`).
+GO closes review #2. Any NO-GO fires the cap: no round 4, no automatic fixing; give Alex options (different approach,
+revert, accept). Until the verdict, do not edit the round-3 gated paths (src, scripts, loaded docs, port-manifest).
+
 **Next phase:** Work. Build the round-up rounding decision (failing test first), then the TO PORT rows.
 
 ## 2026-10-03 (session 33bddb35, ~09:10–15:30) — poller cursor, wake, lease, S1-adv, the whole port review
