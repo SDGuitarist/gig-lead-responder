@@ -142,8 +142,9 @@ export function lookupPrice(
 
   return {
     format: format_recommended,
-    // The outside-SD table has a 3-hour minimum, so report the hours actually priced.
-    duration_hours: outsideSd ? snapped : duration_hours,
+    // Always the hours actually priced, never the hours asked for: a 1-hour mariachi
+    // request is priced at the 2-hour minimum and must say 2 hours (Alex 2026-10-03).
+    duration_hours: snapped,
     tier_key: effectiveTierKey,
     anchor,
     floor,
