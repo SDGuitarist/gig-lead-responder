@@ -207,7 +207,7 @@ A **format** is a specific configuration you can map to one rate card row: "flam
 
 **If the client's request is a category, not a format:**
 
-The ambiguity is not "vague lead, assume and move on." It is a configuration question where the wrong assumption changes the quote by hundreds or thousands of dollars. A "Latin Band" could be a duo ($1,100), a trio ($1,595), a quartet ($2,100), or a 5-piece ($2,695). Silently picking one and quoting it risks pricing yourself out OR undercutting what they actually want.
+The ambiguity is not "vague lead, assume and move on." It is a configuration question where the wrong assumption changes the quote by hundreds or thousands of dollars. A "Latin Band" could be a duo, a trio, a quartet, or a 5-piece, and each is priced from its own rate card row. Silently picking one and quoting it risks pricing yourself out OR undercutting what they actually want.
 
 **When the request is a category, do all three:**
 
