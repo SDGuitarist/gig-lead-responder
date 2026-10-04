@@ -1,4 +1,4 @@
-import { FLAMENCO_TRIO_3H_DANCER_2H_RATES, MARIACHI_FULL_OUTSIDE_SD_RATES, RATE_TABLES, type TierRates } from "../data/rates.js";
+import { FLAMENCO_TRIO_3H_DANCER_2H_RATES, MARIACHI_FULL_OUTSIDE_SD_RATES, RATE_TABLES, type FormatRates, type TierRates } from "../data/rates.js";
 import { PricingError } from "../errors.js";
 import type { Classification, Format, PricingResult, BudgetGapResult, ScopedAlternative, TravelBand, TravelFeeData, TravelComponent } from "../types.js";
 
@@ -66,7 +66,7 @@ export function lookupPrice(
   // outside-San-Diego table, which already includes travel (port manifest R051).
   const outsideSd =
     format_recommended === "mariachi_full" && !!travelData && OUTSIDE_SD_BANDS.has(travelData.band);
-  const rateTable = outsideSd ? MARIACHI_FULL_OUTSIDE_SD_RATES : RATE_TABLES[format_recommended];
+  const rateTable = rateTableFor({ format: format_recommended, rate_table: outsideSd ? "mariachi_full_outside_sd" : undefined });
   if (!rateTable) {
     const available = Object.keys(RATE_TABLES).join(", ");
     throw new PricingError(`No rate table for format "${format_recommended}". Available: ${available}`);
@@ -151,6 +151,7 @@ export function lookupPrice(
     competition_position,
     budget: { tier: "none" },
     travel,
+    ...(outsideSd ? { rate_table: "mariachi_full_outside_sd" as const } : {}),
   };
 }
 
@@ -164,6 +165,7 @@ export function detectBudgetGap(
   format: Format,
   duration_hours: number,
   tier_key: string,
+  rateTable: FormatRates = RATE_TABLES[format],
 ): BudgetGapResult {
   // Input validation: treat invalid budgets as "no budget stated"
   if (
@@ -190,7 +192,7 @@ export function detectBudgetGap(
 
   // Large gap: try scope-down before deciding
   if (gap <= BUDGET_GAP_LARGE_THRESHOLD) {
-    const alt = findScopedAlternative(format, duration_hours, tier_key, stated_budget);
+    const alt = findScopedAlternative(rateTable, duration_hours, tier_key, stated_budget);
     if (alt) {
       return { tier: "large", gap, scoped_alternative: alt };
     }
@@ -206,12 +208,11 @@ export function detectBudgetGap(
  * Try to find a shorter duration at the same tier that fits the stated budget.
  */
 function findScopedAlternative(
-  format: Format,
+  rateTable: FormatRates | undefined,
   duration_hours: number,
   tier_key: string,
   stated_budget: number,
 ): ScopedAlternative | null {
-  const rateTable = RATE_TABLES[format];
   if (!rateTable) return null;
 
   // Sort duration keys numerically, filter NaN safety net
@@ -270,4 +271,19 @@ function buildTravelComponent(data: TravelFeeData, format: Format): TravelCompon
     musician_stipend: musicianStipend,
     custom_quote_required: customQuote,
   };
+}
+
+/**
+ * The rate table that priced this result. lookupPrice, the budget gap and the
+ * minimum-floor message all read it, so they can't disagree (Codex round 1, finding 1).
+ */
+export function rateTableFor(pricing: Pick<PricingResult, "format" | "rate_table">): FormatRates {
+  if (pricing.rate_table === "mariachi_full_outside_sd") return MARIACHI_FULL_OUTSIDE_SD_RATES;
+  return RATE_TABLES[pricing.format as Format];
+}
+
+/** Budget gap for a priced lead, against the table that priced it (callers: run-pipeline). */
+export function budgetGapFor(classification: Classification, pricing: PricingResult): BudgetGapResult {
+  return detectBudgetGap(classification.stated_budget, pricing.floor, pricing.format as Format,
+    pricing.duration_hours, pricing.tier_key, rateTableFor(pricing));
 }

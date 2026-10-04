@@ -1,4 +1,5 @@
-import { RATE_TABLES, type TierRates } from "../data/rates.js";
+import { RATE_TABLES, type FormatRates, type TierRates } from "../data/rates.js";
+import { rateTableFor } from "../pipeline/price.js";
 import { VOICE_REFERENCES } from "../data/voice-references.js";
 import { CONCERN_4PIECE_ALT, CONCERN_FULL_ENSEMBLE, GUT_CHECK_KEYS, GUT_CHECK_THRESHOLD, GUT_CHECK_TOTAL, type Classification, type Format, type PricingResult } from "../types.js";
 import { sanitizeClassification, wrapUntrustedData, wrapVoiceReference } from "../utils/sanitize.js";
@@ -396,7 +397,7 @@ Word count: 100-125 words.
   // (run-pipeline.ts:197, :210-213), and lookupPrice throws on "unresolved"
   // (price.ts:57), so every priced result carries a real Format.
   // Reaching here therefore implies format is a real Format.
-  const { min_floor, min_duration } = findMinFloor(pricing.format as Format, pricing.tier_key);
+  const { min_floor, min_duration } = findMinFloor(rateTableFor(pricing), pricing.tier_key);
   const gigsaladClose = classification.platform === "gigsalad"
     ? `\nGigSalad close: End with "If your plans change, you can find me here on GigSalad." Do NOT include phone, email, or "reach out."`
     : "";
@@ -455,10 +456,9 @@ Present ONE total number ($${total}) to the client. Do NOT itemize the travel fe
  * Used by no_viable_scope mode to state the absolute minimum.
  */
 function findMinFloor(
-  format: Format,
+  rateTable: FormatRates,
   tier_key: string,
 ): { min_floor: number; min_duration: number } {
-  const rateTable = RATE_TABLES[format];
   let min_floor = Infinity;
   let min_duration = 0;
 

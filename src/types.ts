@@ -158,6 +158,8 @@ export interface PricingResult {
   competition_position: string; // e.g., "at anchor, willing to flex"
   budget: BudgetGapResult;
   travel?: TravelComponent | null;
+  /** Which rate table priced this (absent = the format's standard table). Read via rateTableFor(). */
+  rate_table?: "mariachi_full_outside_sd";
 }
 
 export interface Drafts {

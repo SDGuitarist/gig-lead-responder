@@ -1,6 +1,6 @@
 import { classifyLead } from "./pipeline/classify.js";
 import { verifyClassificationHeuristics } from "./pipeline/classify-verify.js";
-import { lookupPrice, detectBudgetGap } from "./pipeline/price.js";
+import { lookupPrice, budgetGapFor } from "./pipeline/price.js";
 import { enrichClassification } from "./pipeline/enrich.js";
 import { getTodayISO } from "./utils/dates.js";
 import { selectContext } from "./pipeline/context.js";
@@ -195,13 +195,7 @@ export async function runPipeline(
     : lookupPrice(sanitized, travelData);
   // Detect budget gap and attach to pricing result
   if (!isClarificationLead(sanitized) && initialFormat !== "unresolved") {
-    pricing.budget = detectBudgetGap(
-      sanitized.stated_budget,
-      pricing.floor,
-      initialFormat,
-      pricing.duration_hours,
-      pricing.tier_key,
-    );
+    pricing.budget = budgetGapFor(sanitized, pricing);
   }
   // Enrich classification (may override format, tier, close_type)
   const enriched = enrichClassification(sanitized, pricing, today);
@@ -213,13 +207,7 @@ export async function runPipeline(
     enriched.format_recommended !== sanitized.format_recommended
   ) {
     pricing = lookupPrice(enriched, travelData);
-    pricing.budget = detectBudgetGap(
-      enriched.stated_budget,
-      pricing.floor,
-      enrichedFormat,
-      pricing.duration_hours,
-      pricing.tier_key,
-    );
+    pricing.budget = budgetGapFor(enriched, pricing);
   }
   timing.price = Date.now() - start;
   onStage?.({
