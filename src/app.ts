@@ -19,6 +19,10 @@ import { getBuildCommit, STARTED_AT } from "./build-info.js";
  * Separated from server.ts so tests can instantiate the real
  * middleware stack without env guards, DB init, or app.listen().
  */
+function liveLeaseHost(lease: { host: string; expiresAt: number } | null, nowMs: number): string | null {
+  return lease && lease.expiresAt > nowMs ? lease.host : null;
+}
+
 export function createApp() {
   const app = express();
 
@@ -59,7 +63,8 @@ export function createApp() {
       startedAt: STARTED_AT,
       // "never" = no poll has finished since this DB was made (plan 0.3).
       poller: { last_success_at: poller.lastSuccessAt, auth: poller.auth ?? "never" },
-      lease: { host: getLeaseInfo()?.host ?? null },
+      // Only a live lease has a holder; an expired one names nobody (Codex round 1, Phase 0 runtime).
+      lease: { host: liveLeaseHost(getLeaseInfo(), Date.now()) },
     });
   });
 

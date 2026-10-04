@@ -37,3 +37,12 @@ test("health reports lease host: null until held, then the holder's host", async
   tryAcquireLease({ host: "alex-mbp", pid: process.pid, boot: 1 }, Date.now(), () => true);
   assert.deepEqual((await health()).lease, { host: "alex-mbp" });
 });
+
+// Codex round 1 (Phase 0 runtime): after invalid_grant renewal stops and the lease
+// expires; /health must not keep naming the old holder.
+test("health reports lease host: an expired lease reports no host", async () => {
+  const { tryAcquireLease } = await import("./db/runtime-lease.js");
+  // Same holder as the test above, renewed two minutes ago: its 60 s lease is over.
+  assert.ok(tryAcquireLease({ host: "alex-mbp", pid: process.pid, boot: 1 }, Date.now() - 120_000, () => true));
+  assert.deepEqual((await health()).lease, { host: null });
+});

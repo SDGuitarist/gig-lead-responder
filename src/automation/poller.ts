@@ -77,6 +77,45 @@ function acquireOwnLease(): boolean {
 }
 
 /**
+ * Renews the lease every LEASE_RENEW_MS until polling stops. A renewal that
+ * throws (SQLITE_BUSY under the IMMEDIATE transaction) is logged and counts as
+ * not held: the next poll must win the lease itself (Codex round 1, Phase 0 runtime).
+ */
+export function startLeaseRenewal(acquire: () => boolean = acquireOwnLease): void {
+  leaseTimer = setInterval(() => {
+    try {
+      acquire();
+    } catch (err) {
+      console.error(`[gmail-poller] Lease renewal failed: ${err instanceof Error ? err.message : String(err)}`);
+    }
+  }, LEASE_RENEW_MS);
+}
+
+function stopLeaseRenewal(): void {
+  if (leaseTimer) {
+    clearInterval(leaseTimer);
+    leaseTimer = null;
+  }
+}
+
+/** What a failed poll does: invalid_grant stops polling for good; anything else is logged. */
+export function handlePollError(err: unknown): void {
+  const msg = err instanceof Error ? err.message : String(err);
+  if (isAuthError(msg)) {
+    console.error("[gmail-poller] Gmail auth token expired — stopping poller. Run: npx tsx scripts/gmail-auth.ts");
+    authFailed = true;
+    if (interval) {
+      clearInterval(interval);
+      interval = null;
+    }
+    // Stop holding the lease too, so it expires and another worker can take it.
+    stopLeaseRenewal();
+  } else {
+    console.error(`[gmail-poller] Poll error: ${msg}`);
+  }
+}
+
+/**
  * One poll: fetch from the stored cursor, handle each message, then move the
  * cursor. A fetch error leaves the cursor alone; invalid_grant also records
  * auth as failed. Errors are rethrown for the caller.
@@ -180,26 +219,18 @@ export async function startGmailPoller(): Promise<void> {
         acquireLease: acquireOwnLease,
       });
     } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err);
-      if (isAuthError(msg)) {
-        console.error("[gmail-poller] Gmail auth token expired — stopping poller. Run: npx tsx scripts/gmail-auth.ts");
-        authFailed = true;
-        if (interval) {
-          clearInterval(interval);
-          interval = null;
-        }
-      } else {
-        console.error(`[gmail-poller] Poll error: ${msg}`);
-      }
+      handlePollError(err);
     } finally {
       processing = false;
     }
   }
 
   activePoll = poll;
-  leaseTimer = setInterval(acquireOwnLease, LEASE_RENEW_MS);
+  startLeaseRenewal();
   // Run immediately, then on interval
   await poll();
+  // A first poll that hit invalid_grant has already stopped everything.
+  if (authFailed) return;
   interval = setInterval(poll, config.pollIntervalMs);
 
   const mode = config.dryRun ? "DRY RUN" : "LIVE";
@@ -209,10 +240,7 @@ export async function startGmailPoller(): Promise<void> {
 
 export async function stopGmailPoller(): Promise<void> {
   activePoll = null;
-  if (leaseTimer) {
-    clearInterval(leaseTimer);
-    leaseTimer = null;
-  }
+  stopLeaseRenewal();
   if (interval) {
     clearInterval(interval);
     interval = null;
