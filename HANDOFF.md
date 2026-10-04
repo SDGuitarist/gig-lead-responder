@@ -47,7 +47,8 @@ generate and verify; the router still holds on them. Test `internal hold notes n
 Suite 504 / 0 / 4, `tsc` clean. Commits `c4273f5` onward are NOT pushed and NOT Codex-reviewed.
 
 **Remaining 56 TO PORT, and why none was built:** R018/R266/R272 (strategic reserve: must be stored with the lead,
-`src/db` frozen by review #1); R358 code half (GigSalad parser, `src/automation` frozen by review #1); R006 (needs a
+`src/db`; was frozen by review #1, UNBLOCKED 2026-10-04); R358 code half (GigSalad parser in `src/automation`; UNBLOCKED
+2026-10-04); R006 (needs a
 design pass + live drafting runs, per its row); group 5 needs Alex's numbers; group 6 other repos/data.
 
 **Review #3 (round-up + R320 + hold-note filter, `97eec2b..58352b1`): CLOSED, round 2 GO** (round 1 prompt: session scratchpad
@@ -102,16 +103,16 @@ design pass + live drafting runs, per its row); group 5 needs Alex's numbers; gr
 **⚠ TWO Codex round-1 reviews OUT, separate change sets (record each verdict in `docs/reviews/`):**
 - **Review #1 (poller/lease/wake, `2f2ec7d..e1fb163`): round 1 = NO-GO, 4 P1 + 3 P2** (2026-10-04,
   `docs/reviews/2026-10-04-phase0-runtime-codex-round1.md`). **5 fixed, 2 deferred with owner + trigger** (retry counter
-  persistence: before unattended overnight runs; invalid_grant alert: after Module 1's alert channel). Next: round 2.
-  Files stay frozen until review #1 closes.
+  persistence: before unattended overnight runs; invalid_grant alert: after Module 1's alert channel). **Round 2 = GO:
+  review #1 CLOSED** (`docs/reviews/2026-10-04-phase0-runtime-codex-round2.md`). Its file freeze is lifted.
 - **Review #2 round 1 = NO-GO** (4 findings, `docs/reviews/2026-10-03-port-pricing-codex-round1.md`), all fixed in
   `2c24998`..`68af85b` with tests, plus two Alex-raised money fixes (quoted hours = priced hours; stale PRICING_TABLES
   prices removed). **Round 2 = NO-GO, 2 findings, both fixed** (see the 2026-10-03 evening section above).
   **Round 3 = GO: review #2 CLOSED** (`docs/reviews/2026-10-03-port-pricing-codex-round3.md`).
 - **Review #2 (port, pricing, draft rules, `e1fb163..198d94d`):** prompt in the session scratchpad
   `codex-round1-port-pricing.md`. **CLOSED 2026-10-03 (round 3 GO):** its file freeze is lifted and the port is
-  unpaused. Review #1's frozen files (src/db, src/app.ts, src/server.ts, src/wake-watch.ts, src/follow-up-scheduler.ts)
-  stay frozen until its verdict.
+  unpaused. Review #1 closed 2026-10-04 (round 2 GO), so its files (src/db, src/app.ts, src/server.ts, src/wake-watch.ts,
+  src/follow-up-scheduler.ts) are no longer frozen either. No review is open.
 - Since the first handoff, groups 1–2 of the queue were done (`9425cb5`..`198d94d`): delivery mode (derived from
   format), Instrument Rule, sourced drafting + sourced integrity (gate backstop in code), compressed draft keeps a fear
   resolution, qualification block, request type + fears pre-work, urgency phrases, present-vs-excellent rubric.
@@ -152,7 +153,7 @@ Read: HANDOFF.md (top section, session 33bddb35, incl. the two Codex reviews), C
   docs/reviews/2026-10-03-port-pricing-codex-round1.md, docs/research/2026-10-02-booking-hub/port-manifest.md,
   docs/research/2026-10-02-booking-hub/spikes.md.
 Two Codex reviews are open. Ask Alex for any verdict he hasn't pasted yet:
-  - Review #1 (poller/lease/wake, 2f2ec7d..e1fb163): round 1 NO-GO, fixed (docs/reviews/2026-10-04-phase0-runtime-codex-round1.md); round 2 next.
+  - Review #1 (poller/lease/wake, 2f2ec7d..e1fb163): CLOSED, round 2 GO (docs/reviews/2026-10-04-phase0-runtime-codex-round2.md).
   - Review #2 (port/pricing): CLOSED, round 3 GO (docs/reviews/2026-10-03-port-pricing-codex-round3.md).
 Record each verdict in docs/reviews/, then work its fix prompt under ~/.claude/docs/mandatory-review-workflow.md.
 Then the remaining 56 TO PORT rows (see the top section for what blocks each), one concern per commit.
