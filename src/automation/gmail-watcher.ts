@@ -99,6 +99,13 @@ export interface GmailMessage {
 }
 
 /** Fetch and parse a single Gmail message by ID */
+/** The id of a fetched message: it must be the id we asked for (Codex round 1, Phase 0 runtime). */
+export function fetchedMessageId(requested: string, got: string | null | undefined): string {
+  // No ids in the message: the poller reads "401" in any error text as an auth failure.
+  if (got !== requested) throw new Error("Gmail message fetch returned a different or missing id");
+  return got;
+}
+
 async function fetchMessage(
   gmail: gmail_v1.Gmail,
   messageId: string
@@ -114,7 +121,7 @@ async function fetchMessage(
   const { text, html } = extractBody(msg.payload);
 
   return {
-    id: msg.id || "",
+    id: fetchedMessageId(messageId, msg.id),
     threadId: msg.threadId || "",
     from: getHeader(headers, "From"),
     to: getHeader(headers, "To"),
@@ -130,21 +137,44 @@ async function fetchMessage(
 
 type ListPage = { messages?: { id?: string | null }[] | null; nextPageToken?: string | null };
 
+// Gmail ids are short hex strings; this accepts any URL-safe token and nothing else.
+const GMAIL_ID = /^[A-Za-z0-9_-]+$/;
+
+/**
+ * Parses one Gmail list page ONCE into trusted ids and the next token, or throws
+ * (the poll fails and the cursor holds). Codex round 1, Phase 0 runtime.
+ */
+function parseListPage(page: unknown): { ids: string[]; next: string | undefined } {
+  const bad = (what: string): never => { throw new Error(`Gmail list page invalid: ${what}`); };
+  if (typeof page !== "object" || page === null || Array.isArray(page)) return bad("not an object");
+  const { messages, nextPageToken } = page as Record<string, unknown>;
+  if (messages !== undefined && messages !== null && !Array.isArray(messages)) bad("messages is not an array");
+  const ids = ((messages as unknown[] | null | undefined) ?? []).map((m, i) => {
+    const id = typeof m === "object" && m !== null ? (m as Record<string, unknown>).id : undefined;
+    return typeof id === "string" && GMAIL_ID.test(id) ? id : bad(`messages[${i}] has no valid id`);
+  });
+  if (nextPageToken !== undefined && nextPageToken !== null && typeof nextPageToken !== "string") bad("nextPageToken is not a string");
+  return { ids, next: (nextPageToken as string | null | undefined) || undefined };
+}
+
 /**
  * Every inbox message id after the timestamp (2-minute overlap for safety),
  * following page tokens so a long gap is read in full.
  */
 export async function listMessageIdsSince(
-  list: (params: { q: string; pageToken?: string }) => Promise<ListPage>,
+  list: (params: { q: string; pageToken?: string }) => Promise<ListPage | unknown>,
   afterTimestamp: number
 ): Promise<string[]> {
   const q = `in:inbox after:${afterTimestamp - 120}`;
   const ids: string[] = [];
+  const seen = new Set<string>();
   let pageToken: string | undefined;
   do {
-    const page = await list({ q, pageToken });
-    for (const m of page.messages ?? []) if (m.id) ids.push(m.id);
-    pageToken = page.nextPageToken ?? undefined;
+    const { ids: pageIds, next } = parseListPage(await list({ q, pageToken }));
+    ids.push(...pageIds);
+    if (next && seen.has(next)) throw new Error("Gmail list page invalid: page token repeated");
+    if (next) seen.add(next);
+    pageToken = next;
   } while (pageToken);
   return ids;
 }
