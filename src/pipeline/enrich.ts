@@ -1,5 +1,6 @@
 import { CONCERN_4PIECE_ALT, CONCERN_FULL_ENSEMBLE, type Classification, type Format, type PricingResult } from "../types.js";
 import { parseLocalDate } from "../utils/dates.js";
+import { deliveryModeFor } from "./classify.js";
 
 /** Result of format routing override — null means no override needed. */
 interface FormatRoutingResult {
@@ -33,7 +34,7 @@ export function enrichClassification(
 
   // Format routing override (mariachi weekday/weekend rules)
   if (classification.format_recommended === "unresolved") {
-    return enriched;
+    return withDeliveryMode(enriched);
   }
 
   const routing = resolveFormatRouting(enriched);
@@ -66,7 +67,7 @@ export function enrichClassification(
     };
   }
 
-  return enriched;
+  return withDeliveryMode(enriched);
 }
 
 /**
@@ -114,4 +115,9 @@ function resolveFormatRouting(
 
   // Weekday, not corporate background → full ensemble, mention 4-piece as option
   return { format_recommended: "mariachi_full", show_alternative: true };
+}
+
+/** Delivery mode always matches the final format (port manifest R349). */
+function withDeliveryMode(c: Classification): Classification {
+  return { ...c, delivery_mode: deliveryModeFor(c.format_recommended) };
 }

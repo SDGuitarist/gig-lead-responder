@@ -23,6 +23,8 @@ export type Format =
 
 export type RecommendedFormat = Format | "unresolved";
 
+export type DeliveryMode = "alex_performs" | "alex_sources" | "hybrid";
+
 export type EventArc = "wedding" | "corporate" | "private_celebration" | "memorial";
 
 export interface Classification {
@@ -73,6 +75,10 @@ export interface Classification {
   // Lead asks for the flamenco dancer for more than one hour (port manifest R048).
   // Normalized in classify.ts: only a real true counts.
   extended_dancer?: boolean;
+
+  // Who delivers the gig (port manifest R349): derived in code from the format
+  // by the Instrument Rule (classify.ts deliveryModeFor), never guessed by the model.
+  delivery_mode?: DeliveryMode | null;
 
   // Cultural
   cultural_context_active: boolean;

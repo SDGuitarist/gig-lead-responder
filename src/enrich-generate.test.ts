@@ -40,6 +40,7 @@ function makeClassification(overrides: Partial<Classification> = {}): Classifica
     flagged_concerns: [],
     venue_name: null,
     client_first_name: null,
+    delivery_mode: "alex_performs", // classify always sets it (from format "solo")
     ...overrides,
   };
 }

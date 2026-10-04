@@ -2,7 +2,7 @@ import { callClaude } from "../claude.js";
 import { ClassificationError } from "../errors.js";
 import { buildClassifyPrompt } from "../prompts/classify.js";
 import { wrapUntrustedData } from "../utils/sanitize.js";
-import type { Classification, EventArc } from "../types.js";
+import type { Classification, DeliveryMode, EventArc, Format } from "../types.js";
 
 const VALID_COMPETITION = new Set(["low", "medium", "high", "extreme"]);
 const VALID_TIERS = new Set(["premium", "standard", "qualification"]);
@@ -14,6 +14,30 @@ const VALID_ARCS = new Set<EventArc>(["wedding", "corporate", "private_celebrati
 /** Parses the model's event_arc once; anything outside the four arcs is null. */
 export function normalizeEventArc(value: unknown): EventArc | null {
   return typeof value === "string" && VALID_ARCS.has(value as EventArc) ? (value as EventArc) : null;
+}
+
+// Instrument Rule (Project PROTOCOL Step 0.5 + memory): Alex performs guitar in any
+// style and ukulele; sourcing only for instruments he doesn't play or 3+ musicians.
+// A Record over Format, so a new format can't ship without a delivery mode.
+const DELIVERY_MODE: Record<Format, DeliveryMode> = {
+  solo: "alex_performs",
+  duo: "alex_performs",
+  flamenco_duo: "alex_performs",
+  flamenco_trio: "hybrid",
+  flamenco_trio_full: "hybrid",
+  mariachi_4piece: "alex_sources",
+  mariachi_full: "alex_sources",
+  bolero_trio: "alex_sources",
+  sourced_cultural_solo: "alex_sources",
+  sourced_cultural_duo: "alex_sources",
+  sourced_cultural_trio: "alex_sources",
+  sourced_cultural_quartet: "alex_sources",
+  sourced_cultural_5piece: "alex_sources",
+};
+
+/** Delivery mode for a format; null for "unresolved" or anything unknown. */
+export function deliveryModeFor(format: unknown): DeliveryMode | null {
+  return typeof format === "string" && Object.hasOwn(DELIVERY_MODE, format) ? DELIVERY_MODE[format as Format] : null;
 }
 
 /** Parses the model's extended_dancer once; only a real boolean true counts. */
@@ -56,6 +80,7 @@ const validateClassification = (raw: unknown): Classification => {
   }
   obj.event_arc = normalizeEventArc(obj.event_arc);
   obj.extended_dancer = normalizeExtendedDancer(obj.extended_dancer);
+  obj.delivery_mode = deliveryModeFor(obj.format_recommended);
   return raw as Classification;
 };
 
