@@ -75,6 +75,16 @@ design pass + live drafting runs, per its row); group 5 needs Alex's numbers; gr
 - **Codex round 1 on `79929a0..07a5376` = NO-GO (2 P1 + 1 P2), all fixed** (`4023ef8`, `b7b4754`;
   `docs/reviews/2026-10-04-reserve-auth-codex-round1.md`). Next: round 2 with `-s workspace-write` so Codex runs the
   tests itself (probe: 515/531 runnable there, the 16 others are sandbox-blocked and need the Mac).
+- **Round 2 = NO-GO (3 P1), the SECOND NO-GO: automatic iteration STOPPED** (`docs/reviews/2026-10-04-reserve-auth-codex-round2.md`).
+  Codex ran the tests itself (`-s workspace-write`): 515 pass, 16 sandbox-only failures. Remaining: follow-up drafts stored
+  unvalidated (they go to Alex for approval first, not to clients); drafts and positive signals reach the verify/rewrite
+  prompts raw; the reserve's price filter misses forms like "€900", "USD 900", "for 900", and allows 2 sentences.
+  Round 3 only with `Round 3 authorized by Alejandro: YES`.
+- **The app's Gmail token is `alex.guillen.music@gmail.com`** (checked 2026-10-04 with a read-only `getProfile`). Yelp and
+  Squarespace leads arrive ONLY there, GigSalad in both, so the poller does see all three platforms.
+- `a484455` real redacted lead emails in `examples/emails/` (GigSalad, Yelp, Squarespace): Yelp and Squarespace parse
+  as their tests expect; **GigSalad is a `todo` (known gap)**. `2531024`: the test runner now counts todo apart from
+  skip (`LEAF_MATCH {..., "todo":1}`), so a known gap never reads as a harmless skip. Suite 534 / 0 / 1 skip / 1 todo.
 - Next also: Alex's call on the GigSalad finding.
 
 **Review #3 (round-up + R320 + hold-note filter, `97eec2b..58352b1`): CLOSED, round 2 GO** (round 1 prompt: session scratchpad
