@@ -12,7 +12,8 @@ const lead = (format: string, cultural: boolean) =>
 
 test("battery never shown to the model: loaded docs on every branch", async () => {
   const withArc = { ...lead("solo", false), event_arc: "wedding" } as Classification;
-  for (const c of [lead("solo", false), lead("solo", true), lead("bolero_trio", true), withArc]) {
+  const sourced = { ...lead("mariachi_full", true), delivery_mode: "alex_sources" } as Classification;
+  for (const c of [lead("solo", false), lead("solo", true), lead("bolero_trio", true), withArc, sourced]) {
     const ctx = await selectContext(c);
     assert.ok(ctx.length > 1000, "control: context loaded");
     assert.doesNotMatch(ctx, /batter/i);

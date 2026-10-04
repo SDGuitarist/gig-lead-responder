@@ -76,6 +76,14 @@ export async function selectContext(
     }
   }
 
+  // Conditional: curator-voice drafting rules for sourced and hybrid leads (port manifest R335)
+  if (classification.delivery_mode === "alex_sources" || classification.delivery_mode === "hybrid") {
+    const sourced = await readDoc("SOURCED_DRAFTING.md", false);
+    if (sourced) {
+      sections.push(`## SOURCED LEAD DRAFTING\n\n${sourced}`);
+    }
+  }
+
   // Conditional: bolero negotiation playbook (port manifest R008)
   if (classification.format_recommended === "bolero_trio") {
     const playbook = await readDoc("Bolero_Trio_Negotiation_Playbook.md", false);

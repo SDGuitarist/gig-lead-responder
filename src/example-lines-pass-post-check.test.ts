@@ -7,7 +7,7 @@ import { postCheckDrafts } from "./pipeline/post-check.js";
 // the post-check that drafts face; otherwise the docs teach the model to fail.
 // Found 2026-10-03: the ported Bolero playbook said "investment" 5 times.
 const LOADED_DOCS = ["RESPONSE_CRAFT.md", "PRICING_TABLES.md", "PRINCIPLES.md", "LEAD_RESPONSE_VOICE.md",
-  "CULTURAL_SPANISH_LATIN.md", "CULTURAL_CORE.md", "EVENT_STRUCTURE_THEORY.md", "Bolero_Trio_Negotiation_Playbook.md", "QUICK_REFERENCE.md"];
+  "CULTURAL_SPANISH_LATIN.md", "CULTURAL_CORE.md", "EVENT_STRUCTURE_THEORY.md", "Bolero_Trio_Negotiation_Playbook.md", "QUICK_REFERENCE.md", "SOURCED_DRAFTING.md"];
 
 test("example lines in loaded docs pass the post-check", () => {
   const context = readFileSync("src/pipeline/context.ts", "utf-8");
