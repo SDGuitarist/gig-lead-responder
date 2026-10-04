@@ -66,8 +66,11 @@
 `src/db/`, `src/app.ts`, `src/server.ts`, `src/wake-watch.ts`, `src/follow-up-scheduler.ts` (its gate stops Codex if
 they move). Nothing in Part 2 touched them. Prompt: session scratchpad `codex-round1-phase0-runtime.md`.
 
-**Fixed (Alex caught it):** `lookupPrice` now always reports the hours it priced (`e0e11fd`). Still open, his call:
-a 2.5 h request rounds DOWN to 2 h (nearest card length); whether it should round up is a pricing decision.
+**Fixed (Alex caught it):** `lookupPrice` now always reports the hours it priced (`e0e11fd`).
+**DECIDED, NOT BUILT (Alex 2026-10-03): a request between card lengths ROUNDS UP** (2.5 h → 3 h; today the snap in
+`lookupPrice` rounds 2.5 down to 2). Build it right after the round-2 verdict (it touches `src/pipeline/price.ts`, which
+round 2 is reviewing): failing test first, update the `quoted hours are the hours priced` test, check the budget
+scoped-alternative path still offers the next shorter card length.
 
 **Queued, no Alex needed (next session):** the 75 TO PORT rows, grouped (each row names its destination):
 1. **Delivery mode** (R349–R353, R397, R406, R335, R257): a `delivery_mode` classify field (Instrument Rule: guitar
@@ -93,14 +96,18 @@ FIRST gate (stop and ask Alex if anything differs):
   git rev-parse HEAD; git rev-parse origin/feat/hub-phase0  # expect: identical
   git status --short                                        # expect: clean
   git log --oneline HEAD..origin/main                       # expect: empty
-Read: HANDOFF.md (top section, session 33bddb35), CLAUDE.md,
-  docs/research/2026-10-02-booking-hub/spikes.md, docs/research/2026-10-02-booking-hub/port-manifest.md,
-  docs/plans/2026-10-02-feat-hub-phase0-lead-replies-plan.md §0.5.
-First: if Alex has pasted either Codex round-1 verdict (#1 poller, #2 port/pricing), record it in docs/reviews/ and
-work its fix prompt under the fix contract before anything else. While review #2 is out, the port is paused (its
-files are frozen). After both verdicts: port the remaining TO PORT rows, groups 3-6, one concern per commit,
-failing test first, verify with npm run test:match (exit 3 = zero matches).
-Do NOT edit the files frozen by either open review (listed in the top section) until its verdict is in. Never put source text, client names or contact data into the public repo.
+Read: HANDOFF.md (top section, session 33bddb35, incl. the two Codex reviews), CLAUDE.md,
+  docs/reviews/2026-10-03-port-pricing-codex-round1.md, docs/research/2026-10-02-booking-hub/port-manifest.md,
+  docs/research/2026-10-02-booking-hub/spikes.md.
+Two Codex reviews are open. Ask Alex for any verdict he hasn't pasted yet:
+  - Review #1 (poller/lease/wake, 2f2ec7d..e1fb163): round 1, verdict not yet received.
+  - Review #2 (port/pricing): round 2 prompt sent (fixes 198d94d..68af85b). A GO closes it. A NO-GO STOPS
+    automatic fixing: give Alex a plain-English recommendation; round 3 only with his explicit yes.
+Record each verdict in docs/reviews/, then work its fix prompt under ~/.claude/docs/mandatory-review-workflow.md.
+After review #2 closes: build Alex's rounding decision (requests between card lengths round UP), failing test first.
+Then the remaining 57 TO PORT rows (groups 3-6 in the top section), one concern per commit.
+Do NOT edit files frozen by an open review (listed in the top section) until its verdict is in.
+Never put source text, client names or contact data into the public repo.
 HARD GATE: never start the Mac poller or server against real mail. Never open data/leads.db from a test.
 STOP and ask Alex before: any real send; Full Disk Access; reading GigSalad/Yelp dashboards; any change to
 .env or production data; any new or changed price. Do not start Module 1. Update HANDOFF.md before stopping.
