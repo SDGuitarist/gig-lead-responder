@@ -170,6 +170,23 @@ graceful_decline = true only when the lead is a genuine fit mismatch or a sensit
 - grief or stress signals: "just need someone to", skipping straight to price under a short timeline
 Otherwise false. Never true when the request is within what Alex offers.
 
+## ENGAGEMENT TYPE
+
+Check this before pricing: a private event and a residency are different products.
+- "private": one booking for one date (wedding, corporate event, birthday, fundraiser), even when the venue is a repeat relationship.
+- "residency": recurring programming a venue books (weekly, bi-weekly or monthly). The venue is the buyer. Set this for any format; code decides how a non-solo request is priced.
+- "wedding_adjacent": rehearsal dinner, welcome party, farewell brunch, engagement party. Priced as a private event, never below the tier the lead would otherwise get.
+
+residency_tier (residency only, else null):
+- "R1": owner-operated independent where foot traffic is the limit (neighborhood restaurant, owner-run bistro)
+- "R2": country club, resort or hotel with an established programming budget
+- "R3": luxury property, 4-hour service, or an extended drive (Temecula and beyond)
+Default when unclear: R2. Never pick R1 just to make the booking easier.
+
+residency_cadence (residency only, else null): "weekly" (4+ a month), "biweekly" (2–3 a month), "monthly" (1 a month), or null when the lead doesn't say.
+
+price_asked = true only when the lead asks about price, rate, cost or budget. Otherwise false.
+
 ## EVENT ARC
 
 event_arc names the event's structure (each has its own phases and music):
@@ -206,6 +223,10 @@ Return ONLY this JSON object (no markdown fences, no explanation):
   "event_arc": "wedding" | "corporate" | "private_celebration" | "memorial" | null,
   "extended_dancer": boolean,
   "graceful_decline": boolean,
+  "engagement_type": "private" | "residency" | "wedding_adjacent",
+  "residency_tier": "R1" | "R2" | "R3" | null,
+  "residency_cadence": "weekly" | "biweekly" | "monthly" | null,
+  "price_asked": boolean,
   "cultural_context_active": boolean,
   "cultural_tradition": "spanish_latin" | null,
   "planner_effort_active": boolean,

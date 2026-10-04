@@ -33,6 +33,10 @@ export type RecommendedFormat = Format | "unresolved";
 
 export type DeliveryMode = "alex_performs" | "alex_sources" | "hybrid";
 
+export type EngagementType = "private" | "residency" | "wedding_adjacent";
+export type ResidencyTier = "R1" | "R2" | "R3";
+export type ResidencyCadence = "weekly" | "biweekly" | "monthly";
+
 export type EventArc = "wedding" | "corporate" | "private_celebration" | "memorial";
 
 export interface Classification {
@@ -87,6 +91,14 @@ export interface Classification {
   // Format/fit mismatch or sensitive context (port manifest R320). Normalized in
   // classify.ts: only a real true counts. A true lead is always held for Alex.
   graceful_decline?: boolean;
+
+  // Private event or recurring residency (port manifest R220/R276, R281–R283).
+  // Normalized in classify.ts normalizeEngagement: unknown → private; a residency
+  // tier/cadence only on a residency (tier R2 when unclear); price_asked only a real true.
+  engagement_type?: EngagementType;
+  residency_tier?: ResidencyTier | null;
+  residency_cadence?: ResidencyCadence | null;
+  price_asked?: boolean;
 
   // Who delivers the gig (port manifest R349): derived in code from the format
   // by the Instrument Rule (classify.ts deliveryModeFor), never guessed by the model.

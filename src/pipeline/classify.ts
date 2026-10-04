@@ -2,7 +2,7 @@ import { callClaude } from "../claude.js";
 import { ClassificationError } from "../errors.js";
 import { buildClassifyPrompt } from "../prompts/classify.js";
 import { wrapUntrustedData } from "../utils/sanitize.js";
-import type { Classification, DeliveryMode, EventArc, Format } from "../types.js";
+import type { Classification, DeliveryMode, EngagementType, EventArc, Format, ResidencyCadence, ResidencyTier } from "../types.js";
 
 const VALID_COMPETITION = new Set(["low", "medium", "high", "extreme"]);
 const VALID_TIERS = new Set(["premium", "standard", "qualification"]);
@@ -43,6 +43,32 @@ export function deliveryModeFor(format: unknown): DeliveryMode | null {
 /** Parses the model's graceful_decline once; only a real boolean true counts (port manifest R320). */
 export function normalizeGracefulDecline(value: unknown): boolean {
   return value === true;
+}
+
+const ENGAGEMENT_TYPES: readonly EngagementType[] = ["private", "residency", "wedding_adjacent"];
+const RESIDENCY_TIERS: readonly ResidencyTier[] = ["R1", "R2", "R3"];
+const RESIDENCY_CADENCES: readonly ResidencyCadence[] = ["weekly", "biweekly", "monthly"];
+
+/**
+ * Parses the model's engagement fields once (port manifest R220/R276, R281–R283).
+ * Unknown engagement → private. Tier and cadence exist only on a residency; an
+ * unusable tier is R2 (the source's default when ambiguous). price_asked: only true counts.
+ */
+export function normalizeEngagement(obj: Record<string, unknown>): {
+  engagement_type: EngagementType; residency_tier: ResidencyTier | null;
+  residency_cadence: ResidencyCadence | null; price_asked: boolean;
+} {
+  const engagement_type = ENGAGEMENT_TYPES.includes(obj.engagement_type as EngagementType)
+    ? (obj.engagement_type as EngagementType) : "private";
+  const residency = engagement_type === "residency";
+  return {
+    engagement_type,
+    residency_tier: !residency ? null
+      : RESIDENCY_TIERS.includes(obj.residency_tier as ResidencyTier) ? (obj.residency_tier as ResidencyTier) : "R2",
+    residency_cadence: residency && RESIDENCY_CADENCES.includes(obj.residency_cadence as ResidencyCadence)
+      ? (obj.residency_cadence as ResidencyCadence) : null,
+    price_asked: obj.price_asked === true,
+  };
 }
 
 /** Parses the model's extended_dancer once; only a real boolean true counts. */
@@ -119,6 +145,7 @@ const validateClassification = (raw: unknown): Classification => {
   obj.extended_dancer = normalizeExtendedDancer(obj.extended_dancer);
   obj.graceful_decline = normalizeGracefulDecline(obj.graceful_decline);
   obj.delivery_mode = deliveryModeFor(obj.format_recommended);
+  Object.assign(obj, normalizeEngagement(obj));
   return raw as Classification;
 };
 
