@@ -7,6 +7,9 @@ import { GUT_CHECK_KEYS, type Classification, type Drafts, type GateResult, type
 // Parses the model's gate result field by field into a trusted GateResult, or
 // throws (callClaude retries once, then the lead fails safe). Before, two fields
 // were checked to be arrays and the rest was cast (Codex round 1, finding 2).
+// fail_reasons that always fail the gate (lowercase; compared after trim + lowercase).
+const ALWAYS_FAIL_PREFIXES = ["sourced integrity failed", "graceful decline failed"];
+
 const validateGateResult = (raw: unknown): GateResult => {
   const fail = (what: string): never => {
     throw new VerificationError(`LLM gate result invalid: ${what}`);
@@ -39,7 +42,8 @@ const validateGateResult = (raw: unknown): GateResult => {
   // A reported sourced-integrity failure always fails the gate, whatever status
   // the model wrote (port manifest R338: the Project's gate fails on it).
   // Likewise a graceful-decline failure (port manifest R320).
-  const gateStatus = failReasons.some((r) => r.startsWith("Sourced integrity failed") || r.startsWith("Graceful decline failed"))
+  // The model writes the phrase, so match it however it is cased or padded (Codex round 1, round-up/R320 range).
+  const gateStatus = failReasons.some((r) => ALWAYS_FAIL_PREFIXES.some((p) => r.trim().toLowerCase().startsWith(p)))
     ? "fail" : obj.gate_status;
 
   return {
