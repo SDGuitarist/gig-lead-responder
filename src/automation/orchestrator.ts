@@ -16,6 +16,9 @@ import { completeApproval } from "../db/follow-ups.js";
 import { YelpPortalClient } from "./portals/yelp-client.js";
 import { GigSaladPortalClient } from "./portals/gigsalad-client.js";
 
+/** Written to error_message on a lead's first pipeline failure; a second failure is final. */
+const PIPELINE_RETRY_MARK = "pipeline attempt 1 failed: ";
+
 /**
  * Process a single Gmail message through the full automation pipeline:
  *
@@ -140,7 +143,15 @@ export async function processLead(
     output = await deps.runPipeline(lead.rawText, undefined, platform);
   } catch (err) {
     const error = err instanceof Error ? err.message : String(err);
-    console.error(`Pipeline failed: ${error}`);
+    // Retry once, then hold (Alex 2026-10-04; Codex round 1, Phase 0 runtime). The first
+    // failure stays retryable and rethrows, so the poller holds its cursor and comes back;
+    // the mark on the row survives a restart, so a second failure is final.
+    if (!existing?.error_message?.startsWith(PIPELINE_RETRY_MARK)) {
+      updateLead(leadId, { error_message: PIPELINE_RETRY_MARK + error });
+      console.error(`Pipeline failed on lead #${leadId}; it will be retried once: ${error}`);
+      throw err;
+    }
+    console.error(`Pipeline failed again: ${error}`);
     updateLead(leadId, { status: "failed", error_message: error, pipeline_completed_at: new Date().toISOString() });
     if (!config.dryRun) {
       await sendSms(config, `FAIL: Lead #${leadId} ${platform} — pipeline error. Check dashboard.`);
@@ -170,6 +181,8 @@ export async function processLead(
     gate_json: JSON.stringify(output.gate),
     confidence_score: output.confidence_score,
     pipeline_completed_at: now,
+    // A retry that succeeded leaves no failure note on the lead.
+    ...(existing?.error_message?.startsWith(PIPELINE_RETRY_MARK) ? { error_message: null } : {}),
     client_name: output.classification.client_first_name ?? undefined,
     venue: output.classification.venue_name ?? undefined,
     event_type: output.classification.format_requested ?? undefined,

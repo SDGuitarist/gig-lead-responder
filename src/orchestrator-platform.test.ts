@@ -40,8 +40,9 @@ test("orchestrator passes platform into runPipeline", async () => {
     seen.push(args[2]);
     throw new Error("stop after the call under test");
   };
-  await processLead(gigsaladMsg, config, {} as never, {} as never, {} as never, {
+  // A first pipeline failure rethrows so the poller retries it (Alex 2026-10-04).
+  await assert.rejects(processLead(gigsaladMsg, config, {} as never, {} as never, {} as never, {
     runPipeline: fakeRunPipeline as never,
-  });
+  }), /stop after the call under test/);
   assert.deepEqual(seen, ["gigsalad"]);
 });
