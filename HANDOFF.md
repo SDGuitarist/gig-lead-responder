@@ -2,46 +2,81 @@
 
 **Date:** 2026-10-04
 **Branch:** `feat/hub-phase0` (cut from `docs/booking-hub-brainstorm` at `c644210`; pushed; not merged)
-**Phase:** Work, Phase 0 **in progress**. 0.1, 0.2 (code), 0.3 (all but the alert half of `invalid_grant alerts`), 0.4, S1, S1-adv done. **0.5 port: all 406 rows reviewed; 75 TO PORT remain** (build work). 0.6 blocked (see below). Codex round 1 out. Module 1 not started.
+**Phase:** Work, Phase 0 **in progress**. 0.1, 0.2 (code), 0.3 (all but the alert half of `invalid_grant alerts`), 0.4, S1, S1-adv done. **0.5 port: all 406 rows reviewed; 30 TO PORT remain.** 0.6 blocked (see below). No Codex review open. Module 1 not started.
 
-## START HERE — end of session 0153v273 (2026-10-04)
+## START HERE — end of the residency session (2026-10-04, after 0153v273)
 
-**State:** branch `feat/hub-phase0`, pushed. **No Codex review is open.** All four review loops CLOSED with GO:
-port/pricing (round 3), round-up + R320 (round 2), Phase 0 runtime (round 2), reserve/auth/model-text (round 3,
-`docs/reviews/2026-10-04-reserve-auth-codex-round3.md`). Suite on the Mac: 539 pass / 0 fail / 1 skip / 1 todo.
-Codex CLI now runs reviews with `-s workspace-write` so it runs the tests itself (16 tests are sandbox-blocked and can
-only be confirmed on the Mac); check `git status --short` after every Codex run.
+**State:** branch `feat/hub-phase0`, pushed at the end of this session. **No Codex review is open.** Five review loops
+CLOSED with GO; the newest: **residency** (`c047b49..fbb00f6`): round 1 NO-GO (1 P1, fixed `fbb00f6`), round 2 GO
+(`docs/reviews/2026-10-04-residency-codex-round2.md`). Suite on the Mac: 555 pass / 0 fail / 1 skip / 1 todo.
+Codex CLI runs reviews with `-s workspace-write` (16 tests are sandbox-blocked, Mac-only); check `git status` after.
 
-**Waiting on Alex (decisions, not code):**
-1. GigSalad: real lead emails carry no details and no usable reply link; there are TWO GigSalad accounts and leads
-   land in both inboxes. Read lead details from the GigSalad page (like Yelp), or another way? (blocks R358 and the
-   GigSalad `todo` test)
-2. Pricing numbers for the "needs Alex" TO PORT rows (residency, T4/NP tiers, holiday/peak, quote formatting by tier).
+**Built this session (all Codex-reviewed, GO):**
+- `df7ecbf` **R099**: space + setup time per format (`src/data/setup-space.ts`) in the Quote Terms, used only when the
+  lead raises space / layout / load-in / start time; formats the card has no row for get no line.
+- `c90d686` classify: `engagement_type` (private / residency / wedding_adjacent), `residency_tier` (R2 when unclear),
+  `residency_cadence`, `price_asked` (`normalizeEngagement`).
+- `e5d09ed` `RESIDENCY_RATES` (R2/R3, Alex-approved) + `lookupResidencyRate`: no rate for R1, >3 h, unknown cadence.
+- `2d32de2` + `fbb00f6` every residency lead carries `pricing.residency` (solo: residency rate; non-solo: `series`
+  at its private price, no discount) and is HELD (`residency:` hold note, kept out of prompts).
+- `d5ea347` + `fbb00f6` residency drafting mode: a number only when the venue asked and a rate exists; no budget-gap
+  block, no Quote Terms; verify checks the same. Real-model output UNEXECUTED (no real residency lead run).
 
-**Alex decided 2026-10-04 (session after 0153v273):**
+**Alex decided 2026-10-04 (this session):**
 - **GigSalad:** read lead details from the GigSalad lead page (like Yelp), in the account the lead belongs to.
   Reading the pages to build it is still ask-first at the moment it happens (which account, which lead).
 - **Pricing:** port the Project's own numbers; Alex sees every price before it is committed.
-- **Residency (R1–R3), answered on the numbers shown:** R2/R3 as written in `Rate_Card_Solo_Duo.md` (2 h / 3 h ×
-  weekly / bi-weekly / monthly). **R1 = hold for Alex, no price.** A residency reply states a price **only if the venue
-  asked**; every residency lead is held. **Recurring duo/trio/ensemble = normal private-event price, no discount, held.**
-  Not given by the source, so held, never invented: R1 rates, 4-hour residency, holiday/peak. The Encuentro exception
-  names a client's deal: stays out of the public repo.
+- **Residency, answered on the numbers shown:** R2/R3 as written in `Rate_Card_Solo_Duo.md` (2 h / 3 h ×
+  weekly / bi-weekly / monthly). **R1 = hold, no price.** A residency reply states a price **only if the venue asked**;
+  every residency lead is held. **Recurring duo/trio/ensemble = normal private-event price, no discount, held.**
+  Not in the source, so held, never invented: R1 rates, 4-hour residency, holiday/peak.
+
+**Waiting on Alex (asked 2026-10-04, not yet answered):**
+1. **R285 Encuentro exception:** Claude proposes NOT PORTED (one client's deal; keeps it out of the public repo; that
+   venue's residency is held anyway). Needs Alex's OK before the row changes.
+2. **Residency deposit:** the source gives none, so residency drafts omit the 50% deposit line. Right, or a deposit?
+3. **GigSalad build:** which account and which lead page Claude may open, at the time it is built.
+
+**Next pricing rows (Alex: Project numbers, shown before commit):** holiday/peak + context modifiers (R058/R072/R104/
+R292), $150 minimum profit (R295/R362), quote formatting by tier (R300–R302), T4/NP tiers (R403, then F1 R020–R025).
+**Other remaining TO PORT:** R006 (any-culture framework: design pass + paid model runs; Claude recommended later),
+R081–R089 + R405 (PF-Intel live data = production data, ask first), R329, R358 (GigSalad), R398 (later module).
 
 **Known gaps, owner + trigger recorded below:** system-skipped follow-ups are silent until Module 1's alert channel;
 the poller's restart-proof retry counter (deferred); invalid_grant alert (Module 1); migration v3 runs on the real
 data/leads.db at the next server start (backup first).
 
-### Three Questions (session 0153v273)
-1. **Hardest implementation decision?** How to stop chasing price patterns. Each review found a new form ("€900",
-   "for 900"); the answer was one shared detector that errs toward "price" plus a check on the follow-up draft itself,
-   the text that actually reaches a person, instead of more per-site regexes.
-2. **Considered changing but left alone?** Building GigSalad portal reading and the dashboard label for system skips:
-   both are real gaps, both need Alex's call (ask-first list; Module 1 scope), so they are recorded, not built.
-3. **Least confident going into the next phase?** Nothing here has met a real model or a real lead. The new checks
-   (graceful decline flag, reserve, follow-up rules, Tier A hold) may reject or hold far more real output than intended.
+### Three Questions (residency session)
+1. **Hardest implementation decision?** How a residency with no usable number behaves. The source has numbers only
+   for R2/R3 at 2–3 h; returning `rate: null` + a reason (instead of guessing or throwing) let one value drive the
+   hold note, the "state no number" draft rule and the verify check together.
+2. **Considered changing but left alone?** Carrying the private 50% deposit into residency drafts, and porting the
+   Encuentro exception. Both would be Claude inventing terms or publishing a client deal; both went to Alex.
+3. **Least confident going into the next phase?** `engagement_type` and `price_asked` are model judgments nobody has
+   seen on a real lead. A residency mislabeled "private" gets the private price and is NOT held by the residency rule
+   (only by other holds). Run a real or realistic venue inquiry before trusting it.
 
-**Next phase:** Work, once Alex decides item 1 or 2 above; otherwise the remaining TO PORT rows that need neither.
+**Next phase:** Work: the next pricing group (show Alex the Project's numbers first), or GigSalad portal reading once
+Alex names the account and lead.
+
+### Prompt for Next Session
+
+```
+Work in /Users/alejandroguillen/Projects/gig-lead-responder.
+FIRST gate (stop and ask Alex if anything differs):
+  pwd; git fetch origin; git branch --show-current          # expect: feat/hub-phase0
+  git rev-parse HEAD; git rev-parse origin/feat/hub-phase0  # expect: identical
+  git status --short                                        # expect: clean
+Read: HANDOFF.md "START HERE" section, CLAUDE.md, docs/research/2026-10-02-booking-hub/port-manifest.md.
+No Codex review is open. Ask Alex the three "Waiting on Alex" items. Then the next pricing group: pull the
+Project's numbers from ~/Data/gig-lead-responder/ and SHOW ALEX EVERY PRICE BEFORE WRITING CODE; build only what
+he approves, one concern per commit, failing test first, verify with npm run test:match (exit 3 = zero matches).
+For each finished range: Codex round 1 via `codex exec -s workspace-write` (check git status after), record every
+verdict in docs/reviews/. Never put source text, client names or contact data into the public repo.
+HARD GATE: never start the Mac poller or server against real mail. Never open data/leads.db from a test.
+STOP and ask Alex before: any real send; Full Disk Access; reading GigSalad/Yelp dashboards; any change to
+.env or production data; any new or changed price. Do not start Module 1. Update HANDOFF.md before stopping.
+```
 
 ## 2026-10-03 evening (session 0153v273) — port review #2, round 2 fixes + two Alex money fixes
 
