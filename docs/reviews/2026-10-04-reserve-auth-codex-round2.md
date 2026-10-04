@@ -142,3 +142,18 @@ Before stopping, report:
 ```
 
 I did not copy this prompt to the clipboard.
+---
+
+## Fixes (session 0153v273, 2026-10-04) — Round 3 authorized by Alejandro: YES (2026-10-04, "yes to all")
+
+| Finding | Root cause | Fix | Test (red first) |
+|---|---|---|---|
+| 2 model text into prompts raw | each wrapper escaped (or not) on its own; drafts and signals had none | `700ecfd`: ONE `escapeForPrompt` used by `wrapUntrustedData`, `wrapEditInstructions` (same flaw, not in the finding) and new `wrapModelText`; verify wraps both drafts; generate escapes the positive signals | `model text boundary` ×2 (red: raw closing tags reached the captured request); controls: Spanish text and actionable instructions unchanged |
+| 3 reserve price false negatives, 2 sentences | a narrow dollar regex; no sentence rule | `aabe142`: shared `mentionsPrice` (`src/utils/price-mention.ts`: currency symbols, codes/words, "for/at/of 900" phrasing, "budgeted 1500"); one sentence only | `every price form is dropped, near-misses are kept, and only one sentence` (red on "€900"); controls: 4:30, 120 guests, 7pm, 2 hours, 40th, a ZIP, 150 people, Spanish |
+| 1 follow-up draft stored unvalidated | no check between the model and storage | `0e3882e`: `followUpViolations` (price via `mentionsPrice`, contact/link, signature, "checking in"/"following up", > 3 sentences); a failing draft throws, so the scheduler retries later and skips at its cap; never stored | `follow-up draft check` (red: a priced draft returned as-is); control: two normal follow-ups pass unchanged |
+
+Inventory (model calls: 4): classify (lead email, wrapped), generate (rewrite instructions + positive signals, now escaped),
+verify (drafts, now wrapped), follow-up (lead context, original draft, reserve: wrapped; output now checked).
+Shape: shared escape and shared price detector instead of per-site fixes. Price detection stays a heuristic that errs
+toward "price" (a false hit drops an insight or rejects a draft; it never sends one).
+Suite 539 pass / 0 fail / 1 skip / 1 todo; `tsc`, `git diff --check` clean.

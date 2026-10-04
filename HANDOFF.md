@@ -79,7 +79,8 @@ design pass + live drafting runs, per its row); group 5 needs Alex's numbers; gr
   Codex ran the tests itself (`-s workspace-write`): 515 pass, 16 sandbox-only failures. Remaining: follow-up drafts stored
   unvalidated (they go to Alex for approval first, not to clients); drafts and positive signals reach the verify/rewrite
   prompts raw; the reserve's price filter misses forms like "€900", "USD 900", "for 900", and allows 2 sentences.
-  Round 3 only with `Round 3 authorized by Alejandro: YES`.
+  **Round 3 authorized by Alejandro: YES** (2026-10-04). Fixed in `700ecfd`, `aabe142`, `0e3882e`; round 3 = the last:
+  a NO-GO fires the cap (no round 4; Alex picks: different approach, revert, or accept).
 - **The app's Gmail token is `alex.guillen.music@gmail.com`** (checked 2026-10-04 with a read-only `getProfile`). Yelp and
   Squarespace leads arrive ONLY there, GigSalad in both, so the poller does see all three platforms.
 - `a484455` real redacted lead emails in `examples/emails/` (GigSalad, Yelp, Squarespace): Yelp and Squarespace parse
