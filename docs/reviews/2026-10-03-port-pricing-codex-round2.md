@@ -41,4 +41,5 @@ Max-provider real-lead runs. The check is per test FILE, not per test body.
 Full suite: 491 pass, 0 fail, 4 skip; `tsc` clean; `git diff --check` clean.
 
 **Not in Codex's findings (Claude's earlier pass, Alex flagged 2026-10-03):** `docs/RESPONSE_CRAFT.md:210` (loaded
-for every lead) states four T2P-only prices; a D-column lead's real prices differ. Not fixed in this pass.
+for every lead) stated four T2P-only prices; a D-column lead's real prices differ. Removed in `5f4ce51` (Alex).
+Also Alex: Tier A venue priced below T3 is held, `3ea5e64`. Neither has had a Codex review.

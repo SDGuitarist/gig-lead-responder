@@ -4,6 +4,34 @@
 **Branch:** `feat/hub-phase0` (cut from `docs/booking-hub-brainstorm` at `c644210`; pushed; not merged)
 **Phase:** Work, Phase 0 **in progress**. 0.1, 0.2 (code), 0.3 (all but the alert half of `invalid_grant alerts`), 0.4, S1, S1-adv done. **0.5 port: all 406 rows reviewed; 75 TO PORT remain** (build work). 0.6 blocked (see below). Codex round 1 out. Module 1 not started.
 
+## 2026-10-03 evening (session 0153v273) — port review #2, round 2 fixes + two Alex money fixes
+
+- **Codex round 2 = NO-GO** (2 findings), recorded `84eedb3` → `docs/reviews/2026-10-03-port-pricing-codex-round2.md`.
+  Second NO-GO: automatic review iteration has STOPPED. Round 3 only with `Round 3 authorized by Alejandro: YES`.
+- `e23baf4` **classify**: `stealth_premium`, `competition_quote_count`, `format_requested`, `event_energy`,
+  `venue_name`, `client_first_name` now parse or reject (was: `{}` venue → `TypeError ... trim`). Test `classify parse`.
+- `e575b0c` **manifest**: a PORTED row's named test must assert its marker; conditional rows must assert absence.
+  It caught 16 rows; fixed. R078/R079/R094/R097/R369/R406 are prompt rules the model applies: UNEXECUTED until a real lead.
+- `5f4ce51` **(Alex) RESPONSE_CRAFT** no longer names duo/trio/quartet/5-piece prices (T2P-only, wrong for D leads).
+  Test `always-loaded docs state no prices except reviewed non-quote figures` ($500, $1M/$2M COI, $4,000 lead size).
+- `3ea5e64` **(Alex) Tier A venue hold**: a lead naming a Tier A venue priced below T3 (or without the premium flag)
+  is held, naming the venue. One list `src/data/venues.ts` feeds the prompt and the check. Dropped from the old code
+  list (not Tier A in the prompt): Westgate, bare "Torrey Pines". Test `tier A venue hold`.
+- Suite 495 pass / 0 fail / 4 skip; `tsc` clean; `git diff --check` clean. Not pushed.
+- **Open, not reviewed by Codex:** `5f4ce51` and `3ea5e64` (both outside the round-2 fix prompt, both Alex's calls).
+  Still open from Claude's mistaken pass, low severity: follow-up prompt and dashboard show requested hours, not
+  priced hours (`src/prompts/follow-up.ts:32`, `src/utils/shape-lead.ts:47`); range pattern flags
+  "$2,700 — 200 guests" (fails closed: held).
+
+### Three Questions
+1. **Hardest implementation decision?** R094/R097: Codex asked for a runtime test of venue signals, but the model
+   applies them; no code seam exists. Chose a truthful condition + UNEXECUTED label over a fake-model test.
+2. **Considered changing but left alone?** Forcing T3 for Tier A venues in code: it changes prices; Alex chose hold.
+3. **Least confident going into review?** The Tier A hold may hold more real leads than expected (any model that
+   picks T2 for a Tier A venue); no real lead has been run.
+
+**Next phase:** Work. Build the round-up rounding decision (failing test first), then the TO PORT rows.
+
 ## 2026-10-03 (session 33bddb35, ~09:10–15:30) — poller cursor, wake, lease, S1-adv, the whole port review
 
 **Supersedes the "Queued" list and the prompt in the section below.** Results are rows in `spikes.md`; port detail is in `port-manifest.md`.
@@ -50,8 +78,8 @@
 - **Review #1 (poller/lease/wake, `2f2ec7d..e1fb163`):** see the paragraph below.
 - **Review #2 round 1 = NO-GO** (4 findings, `docs/reviews/2026-10-03-port-pricing-codex-round1.md`), all fixed in
   `2c24998`..`68af85b` with tests, plus two Alex-raised money fixes (quoted hours = priced hours; stale PRICING_TABLES
-  prices removed). **Round 2 prompt sent** (scratchpad `codex-round2-port-pricing.md`): narrow re-check of those fixes.
-  If round 2 is NO-GO, automatic iteration STOPS (round 3 only with Alex's explicit yes). Frozen files unchanged.
+  prices removed). **Round 2 = NO-GO, 2 findings, both fixed** (see the 2026-10-03 evening section above).
+  Review loop CLOSED for automatic iteration: round 3 only with `Round 3 authorized by Alejandro: YES`.
 - **Review #2 (port, pricing, draft rules, `e1fb163..198d94d`):** prompt in the session scratchpad
   `codex-round1-port-pricing.md` (also sent to Alex). Until its verdict is back, ALSO do not edit `src/pipeline`,
   `src/prompts`, `src/data`, `src/types.ts`, `scripts`, or the loaded docs (RESPONSE_CRAFT, PRICING_TABLES, PRINCIPLES,
@@ -101,10 +129,10 @@ Read: HANDOFF.md (top section, session 33bddb35, incl. the two Codex reviews), C
   docs/research/2026-10-02-booking-hub/spikes.md.
 Two Codex reviews are open. Ask Alex for any verdict he hasn't pasted yet:
   - Review #1 (poller/lease/wake, 2f2ec7d..e1fb163): round 1, verdict not yet received.
-  - Review #2 (port/pricing): round 2 prompt sent (fixes 198d94d..68af85b). A GO closes it. A NO-GO STOPS
-    automatic fixing: give Alex a plain-English recommendation; round 3 only with his explicit yes.
+  - Review #2 (port/pricing): round 2 NO-GO, fixed (docs/reviews/2026-10-03-port-pricing-codex-round2.md). Closed
+    for automatic iteration; round 3 only with Alex's explicit yes.
 Record each verdict in docs/reviews/, then work its fix prompt under ~/.claude/docs/mandatory-review-workflow.md.
-After review #2 closes: build Alex's rounding decision (requests between card lengths round UP), failing test first.
+Next: build Alex's rounding decision (requests between card lengths round UP), failing test first.
 Then the remaining 57 TO PORT rows (groups 3-6 in the top section), one concern per commit.
 Do NOT edit files frozen by an open review (listed in the top section) until its verdict is in.
 Never put source text, client names or contact data into the public repo.
