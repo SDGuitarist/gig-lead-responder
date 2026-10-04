@@ -114,6 +114,8 @@ Rate card tier mapping:
 - Short: 2-4 weeks out
 - Urgent: <2 weeks out
 
+URGENCY SIGNALS (urgent whatever the date says): "ready to book ASAP", "need to book today", "looking to finalize", "original musician cancelled", "last minute". When any is present: timeline_band = "urgent", close_type = "direct", social_proof_active = false (no discovery questions, no social proof).
+
 Close type:
 - Direct: Urgent timeline or confirmation mode
 - Soft hold: Comfortable timeline, evaluation mode
