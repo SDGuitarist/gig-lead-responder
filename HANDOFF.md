@@ -50,9 +50,10 @@ Suite 504 / 0 / 4, `tsc` clean. Commits `c4273f5` onward are NOT pushed and NOT 
 `src/db` frozen by review #1); R358 code half (GigSalad parser, `src/automation` frozen by review #1); R006 (needs a
 design pass + live drafting runs, per its row); group 5 needs Alex's numbers; group 6 other repos/data.
 
-**Review #3 (round-up + R320 + hold-note filter, `97eec2b..58352b1`): Codex round 1 SENT** (prompt: session scratchpad
+**Review #3 (round-up + R320 + hold-note filter, `97eec2b..58352b1`): CLOSED, round 2 GO** (round 1 prompt: session scratchpad
 `codex-round1-rounding-decline.md`, gate at `58352b1`). **Round 1 = NO-GO, 1 finding (backstop case-sensitive), FIXED**
-(docs/reviews/2026-10-04-rounding-decline-codex-round1.md). Next: round 2, narrow re-check of that fix only. Also get review #1's verdict (unblocks R018 and R358).
+(docs/reviews/2026-10-04-rounding-decline-codex-round1.md). **Round 2 = GO: review #3 CLOSED**
+(docs/reviews/2026-10-04-rounding-decline-codex-round2.md). Its file freeze is lifted. Also get review #1's verdict (unblocks R018 and R358).
 
 **Next phase:** Review.
 
