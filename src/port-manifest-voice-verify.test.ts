@@ -11,7 +11,7 @@ const c = { action: "quote", format_requested: "guitarist", format_recommended: 
 test("port manifest F2 verify: voice judgment checks are named", () => {
   const p = buildVerifyPrompt(c, { budget: { tier: "none" } });
   for (const m of ["VOICE JUDGMENT CHECKS", "False binary", "Triple strawman", "FOMO framing", "Snappy triads",
-    "Unearned profundity", "Hedge softeners", "Named Fear is required and is NOT a false binary"]) {
+    "Unearned profundity", "Hedge softeners", "Named Fear is required and is NOT a false binary", "Overconfidence"]) {
     assert.ok(p.includes(m), m);
   }
 });

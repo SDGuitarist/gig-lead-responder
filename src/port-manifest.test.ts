@@ -74,3 +74,27 @@ test("port manifest PORTED rows name a marker and a real test", () => {
   }
   assert.deepEqual(bad, []);
 });
+
+// Codex round 2 (port range) finding 2: a marker that exists somewhere and a test
+// title that exists somewhere prove nothing about each other. The named test must
+// assert the row's marker, and a conditional row's test must also assert absence
+// (the plan's non-meeting fixture). Checked per test FILE, not per test body.
+const ABSENCE = /assert\.ok\(\s*!|doesNotMatch|notEqual|notDeepEqual|assert\.equal\([^)]*,\s*(?:false|null|undefined)\)/;
+test("port manifest PORTED rows: the named test asserts the marker, and conditional rows assert absence", () => {
+  const testFiles = (d: string): string[] => readdirSync(d).flatMap((n) => {
+    const p = `${d}/${n}`;
+    return statSync(p).isDirectory() ? testFiles(p) : p.endsWith(".test.ts") ? [p] : [];
+  });
+  const files = testFiles("src").map((f) => ({ text: readFileSync(f, "utf-8") }))
+    .map((f) => ({ ...f, titles: [...f.text.matchAll(/\b(?:test|it|describe)\("([^"]+)"/g)].map((m) => m[1]) }));
+  const bad: string[] = [];
+  for (const [id, , , status, , condition, marker, tests] of tableRows(`${DIR}/port-manifest.md`)) {
+    if (status !== "PORTED") continue;
+    const named = [...(tests ?? "").matchAll(/`([^`]+)`/g)].map((m) => m[1]).filter((n) => !n.startsWith("npx tsx scripts/"));
+    const hit = files.filter((f) => named.some((n) => f.titles.some((t) => t.startsWith(n))));
+    const m = marker.replace(/^`|`$/g, "");
+    if (!hit.some((f) => f.text.includes(m))) bad.push(`${id}: no named test asserts "${m}"`);
+    if (!/^always/.test(condition) && !hit.some((f) => ABSENCE.test(f.text))) bad.push(`${id}: conditional, no absence assertion`);
+  }
+  assert.deepEqual(bad, []);
+});

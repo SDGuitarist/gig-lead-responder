@@ -10,7 +10,8 @@ const lead = { format_recommended: "solo", cultural_context_active: false, cultu
 
 test("port manifest F2: voice spec reaches every lead", async () => {
   const ctx = await selectContext(lead);
-  for (const m of ["## LEAD RESPONSE VOICE", "Voice by Audience", "Core Voice Constants", "Banned structural patterns"]) {
+  for (const m of ["## LEAD RESPONSE VOICE", "Voice by Audience", "Core Voice Constants", "Banned structural patterns",
+    "Who Alex Is", "Voice DNA", "Drafting Principles", "Quality Checklist", "What NOT to Sound Like", "Hard Language Rules"]) {
     assert.ok(ctx.includes(m), m);
   }
   assert.ok(!ctx.includes("Writing Samples: Voice Calibration Reference"));

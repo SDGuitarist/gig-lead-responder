@@ -7,7 +7,8 @@ import { buildClassifyPrompt } from "./prompts/classify.js";
 test("port manifest F5: classifier knows the venue tiers and red flags", () => {
   const p = buildClassifyPrompt("2026-10-03");
   for (const m of ["Tier A venues (auto-premium", "Rancho Valencia", "Martin Johnson House", "92091",
-    "Private estate in Rancho Santa Fe, La Jolla or Coronado", "RED FLAG PATTERNS", "We'll pay you after the event"]) {
+    "Private estate in Rancho Santa Fe, La Jolla or Coronado", "RED FLAG PATTERNS", "We'll pay you after the event",
+    "Auto-premium patterns", "Context-dependent: downtown rooftop"]) {
     assert.ok(p.includes(m), m);
   }
 });

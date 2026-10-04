@@ -37,4 +37,6 @@ test("mariachi outside SD: the draft is told travel is included", () => {
     stealth_premium_signals: [], context_modifiers: [], close_type: "soft_hold", timeline_band: "comfortable" } as unknown as Classification;
   const prompt = buildGeneratePrompt(cl, lookupPrice(c(3), at("Regional", 60)), "ctx");
   assert.ok(prompt.includes("Travel is built into this price"));
+  const local = buildGeneratePrompt(cl, lookupPrice(c(3), at("Local", 10)), "ctx");
+  assert.ok(!local.includes("Travel is built into this price"), "control: in-county quote does not say travel is built in");
 });
