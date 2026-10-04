@@ -37,7 +37,21 @@ The port's files are no longer frozen by review #2.
 card length it stays at the longest. Also fixed by it: solo/duo have no 1.5 h row, so 1.5 h was priced as 1 h; now 2 h.
 Not executed on a real lead or Codex-reviewed.
 
-**Next phase:** Work. The remaining 57 TO PORT rows.
+**2026-10-04, same session: R320 graceful decline PORTED** (`41d1e4c`, `bcc222b`): classify sets `graceful_decline`
+(fit mismatch or sensitive moment); the lead is always held; generate gets the GRACEFUL DECLINE MODE block (order:
+one-sentence acknowledgment, format honesty, price, specific exit); verify §7d, a "Graceful decline failed" reason
+always fails the gate; the post-check lets the two look-elsewhere exit patterns through in decline mode only.
+**Also fixed:** hold notes (`classification_verify:`, `graceful_decline:`) rode in `flagged_concerns`, so generate was
+told to "address" e.g. "Tier A venue ... priced at T2" in the client draft. Now `withoutHoldNotes` keeps them out of
+generate and verify; the router still holds on them. Test `internal hold notes never reach the draft or the gate`.
+Suite 504 / 0 / 4, `tsc` clean. Commits `c4273f5` onward are NOT pushed and NOT Codex-reviewed.
+
+**Remaining 56 TO PORT, and why none was built:** R018/R266/R272 (strategic reserve: must be stored with the lead,
+`src/db` frozen by review #1); R358 code half (GigSalad parser, `src/automation` frozen by review #1); R006 (needs a
+design pass + live drafting runs, per its row); group 5 needs Alex's numbers; group 6 other repos/data.
+
+**Next phase:** Review. Codex round 1 on `97eec2b..HEAD` (round-up rounding + R320 + hold-note filter), and get
+review #1's verdict, which unblocks R018 and R358.
 
 ## 2026-10-03 (session 33bddb35, ~09:10–15:30) — poller cursor, wake, lease, S1-adv, the whole port review
 
@@ -94,7 +108,7 @@ Not executed on a real lead or Codex-reviewed.
 - Since the first handoff, groups 1–2 of the queue were done (`9425cb5`..`198d94d`): delivery mode (derived from
   format), Instrument Rule, sourced drafting + sourced integrity (gate backstop in code), compressed draft keeps a fear
   resolution, qualification block, request type + fears pre-work, urgency phrases, present-vs-excellent rubric.
-  Manifest now: 197 ALREADY PRESENT, 120 PORTED, 32 NOT PORTED, 57 TO PORT.
+  Manifest now (2026-10-04): 197 ALREADY PRESENT, 121 PORTED, 32 NOT PORTED, 56 TO PORT.
 
 **⚠ Codex round 1 OUT (~13:15):** reviews `2f2ec7d..e1fb163`. Until the verdict is back, do NOT edit `src/automation/`,
 `src/db/`, `src/app.ts`, `src/server.ts`, `src/wake-watch.ts`, `src/follow-up-scheduler.ts` (its gate stops Codex if
@@ -134,7 +148,7 @@ Two Codex reviews are open. Ask Alex for any verdict he hasn't pasted yet:
   - Review #1 (poller/lease/wake, 2f2ec7d..e1fb163): round 1, verdict not yet received.
   - Review #2 (port/pricing): CLOSED, round 3 GO (docs/reviews/2026-10-03-port-pricing-codex-round3.md).
 Record each verdict in docs/reviews/, then work its fix prompt under ~/.claude/docs/mandatory-review-workflow.md.
-Then the remaining 57 TO PORT rows (groups 3-6 in the top section), one concern per commit.
+Then the remaining 56 TO PORT rows (see the top section for what blocks each), one concern per commit.
 Do NOT edit files frozen by an open review (listed in the top section) until its verdict is in.
 Never put source text, client names or contact data into the public repo.
 HARD GATE: never start the Mac poller or server against real mail. Never open data/leads.db from a test.
