@@ -50,12 +50,13 @@ Codex CLI runs reviews with `-s workspace-write` (16 tests are sandbox-blocked, 
   `tracking.gigsalad.com` link (following one real link needs Alex's OK) or match in the inbox by first name +
   event type + date; also which account a lead belongs to; (4) wire into the orchestrator in place of the email
   parser's rawText; (5) Codex round 1 on the whole GigSalad range.
-- Open for Alex (pricing, no rush): business-account leads show NO competition count, so classify's rule makes them
-  competition 0 = quoted at anchor. Keep, or treat "unknown" differently (a new pricing rule)?
+- **Alex decided 2026-10-04:** business-account leads show NO competition count; KEEP quoting them at anchor (classify's
+  rule: no displayed count = competition 0). No new pricing rule.
 - Unverified: the page text the app's own browser returns may break lines differently from Chrome's; the parser
   accepts both layouts seen, and the fetch step must be checked on a real page.
 
-**Waiting on Alex:** R285 Encuentro exception NOT PORTED? (one client's deal; keeps it out of the public repo; that
+**Waiting on Alex:** R285 Encuentro exception NOT PORTED? Claude recommended YES 2026-10-04 (R1 is already held with no
+price, the deal is time-limited, the repo is public). (one client's deal; keeps it out of the public repo; that
 venue's residency is held anyway; nothing about the deal changes). Explained to Alex 2026-10-04; answer pending.
 
 **Next pricing rows (Alex: Project numbers, shown before commit):** holiday/peak + context modifiers (R058/R072/R104/
