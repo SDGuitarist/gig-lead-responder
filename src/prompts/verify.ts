@@ -7,6 +7,18 @@ import { sanitizeClassification, wrapUntrustedData, wrapVoiceReference } from ".
  * Requires Claude to extract exact quotes from the draft as evidence.
  * Requires pricing for budget_acknowledged gut check.
  */
+// Verbatim from docs/VERIFICATION.md "Component Quality Standards" (port manifest
+// R256/R258); the test "verify grades present vs excellent" fails if they drift.
+const COMPONENT_QUALITY_TABLE = `| Component | Present (Minimum) | Excellent (Standard) |
+|-----------|-------------------|----------------------|
+| **Hook** | Opens with something relevant | Opens with the ONE detail that makes them stop scrolling. Their words, their situation, their moment—back to them. |
+| **Validation** | Acknowledges them | Makes them feel seen. Names what THEY'RE doing in a way that creates ownership. They think "yes, that's exactly what I'm trying to do." |
+| **Scene** | Describes the event | THEIR specific details woven into a moment they can see, hear, feel. They're standing in it. |
+| **Emotion** | Implies feeling | The feeling emerges inevitably from the scene. Not told—shown. They feel it before they name it. |
+| **Differentiation + Named Fear** | Names a failure mode | Names the specific thing a lesser vendor does wrong — and why that costs the client — then shows what you do differently. Fear is explicit. |
+| **Logistics** | Answers questions | Preempts every question AND addresses inferred fears. Weaved into the scene naturally. No visible FAQ section. |
+| **Close** | Has a next step | The next step feels like the natural conclusion. Not a sales push—an invitation. |`;
+
 export function buildVerifyPrompt(
   classification: Classification,
   pricing: Pick<PricingResult, "budget">,
@@ -80,6 +92,11 @@ Does the opening sentence reference a CONCRETE DETAIL from the classification? T
 - genre_default_stated: ${clarificationMode ? "Always true — the draft may defer genre commitment while narrowing the direction with one binary question." : buildGenreDefaultInstruction(classification)}
 - timeline_acknowledged: ${buildTimelineInstruction(classification)}
 - compressed_validation_present: Extract a validation sentence from the COMPRESSED DRAFT specifically. If no client-specific validation exists in the compressed version, compressed_validation_present = false. The compressed draft must retain at least one sentence that validates the CLIENT (not the event).
+
+### 7a. COMPONENT QUALITY (present vs excellent, from VERIFICATION.md)
+For each component ask: Is this the best version, or just a version? A component that is only "Present" fails the gut check it maps to (can_see_it, validated_them, named_fear, differentiated, preempted_questions, creates_relief); name it in fail_reasons with what would make it excellent.
+
+${COMPONENT_QUALITY_TABLE}
 
 ### 7b. VOICE JUDGMENT CHECKS (docs/LEAD_RESPONSE_VOICE.md)
 The kill list's fixed words are checked in code. These need judgment. If any appears, sounds_like_alex = false and name it in fail_reasons:
