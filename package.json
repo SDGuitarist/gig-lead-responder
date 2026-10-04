@@ -13,7 +13,8 @@
     "test": "node scripts/run-tests.mjs",
     "typecheck": "tsc --noEmit",
     "plan:check": "tsx scripts/plan-gate.ts",
-    "test:match": "node scripts/run-tests.mjs --match"
+    "test:match": "node scripts/run-tests.mjs --match",
+    "gigsalad:login": "tsx scripts/gigsalad-login.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.39.0",
