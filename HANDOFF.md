@@ -51,6 +51,16 @@ Suite 504 / 0 / 4, `tsc` clean. Commits `c4273f5` onward are NOT pushed and NOT 
 2026-10-04); R006 (needs a
 design pass + live drafting runs, per its row); group 5 needs Alex's numbers; group 6 other repos/data.
 
+**2026-10-04, later (session 0153v273): review #1 closed, then R018 + a poller fix. NOT Codex-reviewed, not pushed past `79929a0`:**
+- `606b49a` **migration v3** (Alex approved): `leads.strategic_reserve_json`. ⚠ It applies to the REAL `data/leads.db` the next
+  time the server starts (backup `data/backups/pre-v3.db` first).
+- `7be518e`, `f56aa8f` **R018/R266/R272 strategic reserve PORTED**: generate banks up to 3 unused insights (never a
+  price), both save paths store them, follow-up n builds on the n-th one. Model quality UNEXECUTED.
+- `e887ec4` **(Alex flagged) auth detection**: the poller stopped for good on ANY error text containing "401"; now it
+  reads the HTTP status and `invalid_grant`. Also fixes the reverse (a real 401 without the digits was missed).
+- Suite 527 / 0 / 4. Next: R358 (Alex OK'd reading 2-3 real GigSalad emails, read-only, format only into the repo),
+  then a Codex round 1 on `79929a0..HEAD`.
+
 **Review #3 (round-up + R320 + hold-note filter, `97eec2b..58352b1`): CLOSED, round 2 GO** (round 1 prompt: session scratchpad
 `codex-round1-rounding-decline.md`, gate at `58352b1`). **Round 1 = NO-GO, 1 finding (backstop case-sensitive), FIXED**
 (docs/reviews/2026-10-04-rounding-decline-codex-round1.md). **Round 2 = GO: review #3 CLOSED**

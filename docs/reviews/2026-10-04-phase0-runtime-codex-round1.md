@@ -197,6 +197,9 @@ mechanism.
 as an auth failure and stops for good (`isAuthError`, pre-existing). The new boundary errors therefore never echo a
 provider value (a hex id can contain `401`); test `gmail boundary: errors never echo provider values`. The substring
 rule itself is unchanged and is a remaining risk: any other error that happens to contain `401` stops polling.
+**FIXED 2026-10-04 (`e887ec4`, Alex flagged it):** `isAuthError` now reads the HTTP status (401) and Google's
+`invalid_grant` code from the error's fields, never `401` in free text. It also caught the reverse bug: a real 401
+whose message lacked the digits was missed. Test `poller auth error` (red first on both). Not Codex-reviewed.
 
 Suite 519 pass / 0 fail / 4 skip; `tsc` and `git diff --check` clean.
 UNEXECUTED (unchanged): a real poll, two real processes racing for the lease, an overnight sleep (S6).
