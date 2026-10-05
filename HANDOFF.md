@@ -44,8 +44,11 @@ Codex CLI runs reviews with `-s workspace-write` (16 tests are sandbox-blocked, 
 **GigSalad portal reading: in progress (NOT Codex-reviewed yet; review when the range below is finished):**
 - DONE `7906f2a` pure page parser `src/automation/parsers/gigsalad-page.ts` (test `gigsalad page`, 6 tests incl. a
   mutation-proven phone test). Competition = shown count or "unknown", never 0.
-- NEXT, in order: (1) per-account app login command (opens the app's browser on screen, Alex signs in; one profile
-  folder per account under `data/browser/`); (2) `fetchLeadDetails` in `gigsalad-client.ts` (region "Event info"
+- DONE `371f2b1` (1) per-account login: `npm run gigsalad:login -- music|business`. **Alex signed in to BOTH on
+  2026-10-04: both printed SIGNED IN**, and a read-only check confirmed each profile shows only its own account's
+  inbox (`data/browser/gigsalad-music`, `data/browser/gigsalad-business`, gitignored). Needs Playwright Chromium
+  build 1208 (`npx playwright install chromium`, downloaded 2026-10-04 with Alex's OK; ~517 MB).
+- NEXT, in order: (2) `fetchLeadDetails` in `gigsalad-client.ts` (region "Event info"
   text + title → parser; logged-out page → hold + tell Alex to sign in); (3) email → gig id: the email's
   `tracking.gigsalad.com` link (following one real link needs Alex's OK) or match in the inbox by first name +
   event type + date; also which account a lead belongs to; (4) wire into the orchestrator in place of the email
