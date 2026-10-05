@@ -25,7 +25,9 @@ function isoDate(month: string, day: string, year: string): string | null {
 }
 
 export function parseGigSaladEmailKey(body: string): LeadKey | null {
-  const m = /^\s*(\S+) would like a quote for an? (.+?) on ([A-Za-z]+) (\d{1,2}), (\d{4})\b/m.exec(body);
+  // HTML-only mail ("<p>Name would like ...") and a bounded scan: the sentence is near the top.
+  const text = body.slice(0, 5000).replace(/<[^>]*>/g, "\n");
+  const m = /^\s*(\S+) would like a quote for an? ([^\n]{1,80}?) on ([A-Za-z]+) (\d{1,2}), (\d{4})\b/m.exec(text);
   if (!m) return null;
   const dateISO = isoDate(m[3], m[4], m[5]);
   return dateISO ? { firstName: m[1], eventType: m[2].trim(), dateISO } : null;
