@@ -11,8 +11,38 @@
 import { BROWSER_PROCESSES, gigsaladProfileDir, withGigSaladProfile, type GigSaladAccount } from "./gigsalad-accounts.js";
 import { gigsaladLeadUrl } from "./gigsalad-fetch.js";
 
-const UNREAD_VIEW = "https://www.gigsalad.com/promokit/inbox-unread";
-const ARCHIVE_VIEW = "https://www.gigsalad.com/promokit/inbox-archive";
+const UNREAD_VIEW = "/promokit/inbox-unread";
+const ARCHIVE_VIEW = "/promokit/inbox-archive";
+/** A view longer than this is not walked to its end (and so proves nothing about absence). */
+const MAX_VIEW_PAGES = 25;
+
+/** One inbox view, walked: ok = every page was that view; complete = reached a page with no Next. */
+export interface ViewWalk { ok: boolean; complete: boolean; ids: string[] }
+
+/**
+ * Walk an inbox view page by page (unread Codex round 1): GigSalad pages views by path
+ * ("/promokit/inbox-archive", then "/promokit/inbox-archive/2", ...) with a "Next" link. Every page
+ * must land exactly on the path asked for (a redirect proves nothing), Next must stay inside the
+ * view, and the walk stops after MAX_VIEW_PAGES. Pure: the loader is the browser in real use.
+ */
+export async function collectView(
+  viewPath: string,
+  load: (path: string) => Promise<{ landedPath: string; ids: string[]; nextHref: string | null }>,
+  maxPages = MAX_VIEW_PAGES,
+): Promise<ViewWalk> {
+  const inView = (p: string) => p === viewPath || (p.startsWith(`${viewPath}/`) && /^\d{1,4}$/.test(p.slice(viewPath.length + 1)));
+  const ids: string[] = [];
+  let path = viewPath;
+  for (let i = 0; i < maxPages; i++) {
+    const page = await load(path);
+    if (page.landedPath !== path) return { ok: false, complete: false, ids };
+    ids.push(...page.ids);
+    if (!page.nextHref) return { ok: true, complete: true, ids };
+    if (!inView(page.nextHref)) return { ok: true, complete: false, ids };
+    path = page.nextHref;
+  }
+  return { ok: true, complete: false, ids };
+}
 
 /** The browser steps, swappable in tests. */
 export interface UnreadPage {
@@ -20,8 +50,8 @@ export interface UnreadPage {
   /** How many buttons are named exactly "Mark as unread", and the form action of the one there is. */
   unreadButton(): Promise<{ count: number; formAction: string | null }>;
   clickUnread(): Promise<void>;
-  /** Lead numbers listed on an inbox view. */
-  listGigIds(url: string): Promise<string[]>;
+  /** A whole inbox view (every page), walked by collectView. */
+  listView(path: string): Promise<ViewWalk>;
 }
 
 export type UnreadResult =
@@ -45,13 +75,19 @@ export async function restoreGigSaladUnread(account: GigSaladAccount, gigId: str
     return fail(`the "Mark as unread" form belongs to another lead (${button.formAction ?? "no form"}); nothing clicked`);
   }
   await page.clickUnread();
-  const unread = await page.listGigIds(UNREAD_VIEW);
-  const archived = await page.listGigIds(ARCHIVE_VIEW);
-  if (archived.includes(gigId)) {
+  const unread = await page.listView(UNREAD_VIEW);
+  const archived = await page.listView(ARCHIVE_VIEW);
+  if (archived.ok && archived.ids.includes(gigId)) {
     return { status: "archived", reason: `GigSalad ${account} lead ${gigId} was ARCHIVED instead of marked unread. ` +
-      `Find it in ${ARCHIVE_VIEW} and move it back.` };
+      `Find it in https://www.gigsalad.com${ARCHIVE_VIEW} and move it back.` };
   }
-  if (!unread.includes(gigId)) return fail("clicked \"Mark as unread\" but it did not come back as unread");
+  // "Restored" needs proof both ways: found in the Unread view, and the WHOLE Archived view read without it.
+  if (!archived.ok || !archived.complete) return fail("clicked \"Mark as unread\" but could not prove it was not archived (Archived view not fully read)");
+  if (!unread.ok) return fail("clicked \"Mark as unread\" but the Unread view could not be read (landed elsewhere)");
+  if (!unread.ids.includes(gigId)) {
+    return fail(unread.complete ? "clicked \"Mark as unread\" but it did not come back as unread"
+      : "clicked \"Mark as unread\" but it was not found in the Unread pages that could be read");
+  }
   return { status: "restored" };
 }
 
@@ -80,12 +116,16 @@ export function restoreGigSaladUnreadInBrowser(account: GigSaladAccount, gigId: 
           await button().click();
           await tab.waitForLoadState("networkidle", { timeout: 15_000 }).catch(() => {});
         },
-        listGigIds: async (url) => {
-          await tab.goto(url, { timeout: 30_000, waitUntil: "domcontentloaded" });
+        listView: (path) => collectView(path, async (p) => {
+          await tab.goto(`https://www.gigsalad.com${p}`, { timeout: 30_000, waitUntil: "domcontentloaded" });
           await tab.locator('a[href^="/promokit/gig/"]').first().waitFor({ timeout: 5_000 }).catch(() => {});
-          return tab.locator('a[href^="/promokit/gig/"]').evaluateAll((links) =>
+          const ids = await tab.locator('a[href^="/promokit/gig/"]').evaluateAll((links) =>
             links.map((a) => a.getAttribute("href")?.split("/").pop() ?? ""));
-        },
+          // "Next" links: exactly one distinct target, else the walk cannot be trusted (reads as incomplete).
+          const nexts = [...new Set(await tab.locator("a").evaluateAll((links) =>
+            links.filter((a) => (a.textContent ?? "").trim() === "Next").map((a) => a.getAttribute("href") ?? "")))];
+          return { landedPath: new URL(tab.url()).pathname, ids, nextHref: nexts.length === 0 ? null : nexts.length === 1 ? nexts[0] : "?" };
+        }),
       };
       return await restoreGigSaladUnread(account, gigId, page);
     } finally {
