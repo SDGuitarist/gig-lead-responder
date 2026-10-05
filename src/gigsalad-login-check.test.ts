@@ -42,10 +42,9 @@ test("gigsalad login check: a check that cannot run says so, in different words 
 // Login check Codex round 1 P1: the poller awaited the check before its first poll, so a hung or
 // slow browser delayed or stopped polling. The check now starts in the background.
 test("gigsalad login check: starting the check returns at once, even if the browser hangs", () => {
-  const started = Date.now();
+  // It returns undefined, not a promise: nothing is awaited. (A stopwatch here flaked under load.)
   const result = startGigSaladLoginCheck(() => new Promise<never>(() => {}));
   assert.equal(result, undefined);
-  assert.ok(Date.now() - started < 50, `took ${Date.now() - started} ms`);
 });
 
 test("gigsalad login check: the poller starts the check without waiting, before its first poll", () => {

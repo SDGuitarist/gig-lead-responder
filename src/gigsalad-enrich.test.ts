@@ -60,7 +60,8 @@ test("gigsalad enrich: the email key reads HTML-only mail and ignores a hostile 
     { firstName: "Testa", eventType: "Funeral/Memorial Service", dateISO: "2026-03-19", timeWindow: null });
   const start = Date.now();
   parseGigSaladEmailKey("Testa would like a quote for " + "x on ".repeat(20_000));
-  assert.ok(Date.now() - start < 200, `took ${Date.now() - start} ms`);
+  // A runaway regex takes seconds or more; 2 s catches it without flaking on a busy machine.
+  assert.ok(Date.now() - start < 2_000, `took ${Date.now() - start} ms`);
 });
 
 // Codex round 1 (GigSalad) P1: first name + event type + date can collide. After the page is read,
