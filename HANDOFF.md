@@ -6,7 +6,7 @@
 
 ## START HERE — end of the residency + GigSalad session (2026-10-04/05)
 
-**State:** branch `feat/hub-phase0`, pushed. Suite on the Mac: **604 pass / 0 fail / 1 skip / 0 todo** (2026-10-05).
+**State:** branch `feat/hub-phase0`, pushed. Suite on the Mac: **616 pass / 0 fail / 1 skip / 0 todo** (2026-10-05).
 Codex CLI runs reviews with `-s workspace-write` (16 tests sandbox-blocked, Mac-only); check `git status` after.
 Commits are gated on a green suite (`a2ee091` was pushed red once; fixed `221c738`).
 
@@ -18,7 +18,12 @@ Commits are gated on a green suite (`a2ee091` was pushed red once; fixed `221c73
 - **Contact scrubber, new approach** (`cc96a0e..250b857`): R1 NO-GO (time-line leak, fixed), R2 NO-GO (P2 test only;
   leak CONFIRMED CLOSED). Alex: fix the test, no round 3 → `095cba0` (4 mutation-proven tests, not Codex-reviewed).
   CLOSED.
-- **OPEN / NOT reviewed:** `5c7a9e3` startup login check (next: Codex round 1).
+- **Startup login check + browser-job bounds** (`5c7a9e3`..`2c8db39`): R1 NO-GO, R2 NO-GO, R3 (authorized) **GO**.
+  Every GigSalad browser job takes turns per account profile, 60 s limit, a timed-out browser is killed (pgrep/pkill on
+  its `--user-data-dir`, with `--`) before release; a whole GigSalad lead read is capped at 90 s.
+- **Live login status** (`5649f6d`..`dab4718`): R1 NO-GO, R2 NO-GO, R3 (authorized) **GO**. Every GigSalad lead's
+  inbox reads refresh `/health` (ordered by read tickets) and print the loud line once per change.
+- **No review is open.** One flaky full-suite failure (1 of 8 runs, not reproduced) led to `92e2358`.
 
 **Built (residency):** R099 setup space; classify `engagement_type`/`residency_tier`/`residency_cadence`/`price_asked`;
 `RESIDENCY_RATES` R2/R3 (Alex-approved); every residency HELD; residency drafting states a per-night number only when
@@ -38,8 +43,15 @@ option A (no tracking-link click); one expired login does not hold the other acc
 competition count → kept at anchor; R285 Encuentro NOT PORTED; residency numbers/holds as above; no residency
 deposit; after the GigSalad cap: a different scrubber approach; scrubber: no round 3; login alert: startup check only.
 
+**OPEN QUESTION FOR ALEX (asked 2026-10-05, before the poller ever runs):** opening a GigSalad lead page probably
+marks it "read" (the page has "Mark as unread"); unknown whether the client sees "viewed". Until Module 1 can alert,
+a lead the poller opened would look read and nothing would announce it. Options: (1) verify with an old lead Alex
+marks unread, opened once read-only via the app's browser (recommended first step); (2) app clicks "Mark as unread"
+after reading (new GigSalad click: Alex's OK + review); (3) accept, relying on the dashboard once Module 1 alerts.
+Claude opened 4 lead pages on 2026-10-04/05 (2 per account, all already answered) and will open no more without OK.
+
 **Known gaps (owner Claude unless said):**
-- **Expired GigSalad login is not pushed to Alex** (startup check only; the hold note reaches nobody mid-run).
+- **Expired GigSalad login is not pushed to Alex** (startup check + live status on /health and the log; no push).
   Trigger: Module 1's alert channel (named requirement). Same channel: system-skipped follow-ups, invalid_grant.
 - A held GigSalad lead is marked processed: not retried after Alex signs in again (stays on the dashboard).
 - Remaining identity risk (option A): two leads with the same first name, event type, date AND time window, with
@@ -64,8 +76,8 @@ first), R329, R358 (competition count: now available from music-account pages, w
    end to end (only read-only page checks and synthetic emails); the first real lead may expose an email wording or
    page shape not seen in the 4 leads read.
 
-**Next phase:** Codex round 1 on `5c7a9e3`; then the next pricing group (show Alex the Project's numbers first) or
-R358 (wire the music-account competition count).
+**Next phase:** Alex's answer on "marked as read"; then the next pricing group (show Alex the Project's numbers
+first) or R358 (wire the music-account competition count).
 
 ### Prompt for Next Session
 
@@ -76,8 +88,7 @@ FIRST gate (stop and ask Alex if anything differs):
   git rev-parse HEAD; git rev-parse origin/feat/hub-phase0  # expect: identical
   git status --short                                        # expect: clean
 Read: HANDOFF.md "START HERE" section, CLAUDE.md, docs/research/2026-10-02-booking-hub/port-manifest.md.
-If the startup login check (5c7a9e3) has no Codex verdict in docs/reviews/, run Codex round 1 on it first
-(`codex exec -s workspace-write`, check git status after, record the verdict). Then the next pricing group: pull
+No Codex review is open. First ask Alex the OPEN QUESTION ("marked as read") in START HERE. Then the next pricing group: pull
 the Project's numbers from ~/Data/gig-lead-responder/ and SHOW ALEX EVERY PRICE BEFORE WRITING CODE; one concern
 per commit, failing test first, commit only on a green suite; npm run test:match (exit 3 = zero matches).
 Never put source text, client names or contact data into the public repo.
