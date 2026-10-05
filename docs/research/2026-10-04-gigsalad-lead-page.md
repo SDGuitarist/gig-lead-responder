@@ -66,3 +66,12 @@ Same page, same "Event info" region, same label/value layout, so **one parser se
 
 1. Email → gig id mapping (above).
 2. A lead that has never been answered (all four pages read had replies); the thread may differ.
+
+## Opening a lead marks it read (measured 2026-10-05)
+
+Known-answer test, business account, with Alex: Alex marked one old, already-handled lead unread. The inbox's
+Unread view (`/promokit/inbox-unread`) listed exactly that one lead. The app then opened it once through its real
+read path (`fetchGigSaladLead`, read-only, no click). Afterwards the Unread view was **empty**. So the app reading a
+lead's page marks it read in Alex's GigSalad inbox. Still unknown: whether the client sees anything (e.g. "viewed")
+and whether it affects GigSalad response-time stats. Useful for later: `/promokit/inbox-unread` lists unread leads
+without opening them, so the app can tell which leads Alex has not seen yet.

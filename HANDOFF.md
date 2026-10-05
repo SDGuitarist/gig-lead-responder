@@ -43,10 +43,10 @@ option A (no tracking-link click); one expired login does not hold the other acc
 competition count → kept at anchor; R285 Encuentro NOT PORTED; residency numbers/holds as above; no residency
 deposit; after the GigSalad cap: a different scrubber approach; scrubber: no round 3; login alert: startup check only.
 
-**OPEN QUESTION FOR ALEX (asked 2026-10-05, before the poller ever runs):** opening a GigSalad lead page probably
-marks it "read" (the page has "Mark as unread"); unknown whether the client sees "viewed". Until Module 1 can alert,
-a lead the poller opened would look read and nothing would announce it. Options: (1) verify with an old lead Alex
-marks unread, opened once read-only via the app's browser (recommended first step); (2) app clicks "Mark as unread"
+**OPEN QUESTION FOR ALEX (asked 2026-10-05, before the poller ever runs):** opening a GigSalad lead page **marks it
+"read" (MEASURED 2026-10-05**, `docs/research/2026-10-04-gigsalad-lead-page.md`); unknown whether the client sees "viewed". Until Module 1 can alert,
+a lead the poller opened would look read and nothing would announce it. Options: (1) DONE: verified;
+(2) app clicks "Mark as unread"
 after reading (new GigSalad click: Alex's OK + review); (3) accept, relying on the dashboard once Module 1 alerts.
 Claude opened 4 lead pages on 2026-10-04/05 (2 per account, all already answered) and will open no more without OK.
 
