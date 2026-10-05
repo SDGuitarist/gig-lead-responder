@@ -124,3 +124,27 @@ test("gigsalad page: a phone line below a field is skipped, not appended to the 
     assert.doesNotMatch(JSON.stringify(lead), /\*\*\*|contact removed|555/, phone);
   }
 });
+
+// Codex round 1 (GigSalad) P1: an email in the page title reached clientFirstName, and a non-US
+// phone (+44 20 7946 0958) reached fields and rawText. One fail-closed scrub covers the name and
+// every value; prices, guest counts and times must survive it.
+test("gigsalad page: title emails, international phones and multi-line values never survive", () => {
+  const text = `Event info\nTesta Q.\nThu, June 17, 2027 View calendar\n10:00 PM – 10:45 PM (45 minutes)\nSpringfield, CA 90001, US
+Event type: Personal Occasion
+Details: reach me on +44 20 7946 0958 or
+my cell 555.010.0123 thanks
+Contact: +1 (555) 010-0177
+Budget range: $500 – $1,000
+Number of guests: 100 guests
+Block communication`;
+  const lead = parseGigSaladLeadPage({ title: "Gig Lead from alice@example.com | GigSalad", text });
+  assert.equal(lead.clientFirstName, null);
+  const all = JSON.stringify(lead);
+  assert.doesNotMatch(all, /alice|example\.com|7946|0958|010[.\s-]?0123|010-0177/);
+  assert.equal(lead.fields["Budget range"], "$500 – $1,000");
+  assert.equal(lead.fields["Number of guests"], "100 guests");
+  assert.match(lead.rawText, /^Time: 10:00 PM – 10:45 PM \(45 minutes\)$/m);
+  assert.equal(parseGigSaladLeadPage({ title: "", text: text.replace("Testa Q.", "bob@example.com") }).clientFirstName, null);
+  assert.equal(parseGigSaladLeadPage({ title: "Gig Lead from 5550100199 | GigSalad", text }).clientFirstName, null);
+  assert.equal(parseGigSaladLeadPage({ title: "Gig Lead from Mary-Jo K. | GigSalad", text }).clientFirstName, "Mary-Jo");
+});

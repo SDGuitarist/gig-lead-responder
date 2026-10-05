@@ -26,7 +26,10 @@ export interface GigSaladPageLead {
 
 const MONTHS = ["january", "february", "march", "april", "may", "june", "july", "august", "september",
   "october", "november", "december"];
-const PHONE = /\+?1?[\s.-]*\(?\d{3}\)?[\s.-]*\d{3}[\s.-]*\d{4}\b/g;
+// Any run of digits joined by spaces, dots, dashes or brackets (optionally +) with 7+ digits is
+// treated as a phone, any country (Codex round 1, GigSalad, P1). Fail-closed: "1500-2000" typed
+// into Details is removed too; "$500 – $1,000", "100 guests" and "6:00 PM" survive.
+const PHONE = /\+?\(?\d[\d\s().-]{5,}\d/g;
 const EMAIL = /[\w.+-]+@[\w-]+(?:\.[\w-]+)+/g;
 const PHONE_LINE = /^\(?[\d*]{3}\)?[\s.-]*[\d*]{3}[\s.-]*[\d*]{4}$/;
 const SKIP_LINES = /^(Phone number( revealed after booking)?|Upgrade to see it now|View calendar)$/i;
@@ -36,7 +39,13 @@ const LOCATION = /,\s*[A-Z]{2}\s+(\d{5})(?:-\d{4})?,\s*US$/;
 const LABEL = /^([A-Z][A-Za-z /&'-]{1,40}):\s*(.*)$/;
 
 const scrub = (s: string): string => s.replace(EMAIL, "[contact removed]").replace(PHONE, (m) =>
-  `${/^\s/.test(m) ? " " : ""}[contact removed]`).trim();
+  (m.match(/\d/g)?.length ?? 0) >= 7 ? "[contact removed]" : m).trim();
+
+/** First word of a name, only if it looks like a name: never an email, a number or symbols. */
+const firstName = (s: string | undefined): string | null => {
+  const word = s?.trim().split(/\s+/)[0] ?? "";
+  return /^[\p{L}][\p{L}'’-]{0,39}$/u.test(word) ? word : null;
+};
 
 function durationMinutes(text: string): number | null {
   const h = /(\d+(?:\.\d+)?)\s*hours?/i.exec(text);
@@ -48,7 +57,7 @@ function durationMinutes(text: string): number | null {
 export function parseGigSaladLeadPage(page: { title: string; text: string }): GigSaladPageLead {
   const warnings: string[] = [];
   const lead: GigSaladPageLead = {
-    clientFirstName: /Gig Lead from\s+(\S+)/.exec(page.title)?.[1] ?? null,
+    clientFirstName: null,
     eventDate: null, durationMinutes: null, location: null, zip: null, fields: {},
     quotesSent: null, membersResponded: null, rawText: "", warnings,
   };
@@ -99,7 +108,8 @@ export function parseGigSaladLeadPage(page: { title: string; text: string }): Gi
     if (!lastLabel && !lead.eventDate && !nameLine) nameLine = line;
     else if (lastLabel) lead.fields[lastLabel] = scrub(`${lead.fields[lastLabel]} ${line}`);
   }
-  lead.clientFirstName ??= nameLine?.split(/\s+/)[0] ?? null;
+  const titleName = /Gig Lead from\s+(.+?)\s*\|/.exec(page.title)?.[1];
+  lead.clientFirstName = titleName !== undefined ? firstName(titleName) : firstName(nameLine ?? undefined);
 
   if (!lead.eventDate) warnings.push("No event date found on the lead page");
   if (!lead.location) warnings.push("No location with a zip found on the lead page");
@@ -114,6 +124,6 @@ export function parseGigSaladLeadPage(page: { title: string; text: string }): Gi
   out.push(lead.quotesSent === null
     ? "Competition: not shown on this GigSalad page (unknown)"
     : `Competition: ${lead.quotesSent} quotes sent by other members${lead.membersResponded === null ? "" : ` (${lead.membersResponded} members responded)`}`);
-  lead.rawText = out.join("\n");
+  lead.rawText = out.join("\n").replace(EMAIL, "[contact removed]"); // final pass: no email ever leaves
   return lead;
 }
