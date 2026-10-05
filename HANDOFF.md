@@ -4,7 +4,62 @@
 **Branch:** `feat/hub-phase0` (cut from `docs/booking-hub-brainstorm` at `c644210`; pushed; not merged)
 **Phase:** Work, Phase 0 **in progress**. 0.1, 0.2 (code), 0.3 (all but the alert half of `invalid_grant alerts`), 0.4, S1, S1-adv done. **0.5 port: 29 TO PORT remain.** 0.6 blocked. **GigSalad portal reading BUILT.** Module 1 not started.
 
-## START HERE — end of the residency + GigSalad session (2026-10-04/05)
+## START HERE — R358 session (2026-10-05)
+
+**State:** branch `feat/hub-phase0`, pushed at `74ddbdf`+ (this HANDOFF commit). Suite: **635 pass / 0 fail / 1 skip**.
+
+**Done (R358, competition count; `011f0e6..5c55d4b`):**
+- `edb2b8d` the count GigSalad displays (the page parser's LAST rawText line) is the only source: a client's
+  "we have 4 quotes" in Details, or a typed `Competition:` line, no longer overrides it (both were live bugs).
+- `39ffeb4` manifest R358 PORTED (marker `GigSalad displays`, test `port manifest R358`).
+- `3f40b08` **(Alex's catch)** business pages (count not shown) must have count 0, else held; before, an
+  invented count passed.
+- `5c55d4b` (Codex R1 P2) strict rules only when runPipeline's CALLER says `gigsalad` (never
+  `classification.platform`); wiring test `port manifest R358 wiring` in `src/run-pipeline.test.ts`.
+- Tests: `src/port-manifest-competition.test.ts` (page text → real parser → real check), all mutation-checked.
+
+**Review OPEN — R358, iteration STOPPED (2nd NO-GO):** R1 NO-GO (P2, fixed `5c55d4b`, confirmed closed);
+R2 NO-GO (P2): `src/webhook.ts:145` (Mailgun) passes `"gigsalad"` with the raw EMAIL text, not a parsed page,
+so a client line typed at the end would be read as GigSalad's. Claude checked: the orchestrator half does NOT
+reproduce (held/failed enrichment returns before runPipeline). Records: `docs/reviews/2026-10-05-r358-codex-round{1,2}.md`.
+**Waiting on Alex:** fix (pass a "parsed page" flag only from the orchestrator's enriched branch) + round 3 or not.
+Without `Round 3 authorized by Alejandro: YES`, no round-3 prompt.
+
+**Pricing group shown to Alex, WAITING on his answer (no code written):** holiday/peak + context modifiers
+(R058/R072/R104/R292). Project numbers: ceremony solo 1 hr = social 1 hr = `SOLO_RATES` (already match);
+wedding-adjacent "at tier or above" (no number, already in classify); travel already in `src/travel-fee.ts`;
+**holiday/peak (Valentine's, Cinco de Mayo, NYE): "quoted separately above standard rates", NO number in the
+Project.** Asked: (a) hold every holiday/peak lead (recommended) or (b) Alex gives a number; and is the date
+list complete (Carnival?). Off-peak "$100-200 less" is a negotiation line, not automatic.
+
+### Three Questions (R358 session)
+1. **Hardest implementation decision?** What counts as trusted provenance. Line text → caller's platform
+   (Codex R1) → still not "this text is a parsed page" (Codex R2). Each step narrowed it.
+2. **Considered changing but left alone?** The parser letting a client type any `Label:` line (it can still
+   put a fake `Competition:` line before the real one, which the MODEL may read). The check now holds that
+   case, so it fails toward a hold; a parser label allow-list is broader work.
+3. **Least confident going into the next phase?** The webhook P2's real exposure: it depends on whether a
+   GigSalad email ever carries client-typed text, which no one has measured.
+
+### Prompt for Next Session
+
+```
+Work in /Users/alejandroguillen/Projects/gig-lead-responder.
+FIRST gate (stop and ask Alex if anything differs):
+  pwd; git fetch origin; git branch --show-current          # expect: feat/hub-phase0
+  git rev-parse HEAD; git rev-parse origin/feat/hub-phase0  # expect: identical
+  git status --short                                        # expect: clean
+Read: HANDOFF.md "START HERE — R358 session", CLAUDE.md, docs/reviews/2026-10-05-r358-codex-round2.md.
+Two answers from Alex are pending: (1) R358 webhook P2: fix + round 3 or not; (2) holiday/peak: hold or a
+number, and the date list. Ask for any not given; do not write pricing code without (2).
+One concern per commit, failing test first, commit only on a green suite; npm run test:match (exit 3 = zero matches).
+Codex: `codex exec -s workspace-write "..." < /dev/null` (without </dev/null it waits on stdin forever).
+HARD GATE: never start the Mac poller or server against real mail. Never open data/leads.db from a test.
+STOP and ask Alex before: any real send; any GigSalad click or opening GigSalad/Yelp lead pages; Full Disk Access;
+any change to .env or production data; any new or changed price. Do not start Module 1. Update HANDOFF.md before stopping.
+```
+
+## Earlier: end of the residency + GigSalad session (2026-10-04/05)
 
 **State:** branch `feat/hub-phase0`, pushed. Suite on the Mac: **628 pass / 0 fail / 1 skip / 0 todo** (2026-10-05).
 Codex CLI runs reviews with `-s workspace-write` (16 tests sandbox-blocked, Mac-only); check `git status` after.
@@ -63,10 +118,10 @@ puts every lead it opened back to unread (built and reviewed GO, above). Still u
 - Poller retry counter not restart-proof (deferred); migration v3 runs on the real data/leads.db at next server
   start (backup first).
 
-**Remaining TO PORT (29):** pricing group (Alex: Project numbers, shown before commit): holiday/peak + context
+**Remaining TO PORT (28 after R358):** pricing group (Alex: Project numbers, shown before commit): holiday/peak + context
 modifiers (R058/R072/R104/R292), $150 minimum profit (R295/R362), quote formatting by tier (R300–R302), T4/NP
 (R403, then F1 R020–R025). Other: R006 (design + paid model runs), R081–R089 + R405 (PF-Intel production data, ask
-first), R329, R358 (competition count: now available from music-account pages, wire next), R398 (later module).
+first), R329, R398 (later module). R358 PORTED 2026-10-05 (review open, see top).
 
 ### Three Questions (residency + GigSalad session)
 1. **Hardest implementation decision?** Contact scrubbing. A list of phone separators lost three review rounds in a
