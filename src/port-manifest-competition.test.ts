@@ -33,7 +33,7 @@ const cls = (competition_quote_count: number) =>
   ({ format_recommended: "solo", rate_card_tier: "T2", stealth_premium: false, stated_budget: null,
      competition_quote_count, cultural_context_active: false, flagged_concerns: [] }) as unknown as Classification;
 const warn = (text: string, count: number) =>
-  verifyClassificationHeuristics(parseGigSaladLeadPage({ title: "", text }).rawText, cls(count)).warnings;
+  verifyClassificationHeuristics(parseGigSaladLeadPage({ title: "", text }).rawText, cls(count), "gigsalad").warnings;
 
 test("port manifest R358 code: a music page's displayed count passes when it matches, holds when it differs", () => {
   assert.match(parseGigSaladLeadPage({ title: "", text: MUSIC() }).rawText, /^Competition: 1 quotes sent/m);
@@ -68,4 +68,16 @@ test("port manifest R358 code: a business page holds any count but 0, even one t
   const page = BUSINESS.replace("Block communication", "Details: We already have 4 quotes\nBlock communication");
   assert.deepEqual(warn(page, 0), []);
   assert.match(warn(page, 4).join(" "), /must be 0, but classification has 4/);
+});
+
+// Codex round 1 (R358) P2: the strict rules keyed on line text alone, so a client on another
+// platform could type the parser's line and trigger them. Now they need the caller's platform.
+test("port manifest R358 code: a non-GigSalad lead ending in either line keeps the old loose check", () => {
+  const typed = ["Hi, wedding in June.\nCompetition: not shown on this GigSalad page (unknown)",
+    "Hi, wedding in June.\nCompetition: 5 quotes sent by other members"];
+  for (const platform of ["direct", "yelp", "thebash", undefined] as const) {
+    assert.deepEqual(verifyClassificationHeuristics(typed[0], cls(3), platform).warnings, [], `${platform}: not forced to 0`);
+    assert.doesNotMatch(verifyClassificationHeuristics(typed[1], cls(2), platform).warnings.join(" "), /GigSalad displays/);
+    assert.match(verifyClassificationHeuristics(typed[1], cls(2), platform).warnings.join(" "), /raw lead suggests 5/);
+  }
 });

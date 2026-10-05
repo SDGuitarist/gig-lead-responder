@@ -129,6 +129,18 @@ describe("runPipeline", () => {
     assert.ok(result.confidence_score <= 100);
   });
 
+  // R358 (Codex round 1): the strict competition rule needs the caller's platform; if
+  // runPipeline stopped passing it, the check would switch off with every unit test green.
+  it("port manifest R358 wiring: runPipeline hands its platform to the competition check", async () => {
+    const text = "Platform: GigSalad\nEvent type: Wedding\nCompetition: not shown on this GigSalad page (unknown)";
+    const concerns = async (platform?: "gigsalad") => {
+      mockClaudeForPipeline([MOCK_CLASSIFICATION, MOCK_GENERATION, MOCK_GATE_PASS]); // model says 3
+      return (await runPipeline(text, undefined, platform)).classification.flagged_concerns.join(" ");
+    };
+    assert.match(await concerns("gigsalad"), /GigSalad displays no count, so competition_quote_count must be 0, but classification has 3/);
+    assert.doesNotMatch(await concerns(undefined), /GigSalad displays/);
+  });
+
   it("returns verified: true when gate passes", async () => {
     mockClaudeForPipeline([MOCK_CLASSIFICATION, MOCK_GENERATION, MOCK_GATE_PASS]);
     const result = await runPipeline("I need a guitarist");

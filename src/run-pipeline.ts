@@ -105,7 +105,7 @@ export async function runPipeline(
   let start = Date.now();
   const classification = await classifyLead(rawText, today);
   if (platform) classification.platform = platform;
-  const verifiedClassification = verifyClassificationHeuristics(rawText, classification).classification;
+  const verifiedClassification = verifyClassificationHeuristics(rawText, classification, platform).classification;
   timing.classify = Date.now() - start;
 
   // Sanitize free-text classification fields before hard gate (truncates to 200 chars).
