@@ -5,7 +5,7 @@ export const CONCERN_FULL_ENSEMBLE = "mention_full_ensemble_upgrade" as const;
 // Hold notes for Alex ride in flagged_concerns so the router holds the lead (any
 // flagged concern holds), but they are not concerns a draft answers: the generate
 // and verify prompts see the classification without them.
-export const HOLD_NOTE_PREFIXES = ["classification_verify:", "graceful_decline:", "residency:"] as const;
+export const HOLD_NOTE_PREFIXES = ["classification_verify:", "graceful_decline:", "residency:", "holiday_peak:"] as const;
 export function withoutHoldNotes<T extends { flagged_concerns: string[] }>(c: T): T {
   return { ...c, flagged_concerns: c.flagged_concerns.filter((f) => !HOLD_NOTE_PREFIXES.some((p) => f.startsWith(p))) };
 }

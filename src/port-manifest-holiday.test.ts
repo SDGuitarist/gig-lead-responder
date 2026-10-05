@@ -1,7 +1,8 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { verifyClassificationHeuristics } from "./pipeline/classify-verify.js";
-import type { Classification } from "./types.js";
+import { readFileSync } from "node:fs";
+import { HOLD_NOTE_PREFIXES, withoutHoldNotes, type Classification } from "./types.js";
 
 // Port manifest R292 (holiday/peak modifier): the Project says holiday/peak dates are "quoted
 // separately above standard rates" and gives no number. Alex 2026-10-05: hold every one for him
@@ -32,4 +33,19 @@ test("port manifest R292: neighbouring days, other Sundays in May, and no date a
   }
   assert.deepEqual(holiday(null), []);
   assert.ok(!verifyClassificationHeuristics("lead text", cls("2026-06-20")).warnings.some((w) => w.includes("holiday_peak:")));
+});
+
+// Codex round 1 (holiday) P2: the note held the lead but was not a hold-note prefix, so the
+// generate and verify prompts (both call withoutHoldNotes) would show it to the drafting model.
+test("port manifest R292: the holiday note holds the lead but never reaches the drafting prompts", () => {
+  const held = verifyClassificationHeuristics("lead text", cls("2026-07-04")).classification;
+  assert.ok(held.flagged_concerns.some((f) => f.startsWith("holiday_peak:")));
+  assert.ok(!withoutHoldNotes(held).flagged_concerns.some((f) => f.startsWith("holiday_peak:")));
+});
+
+test("hold notes: every note prefix classify-verify writes is stripped from the drafting prompts", () => {
+  const src = readFileSync("src/pipeline/classify-verify.ts", "utf-8");
+  const prefixes = [...new Set([...src.matchAll(/addWarning\(\s*warnings,\s*[`"]([a-z_]+:)/g)].map((m) => m[1]))];
+  assert.ok(prefixes.length >= 4, `control: found ${prefixes.join(" ")}`);
+  assert.deepEqual(prefixes.filter((p) => !(HOLD_NOTE_PREFIXES as readonly string[]).includes(p)), []);
 });
