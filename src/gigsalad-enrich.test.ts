@@ -57,8 +57,33 @@ test("gigsalad enrich: an email without the lead sentence is left to the email p
 
 test("gigsalad enrich: the email key reads HTML-only mail and ignores a hostile long body quickly", () => {
   assert.deepEqual(parseGigSaladEmailKey("<p>Testa would like a quote for a Funeral/Memorial Service on March 19, 2026.</p>"),
-    { firstName: "Testa", eventType: "Funeral/Memorial Service", dateISO: "2026-03-19" });
+    { firstName: "Testa", eventType: "Funeral/Memorial Service", dateISO: "2026-03-19", timeWindow: null });
   const start = Date.now();
   parseGigSaladEmailKey("Testa would like a quote for " + "x on ".repeat(20_000));
   assert.ok(Date.now() - start < 200, `took ${Date.now() - start} ms`);
+});
+
+// Codex round 1 (GigSalad) P1: first name + event type + date can collide. After the page is read,
+// its own date, event type, first name and (when the email gives one) time window must match the
+// email; any mismatch holds the lead.
+test("gigsalad enrich: the page must agree with the email (name, type, date, time window)", async () => {
+  const page = (text: string, title = "Gig Lead from Testa Q. | GigSalad"): GigSaladFetchResult =>
+    ({ status: "ok", message: "", lead: parseGigSaladLeadPage({ title, text }) });
+  const base = "Event info\nTesta Q.\nSat, August 1, 2026 View calendar\n6:00 PM – 9:00 PM (3 hours)\nSpringfield, CA 90001, US\nEvent type: Birthday Party\nBlock communication";
+  const go = (p: GigSaladFetchResult, email = EMAIL) =>
+    enrichGigSaladLead(email, { find: found({ status: "matched", account: "music", gigId: "8" }), readPage: fetched(p) });
+  assert.equal((await go(page(base))).status, "enriched");
+  for (const [label, text, title] of [
+    ["other time", base.replace("6:00 PM – 9:00 PM (3 hours)", "7:00 PM – 9:00 PM (2 hours)"), undefined],
+    ["other date", base.replace("Sat, August 1, 2026", "Sun, August 2, 2026"), undefined],
+    ["other type", base.replace("Event type: Birthday Party", "Event type: Wedding"), undefined],
+    ["other name", base, "Gig Lead from Otherby Q. | GigSalad"],
+  ] as const) {
+    const r = await go(page(text, title));
+    assert.equal(r.status, "hold", label);
+    assert.match(r.status === "hold" ? r.reason : "", /does not match the email/, label);
+  }
+  // An email without a time window is checked on name, type and date only.
+  const noTime = "Testa would like a quote for a Birthday Party on August 1, 2026.";
+  assert.equal((await go(page(base.replace("6:00 PM – 9:00 PM (3 hours)", "7:00 PM – 9:00 PM (2 hours)")), noTime)).status, "enriched");
 });

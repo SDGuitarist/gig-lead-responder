@@ -8,7 +8,7 @@
 import type { GigSaladPageLead } from "../parsers/gigsalad-page.js";
 import type { GigSaladAccount } from "./gigsalad-accounts.js";
 import { fetchGigSaladLead } from "./gigsalad-fetch.js";
-import { findGigSaladLead } from "./gigsalad-match.js";
+import { findGigSaladLead, parseGigSaladEmailKey, type LeadKey } from "./gigsalad-match.js";
 
 export type GigSaladEnrichment =
   /** notice: an account whose login expired while this lead was found in the other one. */
@@ -36,6 +36,23 @@ export async function enrichGigSaladLead(
   }
   const page = await deps.readPage(found.account, found.gigId);
   if (page.status !== "ok" || !page.lead) return { status: "hold", reason: `GigSalad: ${page.message}` };
+  const key = parseGigSaladEmailKey(emailBody);
+  const mismatch = key ? pageMismatch(key, page.lead) : "the email's key could not be read";
+  if (mismatch) return { status: "hold", reason: `GigSalad: lead ${found.gigId} (${found.account}) does not match the email: ${mismatch}` };
   const notice = found.unreadable?.map((a) => `GigSalad: the app's ${a} login has expired. Run: npm run gigsalad:login -- ${a}`).join(" ");
   return { status: "enriched", account: found.account, gigId: found.gigId, lead: page.lead, ...(notice ? { notice } : {}) };
+}
+
+/**
+ * After the page is read, its own name, event type, date and time window must agree with the email
+ * (Codex round 1, GigSalad, P1: the inbox key alone can collide). Returns what differs, or null.
+ */
+function pageMismatch(key: LeadKey, lead: GigSaladPageLead): string | null {
+  const same = (a: string | null | undefined, b: string) => (a ?? "").trim().toLowerCase() === b.trim().toLowerCase();
+  const diffs: string[] = [];
+  if (!same(lead.clientFirstName, key.firstName)) diffs.push("first name");
+  if (!same(lead.fields["Event type"], key.eventType)) diffs.push("event type");
+  if (lead.eventDate !== key.dateISO) diffs.push("date");
+  if (key.timeWindow && lead.timeWindow !== key.timeWindow) diffs.push("time window");
+  return diffs.length ? diffs.join(", ") : null;
 }

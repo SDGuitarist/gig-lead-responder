@@ -15,9 +15,10 @@ const row = (name: string, type: string, date: string) =>
   `${name}\nSep 26\n${type}\n•\nLatin Band\nSpringfield, CA\n•\n${date}\nMessage read`;
 
 test("gigsalad match: the email gives first name, event type and date", () => {
-  assert.deepEqual(parseGigSaladEmailKey(EMAIL), { firstName: "Testa", eventType: "Birthday Party", dateISO: "2026-08-01" });
+  assert.deepEqual(parseGigSaladEmailKey(EMAIL), { firstName: "Testa", eventType: "Birthday Party", dateISO: "2026-08-01", timeWindow: "6:00 PM-9:00 PM" });
   assert.deepEqual(parseGigSaladEmailKey(EMAIL.replace("a Birthday Party", "an Anniversary Party")),
-    { firstName: "Testa", eventType: "Anniversary Party", dateISO: "2026-08-01" });
+    { firstName: "Testa", eventType: "Anniversary Party", dateISO: "2026-08-01", timeWindow: "6:00 PM-9:00 PM" });
+  assert.equal(parseGigSaladEmailKey("Testa would like a quote for a Wedding on March 19, 2026.")?.timeWindow, null);
   assert.equal(parseGigSaladEmailKey("Your weekly GigSalad summary"), null);
 });
 

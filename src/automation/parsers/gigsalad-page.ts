@@ -12,6 +12,8 @@ export interface GigSaladPageLead {
   clientFirstName: string | null;
   eventDate: string | null; // YYYY-MM-DD
   durationMinutes: number | null;
+  /** "6:00 PM-9:00 PM" (start-end), to compare with the email's window; null if not shown. */
+  timeWindow: string | null;
   location: string | null;
   zip: string | null;
   /** Every "Label: value" in the Event info block, in page order (labels without the colon). */
@@ -34,7 +36,7 @@ const EMAIL = /[\w.+-]+@[\w-]+(?:\.[\w-]+)+/g;
 const PHONE_LINE = /^\(?[\d*]{3}\)?[\s.-]*[\d*]{3}[\s.-]*[\d*]{4}$/;
 const SKIP_LINES = /^(Phone number( revealed after booking)?|Upgrade to see it now|View calendar)$/i;
 const DATE = /^(?:Mon|Tue|Wed|Thu|Fri|Sat|Sun)[a-z]*,\s+([A-Za-z]+)\s+(\d{1,2}),\s+(\d{4})/;
-const TIME = /^\d{1,2}:\d{2}\s*[AP]M\s*[–—-]\s*\d{1,2}:\d{2}\s*[AP]M\s*\(([^)]+)\)$/i;
+const TIME = /^(\d{1,2}:\d{2})\s*([AP]M)\s*[–—-]\s*(\d{1,2}:\d{2})\s*([AP]M)\s*\(([^)]+)\)$/i;
 const LOCATION = /,\s*[A-Z]{2}\s+(\d{5})(?:-\d{4})?,\s*US$/;
 const LABEL = /^([A-Z][A-Za-z /&'-]{1,40}):\s*(.*)$/;
 
@@ -58,7 +60,7 @@ export function parseGigSaladLeadPage(page: { title: string; text: string }): Gi
   const warnings: string[] = [];
   const lead: GigSaladPageLead = {
     clientFirstName: null,
-    eventDate: null, durationMinutes: null, location: null, zip: null, fields: {},
+    eventDate: null, durationMinutes: null, timeWindow: null, location: null, zip: null, fields: {},
     quotesSent: null, membersResponded: null, rawText: "", warnings,
   };
   const lines = page.text.split("\n").map((l) => l.trim()).filter(Boolean);
@@ -94,7 +96,12 @@ export function parseGigSaladLeadPage(page: { title: string; text: string }): Gi
       }
       continue;
     }
-    if (!timeText && (m = TIME.exec(line))) { timeText = line; lead.durationMinutes = durationMinutes(m[1]); continue; }
+    if (!timeText && (m = TIME.exec(line))) {
+      timeText = line;
+      lead.timeWindow = `${m[1]} ${m[2].toUpperCase()}-${m[3]} ${m[4].toUpperCase()}`;
+      lead.durationMinutes = durationMinutes(m[5]);
+      continue;
+    }
     if ((m = LOCATION.exec(line))) {
       if (!lead.location) { lead.location = scrub(line); lead.zip = m[1]; }
       continue;

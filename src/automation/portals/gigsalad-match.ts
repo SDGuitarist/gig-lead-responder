@@ -9,8 +9,11 @@
  */
 import { GIGSALAD_ACCOUNTS, gigsaladProfileDir, type GigSaladAccount } from "./gigsalad-accounts.js";
 
-export interface LeadKey { firstName: string; eventType: string; dateISO: string }
-export interface InboxRow extends LeadKey { gigId: string }
+/** What the inbox row can be matched on (rows show no time). */
+export interface MatchKey { firstName: string; eventType: string; dateISO: string }
+/** The email's key; timeWindow ("6:00 PM-9:00 PM") is checked against the page after it is read. */
+export interface LeadKey extends MatchKey { timeWindow: string | null }
+export interface InboxRow extends MatchKey { gigId: string }
 export type GigSaladMatch =
   | { status: "matched"; account: GigSaladAccount; gigId: string }
   | { status: "none" }
@@ -27,10 +30,11 @@ function isoDate(month: string, day: string, year: string): string | null {
 export function parseGigSaladEmailKey(body: string): LeadKey | null {
   // HTML-only mail ("<p>Name would like ...") and a bounded scan: the sentence is near the top.
   const text = body.slice(0, 5000).replace(/<[^>]*>/g, "\n");
-  const m = /^\s*(\S+) would like a quote for an? ([^\n]{1,80}?) on ([A-Za-z]+) (\d{1,2}), (\d{4})\b/m.exec(text);
+  const m = /^\s*(\S+) would like a quote for an? ([^\n]{1,80}?) on ([A-Za-z]+) (\d{1,2}), (\d{4})\b(?: from (\d{1,2}:\d{2}) ?([ap]m) to (\d{1,2}:\d{2}) ?([ap]m))?/im.exec(text);
   if (!m) return null;
   const dateISO = isoDate(m[3], m[4], m[5]);
-  return dateISO ? { firstName: m[1], eventType: m[2].trim(), dateISO } : null;
+  const timeWindow = m[6] ? `${m[6]} ${m[7].toUpperCase()}-${m[8]} ${m[9].toUpperCase()}` : null;
+  return dateISO ? { firstName: m[1], eventType: m[2].trim(), dateISO, timeWindow } : null;
 }
 
 /**
@@ -52,7 +56,7 @@ export function parseInboxRow(href: string, text: string): InboxRow | null {
 
 const same = (a: string, b: string) => a.trim().toLowerCase() === b.trim().toLowerCase();
 
-export function matchGigSaladLead(key: LeadKey, rows: Record<GigSaladAccount, InboxRow[]>): GigSaladMatch {
+export function matchGigSaladLead(key: MatchKey, rows: Record<GigSaladAccount, InboxRow[]>): GigSaladMatch {
   const candidates = (Object.entries(rows) as Array<[GigSaladAccount, InboxRow[]]>).flatMap(([account, list]) =>
     list.filter((r) => same(r.firstName, key.firstName) && same(r.eventType, key.eventType) && r.dateISO === key.dateISO)
       .map((r) => ({ account, gigId: r.gigId })));

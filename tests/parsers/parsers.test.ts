@@ -63,7 +63,7 @@ test("real GigSalad fixture: the email is low on its own and gives the match key
   if (!msg) return;
   assert.equal(parseGigSaladEmail(msg).parseConfidence, "low");
   assert.deepEqual(parseGigSaladEmailKey(msg.bodyText || msg.bodyHtml),
-    { firstName: "Client", eventType: "Birthday Party", dateISO: "2026-08-01" });
+    { firstName: "Client", eventType: "Birthday Party", dateISO: "2026-08-01", timeWindow: "6:00 PM-9:00 PM" });
 });
 
 // --- Yelp Tests ---

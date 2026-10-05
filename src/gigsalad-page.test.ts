@@ -59,6 +59,7 @@ test("gigsalad page: music account fields, competition from the displayed count"
   assert.equal(lead.clientFirstName, "Testa");
   assert.equal(lead.eventDate, "2027-06-17");
   assert.equal(lead.durationMinutes, 45);
+  assert.equal(lead.timeWindow, "10:00 PM-10:45 PM");
   assert.equal(lead.zip, "90001");
   assert.equal(lead.location, "Springfield, CA 90001, US");
   assert.equal(lead.fields["Event type"], "Personal Occasion");
