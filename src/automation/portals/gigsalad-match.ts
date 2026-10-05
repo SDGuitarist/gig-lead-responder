@@ -66,7 +66,9 @@ export type InboxRead =
   | { status: "error"; message: string };
 export type InboxReader = (account: GigSaladAccount) => Promise<InboxRead>;
 export type FindResult =
-  | GigSaladMatch
+  /** unreadable: accounts whose inbox could not be read while the match was made in another (Alex 2026-10-04). */
+  | (GigSaladMatch & { status: "matched"; unreadable?: GigSaladAccount[] })
+  | Exclude<GigSaladMatch, { status: "matched" }>
   | { status: "no_key" }
   | { status: "signed_out"; account: GigSaladAccount }
   | { status: "error"; message: string };
@@ -98,18 +100,27 @@ const playwrightInboxReader: InboxReader = async (account) => {
 };
 
 /**
- * Find a lead email's page in BOTH accounts. An inbox that cannot be read is reported
- * (signed_out names the account), never treated as "no match": the lead may be in it.
+ * Find a lead email's page in BOTH accounts. Alex 2026-10-04: one expired login must not stop
+ * the other account, so a unique match among the readable inboxes is used (and names the
+ * unreadable account). With no match, an unreadable inbox is reported (signed_out names the
+ * account), never treated as "no match": the lead may be in it.
  */
 export async function findGigSaladLead(emailBody: string, read: InboxReader = playwrightInboxReader): Promise<FindResult> {
   const key = parseGigSaladEmailKey(emailBody);
   if (!key) return { status: "no_key" };
   const rows = {} as Record<GigSaladAccount, InboxRow[]>;
+  const problems: Array<FindResult & { status: "signed_out" | "error" }> = [];
   for (const account of GIGSALAD_ACCOUNTS) {
     const inbox = await read(account);
-    if (inbox.status === "signed_out") return { status: "signed_out", account };
-    if (inbox.status === "error") return { status: "error", message: inbox.message };
-    rows[account] = inbox.links.map((l) => parseInboxRow(l.href, l.text)).filter((r): r is InboxRow => r !== null);
+    if (inbox.status === "signed_out") problems.push({ status: "signed_out", account });
+    else if (inbox.status === "error") problems.push({ status: "error", message: inbox.message });
+    else rows[account] = inbox.links.map((l) => parseInboxRow(l.href, l.text)).filter((r): r is InboxRow => r !== null);
   }
-  return matchGigSaladLead(key, rows);
+  const match = matchGigSaladLead(key, rows);
+  if (match.status === "matched") {
+    const unreadable = GIGSALAD_ACCOUNTS.filter((a) => !(a in rows));
+    return unreadable.length ? { ...match, unreadable } : match;
+  }
+  if (match.status === "none" && problems.length) return problems[0];
+  return match;
 }

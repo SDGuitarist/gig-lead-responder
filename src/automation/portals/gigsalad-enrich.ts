@@ -11,7 +11,8 @@ import { fetchGigSaladLead } from "./gigsalad-fetch.js";
 import { findGigSaladLead } from "./gigsalad-match.js";
 
 export type GigSaladEnrichment =
-  | { status: "enriched"; account: GigSaladAccount; gigId: string; lead: GigSaladPageLead }
+  /** notice: an account whose login expired while this lead was found in the other one. */
+  | { status: "enriched"; account: GigSaladAccount; gigId: string; lead: GigSaladPageLead; notice?: string }
   | { status: "hold"; reason: string }
   /** Not GigSalad's new-lead sentence: leave the lead to the email parser, as before. */
   | { status: "not_a_lead_email" };
@@ -35,5 +36,6 @@ export async function enrichGigSaladLead(
   }
   const page = await deps.readPage(found.account, found.gigId);
   if (page.status !== "ok" || !page.lead) return { status: "hold", reason: `GigSalad: ${page.message}` };
-  return { status: "enriched", account: found.account, gigId: found.gigId, lead: page.lead };
+  const notice = found.unreadable?.map((a) => `GigSalad: the app's ${a} login has expired. Run: npm run gigsalad:login -- ${a}`).join(" ");
+  return { status: "enriched", account: found.account, gigId: found.gigId, lead: page.lead, ...(notice ? { notice } : {}) };
 }

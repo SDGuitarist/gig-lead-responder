@@ -19,6 +19,13 @@ test("gigsalad enrich: one match whose page reads is enriched with that page's l
   assert.equal(r.status, "enriched");
   assert.equal(r.status === "enriched" && r.lead.rawText, PAGE.rawText);
   assert.equal(r.status === "enriched" && r.account, "business");
+  assert.equal(r.status === "enriched" && r.notice, undefined);
+});
+
+test("gigsalad enrich: a match found while the other login expired goes ahead and tells Alex", async () => {
+  const r = await enrichGigSaladLead(EMAIL, { find: found({ status: "matched", account: "music", gigId: "8", unreadable: ["business"] }), readPage: fetched(ok) });
+  assert.equal(r.status, "enriched");
+  assert.match(r.status === "enriched" ? r.notice ?? "" : "", /npm run gigsalad:login -- business/);
 });
 
 test("gigsalad enrich: every other outcome holds the lead with a reason Alex can act on", async () => {

@@ -58,15 +58,23 @@ test("gigsalad find: reads both inboxes and returns the one match with its accou
   assert.deepEqual(found, { status: "matched", account: "business", gigId: "8" });
 });
 
-test("gigsalad find: an unreadable or signed-out inbox holds the lead, never reads as no match", async () => {
+test("gigsalad find: an unreadable inbox never reads as no match: with no match elsewhere, the lead is held", async () => {
   const signedOut = await findGigSaladLead(EMAIL, fakeInboxes(rows(), { status: "signed_out" }));
   assert.deepEqual(signedOut, { status: "signed_out", account: "business" });
   const broken = await findGigSaladLead(EMAIL, fakeInboxes({ status: "error", message: "timeout" }, rows()));
   assert.equal(broken.status, "error");
-  // Even with a unique match in the readable account: the other inbox might hold the same key.
+  assert.equal((await findGigSaladLead(EMAIL, fakeInboxes({ status: "signed_out" }, { status: "signed_out" }))).status, "signed_out");
+});
+
+// Alex 2026-10-04: one expired login must not stop the other account. A unique match in the
+// signed-in account is used, and the result still says which login expired.
+test("gigsalad find: a unique match in the signed-in account is used and names the expired one", async () => {
   const partial = await findGigSaladLead(EMAIL, fakeInboxes(rows(["/promokit/gig/8", row("Testa Q.", "Birthday Party", "Sat, Aug 1, 2026")]),
     { status: "signed_out" }));
-  assert.equal(partial.status, "signed_out");
+  assert.deepEqual(partial, { status: "matched", account: "music", gigId: "8", unreadable: ["business"] });
+  const twoInOne = await findGigSaladLead(EMAIL, fakeInboxes(rows(["/promokit/gig/8", row("Testa Q.", "Birthday Party", "Sat, Aug 1, 2026")],
+    ["/promokit/gig/9", row("Testa Z.", "Birthday Party", "Sat, Aug 1, 2026")]), { status: "signed_out" }));
+  assert.equal(twoInOne.status, "ambiguous");
 });
 
 test("gigsalad find: an email that is not a lead notice is reported, not matched", async () => {
