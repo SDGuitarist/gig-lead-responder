@@ -28,10 +28,24 @@ export interface GigSaladPageLead {
 
 const MONTHS = ["january", "february", "march", "april", "may", "june", "july", "august", "september",
   "october", "november", "december"];
-// Any run of digits joined by spaces, dots, dashes or brackets (optionally +) with 7+ digits is
-// treated as a phone, any country (Codex round 1, GigSalad, P1). Fail-closed: "1500-2000" typed
-// into Details is removed too; "$500 – $1,000", "100 guests" and "6:00 PM" survive.
-const PHONE = /\+?\(?\d[\d\s().-]{5,}\d/g;
+// Phones: ONE rule, not a list of separators (after the review cap, Alex 2026-10-05: each Codex
+// round found a separator the list missed). Any letter-free stretch of text that holds 7+ digits
+// (any script) is a phone, whatever sits between the digits. Only these known-safe shapes are set
+// aside before counting: money ($1,250), times (6:00) and dates (12/25/2026, 2026-12-25). A
+// forgotten safe shape costs detail, never a leak. Residue: a number spelled out in words.
+// Each safe shape is strict (plain 0-9 only, real ranges, no digit right after) so that it can
+// never shield a phone: "$5550100199" and "55/01/0199" are counted, not exempt.
+const SAFE_NUMBERS = new RegExp([
+  String.raw`\$\s*(?:[0-9]{1,3}(?:,[0-9]{3}){1,2}|[0-9]{1,6})(?:\.[0-9]{2})?(?![0-9])`, // money, up to $999,999,999
+  String.raw`(?<![0-9])(?:[01]?[0-9]|2[0-3]):[0-5][0-9](?![0-9])`, // time
+  String.raw`(?<![0-9])(?:0?[1-9]|1[0-2])[/.-](?:0?[1-9]|[12][0-9]|3[01])[/.-](?:[0-9]{4}|[0-9]{2})(?![0-9])`, // m/d/y
+  String.raw`(?<![0-9])(?:19|20)[0-9]{2}-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12][0-9]|3[01])(?![0-9])`, // ISO date
+].join("|"), "gu");
+const scrubPhones = (s: string): string => s.replace(/[^\p{L}]+/gu, (run) => {
+  const digits = run.replace(SAFE_NUMBERS, " ").match(/\p{Nd}/gu)?.length ?? 0;
+  if (digits < 7) return run;
+  return `${/^\s*/u.exec(run)?.[0] ?? ""}[contact removed]${/\s*$/u.exec(run)?.[0] ?? ""}`;
+});
 const EMAIL = /[\w.+-]+@[\w-]+(?:\.[\w-]+)+/g;
 const PHONE_LINE = /^\(?[\d*]{3}\)?[\s.-]*[\d*]{3}[\s.-]*[\d*]{4}$/;
 const SKIP_LINES = /^(Phone number( revealed after booking)?|Upgrade to see it now|View calendar)$/i;
@@ -47,8 +61,7 @@ export function calendarDate(year: number, monthIndex: number, day: number): str
   return `${year}-${String(monthIndex + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 }
 
-const scrub = (s: string): string => s.replace(EMAIL, "[contact removed]").replace(PHONE, (m) =>
-  (m.match(/\d/g)?.length ?? 0) >= 7 ? "[contact removed]" : m).trim();
+const scrub = (s: string): string => scrubPhones(s.replace(EMAIL, "[contact removed]")).trim();
 
 /** First word of a name, only if it looks like a name: never an email, a number or symbols. */
 const firstName = (s: string | undefined): string | null => {

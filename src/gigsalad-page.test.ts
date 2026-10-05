@@ -174,3 +174,28 @@ test("gigsalad page: a phone or email riding on the date or time line never reac
   assert.match(lead.rawText, /^Date: 2027-06-17 \(Thu, June 17, 2027\)$/m);
   assert.match(lead.rawText, /^Time: 10:00 PM – 10:45 PM \(45 minutes\)$/m);
 });
+
+// After the review cap (Codex round 3: "555/010/0199" slipped through), Alex chose a different
+// approach: not a list of separators, but one rule. Any letter-free stretch holding 7+ digits is
+// a phone, whatever sits between the digits; money, times and dates are the only exemptions.
+const details = (v: string) => parseGigSaladLeadPage({ title: "", text: `Event info\nTesta Q.\nEvent type: Wedding\nDetails: ${v}\nBlock communication` });
+
+test("gigsalad page: any separator between 7+ digits is a phone, removed from fields and rawText", () => {
+  for (const phone of ["555/010/0199", "555-010-0199", "(555) 010 0199", "+44 20 7946 0958", "555.010.0199",
+    "555 010 0199", "5550100199", "+1-555-010-0199", "555_010_0199", "555|010|0199", "555–010–0199",
+    "555 / 010 / 0199", "010-0199", "５５５０１００１９９",
+    // Claude's own probe after the rule: the exemptions must not shield a phone.
+    "$5550100199", "55/01/0199", "99:99 5550100", "2026-55-01 0199"]) {
+    const lead = details(`call me at ${phone} thanks`);
+    assert.equal(lead.fields["Details"], "call me at [contact removed] thanks", phone);
+    assert.doesNotMatch(lead.rawText, /0199|１９９|7946/, phone);
+  }
+});
+
+test("gigsalad page: money, times, dates and small counts survive the phone rule", () => {
+  for (const keep of ["$500 – $1,000", "$1,250", "100 guests", "6:00 PM – 9:00 PM", "starts 3:00 sharp",
+    "12/25/2026", "2026-12-25", "Sept 12, 2026 at 3:00", "3 person", "4x6 or 6x6 max", "zip 90001",
+    "$2,500 for 3 hours", "Dec 5, 2026 – 3:30 – 5:30"]) {
+    assert.equal(details(keep).fields["Details"], keep, keep);
+  }
+});
