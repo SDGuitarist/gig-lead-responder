@@ -6,7 +6,7 @@
 
 ## START HERE — end of the residency + GigSalad session (2026-10-04/05)
 
-**State:** branch `feat/hub-phase0`, pushed. Suite on the Mac: **616 pass / 0 fail / 1 skip / 0 todo** (2026-10-05).
+**State:** branch `feat/hub-phase0`, pushed. Suite on the Mac: **628 pass / 0 fail / 1 skip / 0 todo** (2026-10-05).
 Codex CLI runs reviews with `-s workspace-write` (16 tests sandbox-blocked, Mac-only); check `git status` after.
 Commits are gated on a green suite (`a2ee091` was pushed red once; fixed `221c738`).
 
@@ -23,6 +23,11 @@ Commits are gated on a green suite (`a2ee091` was pushed red once; fixed `221c73
   its `--user-data-dir`, with `--`) before release; a whole GigSalad lead read is capped at 90 s.
 - **Live login status** (`5649f6d`..`dab4718`): R1 NO-GO, R2 NO-GO, R3 (authorized) **GO**. Every GigSalad lead's
   inbox reads refresh `/health` (ordered by read tickets) and print the loud line once per change.
+- **"Mark as unread"** (`ba232b4`..`e8df37f`): R1 NO-GO (one-page proof; opened page not restored), R2 **GO**. After the
+  app opens a lead page it clicks that lead's own "Mark as unread" (exact single button in this lead's form) and
+  proves it: in `/promokit/inbox-unread`, and the WHOLE `/promokit/inbox-archive` walked without it. Every opened
+  (or maybe-opened) page is restored; a failed restore is a notice, never a retried lead. The app's only GigSalad
+  click (pinned in `src/send-surface.test.ts`). Proven live on one test lead with Alex's OK.
 - **No review is open.** One flaky full-suite failure (1 of 8 runs, not reproduced) led to `92e2358`.
 
 **Built (residency):** R099 setup space; classify `engagement_type`/`residency_tier`/`residency_cadence`/`price_asked`;
@@ -43,12 +48,9 @@ option A (no tracking-link click); one expired login does not hold the other acc
 competition count → kept at anchor; R285 Encuentro NOT PORTED; residency numbers/holds as above; no residency
 deposit; after the GigSalad cap: a different scrubber approach; scrubber: no round 3; login alert: startup check only.
 
-**OPEN QUESTION FOR ALEX (asked 2026-10-05, before the poller ever runs):** opening a GigSalad lead page **marks it
-"read" (MEASURED 2026-10-05**, `docs/research/2026-10-04-gigsalad-lead-page.md`); unknown whether the client sees "viewed". Until Module 1 can alert,
-a lead the poller opened would look read and nothing would announce it. Options: (1) DONE: verified;
-(2) app clicks "Mark as unread"
-after reading (new GigSalad click: Alex's OK + review); (3) accept, relying on the dashboard once Module 1 alerts.
-Claude opened 4 lead pages on 2026-10-04/05 (2 per account, all already answered) and will open no more without OK.
+**Alex decided 2026-10-05 (answered):** opening a GigSalad lead marks it read (MEASURED); Alex chose option A: the app
+puts every lead it opened back to unread (built and reviewed GO, above). Still unknown: whether the client sees a
+"viewed" signal when the app opens a lead (not visible from Alex's side). Alex's test lead (business) is unread again.
 
 **Known gaps (owner Claude unless said):**
 - **Expired GigSalad login is not pushed to Alex** (startup check + live status on /health and the log; no push).
@@ -76,8 +78,8 @@ first), R329, R358 (competition count: now available from music-account pages, w
    end to end (only read-only page checks and synthetic emails); the first real lead may expose an email wording or
    page shape not seen in the 4 leads read.
 
-**Next phase:** Alex's answer on "marked as read"; then the next pricing group (show Alex the Project's numbers
-first) or R358 (wire the music-account competition count).
+**Next phase:** the next pricing group (show Alex the Project's numbers first) or R358 (wire the music-account
+competition count).
 
 ### Prompt for Next Session
 
@@ -88,7 +90,7 @@ FIRST gate (stop and ask Alex if anything differs):
   git rev-parse HEAD; git rev-parse origin/feat/hub-phase0  # expect: identical
   git status --short                                        # expect: clean
 Read: HANDOFF.md "START HERE" section, CLAUDE.md, docs/research/2026-10-02-booking-hub/port-manifest.md.
-No Codex review is open. First ask Alex the OPEN QUESTION ("marked as read") in START HERE. Then the next pricing group: pull
+No Codex review is open. Then the next pricing group: pull
 the Project's numbers from ~/Data/gig-lead-responder/ and SHOW ALEX EVERY PRICE BEFORE WRITING CODE; one concern
 per commit, failing test first, commit only on a green suite; npm run test:match (exit 3 = zero matches).
 Never put source text, client names or contact data into the public repo.
