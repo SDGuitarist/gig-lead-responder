@@ -60,3 +60,12 @@ test("port manifest R358 code: a business page (count not shown) raises nothing"
   assert.match(parseGigSaladLeadPage({ title: "", text: BUSINESS }).rawText, /not shown on this GigSalad page \(unknown\)/);
   assert.deepEqual(warn(BUSINESS, 0), []);
 });
+
+// Alex 2026-10-05: on a business page the check verified nothing, so an invented count
+// passed. The rule (classify prompt): no displayed count means 0.
+test("port manifest R358 code: a business page holds any count but 0, even one the client wrote", () => {
+  assert.match(warn(BUSINESS, 3).join(" "), /GigSalad displays no count, so competition_quote_count must be 0, but classification has 3/);
+  const page = BUSINESS.replace("Block communication", "Details: We already have 4 quotes\nBlock communication");
+  assert.deepEqual(warn(page, 0), []);
+  assert.match(warn(page, 4).join(" "), /must be 0, but classification has 4/);
+});

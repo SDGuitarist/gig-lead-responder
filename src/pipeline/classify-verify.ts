@@ -69,12 +69,20 @@ export function verifyClassificationHeuristics(
   // only source when present; a number the client wrote elsewhere does not override it.
   // Only the LAST line counts: the parser writes it last, and a client can type a
   // "Competition:" line into Details, which lands earlier.
-  const displayed = /^Competition: (\d+) quotes sent by other members\b.*$/.exec(rawText.split("\n").at(-1) ?? "");
+  // A page that shows no count (business account) means 0, per the classify rule; an
+  // invented or client-written number is held there too (Alex 2026-10-05).
+  const lastLine = rawText.split("\n").at(-1) ?? "";
+  const displayed = /^Competition: (\d+) quotes sent by other members\b.*$/.exec(lastLine);
+  const notShown = lastLine === "Competition: not shown on this GigSalad page (unknown)";
   if (displayed && Number(displayed[1]) !== classification.competition_quote_count) {
     addWarning(warnings, `classification_verify: GigSalad displays ${displayed[1]} competitor quotes but classification has ` +
       `${classification.competition_quote_count}`);
   }
-  const quoteCount = displayed ? null : parseQuoteCount(rawText);
+  if (notShown && classification.competition_quote_count !== 0) {
+    addWarning(warnings, "classification_verify: GigSalad displays no count, so competition_quote_count must be 0, " +
+      `but classification has ${classification.competition_quote_count}`);
+  }
+  const quoteCount = displayed || notShown ? null : parseQuoteCount(rawText);
   if (quoteCount !== null && quoteCount !== classification.competition_quote_count) {
     addWarning(
       warnings,
