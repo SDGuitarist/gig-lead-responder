@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { matchGigSaladLead, parseGigSaladEmailKey, parseInboxRow } from "./automation/portals/gigsalad-match.js";
+import { findGigSaladLead, matchGigSaladLead, parseGigSaladEmailKey, parseInboxRow, type InboxRead } from "./automation/portals/gigsalad-match.js";
 
 // GigSalad step 3 (Alex 2026-10-04, option A): find a lead email's page by matching first name +
 // event type + date against BOTH accounts' inbox rows. Exactly one match is used; none or more
@@ -44,4 +44,31 @@ test("gigsalad match: no match or two matches hold the lead; a lead is never gue
   const two = matchGigSaladLead(key, { music: [r("1")], business: [r("2")] });
   assert.equal(two.status, "ambiguous");
   assert.equal(matchGigSaladLead(key, { music: [r("1"), r("4")], business: [] }).status, "ambiguous");
+});
+
+// findGigSaladLead reads BOTH inboxes, then matches. An inbox that cannot be read must
+// never turn into "no match": the lead may be in it. That account's problem is reported.
+const fakeInboxes = (music: InboxRead, business: InboxRead) => async (account: "music" | "business") =>
+  (account === "music" ? music : business);
+const rows = (...r: Array<[string, string]>): InboxRead => ({ status: "ok", links: r.map(([href, text]) => ({ href, text })) });
+
+test("gigsalad find: reads both inboxes and returns the one match with its account", async () => {
+  const found = await findGigSaladLead(EMAIL, fakeInboxes(rows(["/promokit/gig/7", row("Other Q.", "Birthday Party", "Sat, Aug 1, 2026")]),
+    rows(["/promokit/gig/8", row("Testa Q.", "Birthday Party", "Sat, Aug 1, 2026")])));
+  assert.deepEqual(found, { status: "matched", account: "business", gigId: "8" });
+});
+
+test("gigsalad find: an unreadable or signed-out inbox holds the lead, never reads as no match", async () => {
+  const signedOut = await findGigSaladLead(EMAIL, fakeInboxes(rows(), { status: "signed_out" }));
+  assert.deepEqual(signedOut, { status: "signed_out", account: "business" });
+  const broken = await findGigSaladLead(EMAIL, fakeInboxes({ status: "error", message: "timeout" }, rows()));
+  assert.equal(broken.status, "error");
+  // Even with a unique match in the readable account: the other inbox might hold the same key.
+  const partial = await findGigSaladLead(EMAIL, fakeInboxes(rows(["/promokit/gig/8", row("Testa Q.", "Birthday Party", "Sat, Aug 1, 2026")]),
+    { status: "signed_out" }));
+  assert.equal(partial.status, "signed_out");
+});
+
+test("gigsalad find: an email that is not a lead notice is reported, not matched", async () => {
+  assert.deepEqual(await findGigSaladLead("Your weekly GigSalad summary", fakeInboxes(rows(), rows())), { status: "no_key" });
 });

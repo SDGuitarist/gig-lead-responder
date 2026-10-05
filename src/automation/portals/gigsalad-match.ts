@@ -4,9 +4,10 @@
  * The email holds only "<First> would like a quote for a <Event type> on <Month D, YYYY>".
  * The match key (first name + event type + date) is looked up in BOTH accounts' inbox rows:
  * exactly one row is used, and it also says which account owns the lead. None or several
- * hold the lead for Alex; a lead is never guessed. Pure: no network.
+ * hold the lead for Alex; a lead is never guessed. Everything here is pure except the default
+ * inbox reader, which opens each account's inbox read-only with its saved app login.
  */
-import type { GigSaladAccount } from "./gigsalad-accounts.js";
+import { GIGSALAD_ACCOUNTS, gigsaladProfileDir, type GigSaladAccount } from "./gigsalad-accounts.js";
 
 export interface LeadKey { firstName: string; eventType: string; dateISO: string }
 export interface InboxRow extends LeadKey { gigId: string }
@@ -55,4 +56,58 @@ export function matchGigSaladLead(key: LeadKey, rows: Record<GigSaladAccount, In
       .map((r) => ({ account, gigId: r.gigId })));
   if (candidates.length === 1) return { status: "matched", ...candidates[0] };
   return candidates.length === 0 ? { status: "none" } : { status: "ambiguous", candidates };
+}
+
+export type InboxRead =
+  | { status: "ok"; links: Array<{ href: string; text: string }> }
+  | { status: "signed_out" }
+  | { status: "error"; message: string };
+export type InboxReader = (account: GigSaladAccount) => Promise<InboxRead>;
+export type FindResult =
+  | GigSaladMatch
+  | { status: "no_key" }
+  | { status: "signed_out"; account: GigSaladAccount }
+  | { status: "error"; message: string };
+
+const INBOX = "https://www.gigsalad.com/promokit/inbox";
+
+const playwrightInboxReader: InboxReader = async (account) => {
+  let context;
+  try {
+    const { chromium } = await import("playwright");
+    context = await chromium.launchPersistentContext(gigsaladProfileDir(account), {
+      headless: true, args: ["--disable-blink-features=AutomationControlled"],
+    });
+    const page = await context.newPage();
+    await page.goto(INBOX, { timeout: 30_000, waitUntil: "domcontentloaded" });
+    if (!page.url().startsWith(INBOX)) return { status: "signed_out" };
+    const links = page.locator('a[href^="/promokit/gig/"]');
+    await links.first().waitFor({ timeout: 10_000 }).catch(() => {});
+    const out: Array<{ href: string; text: string }> = [];
+    for (let i = 0, n = await links.count(); i < n; i++) {
+      out.push({ href: (await links.nth(i).getAttribute("href")) ?? "", text: await links.nth(i).innerText() });
+    }
+    return { status: "ok", links: out };
+  } catch (err) {
+    return { status: "error", message: `GigSalad ${account} inbox could not be read: ${err instanceof Error ? err.message : String(err)}` };
+  } finally {
+    await context?.close();
+  }
+};
+
+/**
+ * Find a lead email's page in BOTH accounts. An inbox that cannot be read is reported
+ * (signed_out names the account), never treated as "no match": the lead may be in it.
+ */
+export async function findGigSaladLead(emailBody: string, read: InboxReader = playwrightInboxReader): Promise<FindResult> {
+  const key = parseGigSaladEmailKey(emailBody);
+  if (!key) return { status: "no_key" };
+  const rows = {} as Record<GigSaladAccount, InboxRow[]>;
+  for (const account of GIGSALAD_ACCOUNTS) {
+    const inbox = await read(account);
+    if (inbox.status === "signed_out") return { status: "signed_out", account };
+    if (inbox.status === "error") return { status: "error", message: inbox.message };
+    rows[account] = inbox.links.map((l) => parseInboxRow(l.href, l.text)).filter((r): r is InboxRow => r !== null);
+  }
+  return matchGigSaladLead(key, rows);
 }
