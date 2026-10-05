@@ -48,8 +48,10 @@ Codex CLI runs reviews with `-s workspace-write` (16 tests are sandbox-blocked, 
   2026-10-04: both printed SIGNED IN**, and a read-only check confirmed each profile shows only its own account's
   inbox (`data/browser/gigsalad-music`, `data/browser/gigsalad-business`, gitignored). Needs Playwright Chromium
   build 1208 (`npx playwright install chromium`, downloaded 2026-10-04 with Alex's OK; ~517 MB).
-- NEXT, in order: (2) `fetchLeadDetails` in `gigsalad-client.ts` (region "Event info"
-  text + title → parser; logged-out page → hold + tell Alex to sign in); (3) email → gig id: the email's
+- DONE `8a54a90` (2) `fetchGigSaladLead(account, gigId)` in `src/automation/portals/gigsalad-fetch.ts`: read-only,
+  address from a lead number only; outcomes ok / signed_out (names the login command) / not_a_lead / error. Live
+  read-only check passed on one lead per account (shape only) and a signed-out visit. `submitReply` untouched.
+- NEXT, in order: (3) email → gig id: the email's
   `tracking.gigsalad.com` link (following one real link needs Alex's OK) or match in the inbox by first name +
   event type + date; also which account a lead belongs to; (4) wire into the orchestrator in place of the email
   parser's rawText; (5) Codex round 1 on the whole GigSalad range.
