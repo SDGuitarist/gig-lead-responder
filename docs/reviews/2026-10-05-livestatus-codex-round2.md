@@ -26,3 +26,7 @@
 3. **Assertions:** Clean. New assertions are not vacuous; they verify state, callback reports, returned status, race behavior, and a control. Coverage is missing only for the timestamp edge cases above.
 
 Focused GigSalad tests passed. Full-suite failures were sandbox restrictions (`listen EPERM`/`sysctl`), not this change. Worktree remains clean.
+
+---
+
+**Round 3 authorized by Alejandro: YES** (2026-10-05, Alex chose fix + round 3 over Claude's recommended stop). Plan: order login-status results by an always-increasing per-read counter taken at read start (clock kept only for checked_at); tests for same-millisecond and backwards-clock reads. Pre-registered: round 3 is the last; a NO-GO fires the hard cap.
