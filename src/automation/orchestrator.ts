@@ -15,6 +15,7 @@ import { getLeadByMessageId, insertLead, updateLead } from "../db/leads.js";
 import { completeApproval } from "../db/follow-ups.js";
 import { YelpPortalClient } from "./portals/yelp-client.js";
 import { GigSaladPortalClient } from "./portals/gigsalad-client.js";
+import { enrichGigSaladLead } from "./portals/gigsalad-enrich.js";
 
 /** Written to error_message on a lead's first pipeline failure; a second failure is final. */
 const PIPELINE_RETRY_MARK = "pipeline attempt 1 failed: ";
@@ -25,7 +26,8 @@ const PIPELINE_RETRY_MARK = "pipeline attempt 1 failed: ";
  * 1. Validate source (exact allowlist + DMARC for the platform domain)
  * 2. Dedup check
  * 3. Parse email → ParsedLead
- * 4. Yelp enrichment (if Yelp — read full message from portal)
+ * 4. Yelp enrichment (if Yelp — read full message from portal); GigSalad enrichment
+ *    (the email holds almost nothing — read the lead page in its own account)
  * 5. Run pipeline (skip if low confidence → hold)
  * 6. Route (auto-send or hold)
  * 7. Send reply or SMS notification
@@ -37,7 +39,7 @@ export async function processLead(
   auth: OAuth2Client,
   yelpClient: YelpPortalClient,
   gigsaladClient: GigSaladPortalClient,
-  deps: { runPipeline: typeof runPipeline } = { runPipeline },
+  deps: { runPipeline: typeof runPipeline; enrichGigSalad?: typeof enrichGigSaladLead } = { runPipeline },
 ): Promise<void> {
   const startTime = Date.now();
 
@@ -113,10 +115,34 @@ export async function processLead(
     }
   }
 
+  // 4b. GigSalad enrichment — the email holds only a first name, event type and date; the
+  // details are on the lead page (docs/research/2026-10-04-gigsalad-lead-page.md). The send
+  // address (portalUrl) is deliberately NOT set: the old GigSalad reply path stays disarmed.
+  if (lead.platform === "gigsalad") {
+    const gs = await (deps.enrichGigSalad ?? enrichGigSaladLead)(msg.bodyText || msg.bodyHtml);
+    if (gs.status === "enriched") {
+      lead.rawText = gs.lead.rawText;
+      lead.parseConfidence = "high";
+      lead.parseWarnings = gs.lead.warnings;
+      if (gs.lead.clientFirstName) lead.clientName = gs.lead.clientFirstName;
+      if (gs.lead.eventDate) lead.eventDate = gs.lead.eventDate;
+      console.log(`GigSalad enrichment succeeded (${gs.account} account)`);
+      if (gs.notice) {
+        console.warn(gs.notice);
+        if (!config.dryRun) await sendSms(config, gs.notice);
+      }
+    } else if (gs.status === "hold") {
+      lead.parseConfidence = "low";
+      lead.parseWarnings = [...lead.parseWarnings, gs.reason];
+      console.warn(`GigSalad enrichment held the lead: ${gs.reason}`);
+    }
+  }
+
   // 5. Low confidence → skip pipeline, hold immediately
   if (lead.parseConfidence === "low") {
-    const holdMsg = `HOLD: Lead #${leadId} ${platform} — low parse confidence. Check dashboard.`;
-    updateLead(leadId, { status: "failed", error_message: "Low parse confidence — held for review" });
+    const why = lead.parseWarnings.length ? `: ${lead.parseWarnings.join("; ")}` : "";
+    const holdMsg = `HOLD: Lead #${leadId} ${platform} — low parse confidence${why}. Check dashboard.`;
+    updateLead(leadId, { status: "failed", error_message: `Low parse confidence — held for review${why}` });
     if (!config.dryRun) {
       await sendSms(config, holdMsg);
     } else {
