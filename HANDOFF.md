@@ -78,8 +78,12 @@ first), R329, R358 (competition count: now available from music-account pages, w
    end to end (only read-only page checks and synthetic emails); the first real lead may expose an email wording or
    page shape not seen in the 4 leads read.
 
-**Next phase:** the next pricing group (show Alex the Project's numbers first) or R358 (wire the music-account
-competition count).
+**Next phase (Claude's recommended first move, Alex agreed 2026-10-05):** R358 first. The chain may already exist:
+the GigSalad page parser emits "Competition: N quotes sent by other members" (music account) or "not shown
+(unknown)" (business); classify's COMPETITION EXTRACTION RULE reads the displayed count; classify-verify's
+parseQuoteCount holds a lead whose model count disagrees (probed 2026-10-05). Prove it with a test from page text
+to the hold, then mark R358 PORTED (manifest test must pass). Then the next pricing group (Project numbers shown
+to Alex before any code).
 
 ### Prompt for Next Session
 
@@ -89,13 +93,18 @@ FIRST gate (stop and ask Alex if anything differs):
   pwd; git fetch origin; git branch --show-current          # expect: feat/hub-phase0
   git rev-parse HEAD; git rev-parse origin/feat/hub-phase0  # expect: identical
   git status --short                                        # expect: clean
-Read: HANDOFF.md "START HERE" section, CLAUDE.md, docs/research/2026-10-02-booking-hub/port-manifest.md.
-No Codex review is open. Then the next pricing group: pull
-the Project's numbers from ~/Data/gig-lead-responder/ and SHOW ALEX EVERY PRICE BEFORE WRITING CODE; one concern
-per commit, failing test first, commit only on a green suite; npm run test:match (exit 3 = zero matches).
-Never put source text, client names or contact data into the public repo.
+Read: HANDOFF.md "START HERE" section, CLAUDE.md, docs/research/2026-10-02-booking-hub/port-manifest.md (row R358).
+No Codex review is open. First move: R358. Write a failing test that goes from a music-account GigSalad page text
+(parseGigSaladLeadPage, invented fixture) through classify-verify (verifyClassificationHeuristics): the displayed
+"quotes sent" count is in rawText, a matching model count passes, a different one is held, and a business page
+("not shown (unknown)") raises nothing. Build only what the test shows is missing, then mark R358 PORTED with its
+marker and test (npm run test:match -- "port manifest" must pass). Then the next pricing group: pull the Project's
+numbers from ~/Data/gig-lead-responder/ and SHOW ALEX EVERY PRICE BEFORE WRITING CODE.
+One concern per commit, failing test first, commit only on a green suite; npm run test:match (exit 3 = zero matches).
+For each finished range: Codex round 1 via `codex exec -s workspace-write` (check git status after), record every
+verdict in docs/reviews/. Never put source text, client names or contact data into the public repo.
 HARD GATE: never start the Mac poller or server against real mail. Never open data/leads.db from a test.
-STOP and ask Alex before: any real send; Full Disk Access; opening GigSalad/Yelp pages beyond what he approved;
+STOP and ask Alex before: any real send; any GigSalad click or opening GigSalad/Yelp lead pages; Full Disk Access;
 any change to .env or production data; any new or changed price. Do not start Module 1. Update HANDOFF.md before stopping.
 ```
 
