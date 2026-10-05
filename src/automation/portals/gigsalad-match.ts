@@ -115,16 +115,20 @@ export const readGigSaladInbox: InboxReader = (account) => withGigSaladProfile(a
 export async function findGigSaladLead(
   emailBody: string, read: InboxReader = readGigSaladInbox,
   // Each inbox read also refreshes that login's status on /health (Alex 2026-10-05).
-  onInbox: (account: GigSaladAccount, status: "ok" | "signed_out" | "error", why?: string) => void =
-    (account, status, why) => noteGigSaladLoginSeen(account, status, undefined, why),
+  onInbox: (account: GigSaladAccount, status: "ok" | "signed_out" | "error", why: string | undefined, startedAt: number) => void =
+    (account, status, why, startedAt) => noteGigSaladLoginSeen(account, status, { startedAt, why }),
 ): Promise<FindResult> {
   const key = parseGigSaladEmailKey(emailBody);
   if (!key) return { status: "no_key" };
   const rows = {} as Record<GigSaladAccount, InboxRow[]>;
   const problems: Array<FindResult & { status: "signed_out" | "error" }> = [];
   for (const account of GIGSALAD_ACCOUNTS) {
-    const inbox = await read(account);
-    onInbox(account, inbox.status, inbox.status === "error" ? inbox.message : undefined);
+    const startedAt = Date.now();
+    // A read that throws (timeout, profile busy) is an error result, not a skipped report
+    // (live-status Codex round 1).
+    const inbox: InboxRead = await read(account).catch((err) =>
+      ({ status: "error", message: `GigSalad ${account} inbox could not be read: ${err instanceof Error ? err.message : String(err)}` }));
+    onInbox(account, inbox.status, inbox.status === "error" ? inbox.message : undefined, startedAt);
     if (inbox.status === "signed_out") problems.push({ status: "signed_out", account });
     else if (inbox.status === "error") problems.push({ status: "error", message: inbox.message });
     else rows[account] = inbox.links.map((l) => parseInboxRow(l.href, l.text)).filter((r): r is InboxRow => r !== null);

@@ -9,28 +9,30 @@
  */
 import { GIGSALAD_ACCOUNTS, type GigSaladAccount } from "./gigsalad-accounts.js";
 import { readGigSaladInbox, type InboxReader } from "./gigsalad-match.js";
-import { getGigSaladLoginState, loginProblemLine, setGigSaladLoginState, type GigSaladLoginState } from "./gigsalad-login-state.js";
+import { getGigSaladLoginState, noteGigSaladLoginSeen, type GigSaladLoginState } from "./gigsalad-login-state.js";
 
 export { getGigSaladLoginState, type GigSaladLoginState, type GigSaladLoginStatus } from "./gigsalad-login-state.js";
 
 export async function checkGigSaladLogins(
   read: InboxReader = readGigSaladInbox, now: () => string = () => new Date().toISOString(),
+  clock: () => number = Date.now,
 ): Promise<GigSaladLoginState> {
-  const next: GigSaladLoginState = { checked_at: now(), music: "unchecked", business: "unchecked" };
+  // Per account, through the shared rule (live-status Codex round 1): never a whole-state replace,
+  // so a lead read that started after this one keeps its newer result.
   for (const account of GIGSALAD_ACCOUNTS) {
+    const startedAt = clock();
+    let status: "ok" | "signed_out" | "error";
     let why = "";
     try {
       const inbox = await read(account);
-      next[account] = inbox.status;
+      status = inbox.status;
       if (inbox.status === "error") why = inbox.message;
     } catch (err) {
-      next[account] = "error";
+      status = "error";
       why = err instanceof Error ? err.message : String(err);
     }
-    const line = loginProblemLine(account, next[account], why);
-    if (line) console.error(line);
+    noteGigSaladLoginSeen(account, status, { startedAt, now: now(), why });
   }
-  setGigSaladLoginState(next);
   return getGigSaladLoginState();
 }
 

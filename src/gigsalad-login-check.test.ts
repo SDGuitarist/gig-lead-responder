@@ -66,9 +66,11 @@ test("gigsalad login check: a lead's inbox read refreshes the status, loud once 
   const original = console.error;
   console.error = (...a: unknown[]) => { errors.push(a.join(" ")); };
   try {
-    noteGigSaladLoginSeen("music", "ok", "2026-10-05T13:00:00.000Z");
-    noteGigSaladLoginSeen("music", "signed_out", "2026-10-05T13:05:00.000Z");
-    noteGigSaladLoginSeen("music", "signed_out", "2026-10-05T13:10:00.000Z");
+    // Times relative to a fresh base: earlier tests in this file recorded real Date.now() reads.
+    const base = Date.now() + 1_000_000;
+    noteGigSaladLoginSeen("music", "ok", { startedAt: base + 1, now: "2026-10-05T13:00:00.000Z" });
+    noteGigSaladLoginSeen("music", "signed_out", { startedAt: base + 2, now: "2026-10-05T13:05:00.000Z" });
+    noteGigSaladLoginSeen("music", "signed_out", { startedAt: base + 3, now: "2026-10-05T13:10:00.000Z" });
   } finally { console.error = original; }
   const state = getGigSaladLoginState();
   assert.equal(state.music, "signed_out");
@@ -81,5 +83,46 @@ test("gigsalad login check: finding a lead reports each account's inbox status a
   await findGigSaladLead("Testa would like a quote for a Wedding on August 1, 2026.",
     async (a) => (a === "music" ? { status: "ok", links: [] } : { status: "signed_out" }),
     (account, status) => { seen.push([account, status]); });
+  // Live-status Codex round 1 P1: a read that THROWS (timeout, profile busy) is reported as error,
+  // not skipped, and the other account is still read.
+  const thrown: Array<[string, string]> = [];
+  const r = await findGigSaladLead("Testa would like a quote for a Wedding on August 1, 2026.",
+    async (a) => { if (a === "music") throw new Error("profile timeout"); return { status: "ok", links: [] }; },
+    (account, status) => { thrown.push([account, status]); });
+  assert.deepEqual(thrown, [["music", "error"], ["business", "ok"]]);
+  assert.equal(r.status, "error");
   assert.deepEqual(seen, [["music", "ok"], ["business", "signed_out"]]);
+});
+
+// Live-status Codex round 1 P1: the startup check replaced the whole status after its reads, so a
+// lead read that saw "expired" in the meantime could be overwritten by the older startup "ok".
+// A result counts only if no read that STARTED later has already reported.
+test("gigsalad login check: an older read's result never overwrites a newer one", async () => {
+  const base = Date.now() + 2_000_000; // newer than anything earlier tests recorded
+  noteGigSaladLoginSeen("business", "signed_out", { startedAt: base + 5, now: "2026-10-05T14:00:00.000Z" });
+  noteGigSaladLoginSeen("business", "ok", { startedAt: base + 4, now: "2026-10-05T14:01:00.000Z" });
+  assert.equal(getGigSaladLoginState().business, "signed_out", "an older ok loses");
+
+  // The startup check reports per account through the same rule. Its business read starts at
+  // base+10; a lead read that started at base+20 reports "expired" while startup is still waiting.
+  const startupRace = async (leadInBetween: boolean) => {
+    let release!: () => void;
+    const gate = new Promise<void>((r) => { release = r; });
+    let tick = 0;
+    const startup = checkGigSaladLogins(async (a) => { if (a === "business") await gate; return { status: "ok", links: [] }; },
+      () => "2026-10-05T14:02:00.000Z", () => base + 10 + (tick++) * 100);
+    await new Promise((r) => setTimeout(r, 5));
+    if (leadInBetween) noteGigSaladLoginSeen("business", "signed_out", { startedAt: base + 150, now: "2026-10-05T14:03:00.000Z" });
+    release();
+    await startup;
+    return getGigSaladLoginState().business;
+  };
+  assert.equal(await startupRace(true), "signed_out", "the newer lead result survives the slower startup ok");
+});
+
+test("gigsalad login check: control: without a newer read, the startup result does apply", async () => {
+  const base = Date.now() + 3_000_000;
+  noteGigSaladLoginSeen("business", "signed_out", { startedAt: base, now: "2026-10-05T15:00:00.000Z" });
+  await checkGigSaladLogins(async () => ({ status: "ok", links: [] }), () => "2026-10-05T15:01:00.000Z", () => base + 10);
+  assert.equal(getGigSaladLoginState().business, "ok");
 });

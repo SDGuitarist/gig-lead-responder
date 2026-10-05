@@ -10,13 +10,11 @@ export type GigSaladLoginStatus = "unchecked" | "ok" | "signed_out" | "error";
 export type GigSaladLoginState = { checked_at: string | null } & Record<GigSaladAccount, GigSaladLoginStatus>;
 
 let state: GigSaladLoginState = { checked_at: null, music: "unchecked", business: "unchecked" };
+/** When the read that produced each account's current status STARTED (live-status Codex round 1). */
+const startedAtOf: Partial<Record<GigSaladAccount, number>> = {};
 
 export function getGigSaladLoginState(): GigSaladLoginState {
   return { ...state };
-}
-
-export function setGigSaladLoginState(next: GigSaladLoginState): void {
-  state = { ...next };
 }
 
 /** The loud line for a login that is not ok; null when it is ok or unchecked. */
@@ -32,11 +30,19 @@ export function loginProblemLine(account: GigSaladAccount, status: GigSaladLogin
   return null;
 }
 
-/** A lead's inbox read: refresh that account; loud once when it CHANGES to a problem. */
+/**
+ * One inbox read's result (startup check or a lead): refresh that account; loud once when it
+ * CHANGES to a problem. A result counts only if no read that started LATER has already reported,
+ * so a slow older read can never put back a stale "ok" (live-status Codex round 1).
+ */
 export function noteGigSaladLoginSeen(
   account: GigSaladAccount, status: "ok" | "signed_out" | "error",
-  now: string = new Date().toISOString(), why = "",
+  opts: { startedAt: number; now?: string; why?: string },
 ): void {
+  if (opts.startedAt < (startedAtOf[account] ?? -Infinity)) return;
+  startedAtOf[account] = opts.startedAt;
+  const now = opts.now ?? new Date().toISOString();
+  const why = opts.why ?? "";
   const before = state[account];
   state = { ...state, [account]: status, checked_at: now };
   const line = status !== before ? loginProblemLine(account, status, why) : null;
