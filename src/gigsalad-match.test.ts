@@ -87,7 +87,8 @@ test("gigsalad match: impossible dates are rejected and huge rows are cut short 
   assert.equal(parseGigSaladEmailKey("Testa would like a quote for a Wedding on February 31, 2026."), null);
   assert.equal(parseInboxRow("/promokit/gig/1", row("Testa Q.", "Wedding", "Tue, Feb 31, 2026")), null);
   assert.equal(parseInboxRow("/promokit/gig/1", row("Testa Q.", "Wedding", "Sun, Feb 29, 2032"))?.dateISO, "2032-02-29");
-  const start = Date.now();
-  parseInboxRow("/promokit/gig/1", "x\n".repeat(500_000) + row("Testa Q.", "Wedding", "Sat, Aug 1, 2026"));
-  assert.ok(Date.now() - start < 300, `took ${Date.now() - start} ms`);
+  // Codex round 2 P2: a row whose fields sit past the 2,000-character bound is not read; the same
+  // row inside the bound is (control).
+  assert.equal(parseInboxRow("/promokit/gig/1", "Testa Q.\n" + "x\n".repeat(1_100) + row("Testa Q.", "Wedding", "Sat, Aug 1, 2026")), null);
+  assert.equal(parseInboxRow("/promokit/gig/1", row("Testa Q.", "Wedding", "Sat, Aug 1, 2026") + "\n" + "x\n".repeat(1_100))?.dateISO, "2026-08-01");
 });

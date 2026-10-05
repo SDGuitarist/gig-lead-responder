@@ -154,7 +154,23 @@ test("gigsalad page: an impossible date is not a date, and a huge page is cut sh
   const lead = parseGigSaladLeadPage({ title: "", text: "Event info\nTesta Q.\nTue, February 31, 2026 View calendar\nSpringfield, CA 90001, US\nEvent type: Wedding\nBlock communication" });
   assert.equal(lead.eventDate, null);
   assert.ok(lead.warnings.some((w) => /event date/.test(w)));
-  const start = Date.now();
-  parseGigSaladLeadPage({ title: "", text: "Event info\n" + "Label: value\n".repeat(400_000) });
-  assert.ok(Date.now() - start < 500, `took ${Date.now() - start} ms`);
+  // Codex round 2 P2: a timing check proves nothing about the bound. A field planted past the
+  // 20,000-character limit must not be read; the same field inside the limit is (control).
+  const filler = "Filler words line\n".repeat(1_500); // ~27,000 characters
+  const head = "Event info\nTesta Q.\nEvent type: Wedding\n";
+  assert.equal(parseGigSaladLeadPage({ title: "", text: head + filler + "Sentinel: beyond the limit\n" }).fields["Sentinel"], undefined);
+  assert.equal(parseGigSaladLeadPage({ title: "", text: head + "Sentinel: inside the limit\nBlock communication\n" + filler }).fields["Sentinel"], "inside the limit");
+});
+
+// Codex round 2 (GigSalad) P1: the Date line was rebuilt from the raw page line, so a phone on
+// that line reached rawText; the final pass removed emails only. Every value is scrubbed and the
+// final pass now removes phones too.
+test("gigsalad page: a phone or email riding on the date or time line never reaches rawText", () => {
+  const text = `Event info\nAlice\nThu, June 17, 2027 contact +44 20 7946 0958 or a@example.com View calendar
+10:00 PM – 10:45 PM (45 minutes)\nSpringfield, CA 90001, US\nEvent type: Wedding\nBlock communication`;
+  const lead = parseGigSaladLeadPage({ title: "", text });
+  assert.equal(lead.eventDate, "2027-06-17");
+  assert.doesNotMatch(JSON.stringify(lead), /7946|0958|example\.com/);
+  assert.match(lead.rawText, /^Date: 2027-06-17 \(Thu, June 17, 2027\)$/m);
+  assert.match(lead.rawText, /^Time: 10:00 PM – 10:45 PM \(45 minutes\)$/m);
 });

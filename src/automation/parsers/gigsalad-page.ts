@@ -100,7 +100,7 @@ export function parseGigSaladLeadPage(page: { title: string; text: string }): Gi
       const iso = calendarDate(Number(m[3]), MONTHS.indexOf(m[1].toLowerCase()), Number(m[2]));
       if (iso) {
         lead.eventDate = iso;
-        dateText = line.replace(/\s*View calendar$/i, "");
+        dateText = m[0]; // only the matched date: nothing else on that line reaches rawText
       }
       continue;
     }
@@ -139,6 +139,9 @@ export function parseGigSaladLeadPage(page: { title: string; text: string }): Gi
   out.push(lead.quotesSent === null
     ? "Competition: not shown on this GigSalad page (unknown)"
     : `Competition: ${lead.quotesSent} quotes sent by other members${lead.membersResponded === null ? "" : ` (${lead.membersResponded} members responded)`}`);
-  lead.rawText = out.join("\n").replace(EMAIL, "[contact removed]"); // final pass: no email ever leaves
+  // Final pass over everything that reaches the pipeline (Codex round 2, GigSalad, P1): phones and
+  // emails, every line. Date and Time are built only from regex captures (a date, a time window), so
+  // they are left whole: a phone scrub would eat the ISO date.
+  lead.rawText = out.map((l) => (/^(Date|Time): /.test(l) ? l : scrub(l))).join("\n");
   return lead;
 }
