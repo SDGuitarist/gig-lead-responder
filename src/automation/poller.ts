@@ -12,7 +12,7 @@ import { loadAuthClient, pollForNewMessages } from "./gmail-watcher.js";
 import { processLead } from "./orchestrator.js";
 import type { GmailMessage } from "./gmail-watcher.js";
 import { getPollerState, savePollAuthFailed, savePollSuccess } from "../db/poller-state.js";
-import { checkGigSaladLogins } from "./portals/gigsalad-login-check.js";
+import { startGigSaladLoginCheck } from "./portals/gigsalad-login-check.js";
 import { tryAcquireLease } from "../db/runtime-lease.js";
 import { currentHolder, isPidAlive } from "./lease-holder.js";
 import { YelpPortalClient } from "./portals/yelp-client.js";
@@ -219,8 +219,8 @@ export async function startGmailPoller(): Promise<void> {
 
   // GigSalad logins: checked once at startup and reported loudly (Alex 2026-10-05), because a
   // held lead's "run the login command" note cannot reach Alex until Module 1's alert channel.
-  // Never stops the poller: a check that fails is reported as "error".
-  await checkGigSaladLogins().catch((err) => console.error(`[gigsalad] login check failed: ${err}`));
+  // In the background (login check Codex round 1): polling never waits for a browser.
+  startGigSaladLoginCheck();
 
   let processing = false;
 

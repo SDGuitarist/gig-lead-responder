@@ -1,6 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { checkGigSaladLogins, getGigSaladLoginState } from "./automation/portals/gigsalad-login-check.js";
+import { readFileSync } from "node:fs";
+import { checkGigSaladLogins, getGigSaladLoginState, startGigSaladLoginCheck } from "./automation/portals/gigsalad-login-check.js";
 import type { InboxRead } from "./automation/portals/gigsalad-match.js";
 
 // Alex 2026-10-05: an expired GigSalad login must not pile up held leads silently. Until Module 1's
@@ -36,4 +37,22 @@ test("gigsalad login check: a check that cannot run says so, in different words 
   assert.deepEqual(getGigSaladLoginState(), { checked_at: "2026-10-05T12:06:00.000Z", music: "error", business: "error" });
   assert.ok(errors.some((e) => /could NOT check the GigSalad music login/.test(e) && /browser missing/.test(e)), errors.join("\n"));
   assert.ok(!errors.some((e) => /EXPIRED/.test(e)), "an unrun check is not reported as an expired login");
+});
+
+// Login check Codex round 1 P1: the poller awaited the check before its first poll, so a hung or
+// slow browser delayed or stopped polling. The check now starts in the background.
+test("gigsalad login check: starting the check returns at once, even if the browser hangs", () => {
+  const started = Date.now();
+  const result = startGigSaladLoginCheck(() => new Promise<never>(() => {}));
+  assert.equal(result, undefined);
+  assert.ok(Date.now() - started < 50, `took ${Date.now() - started} ms`);
+});
+
+test("gigsalad login check: the poller starts the check without waiting, before its first poll", () => {
+  const src = readFileSync("src/automation/poller.ts", "utf-8");
+  assert.doesNotMatch(src, /await\s+checkGigSaladLogins|await\s+startGigSaladLoginCheck/);
+  const start = src.indexOf("startGigSaladLoginCheck()");
+  assert.ok(start > 0, "the poller starts the login check");
+  assert.ok(start < src.indexOf("await poll();"), "before the first poll");
+  assert.ok(src.indexOf("if (!config.dryRun)") < start, "after the Gmail gate and config setup");
 });

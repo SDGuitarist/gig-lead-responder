@@ -44,3 +44,12 @@ export async function checkGigSaladLogins(
   state = next;
   return getGigSaladLoginState();
 }
+
+/**
+ * Start the check in the background and return at once (login check Codex round 1): polling never
+ * waits for a browser. Each read is bounded by withGigSaladProfile's timeout; a failure is logged.
+ */
+export function startGigSaladLoginCheck(read: InboxReader = readGigSaladInbox): void {
+  void checkGigSaladLogins(read).catch((err) =>
+    console.error(`[gigsalad] login check failed: ${err instanceof Error ? err.message : String(err)}`));
+}
