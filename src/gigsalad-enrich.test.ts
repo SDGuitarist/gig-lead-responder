@@ -15,7 +15,7 @@ const fetched = (r: GigSaladFetchResult) => async () => r;
 const ok: GigSaladFetchResult = { status: "ok", message: "", lead: PAGE };
 
 test("gigsalad enrich: one match whose page reads is enriched with that page's lead", async () => {
-  const r = await enrichGigSaladLead(EMAIL, { find: found({ status: "matched", account: "business", gigId: "8" }), fetch: fetched(ok) });
+  const r = await enrichGigSaladLead(EMAIL, { find: found({ status: "matched", account: "business", gigId: "8" }), readPage: fetched(ok) });
   assert.equal(r.status, "enriched");
   assert.equal(r.status === "enriched" && r.lead.rawText, PAGE.rawText);
   assert.equal(r.status === "enriched" && r.account, "business");
@@ -31,7 +31,7 @@ test("gigsalad enrich: every other outcome holds the lead with a reason Alex can
     [{ status: "matched", account: "music", gigId: "1" }, { status: "not_a_lead", message: "not a lead page", lead: null }, /not a lead page/],
   ];
   for (const [f, g, why] of cases) {
-    const r = await enrichGigSaladLead(EMAIL, { find: found(f), fetch: fetched(g) });
+    const r = await enrichGigSaladLead(EMAIL, { find: found(f), readPage: fetched(g) });
     assert.equal(r.status, "hold", f.status);
     assert.match(r.status === "hold" ? r.reason : "", why, f.status);
   }
@@ -40,7 +40,7 @@ test("gigsalad enrich: every other outcome holds the lead with a reason Alex can
 test("gigsalad enrich: an email without the lead sentence is left to the email parser", async () => {
   let fetchedAny = false;
   const r = await enrichGigSaladLead("Event Type: Wedding\nDate: April 15, 2027", {
-    find: found({ status: "no_key" }), fetch: async () => { fetchedAny = true; return ok; } });
+    find: found({ status: "no_key" }), readPage: async () => { fetchedAny = true; return ok; } });
   assert.equal(r.status, "not_a_lead_email");
   assert.equal(fetchedAny, false);
 });

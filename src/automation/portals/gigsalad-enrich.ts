@@ -18,7 +18,7 @@ export type GigSaladEnrichment =
 
 export async function enrichGigSaladLead(
   emailBody: string,
-  deps: { find: typeof findGigSaladLead; fetch: typeof fetchGigSaladLead } = { find: findGigSaladLead, fetch: fetchGigSaladLead },
+  deps: { find: typeof findGigSaladLead; readPage: typeof fetchGigSaladLead } = { find: findGigSaladLead, readPage: fetchGigSaladLead },
 ): Promise<GigSaladEnrichment> {
   const found = await deps.find(emailBody);
   switch (found.status) {
@@ -33,7 +33,7 @@ export async function enrichGigSaladLead(
     case "ambiguous":
       return { status: "hold", reason: `GigSalad: ${found.candidates.length} inbox rows match this lead; Alex picks the right one` };
   }
-  const page = await deps.fetch(found.account, found.gigId);
+  const page = await deps.readPage(found.account, found.gigId);
   if (page.status !== "ok" || !page.lead) return { status: "hold", reason: `GigSalad: ${page.message}` };
   return { status: "enriched", account: found.account, gigId: found.gigId, lead: page.lead };
 }
