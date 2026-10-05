@@ -10,6 +10,7 @@
 import { test, type TestContext } from "node:test";
 import assert from "node:assert/strict";
 import { parseGigSaladEmail } from "../../src/automation/parsers/gigsalad.js";
+import { parseGigSaladEmailKey } from "../../src/automation/portals/gigsalad-match.js";
 import { parseYelpEmail } from "../../src/automation/parsers/yelp.js";
 import { parseSquarespaceEmail } from "../../src/automation/parsers/squarespace.js";
 import { existsSync, readFileSync } from "node:fs";
@@ -53,15 +54,16 @@ test("returns low confidence for empty body", () => {
   assert.ok(result.parseConfidence === "low", "empty body should be low confidence");
 });
 
-// KNOWN GAP (2026-10-04): a real GigSalad lead email holds only the client's first name,
-// event type, date and time plus tracking links, so the parser rates it low. Kept as a
-// todo so it runs and reports, without failing the suite, until the GigSalad design is
-// decided (HANDOFF.md, "FINDING (2026-10-04"). Remove the todo when it passes.
-test("parses real GigSalad fixture", { todo: "real GigSalad emails carry no lead details (HANDOFF.md)" }, (t) => {
+// Real GigSalad lead email (decided 2026-10-04, Alex: option A). The email holds only the
+// client's first name, event type, date and time plus tracking links, so the email parser
+// rates it low ON PURPOSE; the details come from the lead page (orchestrator step 4b,
+// src/automation/portals/gigsalad-enrich.ts). What the email must give is the match key.
+test("real GigSalad fixture: the email is low on its own and gives the match key for the page", (t) => {
   const msg = loadFixture(t, "examples/emails/gigsalad-001.json");
   if (!msg) return;
-  const result = parseGigSaladEmail(msg);
-  assert.ok(result.parseConfidence !== "low", "real fixture should not be low confidence");
+  assert.equal(parseGigSaladEmail(msg).parseConfidence, "low");
+  assert.deepEqual(parseGigSaladEmailKey(msg.bodyText || msg.bodyHtml),
+    { firstName: "Client", eventType: "Birthday Party", dateISO: "2026-08-01" });
 });
 
 // --- Yelp Tests ---
