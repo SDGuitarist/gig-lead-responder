@@ -31,3 +31,7 @@ Verification:
 - Targeted GigSalad tests: 45 pass, 0 fail.
 - Full local sandbox: 581 pass, 16 environment-permission failures, 1 skip.
 - Worktree remained clean.
+
+---
+
+**Closed by Alex 2026-10-05: fix the test, no round 3.** The R1 P1 leak was confirmed closed by Codex in this round. The P2 test gap was fixed after it (one commit, test-only, four mutation-proven tests); that commit is NOT Codex-reviewed. Review loop for the contact scrubber: CLOSED.
