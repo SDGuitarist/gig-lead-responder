@@ -1,100 +1,71 @@
 # HANDOFF -- Gig Lead Responder
 
-**Date:** 2026-10-04
+**Date:** 2026-10-05
 **Branch:** `feat/hub-phase0` (cut from `docs/booking-hub-brainstorm` at `c644210`; pushed; not merged)
-**Phase:** Work, Phase 0 **in progress**. 0.1, 0.2 (code), 0.3 (all but the alert half of `invalid_grant alerts`), 0.4, S1, S1-adv done. **0.5 port: all 406 rows reviewed; 30 TO PORT remain.** 0.6 blocked (see below). No Codex review open. Module 1 not started.
+**Phase:** Work, Phase 0 **in progress**. 0.1, 0.2 (code), 0.3 (all but the alert half of `invalid_grant alerts`), 0.4, S1, S1-adv done. **0.5 port: 29 TO PORT remain.** 0.6 blocked. **GigSalad portal reading BUILT.** Module 1 not started.
 
-## START HERE — end of the residency session (2026-10-04, after 0153v273)
+## START HERE — end of the residency + GigSalad session (2026-10-04/05)
 
-**State:** branch `feat/hub-phase0`, pushed at the end of this session. **No Codex review is open.** Five review loops
-CLOSED with GO; the newest: **residency** (`c047b49..fbb00f6`): round 1 NO-GO (1 P1, fixed `fbb00f6`), round 2 GO
-(`docs/reviews/2026-10-04-residency-codex-round2.md`). Suite on the Mac: 587 pass / 0 fail / 1 skip / 0 todo (2026-10-05).
-Codex CLI runs reviews with `-s workspace-write` (16 tests are sandbox-blocked, Mac-only); check `git status` after.
+**State:** branch `feat/hub-phase0`, pushed. Suite on the Mac: **604 pass / 0 fail / 1 skip / 0 todo** (2026-10-05).
+Codex CLI runs reviews with `-s workspace-write` (16 tests sandbox-blocked, Mac-only); check `git status` after.
+Commits are gated on a green suite (`a2ee091` was pushed red once; fixed `221c738`).
 
-**Built this session (all Codex-reviewed, GO):**
-- `df7ecbf` **R099**: space + setup time per format (`src/data/setup-space.ts`) in the Quote Terms, used only when the
-  lead raises space / layout / load-in / start time; formats the card has no row for get no line.
-- `c90d686` classify: `engagement_type` (private / residency / wedding_adjacent), `residency_tier` (R2 when unclear),
-  `residency_cadence`, `price_asked` (`normalizeEngagement`).
-- `e5d09ed` `RESIDENCY_RATES` (R2/R3, Alex-approved) + `lookupResidencyRate`: no rate for R1, >3 h, unknown cadence.
-- `2d32de2` + `fbb00f6` every residency lead carries `pricing.residency` (solo: residency rate; non-solo: `series`
-  at its private price, no discount) and is HELD (`residency:` hold note, kept out of prompts).
-- `d5ea347` + `fbb00f6` residency drafting mode: a number only when the venue asked and a rate exists; no budget-gap
-  block, no Quote Terms; verify checks the same. Real-model output UNEXECUTED (no real residency lead run).
+**Reviews (all records in `docs/reviews/`):**
+- **Residency** (`c047b49..fbb00f6`): R1 NO-GO (1 P1, fixed), R2 **GO**. CLOSED.
+- **GigSalad portal reading** (`a86b7f4..3828dfb`): R1 NO-GO (5 P1 + P2, all fixed), R2 NO-GO (1 P1 + P2, fixed),
+  R3 (authorized by Alex) = **(c) narrowing residue: the HARD CAP FIRED** (slash phones). Alex chose a different
+  approach for contact scrubbing (below). Everything else in that range was confirmed fixed by Codex.
+- **Contact scrubber, new approach** (`cc96a0e..250b857`): R1 NO-GO (time-line leak, fixed), R2 NO-GO (P2 test only;
+  leak CONFIRMED CLOSED). Alex: fix the test, no round 3 → `095cba0` (4 mutation-proven tests, not Codex-reviewed).
+  CLOSED.
+- **OPEN / NOT reviewed:** `5c7a9e3` startup login check (next: Codex round 1).
 
-**Alex decided 2026-10-04 (this session):**
-- **GigSalad:** read lead details from the GigSalad lead page (like Yelp), in the account the lead belongs to.
-  Reading the pages to build it is still ask-first at the moment it happens (which account, which lead).
-- **Pricing:** port the Project's own numbers; Alex sees every price before it is committed.
-- **Residency, answered on the numbers shown:** R2/R3 as written in `Rate_Card_Solo_Duo.md` (2 h / 3 h ×
-  weekly / bi-weekly / monthly). **R1 = hold, no price.** A residency reply states a price **only if the venue asked**;
-  every residency lead is held. **Recurring duo/trio/ensemble = normal private-event price, no discount, held.**
-  Not in the source, so held, never invented: R1 rates, 4-hour residency, holiday/peak.
+**Built (residency):** R099 setup space; classify `engagement_type`/`residency_tier`/`residency_cadence`/`price_asked`;
+`RESIDENCY_RATES` R2/R3 (Alex-approved); every residency HELD; residency drafting states a per-night number only when
+the venue asked and a rate exists; non-solo recurring = series at the private price, no discount.
 
-**Alex answered 2026-10-04 (later):**
-- **Residency deposit:** leave the 50% deposit OUT of residency drafts (as built).
-- **GigSalad:** Claude may log in to BOTH GigSalad accounts and open any lead. Claude cannot type passwords, so Alex
-  signs in to each account in Chrome first; then Claude opens leads read-only to build the parser against real pages.
-  DONE for both accounts: `docs/research/2026-10-04-gigsalad-lead-page.md` (one layout; business account shows no
-  competition counts).
-- **App login (option 1):** the app gets its OWN login per account: a command opens the app's browser on screen for
-  one account, Alex signs in himself, the session is saved in that account's profile folder. No password in `.env`;
-  an expired session holds the lead and tells Alex to sign in again.
+**Built (GigSalad, `docs/research/2026-10-04-gigsalad-lead-page.md`):** a GigSalad lead email (first name, event type,
+date, time only) → `findGigSaladLead` matches it in BOTH accounts' inboxes (option A) → `fetchGigSaladLead` reads the
+lead page with that account's own app login (landed page must be exactly that lead) → the page must agree with the
+email (name, type, date, time window) → the pipeline runs on the page's details. Any doubt HOLDS with the reason on
+the dashboard. Contact data: one rule (any letter-free stretch with 7+ digits is a phone; money/times/dates exempt;
+emails removed; names letters only). **GigSalad posting is REFUSED** in `dispatchReply` (Alex replies himself).
+Startup: the poller checks both logins once and says loudly if one expired; `/health` shows `gigsalad`.
 
-**GigSalad portal reading: in progress (NOT Codex-reviewed yet; review when the range below is finished):**
-- DONE `7906f2a` pure page parser `src/automation/parsers/gigsalad-page.ts` (test `gigsalad page`, 6 tests incl. a
-  mutation-proven phone test). Competition = shown count or "unknown", never 0.
-- DONE `371f2b1` (1) per-account login: `npm run gigsalad:login -- music|business`. **Alex signed in to BOTH on
-  2026-10-04: both printed SIGNED IN**, and a read-only check confirmed each profile shows only its own account's
-  inbox (`data/browser/gigsalad-music`, `data/browser/gigsalad-business`, gitignored). Needs Playwright Chromium
-  build 1208 (`npx playwright install chromium`, downloaded 2026-10-04 with Alex's OK; ~517 MB).
-- DONE `8a54a90` (2) `fetchGigSaladLead(account, gigId)` in `src/automation/portals/gigsalad-fetch.ts`: read-only,
-  address from a lead number only; outcomes ok / signed_out (names the login command) / not_a_lead / error. Live
-  read-only check passed on one lead per account (shape only) and a signed-out visit. `submitReply` untouched.
-- DONE `0413c0b` + next commit (3) email → lead page, Alex chose option A (inbox match, no tracking click):
-  `src/automation/portals/gigsalad-match.ts` `findGigSaladLead(emailBody)` matches first name + event type + date in
-  BOTH inboxes; exactly one match (also names the account), else hold; an unreadable inbox is never "no match".
-  Live known-answer check matched a real row in each account.
-- DONE (4) wiring: `a2ee091`/`221c738` `enrichGigSaladLead` (enriched / hold with reason / not a lead email),
-  `21983ee` Alex: one expired login no longer holds the other account's leads (a unique match in the signed-in
-  account is used + a login notice), `28b8973` orchestrator step 4b (pipeline runs on the page's details; a hold
-  says why on the dashboard), `f036d3a` the real-email todo is now a test of the design (suite: 0 todos).
-  `portalUrl` is deliberately NOT set: the old GigSalad send path stays disarmed (posting = Alex's call).
-  ⚠ `a2ee091` was pushed with the suite red (send-surface guard caught `deps.fetch(`); fixed in `221c738`. Commits
-  are now gated on a green suite.
-- **Known gap (owner Claude; trigger: Module 1's hold/alert work, or Alex asks sooner):** a held GigSalad lead is
-  marked processed, so it is not retried after Alex signs in again; it stays on the dashboard with the reason.
-- NEXT: (5) Codex round 1 on the whole GigSalad range (`a86b7f4..f036d3a`, code commits listed above).
-- **Alex decided 2026-10-04:** business-account leads show NO competition count; KEEP quoting them at anchor (classify's
-  rule: no displayed count = competition 0). No new pricing rule.
-- Unverified: the page text the app's own browser returns may break lines differently from Chrome's; the parser
-  accepts both layouts seen, and the fetch step must be checked on a real page.
+**Alex decided (2026-10-04/05):** GigSalad read from the lead page; app login option 1 (`npm run gigsalad:login --
+music|business`, Alex signs in himself, no password stored; **both signed in and verified per account**); matching
+option A (no tracking-link click); one expired login does not hold the other account's leads; business pages show no
+competition count → kept at anchor; R285 Encuentro NOT PORTED; residency numbers/holds as above; no residency
+deposit; after the GigSalad cap: a different scrubber approach; scrubber: no round 3; login alert: startup check only.
 
-**Alex approved 2026-10-04:** R285 Encuentro exception NOT PORTED (R1 is held with no price; deal is time-limited;
-repo is public). 29 rows remain TO PORT. (one client's deal; keeps it out of the public repo; that
-venue's residency is held anyway; nothing about the deal changes). Explained to Alex 2026-10-04; answer pending.
+**Known gaps (owner Claude unless said):**
+- **Expired GigSalad login is not pushed to Alex** (startup check only; the hold note reaches nobody mid-run).
+  Trigger: Module 1's alert channel (named requirement). Same channel: system-skipped follow-ups, invalid_grant.
+- A held GigSalad lead is marked processed: not retried after Alex signs in again (stays on the dashboard).
+- Remaining identity risk (option A): two leads with the same first name, event type, date AND time window, with
+  the real one absent from both inboxes. Closing it needs the tracking link (Alex declined).
+- Scrubber residue: a phone number spelled out in words. Fail-closed cost: e.g. "1500-2000" in Details is removed.
+- `engagement_type`/`price_asked` and all GigSalad drafting are UNEXECUTED on a real model/lead.
+- Poller retry counter not restart-proof (deferred); migration v3 runs on the real data/leads.db at next server
+  start (backup first).
 
-**Next pricing rows (Alex: Project numbers, shown before commit):** holiday/peak + context modifiers (R058/R072/R104/
-R292), $150 minimum profit (R295/R362), quote formatting by tier (R300–R302), T4/NP tiers (R403, then F1 R020–R025).
-**Other remaining TO PORT:** R006 (any-culture framework: design pass + paid model runs; Claude recommended later),
-R081–R089 + R405 (PF-Intel live data = production data, ask first), R329, R358 (GigSalad), R398 (later module).
+**Remaining TO PORT (29):** pricing group (Alex: Project numbers, shown before commit): holiday/peak + context
+modifiers (R058/R072/R104/R292), $150 minimum profit (R295/R362), quote formatting by tier (R300–R302), T4/NP
+(R403, then F1 R020–R025). Other: R006 (design + paid model runs), R081–R089 + R405 (PF-Intel production data, ask
+first), R329, R358 (competition count: now available from music-account pages, wire next), R398 (later module).
 
-**Known gaps, owner + trigger recorded below:** system-skipped follow-ups are silent until Module 1's alert channel;
-the poller's restart-proof retry counter (deferred); invalid_grant alert (Module 1); migration v3 runs on the real
-data/leads.db at the next server start (backup first).
+### Three Questions (residency + GigSalad session)
+1. **Hardest implementation decision?** Contact scrubbing. A list of phone separators lost three review rounds in a
+   row; Alex chose one rule (letter-free stretch with 7+ digits) whose gaps cost detail instead of leaking, with
+   strict allow-listed safe shapes (money, times, dates) so an exemption cannot shield a phone.
+2. **Considered changing but left alone?** Posting replies on GigSalad (refused outright instead; Alex replies) and
+   retrying held GigSalad leads automatically after a re-login (needs Module 1's hold/alert design).
+3. **Least confident going into the next phase?** None of the GigSalad path has run on a real incoming lead email
+   end to end (only read-only page checks and synthetic emails); the first real lead may expose an email wording or
+   page shape not seen in the 4 leads read.
 
-### Three Questions (residency session)
-1. **Hardest implementation decision?** How a residency with no usable number behaves. The source has numbers only
-   for R2/R3 at 2–3 h; returning `rate: null` + a reason (instead of guessing or throwing) let one value drive the
-   hold note, the "state no number" draft rule and the verify check together.
-2. **Considered changing but left alone?** Carrying the private 50% deposit into residency drafts, and porting the
-   Encuentro exception. Both would be Claude inventing terms or publishing a client deal; both went to Alex.
-3. **Least confident going into the next phase?** `engagement_type` and `price_asked` are model judgments nobody has
-   seen on a real lead. A residency mislabeled "private" gets the private price and is NOT held by the residency rule
-   (only by other holds). Run a real or realistic venue inquiry before trusting it.
-
-**Next phase:** Work: GigSalad portal reading steps (1)–(5) above, or the next pricing group (show Alex the
-Project's numbers first).
+**Next phase:** Codex round 1 on `5c7a9e3`; then the next pricing group (show Alex the Project's numbers first) or
+R358 (wire the music-account competition count).
 
 ### Prompt for Next Session
 
@@ -105,14 +76,14 @@ FIRST gate (stop and ask Alex if anything differs):
   git rev-parse HEAD; git rev-parse origin/feat/hub-phase0  # expect: identical
   git status --short                                        # expect: clean
 Read: HANDOFF.md "START HERE" section, CLAUDE.md, docs/research/2026-10-02-booking-hub/port-manifest.md.
-No Codex review is open. Then the next pricing group: pull the
-Project's numbers from ~/Data/gig-lead-responder/ and SHOW ALEX EVERY PRICE BEFORE WRITING CODE; build only what
-he approves, one concern per commit, failing test first, verify with npm run test:match (exit 3 = zero matches).
-For each finished range: Codex round 1 via `codex exec -s workspace-write` (check git status after), record every
-verdict in docs/reviews/. Never put source text, client names or contact data into the public repo.
+If the startup login check (5c7a9e3) has no Codex verdict in docs/reviews/, run Codex round 1 on it first
+(`codex exec -s workspace-write`, check git status after, record the verdict). Then the next pricing group: pull
+the Project's numbers from ~/Data/gig-lead-responder/ and SHOW ALEX EVERY PRICE BEFORE WRITING CODE; one concern
+per commit, failing test first, commit only on a green suite; npm run test:match (exit 3 = zero matches).
+Never put source text, client names or contact data into the public repo.
 HARD GATE: never start the Mac poller or server against real mail. Never open data/leads.db from a test.
-STOP and ask Alex before: any real send; Full Disk Access; reading GigSalad/Yelp dashboards; any change to
-.env or production data; any new or changed price. Do not start Module 1. Update HANDOFF.md before stopping.
+STOP and ask Alex before: any real send; Full Disk Access; opening GigSalad/Yelp pages beyond what he approved;
+any change to .env or production data; any new or changed price. Do not start Module 1. Update HANDOFF.md before stopping.
 ```
 
 ## 2026-10-03 evening (session 0153v273) — port review #2, round 2 fixes + two Alex money fixes
