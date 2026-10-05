@@ -65,7 +65,16 @@ export function verifyClassificationHeuristics(
     addWarning(warnings, `classification_verify: raw lead mentions budget $${budget} but stated_budget is null`);
   }
 
-  const quoteCount = parseQuoteCount(rawText);
+  // Port manifest R358: the count GigSalad displays (the page parser's own line) is the
+  // only source when present; a number the client wrote elsewhere does not override it.
+  // Only the LAST line counts: the parser writes it last, and a client can type a
+  // "Competition:" line into Details, which lands earlier.
+  const displayed = /^Competition: (\d+) quotes sent by other members\b.*$/.exec(rawText.split("\n").at(-1) ?? "");
+  if (displayed && Number(displayed[1]) !== classification.competition_quote_count) {
+    addWarning(warnings, `classification_verify: GigSalad displays ${displayed[1]} competitor quotes but classification has ` +
+      `${classification.competition_quote_count}`);
+  }
+  const quoteCount = displayed ? null : parseQuoteCount(rawText);
   if (quoteCount !== null && quoteCount !== classification.competition_quote_count) {
     addWarning(
       warnings,
