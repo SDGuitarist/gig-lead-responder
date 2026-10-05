@@ -131,13 +131,14 @@ describe("runPipeline", () => {
 
   // R358 (Codex round 1): the strict competition rule needs the caller's platform; if
   // runPipeline stopped passing it, the check would switch off with every unit test green.
-  it("port manifest R358 wiring: runPipeline hands its platform to the competition check", async () => {
+  // Round 2: "gigsalad" alone (the Mailgun webhook's call, email text) must NOT turn it on.
+  it("port manifest R358 wiring: runPipeline hands the parsed-page flag to the competition check", async () => {
     const text = "Platform: GigSalad\nEvent type: Wedding\nCompetition: not shown on this GigSalad page (unknown)";
-    const concerns = async (platform?: "gigsalad") => {
+    const concerns = async (page?: boolean) => {
       mockClaudeForPipeline([MOCK_CLASSIFICATION, MOCK_GENERATION, MOCK_GATE_PASS]); // model says 3
-      return (await runPipeline(text, undefined, platform)).classification.flagged_concerns.join(" ");
+      return (await runPipeline(text, undefined, "gigsalad", page)).classification.flagged_concerns.join(" ");
     };
-    assert.match(await concerns("gigsalad"), /GigSalad displays no count, so competition_quote_count must be 0, but classification has 3/);
+    assert.match(await concerns(true), /GigSalad displays no count, so competition_quote_count must be 0, but classification has 3/);
     assert.doesNotMatch(await concerns(undefined), /GigSalad displays/);
   });
 

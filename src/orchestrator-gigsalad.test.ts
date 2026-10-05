@@ -45,6 +45,17 @@ test("gigsalad wiring: an enriched lead runs the pipeline on the page's details,
   assert.match(seen[0], /^Number of guests: 40 guests$/m);
 });
 
+// R358 Codex round 2: the strict competition check needs the caller's word that the text is a
+// parsed page. The enriched branch is the only place that is true.
+test("gigsalad wiring: an enriched lead tells the pipeline its text is a parsed GigSalad page", async () => {
+  const flags: unknown[] = [];
+  await assert.rejects(processLead(realFormat("gs-r358"), config, {} as never, {} as never, {} as never, {
+    runPipeline: (async (_t: string, _s: unknown, _p: unknown, page?: boolean) => { flags.push(page); throw stop; }) as never,
+    enrichGigSalad: async () => ({ status: "enriched", account: "music", gigId: "8", lead: PAGE }),
+  }), /stop after/);
+  assert.deepEqual(flags, [true]);
+});
+
 test("gigsalad wiring: a held lead never reaches the pipeline and its note carries the reason", async () => {
   const seen: string[] = [];
   await run("gs-2", { status: "hold", reason: "GigSalad: the app's business login has expired. Run: npm run gigsalad:login -- business" }, seen);

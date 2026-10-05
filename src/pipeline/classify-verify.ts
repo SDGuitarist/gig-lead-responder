@@ -1,6 +1,6 @@
 import { TIER_A_VENUES } from "../data/venues.js";
 import { lookupResidencyRate } from "./price.js";
-import type { Classification, Platform } from "../types.js";
+import type { Classification } from "../types.js";
 
 interface ClassificationVerificationResult {
   classification: Classification;
@@ -46,7 +46,7 @@ function parseQuoteCount(rawText: string): number | null {
 export function verifyClassificationHeuristics(
   rawText: string,
   classification: Classification,
-  platform?: Platform,
+  gigsaladPage?: boolean,
 ): ClassificationVerificationResult {
   const warnings = [...classification.flagged_concerns];
   const family = recommendedFamily(classification.format_recommended);
@@ -72,9 +72,9 @@ export function verifyClassificationHeuristics(
   // "Competition:" line into Details, which lands earlier.
   // A page that shows no count (business account) means 0, per the classify rule; an
   // invented or client-written number is held there too (Alex 2026-10-05).
-  // Only for a lead the CALLER says is GigSalad (never classification.platform, which the
-  // model can set): elsewhere a client could type these lines (Codex round 1, R358).
-  const lastLine = platform === "gigsalad" ? rawText.split("\n").at(-1) ?? "" : "";
+  // Only when the CALLER says rawText IS a parsed GigSalad page (Codex R358 rounds 1-2): in
+  // any other text, including a GigSalad email, a client could type these lines.
+  const lastLine = gigsaladPage === true ? rawText.split("\n").at(-1) ?? "" : "";
   const displayed = /^Competition: (\d+) quotes sent by other members\b.*$/.exec(lastLine);
   const notShown = lastLine === "Competition: not shown on this GigSalad page (unknown)";
   if (displayed && Number(displayed[1]) !== classification.competition_quote_count) {

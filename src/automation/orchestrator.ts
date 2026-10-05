@@ -121,6 +121,7 @@ export async function processLead(
   // 4b. GigSalad enrichment — the email holds only a first name, event type and date; the
   // details are on the lead page (docs/research/2026-10-04-gigsalad-lead-page.md). The send
   // address (portalUrl) is deliberately NOT set: the old GigSalad reply path stays disarmed.
+  let gigsaladPage = false; // R358: rawText is a parsed GigSalad page, set only below
   if (lead.platform === "gigsalad") {
     lead.portalUrl = ""; // never a send address from a GigSalad email (see dispatchReply)
     // A whole GigSalad read (two inbox reads + the page) is capped, so a slow GigSalad cannot hold
@@ -135,6 +136,7 @@ export async function processLead(
     ]).finally(() => clearTimeout(timer));
     if (gs.status === "enriched") {
       lead.rawText = gs.lead.rawText;
+      gigsaladPage = true;
       lead.parseConfidence = "high";
       lead.parseWarnings = gs.lead.warnings;
       if (gs.lead.clientFirstName) lead.clientName = gs.lead.clientFirstName;
@@ -183,7 +185,7 @@ export async function processLead(
   console.log("Running pipeline...");
   let output;
   try {
-    output = await deps.runPipeline(lead.rawText, undefined, platform);
+    output = await deps.runPipeline(lead.rawText, undefined, platform, gigsaladPage);
   } catch (err) {
     const error = err instanceof Error ? err.message : String(err);
     // Retry once, then hold (Alex 2026-10-04; Codex round 1, Phase 0 runtime). The first
