@@ -50,7 +50,9 @@ const EMAIL = /[\w.+-]+@[\w-]+(?:\.[\w-]+)+/g;
 const PHONE_LINE = /^\(?[\d*]{3}\)?[\s.-]*[\d*]{3}[\s.-]*[\d*]{4}$/;
 const SKIP_LINES = /^(Phone number( revealed after booking)?|Upgrade to see it now|View calendar)$/i;
 const DATE = /^(?:Mon|Tue|Wed|Thu|Fri|Sat|Sun)[a-z]*,\s+([A-Za-z]+)\s+(\d{1,2}),\s+(\d{4})/;
-const TIME = /^(\d{1,2}:\d{2})\s*([AP]M)\s*[–—-]\s*(\d{1,2}:\d{2})\s*([AP]M)\s*\(([^)]+)\)$/i;
+// The duration in parentheses is a strict shape ("45 minutes", "2 hours", "1 hour 30 minutes"):
+// free text there is not a time line (scrubber Codex round 1).
+const TIME = /^(\d{1,2}:\d{2})\s*([AP]M)\s*[–—-]\s*(\d{1,2}:\d{2})\s*([AP]M)\s*\((\d{1,2}(?:\.\d+)?\s*hours?(?:\s+\d{1,2}\s*minutes?)?|\d{1,3}\s*minutes?)\)$/i;
 const LOCATION = /,\s*[A-Z]{2}\s+(\d{5})(?:-\d{4})?,\s*US$/;
 const LABEL = /^([A-Z][A-Za-z /&'-]{1,40}):\s*(.*)$/;
 
@@ -118,7 +120,7 @@ export function parseGigSaladLeadPage(page: { title: string; text: string }): Gi
       continue;
     }
     if (!timeText && (m = TIME.exec(line))) {
-      timeText = line;
+      timeText = `${m[1]} ${m[2].toUpperCase()} – ${m[3]} ${m[4].toUpperCase()} (${m[5]})`; // rebuilt from captures only
       lead.timeWindow = `${m[1]} ${m[2].toUpperCase()}-${m[3]} ${m[4].toUpperCase()}`;
       lead.durationMinutes = durationMinutes(m[5]);
       continue;
@@ -152,9 +154,8 @@ export function parseGigSaladLeadPage(page: { title: string; text: string }): Gi
   out.push(lead.quotesSent === null
     ? "Competition: not shown on this GigSalad page (unknown)"
     : `Competition: ${lead.quotesSent} quotes sent by other members${lead.membersResponded === null ? "" : ` (${lead.membersResponded} members responded)`}`);
-  // Final pass over everything that reaches the pipeline (Codex round 2, GigSalad, P1): phones and
-  // emails, every line. Date and Time are built only from regex captures (a date, a time window), so
-  // they are left whole: a phone scrub would eat the ISO date.
-  lead.rawText = out.map((l) => (/^(Date|Time): /.test(l) ? l : scrub(l))).join("\n");
+  // Final pass over EVERY line that reaches the pipeline, no exemptions (scrubber Codex round 1:
+  // the Time exemption leaked). Real dates and times are on the safe-shape list, so they survive.
+  lead.rawText = out.map(scrub).join("\n");
   return lead;
 }

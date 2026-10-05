@@ -199,3 +199,18 @@ test("gigsalad page: money, times, dates and small counts survive the phone rule
     assert.equal(details(keep).fields["Details"], keep, keep);
   }
 });
+
+// Scrubber Codex round 1: the time line accepted any text in its parentheses, was copied whole
+// into rawText, and the final pass skipped Time lines. (The earlier "date or time" test only
+// planted data on the date line.) Contaminants now go ON the time line itself.
+test("gigsalad page: a phone or email inside the time line never reaches rawText", () => {
+  for (const extra of ["call 5550100199", "alice@example.com", "or +44 20 7946 0958"]) {
+    const text = `Event info\nAlice\nThu, June 17, 2027 View calendar\n10:00 PM – 10:45 PM (45 minutes ${extra})\nSpringfield, CA 90001, US\nEvent type: Wedding\nBlock communication`;
+    const lead = parseGigSaladLeadPage({ title: "", text });
+    assert.doesNotMatch(JSON.stringify(lead), /0100199|example\.com|7946/, extra);
+  }
+  const clean = parseGigSaladLeadPage({ title: "", text: "Event info\nAlice\nThu, June 17, 2027 View calendar\n3:30 PM – 5:30 PM (2 hours)\nSpringfield, CA 90001, US\nEvent type: Wedding\nBlock communication" });
+  assert.match(clean.rawText, /^Time: 3:30 PM – 5:30 PM \(2 hours\)$/m);
+  assert.match(clean.rawText, /^Date: 2027-06-17 \(Thu, June 17, 2027\)$/m);
+  assert.equal(clean.durationMinutes, 120);
+});
