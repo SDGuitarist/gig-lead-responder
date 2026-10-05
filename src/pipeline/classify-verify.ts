@@ -43,6 +43,17 @@ function parseQuoteCount(rawText: string): number | null {
   return Number.isFinite(parsed) ? parsed : null;
 }
 
+// Valentine's, Cinco de Mayo, Mother's Day (US: second Sunday of May), Fourth of July, NYE.
+function holidayPeak(iso: string | null | undefined): string | null {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso ?? "");
+  if (!m) return null;
+  const [year, month, day] = [Number(m[1]), Number(m[2]), Number(m[3])];
+  const fixed: Record<string, string> = { "2-14": "Valentine's Day", "5-5": "Cinco de Mayo", "7-4": "Fourth of July", "12-31": "New Year's Eve" };
+  if (fixed[`${month}-${day}`]) return fixed[`${month}-${day}`];
+  const may1 = new Date(Date.UTC(year, 4, 1)).getUTCDay(); // 0 = Sunday
+  return month === 5 && day === 1 + ((7 - may1) % 7) + 7 ? "Mother's Day" : null;
+}
+
 export function verifyClassificationHeuristics(
   rawText: string,
   classification: Classification,
@@ -118,6 +129,13 @@ export function verifyClassificationHeuristics(
         ? `residency: ${tier}, no price stated: ${q.reason}`
         : `residency: ${tier} ${q.cadence} ${q.hours}h at $${q.rate} per night; Alex reviews every residency`);
     }
+  }
+
+  // Holiday/peak (port manifest R292): the Project quotes these "separately above standard
+  // rates" with no number, so every one is held for Alex (Alex 2026-10-05, his date list).
+  const peak = holidayPeak(classification.event_date_iso);
+  if (peak) {
+    addWarning(warnings, `holiday_peak: ${peak} (${classification.event_date_iso}), quoted separately above standard rates; Alex prices it`);
   }
 
   const hasCulturalSignal = CULTURAL_CONTEXT_PATTERNS.some((pattern) => pattern.test(rawText));
