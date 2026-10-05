@@ -10,8 +10,18 @@ export type GigSaladLoginStatus = "unchecked" | "ok" | "signed_out" | "error";
 export type GigSaladLoginState = { checked_at: string | null } & Record<GigSaladAccount, GigSaladLoginStatus>;
 
 let state: GigSaladLoginState = { checked_at: null, music: "unchecked", business: "unchecked" };
-/** When the read that produced each account's current status STARTED (live-status Codex round 1). */
-const startedAtOf: Partial<Record<GigSaladAccount, number>> = {};
+/**
+ * Read tickets (live-status Codex rounds 1-2): each inbox read takes the next number when it STARTS,
+ * and an account's status only moves to a higher ticket. The clock plays no part, so reads in the
+ * same millisecond or across a backwards clock jump keep their order. The clock is only checked_at.
+ */
+let lastTicket = 0;
+const ticketOf: Partial<Record<GigSaladAccount, number>> = {};
+
+/** Take a ticket when an inbox read starts. */
+export function beginLoginRead(): number {
+  return ++lastTicket;
+}
 
 export function getGigSaladLoginState(): GigSaladLoginState {
   return { ...state };
@@ -32,15 +42,15 @@ export function loginProblemLine(account: GigSaladAccount, status: GigSaladLogin
 
 /**
  * One inbox read's result (startup check or a lead): refresh that account; loud once when it
- * CHANGES to a problem. A result counts only if no read that started LATER has already reported,
- * so a slow older read can never put back a stale "ok" (live-status Codex round 1).
+ * CHANGES to a problem. A result counts only if no read that started LATER (higher ticket) has
+ * already reported, so a slow older read can never put back a stale "ok".
  */
 export function noteGigSaladLoginSeen(
   account: GigSaladAccount, status: "ok" | "signed_out" | "error",
-  opts: { startedAt: number; now?: string; why?: string },
+  opts: { seq: number; now?: string; why?: string },
 ): void {
-  if (opts.startedAt < (startedAtOf[account] ?? -Infinity)) return;
-  startedAtOf[account] = opts.startedAt;
+  if (opts.seq <= (ticketOf[account] ?? 0)) return;
+  ticketOf[account] = opts.seq;
   const now = opts.now ?? new Date().toISOString();
   const why = opts.why ?? "";
   const before = state[account];

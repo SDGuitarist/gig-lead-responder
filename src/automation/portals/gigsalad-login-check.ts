@@ -9,18 +9,17 @@
  */
 import { GIGSALAD_ACCOUNTS, type GigSaladAccount } from "./gigsalad-accounts.js";
 import { readGigSaladInbox, type InboxReader } from "./gigsalad-match.js";
-import { getGigSaladLoginState, noteGigSaladLoginSeen, type GigSaladLoginState } from "./gigsalad-login-state.js";
+import { beginLoginRead, getGigSaladLoginState, noteGigSaladLoginSeen, type GigSaladLoginState } from "./gigsalad-login-state.js";
 
 export { getGigSaladLoginState, type GigSaladLoginState, type GigSaladLoginStatus } from "./gigsalad-login-state.js";
 
 export async function checkGigSaladLogins(
   read: InboxReader = readGigSaladInbox, now: () => string = () => new Date().toISOString(),
-  clock: () => number = Date.now,
 ): Promise<GigSaladLoginState> {
   // Per account, through the shared rule (live-status Codex round 1): never a whole-state replace,
   // so a lead read that started after this one keeps its newer result.
   for (const account of GIGSALAD_ACCOUNTS) {
-    const startedAt = clock();
+    const seq = beginLoginRead();
     let status: "ok" | "signed_out" | "error";
     let why = "";
     try {
@@ -31,7 +30,7 @@ export async function checkGigSaladLogins(
       status = "error";
       why = err instanceof Error ? err.message : String(err);
     }
-    noteGigSaladLoginSeen(account, status, { startedAt, now: now(), why });
+    noteGigSaladLoginSeen(account, status, { seq, now: now(), why });
   }
   return getGigSaladLoginState();
 }

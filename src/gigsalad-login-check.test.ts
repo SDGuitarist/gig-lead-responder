@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { checkGigSaladLogins, getGigSaladLoginState, startGigSaladLoginCheck } from "./automation/portals/gigsalad-login-check.js";
-import { noteGigSaladLoginSeen } from "./automation/portals/gigsalad-login-state.js";
+import { beginLoginRead, noteGigSaladLoginSeen } from "./automation/portals/gigsalad-login-state.js";
 import { findGigSaladLead } from "./automation/portals/gigsalad-match.js";
 import type { InboxRead } from "./automation/portals/gigsalad-match.js";
 
@@ -66,11 +66,9 @@ test("gigsalad login check: a lead's inbox read refreshes the status, loud once 
   const original = console.error;
   console.error = (...a: unknown[]) => { errors.push(a.join(" ")); };
   try {
-    // Times relative to a fresh base: earlier tests in this file recorded real Date.now() reads.
-    const base = Date.now() + 1_000_000;
-    noteGigSaladLoginSeen("music", "ok", { startedAt: base + 1, now: "2026-10-05T13:00:00.000Z" });
-    noteGigSaladLoginSeen("music", "signed_out", { startedAt: base + 2, now: "2026-10-05T13:05:00.000Z" });
-    noteGigSaladLoginSeen("music", "signed_out", { startedAt: base + 3, now: "2026-10-05T13:10:00.000Z" });
+    noteGigSaladLoginSeen("music", "ok", { seq: beginLoginRead(), now: "2026-10-05T13:00:00.000Z" });
+    noteGigSaladLoginSeen("music", "signed_out", { seq: beginLoginRead(), now: "2026-10-05T13:05:00.000Z" });
+    noteGigSaladLoginSeen("music", "signed_out", { seq: beginLoginRead(), now: "2026-10-05T13:10:00.000Z" });
   } finally { console.error = original; }
   const state = getGigSaladLoginState();
   assert.equal(state.music, "signed_out");
@@ -98,31 +96,48 @@ test("gigsalad login check: finding a lead reports each account's inbox status a
 // lead read that saw "expired" in the meantime could be overwritten by the older startup "ok".
 // A result counts only if no read that STARTED later has already reported.
 test("gigsalad login check: an older read's result never overwrites a newer one", async () => {
-  const base = Date.now() + 2_000_000; // newer than anything earlier tests recorded
-  noteGigSaladLoginSeen("business", "signed_out", { startedAt: base + 5, now: "2026-10-05T14:00:00.000Z" });
-  noteGigSaladLoginSeen("business", "ok", { startedAt: base + 4, now: "2026-10-05T14:01:00.000Z" });
+  const older = beginLoginRead();
+  const newer = beginLoginRead();
+  noteGigSaladLoginSeen("business", "signed_out", { seq: newer, now: "2026-10-05T14:00:00.000Z" });
+  noteGigSaladLoginSeen("business", "ok", { seq: older, now: "2026-10-05T14:01:00.000Z" });
   assert.equal(getGigSaladLoginState().business, "signed_out", "an older ok loses");
 
-  // The startup check reports per account through the same rule. Its business read starts at
-  // base+10; a lead read that started at base+20 reports "expired" while startup is still waiting.
-  const startupRace = async (leadInBetween: boolean) => {
-    let release!: () => void;
-    const gate = new Promise<void>((r) => { release = r; });
-    let tick = 0;
-    const startup = checkGigSaladLogins(async (a) => { if (a === "business") await gate; return { status: "ok", links: [] }; },
-      () => "2026-10-05T14:02:00.000Z", () => base + 10 + (tick++) * 100);
-    await new Promise((r) => setTimeout(r, 5));
-    if (leadInBetween) noteGigSaladLoginSeen("business", "signed_out", { startedAt: base + 150, now: "2026-10-05T14:03:00.000Z" });
-    release();
-    await startup;
-    return getGigSaladLoginState().business;
-  };
-  assert.equal(await startupRace(true), "signed_out", "the newer lead result survives the slower startup ok");
+  // The startup check takes its ticket when its business read starts; a lead read that starts
+  // afterwards reports "expired" while startup is still waiting. The slower startup ok must lose.
+  let release!: () => void;
+  const gate = new Promise<void>((r) => { release = r; });
+  const startup = checkGigSaladLogins(async (a) => { if (a === "business") await gate; return { status: "ok", links: [] }; },
+    () => "2026-10-05T14:02:00.000Z");
+  await new Promise((r) => setTimeout(r, 5));
+  noteGigSaladLoginSeen("business", "signed_out", { seq: beginLoginRead(), now: "2026-10-05T14:03:00.000Z" });
+  release();
+  await startup;
+  assert.equal(getGigSaladLoginState().business, "signed_out", "the newer lead result survives the slower startup ok");
 });
 
 test("gigsalad login check: control: without a newer read, the startup result does apply", async () => {
-  const base = Date.now() + 3_000_000;
-  noteGigSaladLoginSeen("business", "signed_out", { startedAt: base, now: "2026-10-05T15:00:00.000Z" });
-  await checkGigSaladLogins(async () => ({ status: "ok", links: [] }), () => "2026-10-05T15:01:00.000Z", () => base + 10);
+  noteGigSaladLoginSeen("business", "signed_out", { seq: beginLoginRead(), now: "2026-10-05T15:00:00.000Z" });
+  await checkGigSaladLogins(async () => ({ status: "ok", links: [] }), () => "2026-10-05T15:01:00.000Z");
   assert.equal(getGigSaladLoginState().business, "ok");
+});
+
+// Live-status Codex round 2: ordering by Date.now() broke on reads starting in the same millisecond
+// and on a clock that moves backwards. Order is now a ticket taken at read start: the clock plays no part.
+test("gigsalad login check: same-millisecond and backwards-clock reads keep their start order", () => {
+  const realNow = Date.now;
+  try {
+    Date.now = () => 1_000; // frozen: two reads start "at the same time"
+    const first = beginLoginRead();
+    const second = beginLoginRead();
+    Date.now = () => 500; // the clock moves backwards before a third read starts
+    const third = beginLoginRead();
+    assert.ok(first < second && second < third);
+    noteGigSaladLoginSeen("music", "signed_out", { seq: second, now: "t2" });
+    noteGigSaladLoginSeen("music", "ok", { seq: first, now: "t1" });
+    assert.equal(getGigSaladLoginState().music, "signed_out", "same millisecond: the later-started read wins");
+    noteGigSaladLoginSeen("music", "error", { seq: third, now: "t3" });
+    assert.equal(getGigSaladLoginState().music, "error", "backwards clock: the later-started read still counts");
+  } finally {
+    Date.now = realNow;
+  }
 });
