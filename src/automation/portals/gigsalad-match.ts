@@ -1,0 +1,58 @@
+/**
+ * Match a GigSalad lead email to its lead page (step 3, Alex 2026-10-04: option A).
+ *
+ * The email holds only "<First> would like a quote for a <Event type> on <Month D, YYYY>".
+ * The match key (first name + event type + date) is looked up in BOTH accounts' inbox rows:
+ * exactly one row is used, and it also says which account owns the lead. None or several
+ * hold the lead for Alex; a lead is never guessed. Pure: no network.
+ */
+import type { GigSaladAccount } from "./gigsalad-accounts.js";
+
+export interface LeadKey { firstName: string; eventType: string; dateISO: string }
+export interface InboxRow extends LeadKey { gigId: string }
+export type GigSaladMatch =
+  | { status: "matched"; account: GigSaladAccount; gigId: string }
+  | { status: "none" }
+  | { status: "ambiguous"; candidates: Array<{ account: GigSaladAccount; gigId: string }> };
+
+const MONTHS = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
+
+/** "August 1, 2026" or "Aug 1, 2026" → "2026-08-01"; null if it is not a date. */
+function isoDate(month: string, day: string, year: string): string | null {
+  const m = MONTHS.indexOf(month.slice(0, 3).toLowerCase());
+  return m < 0 ? null : `${year}-${String(m + 1).padStart(2, "0")}-${day.padStart(2, "0")}`;
+}
+
+export function parseGigSaladEmailKey(body: string): LeadKey | null {
+  const m = /^\s*(\S+) would like a quote for an? (.+?) on ([A-Za-z]+) (\d{1,2}), (\d{4})\b/m.exec(body);
+  if (!m) return null;
+  const dateISO = isoDate(m[3], m[4], m[5]);
+  return dateISO ? { firstName: m[1], eventType: m[2].trim(), dateISO } : null;
+}
+
+/**
+ * One inbox row link: name, received, event type, "•", category, city, "•", date, status.
+ * Read by the two bullets so a missing status or received line does not shift the fields.
+ */
+export function parseInboxRow(href: string, text: string): InboxRow | null {
+  const gigId = /^\/promokit\/gig\/(\d{1,12})$/.exec(href)?.[1];
+  const lines = text.split("\n").map((l) => l.trim()).filter(Boolean);
+  const b1 = lines.indexOf("•");
+  const b2 = lines.indexOf("•", b1 + 1);
+  if (!gigId || b1 < 1 || b2 < 0) return null;
+  const date = /^(?:[A-Za-z]{3}),\s+([A-Za-z]+)\s+(\d{1,2}),\s+(\d{4})$/.exec(lines[b2 + 1] ?? "");
+  const dateISO = date ? isoDate(date[1], date[2], date[3]) : null;
+  const firstName = lines[0].split(/\s+/)[0];
+  if (!dateISO || !firstName) return null;
+  return { gigId, firstName, eventType: lines[b1 - 1], dateISO };
+}
+
+const same = (a: string, b: string) => a.trim().toLowerCase() === b.trim().toLowerCase();
+
+export function matchGigSaladLead(key: LeadKey, rows: Record<GigSaladAccount, InboxRow[]>): GigSaladMatch {
+  const candidates = (Object.entries(rows) as Array<[GigSaladAccount, InboxRow[]]>).flatMap(([account, list]) =>
+    list.filter((r) => same(r.firstName, key.firstName) && same(r.eventType, key.eventType) && r.dateISO === key.dateISO)
+      .map((r) => ({ account, gigId: r.gigId })));
+  if (candidates.length === 1) return { status: "matched", ...candidates[0] };
+  return candidates.length === 0 ? { status: "none" } : { status: "ambiguous", candidates };
+}
