@@ -200,17 +200,43 @@ test("gigsalad page: money, times, dates and small counts survive the phone rule
   }
 });
 
-// Scrubber Codex round 1: the time line accepted any text in its parentheses, was copied whole
-// into rawText, and the final pass skipped Time lines. (The earlier "date or time" test only
-// planted data on the date line.) Contaminants now go ON the time line itself.
-test("gigsalad page: a phone or email inside the time line never reaches rawText", () => {
+// Scrubber Codex rounds 1-2: the time line accepted any text in its parentheses and was copied
+// whole. Three tests, each naming the one path it covers (round 2: the old single test passed
+// because the contaminated line was rejected, not because a Time line was scrubbed).
+const timePage = (timeLine: string, location = "Springfield, CA 90001, US") =>
+  parseGigSaladLeadPage({ title: "", text: `Event info\nAlice\nThu, June 17, 2027 View calendar\n${timeLine}\n${location}\nEvent type: Wedding\nBlock communication` });
+
+test("gigsalad page: a time line with anything but a duration in its parentheses is rejected, not read", () => {
   for (const extra of ["call 5550100199", "alice@example.com", "or +44 20 7946 0958"]) {
-    const text = `Event info\nAlice\nThu, June 17, 2027 View calendar\n10:00 PM – 10:45 PM (45 minutes ${extra})\nSpringfield, CA 90001, US\nEvent type: Wedding\nBlock communication`;
-    const lead = parseGigSaladLeadPage({ title: "", text });
+    const lead = timePage(`10:00 PM – 10:45 PM (45 minutes ${extra})`);
+    assert.equal(lead.timeWindow, null, extra);
+    assert.equal(lead.durationMinutes, null, extra);
+    assert.doesNotMatch(lead.rawText, /^Time:/m, extra);
     assert.doesNotMatch(JSON.stringify(lead), /0100199|example\.com|7946/, extra);
   }
-  const clean = parseGigSaladLeadPage({ title: "", text: "Event info\nAlice\nThu, June 17, 2027 View calendar\n3:30 PM – 5:30 PM (2 hours)\nSpringfield, CA 90001, US\nEvent type: Wedding\nBlock communication" });
-  assert.match(clean.rawText, /^Time: 3:30 PM – 5:30 PM \(2 hours\)$/m);
-  assert.match(clean.rawText, /^Date: 2027-06-17 \(Thu, June 17, 2027\)$/m);
-  assert.equal(clean.durationMinutes, 120);
+});
+
+test("gigsalad page: a recognized time line is rebuilt from its parts and survives the final scrub exactly", () => {
+  for (const [line, minutes] of [["3:30 PM – 5:30 PM (2 hours)", 120], ["10:00 PM – 10:45 PM (45 minutes)", 45],
+    ["1:00 PM – 2:30 PM (1 hour 30 minutes)", 90]] as const) {
+    const lead = timePage(line);
+    assert.match(lead.rawText, new RegExp(`^Time: ${line.replace(/[()]/g, "\\$&")}$`, "m"), line);
+    assert.equal(lead.durationMinutes, minutes, line);
+  }
+  assert.match(timePage("3:30 PM – 5:30 PM (2 hours)").rawText, /^Date: 2027-06-17 \(Thu, June 17, 2027\)$/m);
+});
+
+test("gigsalad page: the final pass scrubs every rawText line (location line carries a phone)", () => {
+  const lead = timePage("3:30 PM – 5:30 PM (2 hours)", "Call 555 010 0199, Springfield, CA 90001, US");
+  assert.equal(lead.zip, "90001");
+  assert.doesNotMatch(lead.rawText, /0199/);
+  assert.match(lead.rawText, /^Location: .*\[contact removed\].*90001, US$/m);
+});
+
+// Mutation check (2026-10-05): with the location write-scrub removed, rawText stayed clean (the
+// final pass) but the stored location field kept the phone. The field itself is pinned here.
+test("gigsalad page: the stored location field is scrubbed when written, not only rawText", () => {
+  const lead = timePage("3:30 PM – 5:30 PM (2 hours)", "Call 555 010 0199, Springfield, CA 90001, US");
+  assert.doesNotMatch(lead.location ?? "", /0199/);
+  assert.match(lead.location ?? "", /\[contact removed\].*90001, US$/);
 });
