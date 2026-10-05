@@ -12,7 +12,7 @@ const PAGE = parseGigSaladLeadPage({ title: "Gig Lead from Testa Q. | GigSalad",
   "Event info\nTesta Q.\nSat, August 1, 2026 View calendar\n6:00 PM – 9:00 PM (3 hours)\nSpringfield, CA 90001, US\nEvent type: Birthday Party\nBlock communication" });
 const found = (r: FindResult) => async () => r;
 const fetched = (r: GigSaladFetchResult) => async () => r;
-const ok: GigSaladFetchResult = { status: "ok", message: "", lead: PAGE };
+const ok: GigSaladFetchResult = { status: "ok", message: "", lead: PAGE, opened: true };
 const restored = async () => ({ status: "restored" as const });
 
 test("gigsalad enrich: one match whose page reads is enriched with that page's lead", async () => {
@@ -38,8 +38,8 @@ test("gigsalad enrich: every other outcome holds the lead with a reason Alex can
     [{ status: "none" }, ok, /no inbox row/],
     [{ status: "ambiguous", candidates: [{ account: "music", gigId: "1" }, { account: "business", gigId: "2" }] }, ok, /2 inbox rows/],
     [{ status: "error", message: "inbox timeout" }, ok, /inbox timeout/],
-    [{ status: "matched", account: "music", gigId: "1" }, { status: "signed_out", message: "Run: npm run gigsalad:login -- music", lead: null }, /gigsalad:login -- music/],
-    [{ status: "matched", account: "music", gigId: "1" }, { status: "not_a_lead", message: "not a lead page", lead: null }, /not a lead page/],
+    [{ status: "matched", account: "music", gigId: "1" }, { status: "signed_out", message: "Run: npm run gigsalad:login -- music", lead: null, opened: false }, /gigsalad:login -- music/],
+    [{ status: "matched", account: "music", gigId: "1" }, { status: "not_a_lead", message: "not a lead page", lead: null, opened: false }, /not a lead page/],
   ];
   for (const [f, g, why] of cases) {
     const r = await enrichGigSaladLead(EMAIL, { find: found(f), restoreUnread: restored, readPage: fetched(g) });
@@ -70,7 +70,7 @@ test("gigsalad enrich: the email key reads HTML-only mail and ignores a hostile 
 // email; any mismatch holds the lead.
 test("gigsalad enrich: the page must agree with the email (name, type, date, time window)", async () => {
   const page = (text: string, title = "Gig Lead from Testa Q. | GigSalad"): GigSaladFetchResult =>
-    ({ status: "ok", message: "", lead: parseGigSaladLeadPage({ title, text }) });
+    ({ status: "ok", message: "", lead: parseGigSaladLeadPage({ title, text }), opened: true });
   const base = "Event info\nTesta Q.\nSat, August 1, 2026 View calendar\n6:00 PM – 9:00 PM (3 hours)\nSpringfield, CA 90001, US\nEvent type: Birthday Party\nBlock communication";
   const go = (p: GigSaladFetchResult, email = EMAIL) =>
     enrichGigSaladLead(email, { find: found({ status: "matched", account: "music", gigId: "8" }), restoreUnread: restored, readPage: fetched(p) });
@@ -98,12 +98,12 @@ test("gigsalad enrich: every opened lead page is put back to unread, even one th
   const okRun = await enrichGigSaladLead(EMAIL, { find: found({ status: "matched", account: "business", gigId: "8" }), readPage: fetched(ok), restoreUnread: restore });
   assert.equal(okRun.status, "enriched");
   assert.equal(okRun.status === "enriched" && okRun.notice, undefined);
-  const otherPage: GigSaladFetchResult = { status: "ok", message: "", lead: parseGigSaladLeadPage({ title: "Gig Lead from Otherby Q. | GigSalad",
+  const otherPage: GigSaladFetchResult = { status: "ok", message: "", opened: true, lead: parseGigSaladLeadPage({ title: "Gig Lead from Otherby Q. | GigSalad",
     text: "Event info\nOtherby Q.\nSat, August 1, 2026 View calendar\nSpringfield, CA 90001, US\nEvent type: Birthday Party\nBlock communication" }) };
   const mismatch = await enrichGigSaladLead(EMAIL, { find: found({ status: "matched", account: "music", gigId: "9" }), readPage: fetched(otherPage), restoreUnread: restore });
   assert.equal(mismatch.status, "hold");
   const notOpened = await enrichGigSaladLead(EMAIL, { find: found({ status: "matched", account: "music", gigId: "10" }),
-    readPage: fetched({ status: "signed_out", message: "Run: npm run gigsalad:login -- music", lead: null }), restoreUnread: restore });
+    readPage: fetched({ status: "signed_out", message: "Run: npm run gigsalad:login -- music", lead: null, opened: false }), restoreUnread: restore });
   assert.equal(notOpened.status, "hold");
   assert.deepEqual(asked, [["business", "8"], ["music", "9"]], "restored the two opened pages, not the unopened one");
 });
@@ -127,10 +127,25 @@ test("gigsalad enrich: a restore that throws is a failed restore with a notice, 
 });
 
 test("gigsalad enrich: on a mismatch hold, a failed restore's notice is kept in the hold reason", async () => {
-  const otherPage: GigSaladFetchResult = { status: "ok", message: "", lead: parseGigSaladLeadPage({ title: "Gig Lead from Otherby Q. | GigSalad",
+  const otherPage: GigSaladFetchResult = { status: "ok", message: "", opened: true, lead: parseGigSaladLeadPage({ title: "Gig Lead from Otherby Q. | GigSalad",
     text: "Event info\nOtherby Q.\nSat, August 1, 2026 View calendar\nSpringfield, CA 90001, US\nEvent type: Birthday Party\nBlock communication" }) };
   const r = await enrichGigSaladLead(EMAIL, { find: found({ status: "matched", account: "music", gigId: "9" }), readPage: fetched(otherPage),
     restoreUnread: async () => ({ status: "failed" as const, reason: "GigSalad music lead 9: did not come back as unread" }) });
   assert.equal(r.status, "hold");
   assert.match(r.status === "hold" ? r.reason : "", /does not match the email.*did not come back as unread/);
+});
+
+test("gigsalad enrich: an opened page that did not parse, or an unknown open, is still put back to unread", async () => {
+  const asked: string[] = [];
+  const restore = async (_a: "music" | "business", gigId: string) => { asked.push(gigId); return { status: "restored" as const }; };
+  const unparsed = await enrichGigSaladLead(EMAIL, { find: found({ status: "matched", account: "music", gigId: "11" }), restoreUnread: restore,
+    readPage: fetched({ status: "not_a_lead", message: "layout changed", lead: null, opened: true }) });
+  assert.equal(unparsed.status, "hold");
+  const unknown = await enrichGigSaladLead(EMAIL, { find: found({ status: "matched", account: "music", gigId: "12" }), restoreUnread: restore,
+    readPage: fetched({ status: "error", message: "crashed", lead: null, opened: "unknown" }) });
+  assert.equal(unknown.status, "hold");
+  const never = await enrichGigSaladLead(EMAIL, { find: found({ status: "matched", account: "music", gigId: "13" }), restoreUnread: restore,
+    readPage: fetched({ status: "not_a_lead", message: "landed elsewhere", lead: null, opened: false }) });
+  assert.equal(never.status, "hold");
+  assert.deepEqual(asked, ["11", "12"], "opened or maybe-opened pages restored; a page never opened is not touched");
 });

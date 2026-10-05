@@ -18,6 +18,12 @@ export interface GigSaladFetchResult {
   status: "ok" | "signed_out" | "not_a_lead" | "error";
   message: string;
   lead: GigSaladPageLead | null;
+  /**
+   * Did the browser show this lead's page (which marks it read in GigSalad)? true: landed exactly on
+   * it, even if it then did not parse; false: login or another page; "unknown": the browser failed
+   * part-way (unread Codex round 1). Anything but false is put back to unread.
+   */
+  opened: boolean | "unknown";
 }
 
 /** The lead page address, built from a lead number only: never a link taken from an email. */
@@ -29,21 +35,21 @@ export function gigsaladLeadUrl(gigId: string): string {
 export function readFetchedPage(account: GigSaladAccount, gigId: string, page: FetchedPage): GigSaladFetchResult {
   const landed = new URL(page.url);
   if (/\/(login|sign-in)\b/i.test(landed.pathname) || /\b(log ?in|sign ?in)\b/i.test(page.title)) {
-    return { status: "signed_out", lead: null,
+    return { status: "signed_out", lead: null, opened: false,
       message: `The app's GigSalad ${account} login has expired. Run: npm run gigsalad:login -- ${account}` };
   }
   // The landed page must be exactly the requested lead (Codex round 1, GigSalad, P1): a redirect
   // to another lead's page must never be read as this lead.
   if (landed.hostname !== "www.gigsalad.com" || landed.pathname !== `/promokit/gig/${gigId}`) {
-    return { status: "not_a_lead", lead: null,
+    return { status: "not_a_lead", lead: null, opened: false,
       message: `GigSalad ${account}: asked for lead ${gigId} but landed on ${landed.hostname}${landed.pathname}` };
   }
   const lead = parseGigSaladLeadPage({ title: page.title, text: page.text });
   if (!lead.rawText) {
-    return { status: "not_a_lead", lead: null,
+    return { status: "not_a_lead", lead: null, opened: true,
       message: `GigSalad ${account}: "${page.title}" is not a lead page (wrong lead number, or GigSalad changed the layout)` };
   }
-  return { status: "ok", lead, message: lead.warnings.join("; ") };
+  return { status: "ok", lead, opened: true, message: lead.warnings.join("; ") };
 }
 
 const playwrightOpener: PageOpener = async (profile, url) => {
@@ -74,7 +80,7 @@ export async function fetchGigSaladLead(
     return readFetchedPage(account, gigId,
       await withGigSaladProfile(account, () => open(gigsaladProfileDir(account), url), GIGSALAD_JOB_TIMEOUT_MS, proc));
   } catch (err) {
-    return { status: "error", lead: null,
+    return { status: "error", lead: null, opened: "unknown",
       message: `GigSalad ${account} lead ${gigId} could not be read: ${err instanceof Error ? err.message : String(err)}` };
   }
 }

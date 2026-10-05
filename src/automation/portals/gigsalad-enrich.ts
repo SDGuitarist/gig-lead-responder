@@ -37,14 +37,19 @@ export async function enrichGigSaladLead(
       return { status: "hold", reason: `GigSalad: ${found.candidates.length} inbox rows match this lead; Alex picks the right one` };
   }
   const page = await deps.readPage(found.account, found.gigId);
-  if (page.status !== "ok" || !page.lead) return { status: "hold", reason: `GigSalad: ${page.message}` };
-  // Opening the page marked this lead read (measured 2026-10-05); put it back, whatever the page
-  // turns out to be, so Alex still sees it as new in GigSalad (option A).
-  // A restore that throws (timeout, busy profile) is a failed restore, never a failed lead: a failed
-  // lead is retried, and every retry would open the page again.
-  const unread = await deps.restoreUnread(found.account, found.gigId).catch((err): { status: "failed"; reason: string } => ({
-    status: "failed", reason: `GigSalad ${found.account} lead ${found.gigId} could not be marked unread: ${err instanceof Error ? err.message : String(err)}` }));
-  const unreadNotice = unread.status === "restored" ? undefined : unread.reason;
+  // Opening a lead page marks it read (measured 2026-10-05). Put back every page the browser showed,
+  // or may have shown, whatever it turned out to be, so Alex still sees it as new (option A); a page
+  // never opened (login, another page) is not touched (unread Codex round 1). A restore that throws
+  // is a failed restore, never a failed lead: a failed lead is retried and would reopen the page.
+  let unreadNotice: string | undefined;
+  if (page.opened !== false) {
+    const unread = await deps.restoreUnread(found.account, found.gigId).catch((err): { status: "failed"; reason: string } => ({
+      status: "failed", reason: `GigSalad ${found.account} lead ${found.gigId} could not be marked unread: ${err instanceof Error ? err.message : String(err)}` }));
+    unreadNotice = unread.status === "restored" ? undefined : unread.reason;
+  }
+  if (page.status !== "ok" || !page.lead) {
+    return { status: "hold", reason: `GigSalad: ${page.message}${unreadNotice ? `. ${unreadNotice}` : ""}` };
+  }
   const key = parseGigSaladEmailKey(emailBody);
   const mismatch = key ? pageMismatch(key, page.lead) : "the email's key could not be read";
   if (mismatch) {

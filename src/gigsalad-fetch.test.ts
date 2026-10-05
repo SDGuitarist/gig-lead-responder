@@ -71,3 +71,15 @@ test("gigsalad fetch: the landed page must be exactly the requested lead on www.
     assert.equal(r.lead, null, wrong);
   }
 });
+
+// Unread Codex round 1 P1: a lead page that was opened but did not parse stayed marked read, because
+// restoring was tied to a successful parse. The reader now says whether it OPENED the lead's page.
+test("gigsalad fetch: the result says whether the lead page itself was opened", async () => {
+  const at = (url: string, title: string, text: string) => readFetchedPage("music", "8", { url, title, text });
+  assert.equal(at("https://www.gigsalad.com/promokit/gig/8", "Gig Lead from Testa Q. | GigSalad", LEAD_TEXT).opened, true);
+  assert.equal(at("https://www.gigsalad.com/promokit/gig/8", "Gig Lead | GigSalad", "a page that does not parse").opened, true);
+  assert.equal(at("https://www.gigsalad.com/login", "Log in | GigSalad", "Log in").opened, false);
+  assert.equal(at("https://www.gigsalad.com/promokit/gig/9", "Gig Lead from Testa Q. | GigSalad", LEAD_TEXT).opened, false);
+  const thrown = await fetchGigSaladLead("music", "8", async () => { throw new Error("crashed after loading"); });
+  assert.equal(thrown.opened, "unknown");
+});
