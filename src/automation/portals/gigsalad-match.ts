@@ -8,6 +8,7 @@
  * inbox reader, which opens each account's inbox read-only with its saved app login.
  */
 import { calendarDate } from "../parsers/gigsalad-page.js";
+import { noteGigSaladLoginSeen } from "./gigsalad-login-state.js";
 import { GIGSALAD_ACCOUNTS, gigsaladProfileDir, withGigSaladProfile, type GigSaladAccount } from "./gigsalad-accounts.js";
 
 /** What the inbox row can be matched on (rows show no time). */
@@ -111,13 +112,19 @@ export const readGigSaladInbox: InboxReader = (account) => withGigSaladProfile(a
  * unreadable account). With no match, an unreadable inbox is reported (signed_out names the
  * account), never treated as "no match": the lead may be in it.
  */
-export async function findGigSaladLead(emailBody: string, read: InboxReader = readGigSaladInbox): Promise<FindResult> {
+export async function findGigSaladLead(
+  emailBody: string, read: InboxReader = readGigSaladInbox,
+  // Each inbox read also refreshes that login's status on /health (Alex 2026-10-05).
+  onInbox: (account: GigSaladAccount, status: "ok" | "signed_out" | "error", why?: string) => void =
+    (account, status, why) => noteGigSaladLoginSeen(account, status, undefined, why),
+): Promise<FindResult> {
   const key = parseGigSaladEmailKey(emailBody);
   if (!key) return { status: "no_key" };
   const rows = {} as Record<GigSaladAccount, InboxRow[]>;
   const problems: Array<FindResult & { status: "signed_out" | "error" }> = [];
   for (const account of GIGSALAD_ACCOUNTS) {
     const inbox = await read(account);
+    onInbox(account, inbox.status, inbox.status === "error" ? inbox.message : undefined);
     if (inbox.status === "signed_out") problems.push({ status: "signed_out", account });
     else if (inbox.status === "error") problems.push({ status: "error", message: inbox.message });
     else rows[account] = inbox.links.map((l) => parseInboxRow(l.href, l.text)).filter((r): r is InboxRow => r !== null);

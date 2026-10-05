@@ -2,6 +2,8 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { checkGigSaladLogins, getGigSaladLoginState, startGigSaladLoginCheck } from "./automation/portals/gigsalad-login-check.js";
+import { noteGigSaladLoginSeen } from "./automation/portals/gigsalad-login-state.js";
+import { findGigSaladLead } from "./automation/portals/gigsalad-match.js";
 import type { InboxRead } from "./automation/portals/gigsalad-match.js";
 
 // Alex 2026-10-05: an expired GigSalad login must not pile up held leads silently. Until Module 1's
@@ -54,4 +56,30 @@ test("gigsalad login check: the poller starts the check without waiting, before 
   assert.ok(start > 0, "the poller starts the login check");
   assert.ok(start < src.indexOf("await poll();"), "before the first poll");
   assert.ok(src.indexOf("if (!config.dryRun)") < start, "after the Gmail gate and config setup");
+});
+
+// Alex 2026-10-05: the startup check looks once, so a login that expires while the poller runs went
+// unnoticed. Every GigSalad lead already reads both inboxes; each read now refreshes that account's
+// status (/health) and prints the loud line when a login CHANGES to expired or unreadable.
+test("gigsalad login check: a lead's inbox read refreshes the status, loud once per change", () => {
+  const errors: string[] = [];
+  const original = console.error;
+  console.error = (...a: unknown[]) => { errors.push(a.join(" ")); };
+  try {
+    noteGigSaladLoginSeen("music", "ok", "2026-10-05T13:00:00.000Z");
+    noteGigSaladLoginSeen("music", "signed_out", "2026-10-05T13:05:00.000Z");
+    noteGigSaladLoginSeen("music", "signed_out", "2026-10-05T13:10:00.000Z");
+  } finally { console.error = original; }
+  const state = getGigSaladLoginState();
+  assert.equal(state.music, "signed_out");
+  assert.equal(state.checked_at, "2026-10-05T13:10:00.000Z");
+  assert.equal(errors.filter((e) => /GigSalad music login has EXPIRED/.test(e) && /gigsalad:login -- music/.test(e)).length, 1, errors.join("\n"));
+});
+
+test("gigsalad login check: finding a lead reports each account's inbox status as it reads it", async () => {
+  const seen: Array<[string, string]> = [];
+  await findGigSaladLead("Testa would like a quote for a Wedding on August 1, 2026.",
+    async (a) => (a === "music" ? { status: "ok", links: [] } : { status: "signed_out" }),
+    (account, status) => { seen.push([account, status]); });
+  assert.deepEqual(seen, [["music", "ok"], ["business", "signed_out"]]);
 });

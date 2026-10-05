@@ -9,15 +9,9 @@
  */
 import { GIGSALAD_ACCOUNTS, type GigSaladAccount } from "./gigsalad-accounts.js";
 import { readGigSaladInbox, type InboxReader } from "./gigsalad-match.js";
+import { getGigSaladLoginState, loginProblemLine, setGigSaladLoginState, type GigSaladLoginState } from "./gigsalad-login-state.js";
 
-export type GigSaladLoginStatus = "unchecked" | "ok" | "signed_out" | "error";
-export type GigSaladLoginState = { checked_at: string | null } & Record<GigSaladAccount, GigSaladLoginStatus>;
-
-let state: GigSaladLoginState = { checked_at: null, music: "unchecked", business: "unchecked" };
-
-export function getGigSaladLoginState(): GigSaladLoginState {
-  return { ...state };
-}
+export { getGigSaladLoginState, type GigSaladLoginState, type GigSaladLoginStatus } from "./gigsalad-login-state.js";
 
 export async function checkGigSaladLogins(
   read: InboxReader = readGigSaladInbox, now: () => string = () => new Date().toISOString(),
@@ -33,15 +27,10 @@ export async function checkGigSaladLogins(
       next[account] = "error";
       why = err instanceof Error ? err.message : String(err);
     }
-    if (next[account] === "signed_out") {
-      console.error(`[gigsalad] *** The app's GigSalad ${account} login has EXPIRED: its leads will be HELD. ` +
-        `Run: npm run gigsalad:login -- ${account} ***`);
-    } else if (next[account] === "error") {
-      console.error(`[gigsalad] *** The app could NOT check the GigSalad ${account} login (${why}). ` +
-        `Its leads may be held; check with: npm run gigsalad:login -- ${account} ***`);
-    }
+    const line = loginProblemLine(account, next[account], why);
+    if (line) console.error(line);
   }
-  state = next;
+  setGigSaladLoginState(next);
   return getGigSaladLoginState();
 }
 
