@@ -132,10 +132,14 @@ export async function processLead(
         console.warn(gs.notice);
         if (!config.dryRun) await sendSms(config, gs.notice);
       }
-    } else if (gs.status === "hold") {
+    } else {
+      // A hold, or an email without GigSalad's new-lead sentence (real lead emails always have
+      // it; Codex round 1, GigSalad, P1): never pipe the near-empty email text.
+      const reason = gs.status === "hold" ? gs.reason
+        : "GigSalad: email without the new-lead sentence (\"<name> would like a quote for ...\"); not a lead email GigSalad sends";
       lead.parseConfidence = "low";
-      lead.parseWarnings = [...lead.parseWarnings, gs.reason];
-      console.warn(`GigSalad enrichment held the lead: ${gs.reason}`);
+      lead.parseWarnings = [...lead.parseWarnings, reason];
+      console.warn(`GigSalad enrichment held the lead: ${reason}`);
     }
   }
 

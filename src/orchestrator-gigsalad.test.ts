@@ -53,14 +53,19 @@ test("gigsalad wiring: a held lead never reaches the pipeline and its note carri
   assert.match(rowOf("gs-2")?.error_message ?? "", /npm run gigsalad:login -- business/);
 });
 
-test("gigsalad wiring: an email that is not GigSalad's lead sentence keeps the old email parse", async () => {
+// Codex round 1 (GigSalad) P1: an email without GigSalad's new-lead sentence fell through to the
+// legacy parser and reached the pipeline with near-empty text. Real lead emails always carry the
+// sentence, so anything else is held.
+test("gigsalad wiring: an email without GigSalad's lead sentence is held, never piped", async () => {
   const seen: string[] = [];
   const msg = { ...realFormat("gs-3"), bodyText: "Event Type: Wedding\nDate: April 15, 2027\nLocation: San Diego, CA\nGuest Count: 80" };
-  await assert.rejects(processLead(msg, config, {} as never, {} as never, {} as never, {
+  await processLead(msg, config, {} as never, {} as never, {} as never, {
     runPipeline: (async (text: string) => { seen.push(text); throw stop; }) as never,
     enrichGigSalad: async () => ({ status: "not_a_lead_email" }),
-  }), /stop after/);
-  assert.match(seen[0], /Event Type: Wedding/);
+  });
+  assert.equal(seen.length, 0);
+  assert.equal(rowOf("gs-3")?.status, "failed");
+  assert.match(rowOf("gs-3")?.error_message ?? "", /new-lead sentence/);
 });
 
 test("gigsalad wiring: a lead found while the other login expired still runs, and the notice is surfaced", async () => {

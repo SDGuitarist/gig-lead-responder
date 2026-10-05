@@ -11,6 +11,13 @@ import type { AutomationConfig } from "./automation/config.js";
 process.env.DATABASE_PATH = join(mkdtempSync(join(tmpdir(), "glr-orch-")), "leads.db");
 const { processLead } = await import("./automation/orchestrator.js");
 
+// GigSalad lead emails hold almost nothing; the orchestrator reads the lead page (step 4b). These
+// tests are about retry/platform logic, so the page read is injected (no browser).
+const { parseGigSaladLeadPage } = await import("./automation/parsers/gigsalad-page.js");
+const PAGE_LEAD = parseGigSaladLeadPage({ title: "Gig Lead from Testa Q. | GigSalad", text:
+  "Event info\nTesta Q.\nThu, April 15, 2027 View calendar\n6:00 PM – 9:00 PM (3 hours)\nSan Diego, CA 92101, US\nEvent type: Wedding\nNumber of guests: 80 guests\nBlock communication" });
+const enrichedLead = async () => ({ status: "enriched" as const, account: "music" as const, gigId: "1", lead: PAGE_LEAD });
+
 const config = {
   dryRun: true,
   autoSendEnabled: false,
@@ -42,6 +49,7 @@ test("orchestrator passes platform into runPipeline", async () => {
   };
   // A first pipeline failure rethrows so the poller retries it (Alex 2026-10-04).
   await assert.rejects(processLead(gigsaladMsg, config, {} as never, {} as never, {} as never, {
+    enrichGigSalad: enrichedLead,
     runPipeline: fakeRunPipeline as never,
   }), /stop after the call under test/);
   assert.deepEqual(seen, ["gigsalad"]);

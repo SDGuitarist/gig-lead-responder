@@ -11,6 +11,13 @@ const { processLead } = await import("./automation/orchestrator.js");
 const { insertLead, updateLead, isEmailProcessed } = await import("./db/index.js");
 const { initDb } = await import("./db/migrate.js");
 
+// GigSalad lead emails hold almost nothing; the orchestrator reads the lead page (step 4b). These
+// tests are about retry/platform logic, so the page read is injected (no browser).
+const { parseGigSaladLeadPage } = await import("./automation/parsers/gigsalad-page.js");
+const PAGE_LEAD = parseGigSaladLeadPage({ title: "Gig Lead from Testa Q. | GigSalad", text:
+  "Event info\nTesta Q.\nThu, April 15, 2027 View calendar\n6:00 PM – 9:00 PM (3 hours)\nSan Diego, CA 92101, US\nEvent type: Wedding\nNumber of guests: 80 guests\nBlock communication" });
+const enrichedLead = async () => ({ status: "enriched" as const, account: "music" as const, gigId: "1", lead: PAGE_LEAD });
+
 const config = { dryRun: true, autoSendEnabled: false, logPath: "/dev/null", edgeCaseBudgetThreshold: 3000 } as AutomationConfig;
 
 function gigsalad(id: string): GmailMessage {
@@ -40,6 +47,7 @@ test("retry resumes a half-done lead: reuses the row instead of a duplicate inse
   let calls = 0;
   // A first pipeline failure now rethrows so the poller retries it (Alex 2026-10-04).
   await assert.rejects(processLead(gigsalad("retry-1"), config, {} as never, {} as never, {} as never, {
+    enrichGigSalad: enrichedLead,
     runPipeline: (async () => {
       calls++;
       throw new Error("stop after resume");
@@ -54,6 +62,7 @@ test("retry resumes a half-done lead: a row past the pipeline is not redone", as
   updateLead(done.id, { pipeline_completed_at: new Date().toISOString() });
   let calls = 0;
   await processLead(gigsalad("retry-2"), config, {} as never, {} as never, {} as never, {
+    enrichGigSalad: enrichedLead,
     runPipeline: (async () => {
       calls++;
       throw new Error("must not run");
@@ -72,7 +81,7 @@ const statusOf = (id: string) =>
 
 test("pipeline failure retried once: the first failure rethrows and leaves the lead retryable", async () => {
   let calls = 0;
-  const failing = { runPipeline: (async () => { calls++; throw new Error("model timeout"); }) as never };
+  const failing = { enrichGigSalad: enrichedLead, runPipeline: (async () => { calls++; throw new Error("model timeout"); }) as never };
   await assert.rejects(processLead(gigsalad("pf-1"), config, {} as never, {} as never, {} as never, failing), /model timeout/);
   assert.equal(calls, 1);
   assert.equal(isEmailProcessed("pf-1"), false, "not marked done, so the next poll retries it");
@@ -111,7 +120,7 @@ test("pipeline failure retried once: a retry that succeeds clears the failure no
     verified: true, timing: { total: 1 }, confidence_score: 80,
   };
   let calls = 0;
-  const flaky = { runPipeline: (async () => { calls++; if (calls === 1) throw new Error("blip"); return output; }) as never };
+  const flaky = { enrichGigSalad: enrichedLead, runPipeline: (async () => { calls++; if (calls === 1) throw new Error("blip"); return output; }) as never };
   await assert.rejects(processLead(gigsalad("pf-ok"), config, {} as never, {} as never, {} as never, flaky), /blip/);
   assert.match(statusOf("pf-ok").error_message ?? "", /^pipeline attempt 1 failed: blip/, "control: the note is written");
   await processLead(gigsalad("pf-ok"), config, {} as never, {} as never, {} as never, flaky);
