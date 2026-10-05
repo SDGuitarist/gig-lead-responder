@@ -80,7 +80,8 @@ export type FindResult =
 
 const INBOX = "https://www.gigsalad.com/promokit/inbox";
 
-const playwrightInboxReader: InboxReader = async (account) => {
+/** Opens one account's inbox read-only with its saved app login. */
+export const readGigSaladInbox: InboxReader = async (account) => {
   let context;
   try {
     const { chromium } = await import("playwright");
@@ -110,7 +111,7 @@ const playwrightInboxReader: InboxReader = async (account) => {
  * unreadable account). With no match, an unreadable inbox is reported (signed_out names the
  * account), never treated as "no match": the lead may be in it.
  */
-export async function findGigSaladLead(emailBody: string, read: InboxReader = playwrightInboxReader): Promise<FindResult> {
+export async function findGigSaladLead(emailBody: string, read: InboxReader = readGigSaladInbox): Promise<FindResult> {
   const key = parseGigSaladEmailKey(emailBody);
   if (!key) return { status: "no_key" };
   const rows = {} as Record<GigSaladAccount, InboxRow[]>;

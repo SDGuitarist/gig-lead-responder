@@ -46,3 +46,12 @@ test("health reports lease host: an expired lease reports no host", async () => 
   assert.ok(tryAcquireLease({ host: "alex-mbp", pid: process.pid, boot: 1 }, Date.now() - 120_000, () => true));
   assert.deepEqual((await health()).lease, { host: null });
 });
+
+// Alex 2026-10-05: /health shows each GigSalad login's last startup check, and when it ran.
+test("health reports the GigSalad login check: unchecked until it runs", async () => {
+  assert.deepEqual((await health()).gigsalad, { checked_at: null, music: "unchecked", business: "unchecked" });
+  const { checkGigSaladLogins } = await import("./automation/portals/gigsalad-login-check.js");
+  await checkGigSaladLogins(async (a) => (a === "music" ? { status: "ok", links: [] } : { status: "signed_out" }),
+    () => "2026-10-05T12:00:00.000Z");
+  assert.deepEqual((await health()).gigsalad, { checked_at: "2026-10-05T12:00:00.000Z", music: "ok", business: "signed_out" });
+});

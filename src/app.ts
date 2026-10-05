@@ -11,6 +11,7 @@ import { sessionAuth, csrfGuard, logout } from "./auth.js";
 import { errorHandler } from "./utils/error-handler.js";
 import { getRejectedEmailCount } from "./automation/source-validator.js";
 import { getPollerState } from "./db/poller-state.js";
+import { getGigSaladLoginState } from "./automation/portals/gigsalad-login-check.js";
 import { getLeaseInfo } from "./db/runtime-lease.js";
 import { getBuildCommit, STARTED_AT } from "./build-info.js";
 
@@ -65,6 +66,8 @@ export function createApp() {
       poller: { last_success_at: poller.lastSuccessAt, auth: poller.auth ?? "never" },
       // Only a live lease has a holder; an expired one names nobody (Codex round 1, Phase 0 runtime).
       lease: { host: liveLeaseHost(getLeaseInfo(), Date.now()) },
+      // The poller's startup check of the app's GigSalad logins; "unchecked" until it runs (Alex 2026-10-05).
+      gigsalad: getGigSaladLoginState(),
     });
   });
 
