@@ -51,9 +51,11 @@ Codex CLI runs reviews with `-s workspace-write` (16 tests are sandbox-blocked, 
 - DONE `8a54a90` (2) `fetchGigSaladLead(account, gigId)` in `src/automation/portals/gigsalad-fetch.ts`: read-only,
   address from a lead number only; outcomes ok / signed_out (names the login command) / not_a_lead / error. Live
   read-only check passed on one lead per account (shape only) and a signed-out visit. `submitReply` untouched.
-- NEXT, in order: (3) email → gig id: the email's
-  `tracking.gigsalad.com` link (following one real link needs Alex's OK) or match in the inbox by first name +
-  event type + date; also which account a lead belongs to; (4) wire into the orchestrator in place of the email
+- DONE `0413c0b` + next commit (3) email → lead page, Alex chose option A (inbox match, no tracking click):
+  `src/automation/portals/gigsalad-match.ts` `findGigSaladLead(emailBody)` matches first name + event type + date in
+  BOTH inboxes; exactly one match (also names the account), else hold; an unreadable inbox is never "no match".
+  Live known-answer check matched a real row in each account.
+- NEXT, in order: (4) wire into the orchestrator in place of the email
   parser's rawText; (5) Codex round 1 on the whole GigSalad range.
 - **Alex decided 2026-10-04:** business-account leads show NO competition count; KEEP quoting them at anchor (classify's
   rule: no displayed count = competition 0). No new pricing rule.
