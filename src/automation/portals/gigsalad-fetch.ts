@@ -25,10 +25,17 @@ export function gigsaladLeadUrl(gigId: string): string {
   return `https://www.gigsalad.com/promokit/gig/${gigId}`;
 }
 
-export function readFetchedPage(account: GigSaladAccount, page: FetchedPage): GigSaladFetchResult {
-  if (/\/(login|sign-in)\b/i.test(new URL(page.url).pathname) || /\b(log ?in|sign ?in)\b/i.test(page.title)) {
+export function readFetchedPage(account: GigSaladAccount, gigId: string, page: FetchedPage): GigSaladFetchResult {
+  const landed = new URL(page.url);
+  if (/\/(login|sign-in)\b/i.test(landed.pathname) || /\b(log ?in|sign ?in)\b/i.test(page.title)) {
     return { status: "signed_out", lead: null,
       message: `The app's GigSalad ${account} login has expired. Run: npm run gigsalad:login -- ${account}` };
+  }
+  // The landed page must be exactly the requested lead (Codex round 1, GigSalad, P1): a redirect
+  // to another lead's page must never be read as this lead.
+  if (landed.hostname !== "www.gigsalad.com" || landed.pathname !== `/promokit/gig/${gigId}`) {
+    return { status: "not_a_lead", lead: null,
+      message: `GigSalad ${account}: asked for lead ${gigId} but landed on ${landed.hostname}${landed.pathname}` };
   }
   const lead = parseGigSaladLeadPage({ title: page.title, text: page.text });
   if (!lead.rawText) {
@@ -60,7 +67,7 @@ export async function fetchGigSaladLead(
 ): Promise<GigSaladFetchResult> {
   const url = gigsaladLeadUrl(gigId);
   try {
-    return readFetchedPage(account, await open(gigsaladProfileDir(account), url));
+    return readFetchedPage(account, gigId, await open(gigsaladProfileDir(account), url));
   } catch (err) {
     return { status: "error", lead: null,
       message: `GigSalad ${account} lead ${gigId} could not be read: ${err instanceof Error ? err.message : String(err)}` };

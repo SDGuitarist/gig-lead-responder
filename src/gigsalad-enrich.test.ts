@@ -15,7 +15,10 @@ const fetched = (r: GigSaladFetchResult) => async () => r;
 const ok: GigSaladFetchResult = { status: "ok", message: "", lead: PAGE };
 
 test("gigsalad enrich: one match whose page reads is enriched with that page's lead", async () => {
-  const r = await enrichGigSaladLead(EMAIL, { find: found({ status: "matched", account: "business", gigId: "8" }), readPage: fetched(ok) });
+  const asked: Array<[string, string]> = [];
+  const r = await enrichGigSaladLead(EMAIL, { find: found({ status: "matched", account: "business", gigId: "8" }),
+    readPage: async (account, gigId) => { asked.push([account, gigId]); return ok; } });
+  assert.deepEqual(asked, [["business", "8"]]);
   assert.equal(r.status, "enriched");
   assert.equal(r.status === "enriched" && r.lead.rawText, PAGE.rawText);
   assert.equal(r.status === "enriched" && r.account, "business");
