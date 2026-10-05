@@ -7,7 +7,8 @@
  * not a lead page (layout or address problem), a lead. Anything but "ok" holds the lead.
  */
 import { parseGigSaladLeadPage, type GigSaladPageLead } from "../parsers/gigsalad-page.js";
-import { gigsaladProfileDir, withGigSaladProfile, type GigSaladAccount } from "./gigsalad-accounts.js";
+import { BROWSER_PROCESSES, GIGSALAD_JOB_TIMEOUT_MS, NO_BROWSER_PROCESSES, gigsaladProfileDir, withGigSaladProfile,
+  type GigSaladAccount } from "./gigsalad-accounts.js";
 
 export interface FetchedPage { url: string; title: string; text: string }
 /** Opens `url` with the browser profile at `profile` and returns what it landed on. Swappable in tests. */
@@ -68,7 +69,10 @@ export async function fetchGigSaladLead(
   const url = gigsaladLeadUrl(gigId);
   try {
     // One browser job per account profile at a time (login check Codex round 1).
-    return readFetchedPage(account, gigId, await withGigSaladProfile(account, () => open(gigsaladProfileDir(account), url)));
+    // The real browser gets the real process check; a test opener launches none.
+    const proc = open === playwrightOpener ? BROWSER_PROCESSES : NO_BROWSER_PROCESSES;
+    return readFetchedPage(account, gigId,
+      await withGigSaladProfile(account, () => open(gigsaladProfileDir(account), url), GIGSALAD_JOB_TIMEOUT_MS, proc));
   } catch (err) {
     return { status: "error", lead: null,
       message: `GigSalad ${account} lead ${gigId} could not be read: ${err instanceof Error ? err.message : String(err)}` };
