@@ -7,7 +7,7 @@
  * not a lead page (layout or address problem), a lead. Anything but "ok" holds the lead.
  */
 import { parseGigSaladLeadPage, type GigSaladPageLead } from "../parsers/gigsalad-page.js";
-import { gigsaladProfileDir, type GigSaladAccount } from "./gigsalad-accounts.js";
+import { gigsaladProfileDir, withGigSaladProfile, type GigSaladAccount } from "./gigsalad-accounts.js";
 
 export interface FetchedPage { url: string; title: string; text: string }
 /** Opens `url` with the browser profile at `profile` and returns what it landed on. Swappable in tests. */
@@ -67,7 +67,8 @@ export async function fetchGigSaladLead(
 ): Promise<GigSaladFetchResult> {
   const url = gigsaladLeadUrl(gigId);
   try {
-    return readFetchedPage(account, gigId, await open(gigsaladProfileDir(account), url));
+    // One browser job per account profile at a time (login check Codex round 1).
+    return readFetchedPage(account, gigId, await withGigSaladProfile(account, () => open(gigsaladProfileDir(account), url)));
   } catch (err) {
     return { status: "error", lead: null,
       message: `GigSalad ${account} lead ${gigId} could not be read: ${err instanceof Error ? err.message : String(err)}` };

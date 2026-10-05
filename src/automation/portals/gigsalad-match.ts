@@ -8,7 +8,7 @@
  * inbox reader, which opens each account's inbox read-only with its saved app login.
  */
 import { calendarDate } from "../parsers/gigsalad-page.js";
-import { GIGSALAD_ACCOUNTS, gigsaladProfileDir, type GigSaladAccount } from "./gigsalad-accounts.js";
+import { GIGSALAD_ACCOUNTS, gigsaladProfileDir, withGigSaladProfile, type GigSaladAccount } from "./gigsalad-accounts.js";
 
 /** What the inbox row can be matched on (rows show no time). */
 export interface MatchKey { firstName: string; eventType: string; dateISO: string }
@@ -81,7 +81,7 @@ export type FindResult =
 const INBOX = "https://www.gigsalad.com/promokit/inbox";
 
 /** Opens one account's inbox read-only with its saved app login. */
-export const readGigSaladInbox: InboxReader = async (account) => {
+export const readGigSaladInbox: InboxReader = (account) => withGigSaladProfile(account, async () => {
   let context;
   try {
     const { chromium } = await import("playwright");
@@ -103,7 +103,7 @@ export const readGigSaladInbox: InboxReader = async (account) => {
   } finally {
     await context?.close();
   }
-};
+});
 
 /**
  * Find a lead email's page in BOTH accounts. Alex 2026-10-04: one expired login must not stop
