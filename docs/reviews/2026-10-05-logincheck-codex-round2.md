@@ -30,3 +30,7 @@ Question 3: not clean; aggregate `processLead` time can exceed 60 seconds.
 Question 4: the new timeout assertion is vacuous for cleanup/non-overlap.
 
 Verification: focused GigSalad tests passed **55/55**. Full suite: **591 passed, 17 sandbox-restricted failures, 1 skipped**; failures were listener `EPERM`/`sysctl` environment restrictions.
+
+---
+
+**Round 3 authorized by Alejandro: YES** (2026-10-05, Alex chose B over Claude's recommended simplification). Plan: force-close a timed-out browser before its profile is released (and never start a job while that profile's browser still runs), cap a GigSalad lead at 90 s end to end, real overlap test. Pre-registered: round 3 is the last; a NO-GO fires the hard cap.
