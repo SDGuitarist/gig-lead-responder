@@ -33,6 +33,9 @@ const SEND_PATTERNS: Record<string, RegExp> = {
 const PINNED: Record<string, Record<string, number>> = {
   "src/automation/gmail-watcher.ts": { "gmail messages.send": 1 }, // Squarespace reply
   "src/automation/portals/gigsalad-client.ts": { "portal click": 2 }, // send button + login submit
+  // Alex 2026-10-05 (option A): "Mark as unread" after the app reads a lead (reading marks it read).
+  // Only an exact single button in this lead's form; result proven via the Unread/Archived views.
+  "src/automation/portals/gigsalad-unread.ts": { "portal click": 1 },
   "src/automation/portals/yelp-client.ts": { "portal click": 2 }, // send button + login submit
   "src/claude.ts": { "anthropic messages.create": 1 }, // drafting, not a client send
   "src/venue-lookup.ts": { fetch: 1 }, // GET to PF-Intel
