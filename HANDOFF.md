@@ -8,7 +8,7 @@
 
 **State:** branch `feat/hub-phase0`, pushed at the end of this session. **No Codex review is open.** Five review loops
 CLOSED with GO; the newest: **residency** (`c047b49..fbb00f6`): round 1 NO-GO (1 P1, fixed `fbb00f6`), round 2 GO
-(`docs/reviews/2026-10-04-residency-codex-round2.md`). Suite on the Mac: 555 pass / 0 fail / 1 skip / 1 todo.
+(`docs/reviews/2026-10-04-residency-codex-round2.md`). Suite on the Mac: 587 pass / 0 fail / 1 skip / 0 todo (2026-10-05).
 Codex CLI runs reviews with `-s workspace-write` (16 tests are sandbox-blocked, Mac-only); check `git status` after.
 
 **Built this session (all Codex-reviewed, GO):**
@@ -55,8 +55,16 @@ Codex CLI runs reviews with `-s workspace-write` (16 tests are sandbox-blocked, 
   `src/automation/portals/gigsalad-match.ts` `findGigSaladLead(emailBody)` matches first name + event type + date in
   BOTH inboxes; exactly one match (also names the account), else hold; an unreadable inbox is never "no match".
   Live known-answer check matched a real row in each account.
-- NEXT, in order: (4) wire into the orchestrator in place of the email
-  parser's rawText; (5) Codex round 1 on the whole GigSalad range.
+- DONE (4) wiring: `a2ee091`/`221c738` `enrichGigSaladLead` (enriched / hold with reason / not a lead email),
+  `21983ee` Alex: one expired login no longer holds the other account's leads (a unique match in the signed-in
+  account is used + a login notice), `28b8973` orchestrator step 4b (pipeline runs on the page's details; a hold
+  says why on the dashboard), `f036d3a` the real-email todo is now a test of the design (suite: 0 todos).
+  `portalUrl` is deliberately NOT set: the old GigSalad send path stays disarmed (posting = Alex's call).
+  ⚠ `a2ee091` was pushed with the suite red (send-surface guard caught `deps.fetch(`); fixed in `221c738`. Commits
+  are now gated on a green suite.
+- **Known gap (owner Claude; trigger: Module 1's hold/alert work, or Alex asks sooner):** a held GigSalad lead is
+  marked processed, so it is not retried after Alex signs in again; it stays on the dashboard with the reason.
+- NEXT: (5) Codex round 1 on the whole GigSalad range (`a86b7f4..f036d3a`, code commits listed above).
 - **Alex decided 2026-10-04:** business-account leads show NO competition count; KEEP quoting them at anchor (classify's
   rule: no displayed count = competition 0). No new pricing rule.
 - Unverified: the page text the app's own browser returns may break lines differently from Chrome's; the parser
