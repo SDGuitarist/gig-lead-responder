@@ -93,3 +93,20 @@ test("gigsalad send disarmed: dispatchReply never calls the GigSalad client, eve
   assert.equal(r.status, "failed");
   assert.match(r.status === "failed" ? r.error : "", /disabled/);
 });
+
+// Login check Codex round 2 P1: two inbox reads and a page read, each up to its own limit, could
+// hold processLead (and so the poller) for ~3 minutes. A whole GigSalad read is capped; past it the
+// lead is held and the poller moves on.
+test("gigsalad wiring: a GigSalad read past its overall deadline holds the lead and lets the poller go on", async () => {
+  const seen: string[] = [];
+  const started = Date.now();
+  await processLead(realFormat("gs-slow"), config, {} as never, {} as never, {} as never, {
+    runPipeline: (async (text: string) => { seen.push(text); throw stop; }) as never,
+    enrichGigSalad: () => new Promise(() => {}),
+    gigsaladDeadlineMs: 40,
+  });
+  assert.ok(Date.now() - started < 5_000);
+  assert.equal(seen.length, 0);
+  assert.equal(rowOf("gs-slow")?.status, "failed");
+  assert.match(rowOf("gs-slow")?.error_message ?? "", /took longer than 40 ms/);
+});

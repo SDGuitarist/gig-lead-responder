@@ -15,7 +15,10 @@ import { getLeadByMessageId, insertLead, updateLead } from "../db/leads.js";
 import { completeApproval } from "../db/follow-ups.js";
 import { YelpPortalClient } from "./portals/yelp-client.js";
 import { GigSaladPortalClient } from "./portals/gigsalad-client.js";
-import { enrichGigSaladLead } from "./portals/gigsalad-enrich.js";
+import { enrichGigSaladLead, type GigSaladEnrichment } from "./portals/gigsalad-enrich.js";
+
+/** One GigSalad lead's whole read (inboxes + page) gives up after this (login check Codex round 2). */
+const GIGSALAD_LEAD_DEADLINE_MS = 90_000;
 
 /** Written to error_message on a lead's first pipeline failure; a second failure is final. */
 const PIPELINE_RETRY_MARK = "pipeline attempt 1 failed: ";
@@ -39,7 +42,7 @@ export async function processLead(
   auth: OAuth2Client,
   yelpClient: YelpPortalClient,
   gigsaladClient: GigSaladPortalClient,
-  deps: { runPipeline: typeof runPipeline; enrichGigSalad?: typeof enrichGigSaladLead } = { runPipeline },
+  deps: { runPipeline: typeof runPipeline; enrichGigSalad?: typeof enrichGigSaladLead; gigsaladDeadlineMs?: number } = { runPipeline },
 ): Promise<void> {
   const startTime = Date.now();
 
@@ -120,7 +123,16 @@ export async function processLead(
   // address (portalUrl) is deliberately NOT set: the old GigSalad reply path stays disarmed.
   if (lead.platform === "gigsalad") {
     lead.portalUrl = ""; // never a send address from a GigSalad email (see dispatchReply)
-    const gs = await (deps.enrichGigSalad ?? enrichGigSaladLead)(msg.bodyText || msg.bodyHtml);
+    // A whole GigSalad read (two inbox reads + the page) is capped, so a slow GigSalad cannot hold
+    // the poller for minutes (login check Codex round 2). The browser jobs it leaves running are
+    // bounded and killed by withGigSaladProfile; the lead is held.
+    const deadlineMs = deps.gigsaladDeadlineMs ?? GIGSALAD_LEAD_DEADLINE_MS;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const gs = await Promise.race([
+      (deps.enrichGigSalad ?? enrichGigSaladLead)(msg.bodyText || msg.bodyHtml),
+      new Promise<GigSaladEnrichment>((r) => { timer = setTimeout(() => r({ status: "hold",
+        reason: `GigSalad: reading the lead took longer than ${deadlineMs} ms; held (GigSalad slow or unreachable)` }), deadlineMs); }),
+    ]).finally(() => clearTimeout(timer));
     if (gs.status === "enriched") {
       lead.rawText = gs.lead.rawText;
       lead.parseConfidence = "high";
