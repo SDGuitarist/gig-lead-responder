@@ -17,3 +17,7 @@ Details: call me at 555/010/0199
 `555/010/0199` is not matched by `PHONE`, so it reaches both `fields["Details"]` and `rawText`. The email on the same line is scrubbed.
 
 The GigSalad tests pass (42/0), and sentinel bound tests are mutation-proven, but this uncovered contact path means the result is not GO.
+
+---
+
+**Alex chose 2026-10-05: A, a different approach.** Rebuild the contact scrubber on one rule (any letter-free stretch with 7+ digits is a phone, whatever the separators; money, times and dates exempt), test-first, then a FRESH Codex round 1 on the new approach. Residue to write down: numbers spelled out in words.
