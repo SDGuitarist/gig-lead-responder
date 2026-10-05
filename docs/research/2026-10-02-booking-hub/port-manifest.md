@@ -371,7 +371,7 @@
 | R355 | F16 | Step 2: Mode Assessment | ALREADY PRESENT | `src/prompts/classify.ts` Step 2 (`mode`) | always |  |  |
 | R356 | F16 | Step 2.5: Competition + Vagueness Check | ALREADY PRESENT | `src/prompts/classify.ts` Step 2.5 | always |  |  |
 | R357 | F16 | Competition Level | ALREADY PRESENT | `src/prompts/classify.ts` Step 2.5 competition levels | always |  |  |
-| R358 | F16 | ⚠️ Competition Extraction Rule | TO PORT | **Prompt half PORTED 2026-10-03** (`buildClassifyPrompt`, COMPETITION EXTRACTION RULE, test `port manifest R358`). Still to port: the plan's code check (count must equal the platform's displayed count, or 0); the GigSalad parser (`src/automation/parsers/gigsalad.ts`) does not extract the displayed count yet | always |  |  |
+| R358 | F16 | ⚠️ Competition Extraction Rule | PORTED | `src/pipeline/classify-verify.ts` (the count GigSalad displays, the parser's last rawText line, must equal `competition_quote_count`, else the lead is held; a client-typed number or `Competition:` line cannot override it); prompt half in `buildClassifyPrompt` (COMPETITION EXTRACTION RULE). Business pages show no count: unchanged. Ported 2026-10-05 | always | `GigSalad displays` | `port manifest R358` |
 | R359 | F16 | Vagueness Assessment | ALREADY PRESENT | `src/prompts/classify.ts` Step 2.5 vagueness | always |  |  |
 | R360 | F16 | Decision Gate | ALREADY PRESENT | `src/prompts/classify.ts` Step 2.5 decision gate; binary question in `src/prompts/generate.ts:85` | always |  |  |
 | R361 | F16 | Step 2.75: Stealth Premium Check | ALREADY PRESENT | `src/prompts/classify.ts` Step 2.75 (`stealth_premium`) | always |  |  |
