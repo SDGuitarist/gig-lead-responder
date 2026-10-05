@@ -75,3 +75,11 @@ read path (`fetchGigSaladLead`, read-only, no click). Afterwards the Unread view
 lead's page marks it read in Alex's GigSalad inbox. Still unknown: whether the client sees anything (e.g. "viewed")
 and whether it affects GigSalad response-time stats. Useful for later: `/promokit/inbox-unread` lists unread leads
 without opening them, so the app can tell which leads Alex has not seen yet.
+
+## "Mark as unread" works and is provable (measured 2026-10-05, one click authorized by Alex)
+
+The lead page has one form (`POST /promokit/modify-notifications-for-gig/<id>`, hidden `notification_action`
+filled by page script) with two submit buttons: "Archive" and "Mark as unread". One authorized click on the test
+lead through `restoreGigSaladUnreadInBrowser`: before, the Unread view was empty; result `restored`; independent
+re-checks after: the lead is in `/promokit/inbox-unread`, not in `/promokit/inbox-archive` (8 rows before and
+after). No other lead was touched.
