@@ -119,6 +119,7 @@ export async function processLead(
   // details are on the lead page (docs/research/2026-10-04-gigsalad-lead-page.md). The send
   // address (portalUrl) is deliberately NOT set: the old GigSalad reply path stays disarmed.
   if (lead.platform === "gigsalad") {
+    lead.portalUrl = ""; // never a send address from a GigSalad email (see dispatchReply)
     const gs = await (deps.enrichGigSalad ?? enrichGigSaladLead)(msg.bodyText || msg.bodyHtml);
     if (gs.status === "enriched") {
       lead.rawText = gs.lead.rawText;
@@ -264,7 +265,7 @@ export async function processLead(
 /**
  * Dispatch a reply to the correct sender based on platform.
  */
-async function dispatchReply(
+export async function dispatchReply(
   lead: ParsedLead,
   replyText: string,
   auth: OAuth2Client,
@@ -276,13 +277,12 @@ async function dispatchReply(
     case "squarespace":
       return sendSquarespaceReply(auth, lead, replyText);
 
-    case "gigsalad": {
-      const result = await gigsaladClient.submitReply(lead.portalUrl, replyText);
-      if (result.success) {
-        return { status: "sent", platform: "gigsalad", timestamp: new Date() };
-      }
-      return { status: "failed", platform: "gigsalad", error: result.error || "Unknown", timestamp: new Date() };
-    }
+    case "gigsalad":
+      // Posting on GigSalad is Alex's decision and not built (Codex round 1, GigSalad, P1): the
+      // old submitReply path is unverified and was reachable through a stray portal link. Refuse
+      // here, whatever the lead carries; Alex replies on GigSalad himself.
+      void gigsaladClient;
+      return { status: "failed", platform: "gigsalad", error: "GigSalad posting is disabled: Alex replies on GigSalad himself", timestamp: new Date() };
 
     case "yelp": {
       const result = await yelpClient.submitReply(lead.portalUrl, replyText);

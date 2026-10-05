@@ -75,3 +75,16 @@ test("gigsalad wiring: a lead found while the other login expired still runs, an
   assert.equal(seen[0], PAGE.rawText);
   assert.ok(warned.some((w) => /gigsalad:login -- business/.test(w)), warned.join("\n"));
 });
+
+// Codex round 1 (GigSalad) P1: an email carrying an old-style www.gigsalad.com link gave the lead a
+// portalUrl, so the never-verified submitReply path was reachable. Posting on GigSalad is Alex's
+// decision (not built): the dispatch refuses, whatever the lead carries.
+test("gigsalad send disarmed: dispatchReply never calls the GigSalad client, even with a portal address", async () => {
+  const { dispatchReply } = await import("./automation/orchestrator.js");
+  const client = { submitReply: async () => { throw new Error("GigSalad client must never be called"); } };
+  const lead = { platform: "gigsalad", portalUrl: "https://www.gigsalad.com/leads/respond/123", rawText: "x",
+    parseConfidence: "high", parseWarnings: [], gmailMessageId: "m", threadId: "t", messageIdHeader: "h", receivedAt: new Date() };
+  const r = await dispatchReply(lead as never, "reply", {} as never, config, {} as never, client as never);
+  assert.equal(r.status, "failed");
+  assert.match(r.status === "failed" ? r.error : "", /disabled/);
+});
