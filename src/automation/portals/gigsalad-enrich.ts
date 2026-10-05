@@ -9,6 +9,7 @@ import type { GigSaladPageLead } from "../parsers/gigsalad-page.js";
 import type { GigSaladAccount } from "./gigsalad-accounts.js";
 import { fetchGigSaladLead } from "./gigsalad-fetch.js";
 import { findGigSaladLead, parseGigSaladEmailKey, type LeadKey } from "./gigsalad-match.js";
+import { restoreGigSaladUnreadInBrowser } from "./gigsalad-unread.js";
 
 export type GigSaladEnrichment =
   /** notice: an account whose login expired while this lead was found in the other one. */
@@ -19,7 +20,8 @@ export type GigSaladEnrichment =
 
 export async function enrichGigSaladLead(
   emailBody: string,
-  deps: { find: typeof findGigSaladLead; readPage: typeof fetchGigSaladLead } = { find: findGigSaladLead, readPage: fetchGigSaladLead },
+  deps: { find: typeof findGigSaladLead; readPage: typeof fetchGigSaladLead; restoreUnread: typeof restoreGigSaladUnreadInBrowser } =
+    { find: findGigSaladLead, readPage: fetchGigSaladLead, restoreUnread: restoreGigSaladUnreadInBrowser },
 ): Promise<GigSaladEnrichment> {
   const found = await deps.find(emailBody);
   switch (found.status) {
@@ -36,10 +38,21 @@ export async function enrichGigSaladLead(
   }
   const page = await deps.readPage(found.account, found.gigId);
   if (page.status !== "ok" || !page.lead) return { status: "hold", reason: `GigSalad: ${page.message}` };
+  // Opening the page marked this lead read (measured 2026-10-05); put it back, whatever the page
+  // turns out to be, so Alex still sees it as new in GigSalad (option A).
+  // A restore that throws (timeout, busy profile) is a failed restore, never a failed lead: a failed
+  // lead is retried, and every retry would open the page again.
+  const unread = await deps.restoreUnread(found.account, found.gigId).catch((err): { status: "failed"; reason: string } => ({
+    status: "failed", reason: `GigSalad ${found.account} lead ${found.gigId} could not be marked unread: ${err instanceof Error ? err.message : String(err)}` }));
+  const unreadNotice = unread.status === "restored" ? undefined : unread.reason;
   const key = parseGigSaladEmailKey(emailBody);
   const mismatch = key ? pageMismatch(key, page.lead) : "the email's key could not be read";
-  if (mismatch) return { status: "hold", reason: `GigSalad: lead ${found.gigId} (${found.account}) does not match the email: ${mismatch}` };
-  const notice = found.unreadable?.map((a) => `GigSalad: the app's ${a} login has expired. Run: npm run gigsalad:login -- ${a}`).join(" ");
+  if (mismatch) {
+    return { status: "hold", reason: `GigSalad: lead ${found.gigId} (${found.account}) does not match the email: ${mismatch}` +
+      (unreadNotice ? `. ${unreadNotice}` : "") };
+  }
+  const notice = [...(found.unreadable ?? []).map((a) => `GigSalad: the app's ${a} login has expired. Run: npm run gigsalad:login -- ${a}`),
+    ...(unreadNotice ? [unreadNotice] : [])].join(" ");
   return { status: "enriched", account: found.account, gigId: found.gigId, lead: page.lead, ...(notice ? { notice } : {}) };
 }
 
