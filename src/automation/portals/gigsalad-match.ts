@@ -7,6 +7,7 @@
  * hold the lead for Alex; a lead is never guessed. Everything here is pure except the default
  * inbox reader, which opens each account's inbox read-only with its saved app login.
  */
+import { calendarDate } from "../parsers/gigsalad-page.js";
 import { GIGSALAD_ACCOUNTS, gigsaladProfileDir, type GigSaladAccount } from "./gigsalad-accounts.js";
 
 /** What the inbox row can be matched on (rows show no time). */
@@ -23,8 +24,7 @@ const MONTHS = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "
 
 /** "August 1, 2026" or "Aug 1, 2026" → "2026-08-01"; null if it is not a date. */
 function isoDate(month: string, day: string, year: string): string | null {
-  const m = MONTHS.indexOf(month.slice(0, 3).toLowerCase());
-  return m < 0 ? null : `${year}-${String(m + 1).padStart(2, "0")}-${day.padStart(2, "0")}`;
+  return calendarDate(Number(year), MONTHS.indexOf(month.slice(0, 3).toLowerCase()), Number(day));
 }
 
 export function parseGigSaladEmailKey(body: string): LeadKey | null {
@@ -43,7 +43,8 @@ export function parseGigSaladEmailKey(body: string): LeadKey | null {
  */
 export function parseInboxRow(href: string, text: string): InboxRow | null {
   const gigId = /^\/promokit\/gig\/(\d{1,12})$/.exec(href)?.[1];
-  const lines = text.split("\n").map((l) => l.trim()).filter(Boolean);
+  // Bounded: a real inbox row is ~9 short lines (Codex round 1, GigSalad, P2).
+  const lines = text.slice(0, 2_000).split("\n").map((l) => l.trim()).filter(Boolean);
   const b1 = lines.indexOf("•");
   const b2 = lines.indexOf("•", b1 + 1);
   if (!gigId || b1 < 1 || b2 < 0) return null;

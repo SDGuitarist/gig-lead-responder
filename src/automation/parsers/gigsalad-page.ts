@@ -40,6 +40,13 @@ const TIME = /^(\d{1,2}:\d{2})\s*([AP]M)\s*[–—-]\s*(\d{1,2}:\d{2})\s*([AP]M)
 const LOCATION = /,\s*[A-Z]{2}\s+(\d{5})(?:-\d{4})?,\s*US$/;
 const LABEL = /^([A-Z][A-Za-z /&'-]{1,40}):\s*(.*)$/;
 
+/** "YYYY-MM-DD" only for a real calendar day (no February 31); monthIndex is 0-11. */
+export function calendarDate(year: number, monthIndex: number, day: number): string | null {
+  const d = new Date(Date.UTC(year, monthIndex, day));
+  if (monthIndex < 0 || d.getUTCFullYear() !== year || d.getUTCMonth() !== monthIndex || d.getUTCDate() !== day) return null;
+  return `${year}-${String(monthIndex + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+}
+
 const scrub = (s: string): string => s.replace(EMAIL, "[contact removed]").replace(PHONE, (m) =>
   (m.match(/\d/g)?.length ?? 0) >= 7 ? "[contact removed]" : m).trim();
 
@@ -63,7 +70,8 @@ export function parseGigSaladLeadPage(page: { title: string; text: string }): Gi
     eventDate: null, durationMinutes: null, timeWindow: null, location: null, zip: null, fields: {},
     quotesSent: null, membersResponded: null, rawText: "", warnings,
   };
-  const lines = page.text.split("\n").map((l) => l.trim()).filter(Boolean);
+  // Bounded: a real Event info block is a few hundred characters (Codex round 1, GigSalad, P2).
+  const lines = page.text.slice(0, 20_000).split("\n").map((l) => l.trim()).filter(Boolean);
   const start = lines.findIndex((l) => l === "Event info");
   if (start < 0) {
     warnings.push("No Event info block: not a GigSalad lead page (logged out, or the layout changed)");
@@ -89,9 +97,9 @@ export function parseGigSaladLeadPage(page: { title: string; text: string }): Gi
     if ((m = /^(\d+) members? sent (?:a )?quotes?$/i.exec(line))) { lead.quotesSent = Number(m[1]); continue; }
     if (/^\d+ (?:have active quotes|quotes? (?:are|is) active)$/i.test(line)) continue;
     if (!lead.eventDate && (m = DATE.exec(line))) {
-      const month = MONTHS.indexOf(m[1].toLowerCase());
-      if (month >= 0) {
-        lead.eventDate = `${m[3]}-${String(month + 1).padStart(2, "0")}-${m[2].padStart(2, "0")}`;
+      const iso = calendarDate(Number(m[3]), MONTHS.indexOf(m[1].toLowerCase()), Number(m[2]));
+      if (iso) {
+        lead.eventDate = iso;
         dateText = line.replace(/\s*View calendar$/i, "");
       }
       continue;

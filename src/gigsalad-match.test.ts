@@ -81,3 +81,13 @@ test("gigsalad find: a unique match in the signed-in account is used and names t
 test("gigsalad find: an email that is not a lead notice is reported, not matched", async () => {
   assert.deepEqual(await findGigSaladLead("Your weekly GigSalad summary", fakeInboxes(rows(), rows())), { status: "no_key" });
 });
+
+// Codex round 1 (GigSalad) P2: impossible dates were accepted and inputs were unbounded.
+test("gigsalad match: impossible dates are rejected and huge rows are cut short quickly", () => {
+  assert.equal(parseGigSaladEmailKey("Testa would like a quote for a Wedding on February 31, 2026."), null);
+  assert.equal(parseInboxRow("/promokit/gig/1", row("Testa Q.", "Wedding", "Tue, Feb 31, 2026")), null);
+  assert.equal(parseInboxRow("/promokit/gig/1", row("Testa Q.", "Wedding", "Sun, Feb 29, 2032"))?.dateISO, "2032-02-29");
+  const start = Date.now();
+  parseInboxRow("/promokit/gig/1", "x\n".repeat(500_000) + row("Testa Q.", "Wedding", "Sat, Aug 1, 2026"));
+  assert.ok(Date.now() - start < 300, `took ${Date.now() - start} ms`);
+});

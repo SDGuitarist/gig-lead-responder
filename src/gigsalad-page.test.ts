@@ -149,3 +149,12 @@ Block communication`;
   assert.equal(parseGigSaladLeadPage({ title: "Gig Lead from 5550100199 | GigSalad", text }).clientFirstName, null);
   assert.equal(parseGigSaladLeadPage({ title: "Gig Lead from Mary-Jo K. | GigSalad", text }).clientFirstName, "Mary-Jo");
 });
+
+test("gigsalad page: an impossible date is not a date, and a huge page is cut short quickly", () => {
+  const lead = parseGigSaladLeadPage({ title: "", text: "Event info\nTesta Q.\nTue, February 31, 2026 View calendar\nSpringfield, CA 90001, US\nEvent type: Wedding\nBlock communication" });
+  assert.equal(lead.eventDate, null);
+  assert.ok(lead.warnings.some((w) => /event date/.test(w)));
+  const start = Date.now();
+  parseGigSaladLeadPage({ title: "", text: "Event info\n" + "Label: value\n".repeat(400_000) });
+  assert.ok(Date.now() - start < 500, `took ${Date.now() - start} ms`);
+});
