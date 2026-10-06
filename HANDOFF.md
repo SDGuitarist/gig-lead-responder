@@ -37,6 +37,10 @@ $400 musician cost = $1,300 x 60%". Findings (one-off scripts, scratchpad, not c
 Questions for Alex: is the duo cost model right; what to do with T1 duo 3-4h (raise the T1 floor for long duos,
 hold those leads, or accept); which formats the $150 check covers.
 
+**Remaining TO PORT (24):** $150 minimum profit (R295/R362, waiting on Alex above), quote formatting by tier
+(R300-R302), T4/NP (R403, then F1 R020-R025). Other: R006, R081-R089 + R405 (PF-Intel production data, ask first),
+R329, R398 (later module).
+
 ### Three Questions (R358 + holiday session)
 1. **Hardest implementation decision?** What counts as trusted provenance for the competition count: line text,
    then the caller's platform, then "this text is a parsed page". Each Codex round narrowed it one step.
