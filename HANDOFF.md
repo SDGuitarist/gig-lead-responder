@@ -14,28 +14,28 @@ must be 0; client-typed numbers/lines cannot override. Strict rules run only whe
 is true, set only in the orchestrator's enriched branch (the Mailgun webhook passes `"gigsalad"` with email text and
 does not set it). Reviews: `docs/reviews/2026-10-05-r358-codex-round{1,2,3}.md` (R3's summary garbles two names; noted).
 
-**R292 holiday/peak — BUILT, review STOPPED at round 2 (Alex decides).** Alex 2026-10-05: no Project number exists,
-so every lead dated Valentine's Day, Cinco de Mayo, Mother's Day (2nd Sunday of May), Fourth of July or New Year's
-Eve is HELD (`holiday_peak:` note, no price), keyed on `classification.event_date_iso`. `bfe739a`, manifest
-`aa82935` (R292 PORTED; R058/R072/R104 notes updated), `62fb503` (R1 P2 fixed: `holiday_peak:` added to
-`HOLD_NOTE_PREFIXES` so drafting prompts never see it; + a structural test that every classify-verify note prefix
-is on that list). R1 NO-GO (fixed, confirmed closed), **R2 NO-GO (P2, test coverage only): the structural test's
-regex misses notes written inside a ternary (the residency call), so a future note in that shape could slip past it.**
-Records: `docs/reviews/2026-10-05-holiday-codex-round{1,2}.md`.
+**R292 holiday/peak — DONE, review CLOSED.** Every lead dated Valentine's Day, Cinco de Mayo, Mother's Day (2nd
+Sunday of May), Fourth of July or New Year's Eve is HELD (`holiday_peak:`, no price; Alex 2026-10-05), and the note
+never reaches the drafting prompts (`HOLD_NOTE_PREFIXES`). R1 NO-GO fixed; R2 NO-GO (test regex) fixed in `24d4e30`
+without round 3 (Alex), mutation-proven. Records: `docs/reviews/2026-10-05-holiday-codex-round{1,2}.md`.
 
-**Waiting on Alex:**
-1. Holiday R2 P2: Claude recommends **fix the test, no round 3** (the remaining finding is a test's regex; the
-   real fix is confirmed closed by Codex; a mutation run can prove the broadened test). Round 3 only with
-   `Round 3 authorized by Alejandro: YES`.
-2. R058/R072/R104 last item: "below floor only for T1". The app never quotes below floor for anyone. Does that
-   close it, or build a T1 exception?
+**R058/R072/R104 PORTED:** Alex closed "below floor only for T1" (no T1 exception). The computed price never goes
+below floor (all levels; 208 cells anchor >= floor).
 
-**Known gap (new):** the holiday hold reads the model's `event_date_iso`; if the model misses the date, no hold.
-GigSalad leads carry the page's own date, so the risk is mostly email leads.
+**Known gaps (new):** (1) the drafted text's dollar figure is NOT checked against the computed price (post-check
+only bans ranges and "starting at"); (2) the holiday hold reads the model's `event_date_iso` (email leads mostly).
 
-**Remaining TO PORT (27):** $150 minimum profit (R295/R362), quote formatting by tier (R300-R302), T4/NP (R403,
-then F1 R020-R025), R058/R072/R104 (T1 below-floor question above). Other: R006, R081-R089 + R405 (PF-Intel
-production data, ask first), R329, R398 (later module).
+**Next pricing group SHOWN TO ALEX, WAITING (no code): $150 minimum profit (R295/R362).** Project: "$150 minimum
+profit on every booking, no exceptions"; sourced musician cost $200/hr per musician; duo example "T3D 2hrs: $1,700 -
+$400 musician cost = $1,300 x 60%". Findings (one-off scripts, scratchpad, not committed):
+- Sourced (60 cells, cost $200/hr/musician): ALL clear $150 at floor; lowest exactly $150 (sourced solo 2h T2P,
+  sourced duo 1h T2P).
+- Duo / flamenco duo IF the cost is $200/hr for the second musician then a 60/40 split (extrapolated from the one
+  2h example): T1 breaks it. Duo T1 floor $700: 3h $60, 4h -$60. Flamenco duo T1 floor $750: 3h $90, 4h -$30.
+  Every other duo cell clears $150.
+- Flamenco trio, mariachi, bolero trio: no musician-cost numbers in the Project files in ~/Data (not checked).
+Questions for Alex: is the duo cost model right; what to do with T1 duo 3-4h (raise the T1 floor for long duos,
+hold those leads, or accept); which formats the $150 check covers.
 
 ### Three Questions (R358 + holiday session)
 1. **Hardest implementation decision?** What counts as trusted provenance for the competition count: line text,
@@ -54,9 +54,8 @@ FIRST gate (stop and ask Alex if anything differs):
   git rev-parse HEAD; git rev-parse origin/feat/hub-phase0  # expect: identical
   git status --short                                        # expect: clean
 Read: HANDOFF.md "START HERE — R358 + holiday/peak session", CLAUDE.md, docs/reviews/2026-10-05-holiday-codex-round2.md.
-Two answers from Alex are pending (holiday R2 test fix / round 3; T1 below-floor). Ask for any not given.
-Then the next pricing group ($150 minimum profit, R295/R362): pull the Project's numbers from
-~/Data/gig-lead-responder/ and SHOW ALEX EVERY PRICE BEFORE WRITING CODE.
+The $150 minimum profit numbers were shown to Alex (HANDOFF); get his answers (duo cost model, T1 duo 3-4h,
+formats covered) before any code. No new or changed price without his explicit OK.
 One concern per commit, failing test first, commit only on a green suite; npm run test:match (exit 3 = zero matches).
 Codex: `codex exec -s workspace-write "..." < /dev/null` (without </dev/null it waits on stdin forever); check git status after.
 HARD GATE: never start the Mac poller or server against real mail. Never open data/leads.db from a test.
