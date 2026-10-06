@@ -25,3 +25,10 @@ Checked clean:
 - `npx tsc --noEmit`: passed
 - No files edited; no server, poller, database, network, or browser used
 
+
+---
+
+**Closed 2026-10-05 (Alex: "Question one, agreed" = fix the test, no round 3).** `24d4e30`: the structural test
+now reads each whole `addWarning` call; every `word:` literal in any branch must be in `HOLD_NOTE_PREFIXES`, and
+every call must carry one. Mutation-proven: an unlisted prefix in either residency ternary branch, and a variable
+message, each fail it; clean code passes. Not Codex-reviewed (no round 3, by Alex's decision). Holiday review CLOSED.
