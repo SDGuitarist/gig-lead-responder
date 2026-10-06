@@ -43,9 +43,16 @@ test("port manifest R292: the holiday note holds the lead but never reaches the 
   assert.ok(!withoutHoldNotes(held).flagged_concerns.some((f) => f.startsWith("holiday_peak:")));
 });
 
+// Codex round 2 (holiday) P2: the first version only saw a literal right after "warnings,", so it
+// missed the residency ternary's branches. Now it reads each whole call: every literal starting
+// "word:" (any branch) must be listed, and every call must carry one (a variable message fails).
 test("hold notes: every note prefix classify-verify writes is stripped from the drafting prompts", () => {
   const src = readFileSync("src/pipeline/classify-verify.ts", "utf-8");
-  const prefixes = [...new Set([...src.matchAll(/addWarning\(\s*warnings,\s*[`"]([a-z_]+:)/g)].map((m) => m[1]))];
-  assert.ok(prefixes.length >= 4, `control: found ${prefixes.join(" ")}`);
+  const calls = [...src.matchAll(/(?<!function )addWarning\(([\s\S]*?)\);\n/g)].map((m) => m[1]);
+  assert.ok(calls.length >= 12, `control: found ${calls.length} addWarning calls`);
+  const perCall = calls.map((c) => [...c.matchAll(/[`"]([a-z_]+:) /g)].map((m) => m[1]));
+  assert.deepEqual(calls.filter((_, i) => perCall[i].length === 0), [], "a call with no prefixed message");
+  const prefixes = [...new Set(perCall.flat())];
+  assert.ok(prefixes.includes("residency:") && prefixes.includes("holiday_peak:"), `control: ${prefixes.join(" ")}`);
   assert.deepEqual(prefixes.filter((p) => !(HOLD_NOTE_PREFIXES as readonly string[]).includes(p)), []);
 });
