@@ -19,11 +19,15 @@ Sunday of May), Fourth of July or New Year's Eve is HELD (`holiday_peak:`, no pr
 never reaches the drafting prompts (`HOLD_NOTE_PREFIXES`). R1 NO-GO fixed; R2 NO-GO (test regex) fixed in `24d4e30`
 without round 3 (Alex), mutation-proven. Records: `docs/reviews/2026-10-05-holiday-codex-round{1,2}.md`.
 
-**R058/R072/R104 PORTED:** Alex closed "below floor only for T1" (no T1 exception). The computed price never goes
-below floor (all levels; 208 cells anchor >= floor).
+**R058/R072/R104 REOPENED (Alex, `44bb75b`):** closed on "the app never quotes below floor", true only of the
+COMPUTED price (all levels; 208 cells anchor >= floor). Nothing checks the price the model WRITES in the draft
+(verify prompt only asks "price addressed"; post-check bans ranges/"starting at"). No T1 exception (Alex). Closes
+when a code check holds a draft with a wrong stated price. **Design question asked of Alex, waiting (no code):**
+(a) hold if any $ figure in the draft is below the computed floor, exempting figures the pipeline itself supplied
+(travel fee, travel-inclusive total, scoped-alternative price, 4-piece alternative, residency rate, the client's
+stated budget) [Claude's recommendation]; or (b) strict: every $ figure must be one the pipeline supplied.
 
-**Known gaps (new):** (1) the drafted text's dollar figure is NOT checked against the computed price (post-check
-only bans ranges and "starting at"); (2) the holiday hold reads the model's `event_date_iso` (email leads mostly).
+**Known gaps (new):** (1) see R058 above; (2) the holiday hold reads the model's `event_date_iso` (email leads mostly).
 
 **Next pricing group SHOWN TO ALEX, WAITING (no code): $150 minimum profit (R295/R362).** Project: "$150 minimum
 profit on every booking, no exceptions"; sourced musician cost $200/hr per musician; duo example "T3D 2hrs: $1,700 -
@@ -37,8 +41,8 @@ $400 musician cost = $1,300 x 60%". Findings (one-off scripts, scratchpad, not c
 Questions for Alex: is the duo cost model right; what to do with T1 duo 3-4h (raise the T1 floor for long duos,
 hold those leads, or accept); which formats the $150 check covers.
 
-**Remaining TO PORT (24):** $150 minimum profit (R295/R362, waiting on Alex above), quote formatting by tier
-(R300-R302), T4/NP (R403, then F1 R020-R025). Other: R006, R081-R089 + R405 (PF-Intel production data, ask first),
+**Remaining TO PORT (27):** drafted-price check (R058/R072/R104, design question above), $150 minimum profit
+(R295/R362, waiting on Alex above), quote formatting by tier (R300-R302), T4/NP (R403, then F1 R020-R025). Other: R006, R081-R089 + R405 (PF-Intel production data, ask first),
 R329, R398 (later module).
 
 ### Three Questions (R358 + holiday session)
@@ -58,8 +62,8 @@ FIRST gate (stop and ask Alex if anything differs):
   git rev-parse HEAD; git rev-parse origin/feat/hub-phase0  # expect: identical
   git status --short                                        # expect: clean
 Read: HANDOFF.md "START HERE — R358 + holiday/peak session", CLAUDE.md, docs/reviews/2026-10-05-holiday-codex-round2.md.
-The $150 minimum profit numbers were shown to Alex (HANDOFF); get his answers (duo cost model, T1 duo 3-4h,
-formats covered) before any code. No new or changed price without his explicit OK.
+Two questions are with Alex (HANDOFF): the drafted-price check design (a/b), and the $150 minimum profit
+(duo cost model, T1 duo 3-4h, formats covered). Get his answers before any code. No new or changed price without his explicit OK.
 One concern per commit, failing test first, commit only on a green suite; npm run test:match (exit 3 = zero matches).
 Codex: `codex exec -s workspace-write "..." < /dev/null` (without </dev/null it waits on stdin forever); check git status after.
 HARD GATE: never start the Mac poller or server against real mail. Never open data/leads.db from a test.
