@@ -34,8 +34,12 @@ alternative, P3 snap test; fixed). R2 NO-GO (P2): a 4h alternative under a 2-3h 
 unreachable**, `findScopedAlternative` only returns the next SHORTER duration. Records
 `docs/reviews/2026-10-07-duo-profit-codex-round{1,2}.md`.
 
-**Waiting on Alex:** close the duo review with no fix and no round 3 (Claude's recommendation; optionally pin
-"the alternative is always shorter" with one test), or authorize round 3.
+**Verified 2026-10-07 (Alex asked to double-check):** `findScopedAlternative` is the only builder of a scoped
+alternative (`price.ts:207`); 6,360 runs of the real `detectBudgetGap` (every duo / flamenco duo tier and
+duration, budgets $50-$4,000) gave 144 alternatives, 0 not shorter; duo and flamenco duo T1 4h are HELD.
+**Corrected recommendation:** close with NO round 3 but WITH a test pinning "the alternative is always shorter"
+(the STOP rule needs a deterministic check that pins the residue; without the test nothing does). Waiting on Alex.
+Known gap surfaced: a 2h duo's 1h cheaper option is unchecked (1h payout unknown).
 
 **Known gaps:** trio/mariachi/bolero minimum profit unchecked (no cost data); holiday hold reads the model's
 `event_date_iso`; written amounts spelled out in words are not read.
