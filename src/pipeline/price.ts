@@ -338,3 +338,28 @@ export function findMinFloor(
 
   return { min_floor, min_duration };
 }
+
+// Port manifest R295/R362: "$150 minimum profit on every booking, no exceptions" (Project).
+// Checked only where a real cost exists (Alex 2026-10-07): sourced formats at the Project's
+// $200/hr per musician, and T1 duo / flamenco duo at 3h+, whose flat T1 price cannot carry the
+// second musician's hours. Trio, mariachi and bolero have no cost data: not checked (known gap).
+const MIN_PROFIT = 150;
+const SOURCED_MUSICIAN_RATE = 200;
+const SOURCED_PLAYERS: Partial<Record<string, number>> = { sourced_cultural_solo: 1, sourced_cultural_duo: 2,
+  sourced_cultural_trio: 3, sourced_cultural_quartet: 4, sourced_cultural_5piece: 5 };
+export function minimumProfitHold(pricing: Pick<PricingResult, "format" | "duration_hours" | "tier_key" | "quote_price">): string | null {
+  const players = SOURCED_PLAYERS[pricing.format];
+  if (players && pricing.quote_price > 0) {
+    const cost = players * SOURCED_MUSICIAN_RATE * pricing.duration_hours;
+    const profit = pricing.quote_price - cost;
+    return profit < MIN_PROFIT
+      ? `minimum_profit: ${pricing.format} ${pricing.duration_hours}h at $${pricing.quote_price} leaves $${profit} after $${cost} ` +
+        `for ${players} musician${players === 1 ? "" : "s"} (under $${MIN_PROFIT}); Alex prices it`
+      : null;
+  }
+  if ((pricing.format === "duo" || pricing.format === "flamenco_duo") && pricing.tier_key === "T1" && pricing.duration_hours >= 3) {
+    return `minimum_profit: T1 ${pricing.format} ${pricing.duration_hours}h at the flat T1 price; the second musician's hours may ` +
+      `leave under $${MIN_PROFIT}; Alex prices it`;
+  }
+  return null;
+}

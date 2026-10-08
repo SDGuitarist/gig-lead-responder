@@ -159,6 +159,18 @@ describe("runPipeline", () => {
     assert.ok(edit.gate.fail_reasons.some((r) => r.startsWith("price_below_floor_full: $100")));
   });
 
+  // R295 (Alex 2026-10-07): the minimum-profit note is attached on the FINAL price, so the router
+  // holds the lead; a T1 duo at 3h is the case that breaks the $150 floor today.
+  it("port manifest R295 wiring: a T1 duo at 3h comes out of runPipeline with the hold note", async () => {
+    const t1Duo = { ...MOCK_CLASSIFICATION, format_recommended: "duo", rate_card_tier: "T1", duration_hours: 3, tier: "standard" };
+    mockClaudeForPipeline([t1Duo, MOCK_GENERATION, MOCK_GATE_PASS]);
+    const out = await runPipeline("Duo for three hours");
+    assert.equal(out.pricing.tier_key, "T1", "control: priced at T1");
+    assert.ok(out.classification.flagged_concerns.some((f) => f.startsWith("minimum_profit: T1 duo 3h")), out.classification.flagged_concerns.join(" | "));
+    mockClaudeForPipeline([MOCK_CLASSIFICATION, MOCK_GENERATION, MOCK_GATE_PASS]);
+    assert.ok(!(await runPipeline("Solo for two hours")).classification.flagged_concerns.some((f) => f.startsWith("minimum_profit:")));
+  });
+
   it("returns verified: true when gate passes", async () => {
     mockClaudeForPipeline([MOCK_CLASSIFICATION, MOCK_GENERATION, MOCK_GATE_PASS]);
     const result = await runPipeline("I need a guitarist");

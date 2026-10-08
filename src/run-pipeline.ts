@@ -1,6 +1,6 @@
 import { classifyLead } from "./pipeline/classify.js";
 import { verifyClassificationHeuristics } from "./pipeline/classify-verify.js";
-import { lookupPrice, budgetGapFor } from "./pipeline/price.js";
+import { lookupPrice, budgetGapFor, minimumProfitHold } from "./pipeline/price.js";
 import { enrichClassification } from "./pipeline/enrich.js";
 import { getTodayISO } from "./utils/dates.js";
 import { selectContext } from "./pipeline/context.js";
@@ -210,6 +210,9 @@ export async function runPipeline(
     pricing = lookupPrice(enriched, travelData);
     pricing.budget = budgetGapFor(enriched, pricing);
   }
+  // $150 minimum profit (R295/R362): on the FINAL price; a hold note, never shown to the drafter.
+  const profitNote = minimumProfitHold(pricing);
+  if (profitNote) enriched.flagged_concerns = [...enriched.flagged_concerns, profitNote];
   timing.price = Date.now() - start;
   onStage?.({
     stage: 2, name: "price", status: "done",
