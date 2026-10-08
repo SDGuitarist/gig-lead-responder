@@ -50,3 +50,27 @@ test("port manifest R295: the note holds the lead but never reaches the drafting
   const note = minimumProfitHold(pr("duo", 3, 700, "T1"))!;
   assert.deepEqual(withoutHoldNotes({ flagged_concerns: [note, "real concern"] }).flagged_concerns, ["real concern"]);
 });
+
+// Codex round 1 (minimum profit): travel was ignored, and the scoped alternative (a second price
+// the client sees) was never checked. Per docs/TRAVEL_FEES.md the client pays the travel fee and
+// the musician's stipend comes out of it, so: income = quote + fee (unless included), cost +=
+// stipend.
+const travel = (fee: number, musician_stipend: number, extra: Record<string, unknown> = {}) =>
+  ({ fee, band: "Near", miles: 40, zip: "92025", musician_stipend, custom_quote_required: fee === 0, ...extra });
+test("port manifest R295: travel counts both ways (fee as income, stipend as cost)", () => {
+  const custom = { ...pr("sourced_cultural_duo", 1, 550), travel: travel(0, 50) } as PricingResult;
+  assert.equal(minimumProfitHold(custom),
+    "minimum_profit: sourced_cultural_duo 1h at $550 leaves $100 after $400 for 2 musicians and a $50 travel stipend (under $150); Alex prices it");
+  assert.equal(minimumProfitHold({ ...pr("sourced_cultural_duo", 1, 550), travel: travel(150, 50) } as PricingResult), null,
+    "the client's travel fee covers the stipend");
+  assert.ok(minimumProfitHold({ ...pr("sourced_cultural_duo", 1, 550), travel: travel(150, 50, { included_in_price: true }) } as PricingResult)
+    ?.startsWith("minimum_profit:"), "a fee already inside the quote is not extra income");
+});
+
+test("port manifest R295: a scoped alternative under $150 profit is held too", () => {
+  const scoped = { ...pr("sourced_cultural_trio", 2, 1450), budget: { tier: "large", gap: 500, scoped_alternative: { duration_hours: 1, price: 700 } } } as PricingResult;
+  assert.equal(minimumProfitHold(scoped),
+    "minimum_profit: sourced_cultural_trio scoped alternative 1h at $700 leaves $100 after $600 for 3 musicians (under $150); Alex prices it");
+  const fine = { ...scoped, budget: { tier: "large", gap: 500, scoped_alternative: { duration_hours: 1, price: 775 } } } as PricingResult;
+  assert.equal(minimumProfitHold(fine), null);
+});

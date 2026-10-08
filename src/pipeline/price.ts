@@ -347,15 +347,28 @@ const MIN_PROFIT = 150;
 const SOURCED_MUSICIAN_RATE = 200;
 const SOURCED_PLAYERS: Partial<Record<string, number>> = { sourced_cultural_solo: 1, sourced_cultural_duo: 2,
   sourced_cultural_trio: 3, sourced_cultural_quartet: 4, sourced_cultural_5piece: 5 };
-export function minimumProfitHold(pricing: Pick<PricingResult, "format" | "duration_hours" | "tier_key" | "quote_price">): string | null {
+export function minimumProfitHold(
+  pricing: Pick<PricingResult, "format" | "duration_hours" | "tier_key" | "quote_price"> & Partial<Pick<PricingResult, "travel" | "budget">>,
+): string | null {
   const players = SOURCED_PLAYERS[pricing.format];
   if (players && pricing.quote_price > 0) {
-    const cost = players * SOURCED_MUSICIAN_RATE * pricing.duration_hours;
-    const profit = pricing.quote_price - cost;
-    return profit < MIN_PROFIT
-      ? `minimum_profit: ${pricing.format} ${pricing.duration_hours}h at $${pricing.quote_price} leaves $${profit} after $${cost} ` +
-        `for ${players} musician${players === 1 ? "" : "s"} (under $${MIN_PROFIT}); Alex prices it`
-      : null;
+    // Travel (docs/TRAVEL_FEES.md): the client pays the fee and the musician's stipend comes out of
+    // it, so the fee is income (unless already inside the quote) and the stipend is cost.
+    const t = pricing.travel;
+    const fee = t && !t.included_in_price ? t.fee : 0;
+    const stipend = t?.musician_stipend ?? 0;
+    const check = (label: string, hours: number, price: number): string | null => {
+      const cost = players * SOURCED_MUSICIAN_RATE * hours;
+      const profit = price + fee - cost - stipend;
+      return profit < MIN_PROFIT
+        ? `minimum_profit: ${pricing.format}${label} ${hours}h at $${price} leaves $${profit} after $${cost} for ${players} ` +
+          `musician${players === 1 ? "" : "s"}${stipend ? ` and a $${stipend} travel stipend` : ""} (under $${MIN_PROFIT}); Alex prices it`
+        : null;
+    };
+    // The scoped alternative is a second price the client sees (Codex round 1, minimum profit P2).
+    const alt = pricing.budget?.tier === "large" ? pricing.budget.scoped_alternative : null;
+    return check("", pricing.duration_hours, pricing.quote_price)
+      ?? (alt ? check(" scoped alternative", alt.duration_hours, alt.price) : null);
   }
   if ((pricing.format === "duo" || pricing.format === "flamenco_duo") && pricing.tier_key === "T1" && pricing.duration_hours >= 3) {
     return `minimum_profit: T1 ${pricing.format} ${pricing.duration_hours}h at the flat T1 price; the second musician's hours may ` +
