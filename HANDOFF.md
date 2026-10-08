@@ -6,7 +6,7 @@
 
 ## START HERE — pricing session (2026-10-05..07)
 
-**State:** branch `feat/hub-phase0`, pushed. Suite: **657 pass / 0 fail / 1 skip**.
+**State:** branch `feat/hub-phase0`, pushed. Suite: **660 pass / 0 fail / 1 skip**.
 
 **CLOSED reviews this session:** R358 competition count (R3 GO, authorized); R292 holiday/peak hold (R2 test
 fix, no R3 per Alex); **$150 minimum profit R295/R362 (R2 GO)**. Records in `docs/reviews/2026-10-05-*` and
@@ -27,11 +27,15 @@ quote+travel): any unsupplied figure below it is held (Alex option c, 2026-10-07
 unreadable. Records `docs/reviews/2026-10-07-draft-price-codex-round{1,2,3}.md`. R362 subcontractor half NOT
 PORTED (Alex).
 
-**Waiting on Alex (no code until answered): the duo minimum-profit rule.** Alex 2026-10-07: he pays the second
-musician $400-$600 for a 2-3h gig (replaces the Project's $200/hr + 60/40 model). Proposed, using $600: at 2-3h,
-profit = price + travel fee - $600 - stipend, < $150 held. Result at floor: duo T1 $100 (HELD, now also at 2h);
-flamenco duo T1 $150 (passes, relaxes today's 3h hold); every T2/T3 duo $400+. 1h and 4h are outside his range:
-keep the T1 4h+ hold, do not check 1h. Asked "switch to this rule?"
+**Duo minimum profit at Alex's $600 — BUILT (`0cd4e5e`, `1d64197`), review STOPPED at round 2.** Alex 2026-10-07:
+"yes change duo". At 2-3h a duo / flamenco duo (and its scoped alternative) is held when price + travel fee - $600
+- stipend < $150; T1 4h+ held; 1h unchecked. Duo T1 2-3h held; flamenco duo T1 2-3h passes at $150. R1 NO-GO (P2
+alternative, P3 snap test; fixed). R2 NO-GO (P2): a 4h alternative under a 2-3h primary escapes. **Claude checked:
+unreachable**, `findScopedAlternative` only returns the next SHORTER duration. Records
+`docs/reviews/2026-10-07-duo-profit-codex-round{1,2}.md`.
+
+**Waiting on Alex:** close the duo review with no fix and no round 3 (Claude's recommendation; optionally pin
+"the alternative is always shorter" with one test), or authorize round 3.
 
 **Known gaps:** trio/mariachi/bolero minimum profit unchecked (no cost data); holiday hold reads the model's
 `event_date_iso`; written amounts spelled out in words are not read.
@@ -56,8 +60,7 @@ FIRST gate (stop and ask Alex if anything differs):
   git rev-parse HEAD; git rev-parse origin/feat/hub-phase0  # expect: identical
   git status --short                                        # expect: clean
 Read: HANDOFF.md "START HERE — pricing session", CLAUDE.md.
-One answer from Alex is pending: switch the duo minimum-profit rule to his $600 payout (HANDOFF)? Build nothing
-on it without his yes. Then the next pricing group: quote formatting by tier (R300-R302), showing Alex first.
+One answer from Alex is pending: close the duo review (no fix, no round 3) or authorize round 3 (HANDOFF). Then the next pricing group: quote formatting by tier (R300-R302), showing Alex first.
 One concern per commit, failing test first, commit only on a green suite; npm run test:match (exit 3 = zero matches).
 Codex: `codex exec -s workspace-write "..." < /dev/null`; check git status after; record every verdict in docs/reviews/.
 HARD GATE: never start the Mac poller or server against real mail. Never open data/leads.db from a test.
