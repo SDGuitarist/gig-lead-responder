@@ -48,3 +48,20 @@ test("port manifest R058: a reply that accepts (or echoes) a below-floor budget 
   assert.match(check("$400 works for me, see you there!", lowBudget).join(" "), /\$400 is below the \$550 floor/);
   assert.match(check("I hear you on the $400 budget. For one hour, $500 works.", lowBudget).join(" "), /\$400 is below/);
 });
+
+// Codex round 1 (written price) P1s: the small-gap amount the prompt supplies was held, and the
+// amount reader missed "400 dollars" and misread "$1.5k" as $1.
+test("port manifest R058: the supplied budget gap passes; the stated budget still does not", () => {
+  const small = { ...base, budget: { tier: "small", gap: 50 } } as PricingResult;
+  assert.deepEqual(check("It's just $50 over what you planned; two hours is $595.", small), []);
+  assert.match(check("$545 works for me.", small).join(" "), /\$545 is below/);
+});
+
+test("port manifest R058: amount shapes are read as the amounts they are", () => {
+  for (const held of ["400 dollars", "400 USD", "US$400", "$ 450", "$450.00", "$400-ish", "a flat 400 bucks"]) {
+    assert.equal(check(`Two hours is ${held}.`).length, 1, held);
+  }
+  for (const fine of ["$1.5k", "$1.5K", "$2k", "$600.00", "$1,200", "1,500 dollars", "$1M", "$2 million"]) {
+    assert.deepEqual(check(`Two hours is ${fine}.`), [], fine);
+  }
+});

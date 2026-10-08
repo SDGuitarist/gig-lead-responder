@@ -213,19 +213,36 @@ function belowFloorPrices(text: string, label: string, pricing: PricingResult): 
     totals.push(pricing.quote_price + pricing.travel.fee);
   }
   for (const t of totals) { supplied.add(t); supplied.add(Math.floor(t / 2)); supplied.add(Math.ceil(t / 2)); }
+  if (pricing.budget.tier === "small" || pricing.budget.tier === "large") supplied.add(pricing.budget.gap);
   if (pricing.budget.tier === "large") supplied.add(pricing.budget.scoped_alternative.price);
   if (pricing.budget.tier === "no_viable_scope") supplied.add(findMinFloor(rateTableFor(pricing), pricing.tier_key).min_floor);
   if (pricing.residency?.rate) supplied.add(pricing.residency.rate);
 
   const out: string[] = [];
-  // "$1M", "$2 million", "$5k" are never below a floor; skip them rather than misread "$1".
-  for (const m of text.matchAll(/\$\s?(\d{1,3}(?:,\d{3})+|\d+)(?:\.\d{1,2})?(?!\s*(?:k|m|mm|million|thousand)\b)(?![\d,])/gi)) {
-    const amount = Number(m[1].replace(/,/g, ""));
+  for (const { text: shown, amount } of dollarAmounts(text)) {
     if (amount < pricing.floor && !supplied.has(amount)) {
-      out.push(`price_below_floor_${label}: $${m[1]} is below the $${pricing.floor} floor and is not a figure the app supplied`);
+      out.push(`price_below_floor_${label}: ${shown} is below the $${pricing.floor} floor and is not a figure the app supplied`);
     }
   }
   return [...new Set(out)];
+}
+
+// Codex round 1 (written price): read the WHOLE number and its suffix before judging, so
+// "$1.5k" is 1500 (not "$1"), and count "400 dollars" / "400 USD" / "400 bucks" / "US$400" too.
+// Residue: amounts spelled out in words ("four hundred") are not read.
+const MULTIPLIER: Record<string, number> = { k: 1e3, thousand: 1e3, m: 1e6, mm: 1e6, million: 1e6 };
+function dollarAmounts(text: string): { text: string; amount: number }[] {
+  const num = "(\\d{1,3}(?:,\\d{3})+(?:\\.\\d+)?|\\d+(?:\\.\\d+)?)";
+  const suffix = "(?:\\s?(k|thousand|mm|m|million)\\b)?";
+  const found: { text: string; amount: number; at: number }[] = [];
+  const value = (n: string, mult?: string) => Number(n.replace(/,/g, "")) * (mult ? MULTIPLIER[mult.toLowerCase()] : 1);
+  for (const m of text.matchAll(new RegExp(`(?:US)?\\$\\s?${num}${suffix}`, "gi"))) {
+    found.push({ text: `$${m[1]}${m[2] ? m[2] : ""}`, amount: value(m[1], m[2]), at: m.index ?? 0 });
+  }
+  for (const m of text.matchAll(new RegExp(`(?<![$\\d.,])${num}${suffix}\\s?(?:dollars?|usd|bucks)\\b`, "gi"))) {
+    found.push({ text: `$${m[1]}${m[2] ? m[2] : ""}`, amount: value(m[1], m[2]), at: m.index ?? 0 });
+  }
+  return found.sort((a, b) => a.at - b.at);
 }
 
 /** Escape special regex characters in a string. */
