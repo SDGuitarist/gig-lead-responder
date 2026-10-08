@@ -4,46 +4,73 @@
 **Branch:** `feat/hub-phase0` (cut from `docs/booking-hub-brainstorm` at `c644210`; pushed; not merged)
 **Phase:** Work, Phase 0 **in progress**. 0.1, 0.2 (code), 0.3 (all but the alert half of `invalid_grant alerts`), 0.4, S1, S1-adv done. **0.5 port: 29 TO PORT remain.** 0.6 blocked. **GigSalad portal reading BUILT.** Module 1 not started.
 
-## START HERE — R358 + holiday/peak session (2026-10-05)
+## START HERE — pricing session (2026-10-05..07)
 
-**State:** branch `feat/hub-phase0`, pushed. Suite: **640 pass / 0 fail / 1 skip**.
+**State:** branch `feat/hub-phase0`, pushed. Suite: **654 pass / 0 fail / 1 skip**.
 
-**R358 competition count — DONE, review CLOSED (R3 GO, authorized by Alex).** `011f0e6..082db29`:
-GigSalad's displayed count (the page parser's LAST rawText line) is the only source; a business page (no count)
-must be 0; client-typed numbers/lines cannot override. Strict rules run only when `runPipeline(..., gigsaladPage)`
-is true, set only in the orchestrator's enriched branch (the Mailgun webhook passes `"gigsalad"` with email text and
-does not set it). Reviews: `docs/reviews/2026-10-05-r358-codex-round{1,2,3}.md` (R3's summary garbles two names; noted).
+**CLOSED reviews this session:** R358 competition count (R3 GO, authorized); R292 holiday/peak hold (R2 test
+fix, no R3 per Alex); **$150 minimum profit R295/R362 (R2 GO)**. Records in `docs/reviews/2026-10-05-*` and
+`docs/reviews/2026-10-07-min-profit-codex-round{1,2}.md`.
 
-**R292 holiday/peak — DONE, review CLOSED.** Every lead dated Valentine's Day, Cinco de Mayo, Mother's Day (2nd
-Sunday of May), Fourth of July or New Year's Eve is HELD (`holiday_peak:`, no price; Alex 2026-10-05), and the note
-never reaches the drafting prompts (`HOLD_NOTE_PREFIXES`). R1 NO-GO fixed; R2 NO-GO (test regex) fixed in `24d4e30`
-without round 3 (Alex), mutation-proven. Records: `docs/reviews/2026-10-05-holiday-codex-round{1,2}.md`.
+**Built:**
+- R358: GigSalad's displayed competition count is authoritative only on a parsed page (`gigsaladPage`).
+- R292: Valentine's, Cinco de Mayo, Mother's Day, Fourth of July, NYE leads HELD (`holiday_peak:`), no price.
+- R058/R072/R104: no T1 below-floor exception; **written-price check** (`src/pipeline/post-check.ts`
+  `belowFloorPrices`/`dollarAmounts`): a draft stating a dollar figure below the floor that the app did not supply
+  is held; the client's stated budget is NOT exempt (Alex); budget gap exempt; both drafting paths.
+- R295 (+ R362 half): `minimumProfitHold` (`src/pipeline/price.ts`): sourced profit = price + travel fee
+  (unless included) - $200/hr x musicians - stipend, < $150 held, scoped alternative too; T1 duo / flamenco duo
+  3h+ held. Trio/mariachi/bolero NOT checked (no cost data). Note kept out of drafting prompts.
 
-**R058/R072/R104 REOPENED (Alex, `44bb75b`):** closed on "the app never quotes below floor", true only of the
-COMPUTED price (all levels; 208 cells anchor >= floor). Nothing checks the price the model WRITES in the draft
-(verify prompt only asks "price addressed"; post-check bans ranges/"starting at"). No T1 exception (Alex). Closes
-when a code check holds a draft with a wrong stated price. **Design question asked of Alex, waiting (no code):**
-(a) hold if any $ figure in the draft is below the computed floor, exempting figures the pipeline itself supplied
-(travel fee, travel-inclusive total, scoped-alternative price, 4-piece alternative, residency rate, the client's
-stated budget) [Claude's recommendation]; or (b) strict: every $ figure must be one the pipeline supplied.
+**Review OPEN — written-price check, STOPPED at round 2 (2nd NO-GO):** R1 NO-GO (2 P1, fixed `2962c41`, confirmed
+closed); R2 NO-GO (P1, false-hold only): malformed "$1,2345" read as "$1,234" (needs a `(?![\d,])` boundary).
+Records `docs/reviews/2026-10-07-draft-price-codex-round{1,2}.md`.
 
-**Known gaps (new):** (1) see R058 above; (2) the holiday hold reads the model's `event_date_iso` (email leads mostly).
+**Waiting on Alex (no code until answered):**
+1. **Written-price threshold (Alex's catch 2026-10-07):** option (a) only guards the FLOOR, so a draft undercutting
+   the quote above the floor ($560 vs $595) goes out. Claude recommends **(c): hold any unsupplied figure below the
+   QUOTE** (catches undercutting; ignores above-quote figures like $1M insurance). Or (b) strict, or keep (a).
+   Claude's earlier framing of (b) undersold this; Alex caught it.
+2. **Round 3** for the written-price check (fold the "$1,2345" boundary fix + the threshold change into it):
+   Claude recommends RUN (money logic). Needs `Round 3 authorized by Alejandro: YES`.
+3. R362's other half ("withhold premium signals from subcontractors"): the app never contacts subcontractors;
+   NOT PORTED needs Alex's approval.
+4. The duo cost Alex actually pays the second musician (until then duos only get the T1 3h+ hold).
 
-**Next pricing group SHOWN TO ALEX, WAITING (no code): $150 minimum profit (R295/R362).** Project: "$150 minimum
-profit on every booking, no exceptions"; sourced musician cost $200/hr per musician; duo example "T3D 2hrs: $1,700 -
-$400 musician cost = $1,300 x 60%". Findings (one-off scripts, scratchpad, not committed):
-- Sourced (60 cells, cost $200/hr/musician): ALL clear $150 at floor; lowest exactly $150 (sourced solo 2h T2P,
-  sourced duo 1h T2P).
-- Duo / flamenco duo IF the cost is $200/hr for the second musician then a 60/40 split (extrapolated from the one
-  2h example): T1 breaks it. Duo T1 floor $700: 3h $60, 4h -$60. Flamenco duo T1 floor $750: 3h $90, 4h -$30.
-  Every other duo cell clears $150.
-- Flamenco trio, mariachi, bolero trio: no musician-cost numbers in the Project files in ~/Data (not checked).
-Questions for Alex: is the duo cost model right; what to do with T1 duo 3-4h (raise the T1 floor for long duos,
-hold those leads, or accept); which formats the $150 check covers.
+**Known gaps:** trio/mariachi/bolero minimum profit unchecked (no cost data); holiday hold reads the model's
+`event_date_iso`; written amounts spelled out in words are not read.
 
-**Remaining TO PORT (27):** drafted-price check (R058/R072/R104, design question above), $150 minimum profit
-(R295/R362, waiting on Alex above), quote formatting by tier (R300-R302), T4/NP (R403, then F1 R020-R025). Other: R006, R081-R089 + R405 (PF-Intel production data, ask first),
-R329, R398 (later module).
+**Remaining TO PORT (23):** written-price threshold not affecting count; quote formatting by tier (R300-R302),
+T4/NP (R403, then F1 R020-R025), R362 (subcontractor half, Alex). Other: R006, R081-R089 + R405 (PF-Intel
+production data, ask first), R329, R398 (later module).
+
+### Three Questions (pricing session)
+1. **Hardest implementation decision?** The written-price exempt list: every exemption is a hole, and the two most
+   tempting ones (the client's budget, a floor-only threshold) were exactly where Alex found the gaps.
+2. **Considered changing but left alone?** Parsing amounts spelled out in words, and checking above-quote figures:
+   both trade many false holds for rare catches.
+3. **Least confident going into the next phase?** None of these checks has met a real model draft; the dollar
+   reader's false-hold rate on real replies is unmeasured.
+
+### Prompt for Next Session
+
+```
+Work in /Users/alejandroguillen/Projects/gig-lead-responder.
+FIRST gate (stop and ask Alex if anything differs):
+  pwd; git fetch origin; git branch --show-current          # expect: feat/hub-phase0
+  git rev-parse HEAD; git rev-parse origin/feat/hub-phase0  # expect: identical
+  git status --short                                        # expect: clean
+Read: HANDOFF.md "START HERE — pricing session", CLAUDE.md, docs/reviews/2026-10-07-draft-price-codex-round2.md.
+Four answers from Alex are pending (written-price threshold a/b/c; round 3; R362 subcontractor half; duo cost).
+Ask for any not given; build nothing on them without the answer.
+One concern per commit, failing test first, commit only on a green suite; npm run test:match (exit 3 = zero matches).
+Codex: `codex exec -s workspace-write "..." < /dev/null`; check git status after; record every verdict in docs/reviews/.
+HARD GATE: never start the Mac poller or server against real mail. Never open data/leads.db from a test.
+STOP and ask Alex before: any real send; any GigSalad click or opening GigSalad/Yelp lead pages; Full Disk Access;
+any change to .env or production data; any new or changed price. Do not start Module 1. Update HANDOFF.md before stopping.
+```
+
+## Earlier: R358 + holiday/peak session (2026-10-05)
 
 ### Three Questions (R358 + holiday session)
 1. **Hardest implementation decision?** What counts as trusted provenance for the competition count: line text,
