@@ -375,16 +375,21 @@ export function minimumProfitHold(
     // Alex 2026-10-07: he pays the second musician $400-$600 for a 2-3h gig; use $600 so the check
     // never assumes he paid less. 4h+ is outside that range: a flat T1 price stays held. 1h: no data.
     const h = pricing.duration_hours;
-    if ((h === 2 || h === 3) && pricing.quote_price > 0) {
-      const t = pricing.travel;
-      const fee = t && !t.included_in_price ? t.fee : 0;
-      const stipend = t?.musician_stipend ?? 0;
-      const profit = pricing.quote_price + fee - DUO_SECOND_MUSICIAN_PAY - stipend;
-      if (profit < MIN_PROFIT) {
-        return `minimum_profit: ${pricing.format} ${h}h at $${pricing.quote_price} leaves $${profit} after $${DUO_SECOND_MUSICIAN_PAY} ` +
-          `for the second musician${stipend ? ` and a $${stipend} travel stipend` : ""} (under $${MIN_PROFIT}); Alex prices it`;
-      }
-    }
+    const t = pricing.travel;
+    const fee = t && !t.included_in_price ? t.fee : 0;
+    const stipend = t?.musician_stipend ?? 0;
+    const check = (label: string, hours: number, price: number): string | null => {
+      if (!(hours === 2 || hours === 3) || !(price > 0)) return null;
+      const profit = price + fee - DUO_SECOND_MUSICIAN_PAY - stipend;
+      return profit < MIN_PROFIT
+        ? `minimum_profit: ${pricing.format}${label} ${hours}h at $${price} leaves $${profit} after $${DUO_SECOND_MUSICIAN_PAY} ` +
+          `for the second musician${stipend ? ` and a $${stipend} travel stipend` : ""} (under $${MIN_PROFIT}); Alex prices it`
+        : null;
+    };
+    // The scoped alternative is a second price the client sees (Codex round 1, duo P2).
+    const alt = pricing.budget?.tier === "large" ? pricing.budget.scoped_alternative : null;
+    const note = check("", h, pricing.quote_price) ?? (alt ? check(" scoped alternative", alt.duration_hours, alt.price) : null);
+    if (note) return note;
     if (h >= 4 && pricing.tier_key === "T1") {
       return `minimum_profit: T1 ${pricing.format} ${h}h at the flat T1 price; the second musician's hours may ` +
         `leave under $${MIN_PROFIT}; Alex prices it`;

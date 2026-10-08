@@ -88,3 +88,14 @@ test("port manifest R295: a scoped alternative under $150 profit is held too", (
   const fine = { ...scoped, budget: { tier: "large", gap: 500, scoped_alternative: { duration_hours: 1, price: 775 } } } as PricingResult;
   assert.equal(minimumProfitHold(fine), null);
 });
+
+// Codex round 1 (duo) P2: a duo's scoped alternative is a second client-visible price; it gets the
+// same $600 rule at 2-3h (a 1h alternative stays outside Alex's range, unchecked).
+test("port manifest R295: a duo's 2-3h scoped alternative under $150 is held; a 1h one is not checked", () => {
+  const withAlt = (h: number, price: number) =>
+    ({ ...pr("duo", 3, 1275, "T2P"), budget: { tier: "large", gap: 400, scoped_alternative: { duration_hours: h, price } } }) as PricingResult;
+  assert.equal(minimumProfitHold(withAlt(2, 700)),
+    "minimum_profit: duo scoped alternative 2h at $700 leaves $100 after $600 for the second musician (under $150); Alex prices it");
+  assert.equal(minimumProfitHold(withAlt(2, 1000)), null);
+  assert.equal(minimumProfitHold(withAlt(1, 700)), null, "1h alternative: outside Alex's range");
+});

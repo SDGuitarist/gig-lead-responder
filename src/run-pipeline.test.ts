@@ -171,6 +171,15 @@ describe("runPipeline", () => {
     assert.ok(!(await runPipeline("Solo for two hours")).classification.flagged_concerns.some((f) => f.startsWith("minimum_profit:")));
   });
 
+  // Codex round 1 (duo) P3: a 2.5h request is priced (snapped) at 3h, and the 3h duo check runs on that.
+  it("port manifest R295 wiring: a 2.5h T1 duo is priced at 3h and gets the 3h check", async () => {
+    mockClaudeForPipeline([{ ...MOCK_CLASSIFICATION, format_recommended: "duo", rate_card_tier: "T1", duration_hours: 2.5 },
+      MOCK_GENERATION, MOCK_GATE_PASS]);
+    const out = await runPipeline("Duo for two and a half hours");
+    assert.equal(out.pricing.duration_hours, 3);
+    assert.ok(out.classification.flagged_concerns.some((f) => f.startsWith("minimum_profit: duo 3h")), out.classification.flagged_concerns.join(" | "));
+  });
+
   it("returns verified: true when gate passes", async () => {
     mockClaudeForPipeline([MOCK_CLASSIFICATION, MOCK_GENERATION, MOCK_GATE_PASS]);
     const result = await runPipeline("I need a guitarist");
