@@ -6,7 +6,7 @@
 
 ## START HERE — pricing session (2026-10-05..07)
 
-**State:** branch `feat/hub-phase0`, pushed. Suite: **654 pass / 0 fail / 1 skip**.
+**State:** branch `feat/hub-phase0`, pushed. Suite: **657 pass / 0 fail / 1 skip**.
 
 **CLOSED reviews this session:** R358 competition count (R3 GO, authorized); R292 holiday/peak hold (R2 test
 fix, no R3 per Alex); **$150 minimum profit R295/R362 (R2 GO)**. Records in `docs/reviews/2026-10-05-*` and
@@ -22,26 +22,21 @@ fix, no R3 per Alex); **$150 minimum profit R295/R362 (R2 GO)**. Records in `doc
   (unless included) - $200/hr x musicians - stipend, < $150 held, scoped alternative too; T1 duo / flamenco duo
   3h+ held. Trio/mariachi/bolero NOT checked (no cost data). Note kept out of drafting prompts.
 
-**Review OPEN — written-price check, STOPPED at round 2 (2nd NO-GO):** R1 NO-GO (2 P1, fixed `2962c41`, confirmed
-closed); R2 NO-GO (P1, false-hold only): malformed "$1,2345" read as "$1,234" (needs a `(?![\d,])` boundary).
-Records `docs/reviews/2026-10-07-draft-price-codex-round{1,2}.md`.
+**Written-price check — CLOSED (R3 GO, authorized by Alex).** Threshold is the price the client is told (quote, or
+quote+travel): any unsupplied figure below it is held (Alex option c, 2026-10-07); a malformed amount is held as
+unreadable. Records `docs/reviews/2026-10-07-draft-price-codex-round{1,2,3}.md`. R362 subcontractor half NOT
+PORTED (Alex).
 
-**Waiting on Alex (no code until answered):**
-1. **Written-price threshold (Alex's catch 2026-10-07):** option (a) only guards the FLOOR, so a draft undercutting
-   the quote above the floor ($560 vs $595) goes out. Claude recommends **(c): hold any unsupplied figure below the
-   QUOTE** (catches undercutting; ignores above-quote figures like $1M insurance). Or (b) strict, or keep (a).
-   Claude's earlier framing of (b) undersold this; Alex caught it.
-2. **Round 3** for the written-price check (fold the "$1,2345" boundary fix + the threshold change into it):
-   Claude recommends RUN (money logic). Needs `Round 3 authorized by Alejandro: YES`.
-3. R362's other half ("withhold premium signals from subcontractors"): the app never contacts subcontractors;
-   NOT PORTED needs Alex's approval.
-4. The duo cost Alex actually pays the second musician (until then duos only get the T1 3h+ hold).
+**Waiting on Alex (no code until answered): the duo minimum-profit rule.** Alex 2026-10-07: he pays the second
+musician $400-$600 for a 2-3h gig (replaces the Project's $200/hr + 60/40 model). Proposed, using $600: at 2-3h,
+profit = price + travel fee - $600 - stipend, < $150 held. Result at floor: duo T1 $100 (HELD, now also at 2h);
+flamenco duo T1 $150 (passes, relaxes today's 3h hold); every T2/T3 duo $400+. 1h and 4h are outside his range:
+keep the T1 4h+ hold, do not check 1h. Asked "switch to this rule?"
 
 **Known gaps:** trio/mariachi/bolero minimum profit unchecked (no cost data); holiday hold reads the model's
 `event_date_iso`; written amounts spelled out in words are not read.
 
-**Remaining TO PORT (23):** written-price threshold not affecting count; quote formatting by tier (R300-R302),
-T4/NP (R403, then F1 R020-R025), R362 (subcontractor half, Alex). Other: R006, R081-R089 + R405 (PF-Intel
+**Remaining TO PORT (22):** quote formatting by tier (R300-R302), T4/NP (R403, then F1 R020-R025). Other: R006, R081-R089 + R405 (PF-Intel
 production data, ask first), R329, R398 (later module).
 
 ### Three Questions (pricing session)
@@ -60,9 +55,9 @@ FIRST gate (stop and ask Alex if anything differs):
   pwd; git fetch origin; git branch --show-current          # expect: feat/hub-phase0
   git rev-parse HEAD; git rev-parse origin/feat/hub-phase0  # expect: identical
   git status --short                                        # expect: clean
-Read: HANDOFF.md "START HERE — pricing session", CLAUDE.md, docs/reviews/2026-10-07-draft-price-codex-round2.md.
-Four answers from Alex are pending (written-price threshold a/b/c; round 3; R362 subcontractor half; duo cost).
-Ask for any not given; build nothing on them without the answer.
+Read: HANDOFF.md "START HERE — pricing session", CLAUDE.md.
+One answer from Alex is pending: switch the duo minimum-profit rule to his $600 payout (HANDOFF)? Build nothing
+on it without his yes. Then the next pricing group: quote formatting by tier (R300-R302), showing Alex first.
 One concern per commit, failing test first, commit only on a green suite; npm run test:match (exit 3 = zero matches).
 Codex: `codex exec -s workspace-write "..." < /dev/null`; check git status after; record every verdict in docs/reviews/.
 HARD GATE: never start the Mac poller or server against real mail. Never open data/leads.db from a test.
