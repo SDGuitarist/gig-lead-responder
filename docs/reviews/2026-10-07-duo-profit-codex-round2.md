@@ -27,3 +27,10 @@ Checked clean
 - No files edited
 - No server, poller, database, network, or browser used
 
+
+---
+
+**Closed 2026-10-07 (Alex: "Number one, yes" = close with no round 3, add a pinning test).** Verified first: one
+builder of a scoped alternative (`src/pipeline/price.ts:207`); 6,360 real `detectBudgetGap` runs over duo / flamenco
+duo gave 144 alternatives, 0 not shorter; T1 4h held. Test `port manifest R295: a scoped alternative is always
+shorter` covers every rate table; mutation-proven. Not Codex-reviewed (no round 3, by Alex's decision). Duo review CLOSED.
