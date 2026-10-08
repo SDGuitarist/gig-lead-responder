@@ -6,7 +6,7 @@
 
 ## START HERE — pricing session (2026-10-05..07)
 
-**State:** branch `feat/hub-phase0`, pushed. Suite: **661 pass / 0 fail / 1 skip**.
+**State:** branch `feat/hub-phase0`, pushed. Suite: **667 pass / 0 fail / 1 skip**.
 
 **CLOSED reviews this session:** R358 competition count (R3 GO, authorized); R292 holiday/peak hold (R2 test
 fix, no R3 per Alex); **$150 minimum profit R295/R362 (R2 GO)**. Records in `docs/reviews/2026-10-05-*` and
@@ -32,11 +32,12 @@ by Alex with pinning test `port manifest R295: a scoped alternative is always sh
 At 2-3h a duo / flamenco duo (and its scoped alternative) is held when price + travel fee - $600 - stipend < $150;
 T1 4h+ held. Records `docs/reviews/2026-10-07-duo-profit-codex-round{1,2}.md`.
 
-**Waiting on Alex: 1-hour duos.** Alex 2026-10-07: "I typically don't quote a one-hour duo. Would take a gig for
-just one hour for less than that." Today the app quotes 1h duos (duo T2P $950/$850 vs 2h $1,100/$1,000) and
-offers a 1h set as a 2h lead's cheaper option. Asked: (a) 1h duo = the 2h price (like the mariachi 2h minimum;
-changes client prices, show every row first) or (b) hold every 1h duo request and never offer a 1h set as the
-cheaper option (no price change; Claude's recommendation). Build nothing until he answers.
+**No 1-hour duo — BUILT (`a85930b`; P1 fix `e03816e`), review round 1 NO-GO, fixes applied, round 2 pending.** Alex 2026-10-07:
+"let's do it just like the mariachi" (both duos, confirmed). The 1-hour rows are removed from `DUO_RATES` and
+`FLAMENCO_DUO_RATES`: a 1-hour request is booked and priced as 2 hours (duo T2P $1,100 anchor; no-viable-scope
+minimum $1000 for 2hr). Sourced duo and solo keep 1 hour. R1 NO-GO (P1 stated hours unchecked; P2 test coverage;
+P2 this HANDOFF was stale; P3 comment), all fixed: post-check now requires the priced hours in both drafts when
+pricing rounded the request up (`priced_hours_`). Records `docs/reviews/2026-10-07-duo-2h-codex-round1.md`.
 
 **Known gaps:** trio/mariachi/bolero minimum profit unchecked (no cost data); holiday hold reads the model's
 `event_date_iso`; written amounts spelled out in words are not read.
@@ -61,7 +62,7 @@ FIRST gate (stop and ask Alex if anything differs):
   git rev-parse HEAD; git rev-parse origin/feat/hub-phase0  # expect: identical
   git status --short                                        # expect: clean
 Read: HANDOFF.md "START HERE — pricing session", CLAUDE.md.
-One answer from Alex is pending: 1-hour duos, option (a) or (b) (HANDOFF). Then the next pricing group: quote formatting by tier (R300-R302), showing Alex first.
+No answer from Alex is pending. If the no-1-hour-duo review is still open, finish it (round 2 is next). Then the next pricing group: quote formatting by tier (R300-R302), showing Alex first.
 One concern per commit, failing test first, commit only on a green suite; npm run test:match (exit 3 = zero matches).
 Codex: `codex exec -s workspace-write "..." < /dev/null`; check git status after; record every verdict in docs/reviews/.
 HARD GATE: never start the Mac poller or server against real mail. Never open data/leads.db from a test.
