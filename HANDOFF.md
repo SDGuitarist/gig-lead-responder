@@ -6,7 +6,7 @@
 
 ## START HERE — pricing session (2026-10-05..07)
 
-**State:** branch `feat/hub-phase0`, pushed. Suite: **660 pass / 0 fail / 1 skip**.
+**State:** branch `feat/hub-phase0`, pushed. Suite: **661 pass / 0 fail / 1 skip**.
 
 **CLOSED reviews this session:** R358 competition count (R3 GO, authorized); R292 holiday/peak hold (R2 test
 fix, no R3 per Alex); **$150 minimum profit R295/R362 (R2 GO)**. Records in `docs/reviews/2026-10-05-*` and
@@ -27,19 +27,16 @@ quote+travel): any unsupplied figure below it is held (Alex option c, 2026-10-07
 unreadable. Records `docs/reviews/2026-10-07-draft-price-codex-round{1,2,3}.md`. R362 subcontractor half NOT
 PORTED (Alex).
 
-**Duo minimum profit at Alex's $600 — BUILT (`0cd4e5e`, `1d64197`), review STOPPED at round 2.** Alex 2026-10-07:
-"yes change duo". At 2-3h a duo / flamenco duo (and its scoped alternative) is held when price + travel fee - $600
-- stipend < $150; T1 4h+ held; 1h unchecked. Duo T1 2-3h held; flamenco duo T1 2-3h passes at $150. R1 NO-GO (P2
-alternative, P3 snap test; fixed). R2 NO-GO (P2): a 4h alternative under a 2-3h primary escapes. **Claude checked:
-unreachable**, `findScopedAlternative` only returns the next SHORTER duration. Records
-`docs/reviews/2026-10-07-duo-profit-codex-round{1,2}.md`.
+**Duo minimum profit at Alex's $600 — DONE, review CLOSED** (R1 NO-GO fixed; R2 NO-GO verified unreachable, closed
+by Alex with pinning test `port manifest R295: a scoped alternative is always shorter`, mutation-proven, no R3).
+At 2-3h a duo / flamenco duo (and its scoped alternative) is held when price + travel fee - $600 - stipend < $150;
+T1 4h+ held. Records `docs/reviews/2026-10-07-duo-profit-codex-round{1,2}.md`.
 
-**Verified 2026-10-07 (Alex asked to double-check):** `findScopedAlternative` is the only builder of a scoped
-alternative (`price.ts:207`); 6,360 runs of the real `detectBudgetGap` (every duo / flamenco duo tier and
-duration, budgets $50-$4,000) gave 144 alternatives, 0 not shorter; duo and flamenco duo T1 4h are HELD.
-**Corrected recommendation:** close with NO round 3 but WITH a test pinning "the alternative is always shorter"
-(the STOP rule needs a deterministic check that pins the residue; without the test nothing does). Waiting on Alex.
-Known gap surfaced: a 2h duo's 1h cheaper option is unchecked (1h payout unknown).
+**Waiting on Alex: 1-hour duos.** Alex 2026-10-07: "I typically don't quote a one-hour duo. Would take a gig for
+just one hour for less than that." Today the app quotes 1h duos (duo T2P $950/$850 vs 2h $1,100/$1,000) and
+offers a 1h set as a 2h lead's cheaper option. Asked: (a) 1h duo = the 2h price (like the mariachi 2h minimum;
+changes client prices, show every row first) or (b) hold every 1h duo request and never offer a 1h set as the
+cheaper option (no price change; Claude's recommendation). Build nothing until he answers.
 
 **Known gaps:** trio/mariachi/bolero minimum profit unchecked (no cost data); holiday hold reads the model's
 `event_date_iso`; written amounts spelled out in words are not read.
@@ -64,7 +61,7 @@ FIRST gate (stop and ask Alex if anything differs):
   git rev-parse HEAD; git rev-parse origin/feat/hub-phase0  # expect: identical
   git status --short                                        # expect: clean
 Read: HANDOFF.md "START HERE — pricing session", CLAUDE.md.
-One answer from Alex is pending: close the duo review (no fix, no round 3) or authorize round 3 (HANDOFF). Then the next pricing group: quote formatting by tier (R300-R302), showing Alex first.
+One answer from Alex is pending: 1-hour duos, option (a) or (b) (HANDOFF). Then the next pricing group: quote formatting by tier (R300-R302), showing Alex first.
 One concern per commit, failing test first, commit only on a green suite; npm run test:match (exit 3 = zero matches).
 Codex: `codex exec -s workspace-write "..." < /dev/null`; check git status after; record every verdict in docs/reviews/.
 HARD GATE: never start the Mac poller or server against real mail. Never open data/leads.db from a test.
