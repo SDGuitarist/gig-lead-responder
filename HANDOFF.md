@@ -6,11 +6,12 @@
 
 ## START HERE — pricing session (2026-10-05..07)
 
-**State:** branch `feat/hub-phase0`, pushed. Suite: **667 pass / 0 fail / 1 skip**.
+**State:** branch `feat/hub-phase0`, pushed. Suite: **669 pass / 0 fail / 1 skip**.
 
-**CLOSED reviews this session:** R358 competition count (R3 GO, authorized); R292 holiday/peak hold (R2 test
-fix, no R3 per Alex); **$150 minimum profit R295/R362 (R2 GO)**. Records in `docs/reviews/2026-10-05-*` and
-`docs/reviews/2026-10-07-min-profit-codex-round{1,2}.md`.
+**CLOSED reviews this session (all of them; none open):** R358 competition count (R3 GO, authorized); R292
+holiday/peak hold (R2 test fix, no R3 per Alex); $150 minimum profit R295/R362 (R2 GO); written-price check
+(R3 GO, authorized); duo $600 minimum profit (R2 unreachable, closed with pinning test per Alex); no 1-hour duo
+(R3 GO, authorized). Records in `docs/reviews/2026-10-05-*` and `docs/reviews/2026-10-07-*`.
 
 **Built:**
 - R358: GigSalad's displayed competition count is authoritative only on a parsed page (`gigsaladPage`).
@@ -32,16 +33,12 @@ by Alex with pinning test `port manifest R295: a scoped alternative is always sh
 At 2-3h a duo / flamenco duo (and its scoped alternative) is held when price + travel fee - $600 - stipend < $150;
 T1 4h+ held. Records `docs/reviews/2026-10-07-duo-profit-codex-round{1,2}.md`.
 
-**No 1-hour duo — BUILT (`a85930b`; P1 fix `e03816e`), review STOPPED at round 2 (2nd NO-GO), Alex decides.** Alex 2026-10-07:
-"let's do it just like the mariachi" (both duos, confirmed). The 1-hour rows are removed from `DUO_RATES` and
-`FLAMENCO_DUO_RATES`: a 1-hour request is booked and priced as 2 hours (duo T2P $1,100 anchor; no-viable-scope
-minimum $1000 for 2hr). Sourced duo and solo keep 1 hour. R1 NO-GO (P1 stated hours unchecked; P2 test coverage;
-P2 this HANDOFF was stale; P3 comment), all fixed: post-check now requires the priced hours in both drafts when
-pricing rounded the request up (`priced_hours_`). Records `docs/reviews/2026-10-07-duo-2h-codex-round1.md`.
-R2 NO-GO: (P1) the `priced_hours_` check fires on drafts that correctly state no hours: residency and graceful
-declines (already held anyway: no cost), no-viable-scope redirects and asked 0/blank (NEW false holds; never a
-money leak); (P2) no edit-path behaviour test. Records `...-duo-2h-codex-round2.md`. **Waiting on Alex:** Claude
-recommends fix (skip residency / graceful decline / no-viable-scope, require asked > 0, edit-path test) + round 3.
+**No 1-hour duo — DONE, review CLOSED (R3 GO, authorized by Alex).** Alex 2026-10-07: "just like the mariachi"
+(both duos). 1-hour rows removed from `DUO_RATES` / `FLAMENCO_DUO_RATES` (`a85930b`): a 1-hour request is booked
+and priced as 2 hours (duo T2P $1,100 anchor; no-viable-scope minimum $1000 for 2hr). Sourced duo and solo keep
+1 hour. New post-check rule `priced_hours_` (`e03816e`, narrowed `81d1568`): on an ordinary quote where pricing
+rounded the request up, both drafts must state the priced hours, or the lead is held (skips residency, graceful
+decline, no-viable-scope, clarification; asked hours must be > 0). Records `docs/reviews/2026-10-07-duo-2h-*`.
 
 **Known gaps:** trio/mariachi/bolero minimum profit unchecked (no cost data); holiday hold reads the model's
 `event_date_iso`; written amounts spelled out in words are not read.
@@ -66,7 +63,8 @@ FIRST gate (stop and ask Alex if anything differs):
   git rev-parse HEAD; git rev-parse origin/feat/hub-phase0  # expect: identical
   git status --short                                        # expect: clean
 Read: HANDOFF.md "START HERE — pricing session", CLAUDE.md.
-One answer from Alex is pending: the no-1-hour-duo review stopped at round 2 (fix + round 3, or fix only?). Then the next pricing group: quote formatting by tier (R300-R302), showing Alex first.
+No answer from Alex is pending. Next: the next pricing group, quote formatting by tier (R300-R302): pull the
+Project's rules from ~/Data/gig-lead-responder/ and SHOW ALEX example replies before writing any code. Then the next pricing group: quote formatting by tier (R300-R302), showing Alex first.
 One concern per commit, failing test first, commit only on a green suite; npm run test:match (exit 3 = zero matches).
 Codex: `codex exec -s workspace-write "..." < /dev/null`; check git status after; record every verdict in docs/reviews/.
 HARD GATE: never start the Mac poller or server against real mail. Never open data/leads.db from a test.
