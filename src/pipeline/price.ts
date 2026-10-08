@@ -341,10 +341,11 @@ export function findMinFloor(
 
 // Port manifest R295/R362: "$150 minimum profit on every booking, no exceptions" (Project).
 // Checked only where a real cost exists (Alex 2026-10-07): sourced formats at the Project's
-// $200/hr per musician, and T1 duo / flamenco duo at 3h+, whose flat T1 price cannot carry the
-// second musician's hours. Trio, mariachi and bolero have no cost data: not checked (known gap).
+// $200/hr per musician, and duo / flamenco duo at 2-3h against Alex's real $600 payout (T1 4h+
+// held: a flat price, outside his range). Trio, mariachi and bolero have no cost data: not checked (known gap).
 const MIN_PROFIT = 150;
 const SOURCED_MUSICIAN_RATE = 200;
+const DUO_SECOND_MUSICIAN_PAY = 600; // Alex 2026-10-07: $400-$600 for 2-3h; the top of the range
 const SOURCED_PLAYERS: Partial<Record<string, number>> = { sourced_cultural_solo: 1, sourced_cultural_duo: 2,
   sourced_cultural_trio: 3, sourced_cultural_quartet: 4, sourced_cultural_5piece: 5 };
 export function minimumProfitHold(
@@ -370,9 +371,24 @@ export function minimumProfitHold(
     return check("", pricing.duration_hours, pricing.quote_price)
       ?? (alt ? check(" scoped alternative", alt.duration_hours, alt.price) : null);
   }
-  if ((pricing.format === "duo" || pricing.format === "flamenco_duo") && pricing.tier_key === "T1" && pricing.duration_hours >= 3) {
-    return `minimum_profit: T1 ${pricing.format} ${pricing.duration_hours}h at the flat T1 price; the second musician's hours may ` +
-      `leave under $${MIN_PROFIT}; Alex prices it`;
+  if (pricing.format === "duo" || pricing.format === "flamenco_duo") {
+    // Alex 2026-10-07: he pays the second musician $400-$600 for a 2-3h gig; use $600 so the check
+    // never assumes he paid less. 4h+ is outside that range: a flat T1 price stays held. 1h: no data.
+    const h = pricing.duration_hours;
+    if ((h === 2 || h === 3) && pricing.quote_price > 0) {
+      const t = pricing.travel;
+      const fee = t && !t.included_in_price ? t.fee : 0;
+      const stipend = t?.musician_stipend ?? 0;
+      const profit = pricing.quote_price + fee - DUO_SECOND_MUSICIAN_PAY - stipend;
+      if (profit < MIN_PROFIT) {
+        return `minimum_profit: ${pricing.format} ${h}h at $${pricing.quote_price} leaves $${profit} after $${DUO_SECOND_MUSICIAN_PAY} ` +
+          `for the second musician${stipend ? ` and a $${stipend} travel stipend` : ""} (under $${MIN_PROFIT}); Alex prices it`;
+      }
+    }
+    if (h >= 4 && pricing.tier_key === "T1") {
+      return `minimum_profit: T1 ${pricing.format} ${h}h at the flat T1 price; the second musician's hours may ` +
+        `leave under $${MIN_PROFIT}; Alex prices it`;
+    }
   }
   return null;
 }

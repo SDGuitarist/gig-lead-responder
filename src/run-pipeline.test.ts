@@ -166,7 +166,7 @@ describe("runPipeline", () => {
     mockClaudeForPipeline([t1Duo, MOCK_GENERATION, MOCK_GATE_PASS]);
     const out = await runPipeline("Duo for three hours");
     assert.equal(out.pricing.tier_key, "T1", "control: priced at T1");
-    assert.ok(out.classification.flagged_concerns.some((f) => f.startsWith("minimum_profit: T1 duo 3h")), out.classification.flagged_concerns.join(" | "));
+    assert.ok(out.classification.flagged_concerns.some((f) => f.startsWith("minimum_profit: duo 3h")), out.classification.flagged_concerns.join(" | "));
     mockClaudeForPipeline([MOCK_CLASSIFICATION, MOCK_GENERATION, MOCK_GATE_PASS]);
     assert.ok(!(await runPipeline("Solo for two hours")).classification.flagged_concerns.some((f) => f.startsWith("minimum_profit:")));
   });
