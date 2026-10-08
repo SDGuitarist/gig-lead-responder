@@ -180,6 +180,21 @@ describe("runPipeline", () => {
     assert.ok(out.classification.flagged_concerns.some((f) => f.startsWith("minimum_profit: duo 3h")), out.classification.flagged_concerns.join(" | "));
   });
 
+  // Codex round 1 (no 1-hour duo) P1: a 1-hour duo ask is priced at 2 hours; a draft that never
+  // says 2 hours is not verified (held), on the main path.
+  it("priced hours stated wiring: a 1-hour duo draft that does not say 2 hours is not verified", async () => {
+    const duo1h = { ...MOCK_CLASSIFICATION, format_recommended: "duo", duration_hours: 1 };
+    mockClaudeForPipeline([duo1h, MOCK_GENERATION, MOCK_GATE_PASS]); // MOCK draft states no hours
+    const out = await runPipeline("Duo for one hour");
+    assert.equal(out.pricing.duration_hours, 2, "control: priced at 2 hours");
+    assert.equal(out.verified, false);
+    assert.ok(out.gate.fail_reasons.some((r) => r.startsWith("priced_hours_full: the client asked for 1h")), out.gate.fail_reasons.join(" | "));
+    const said = { ...MOCK_GENERATION, full_draft: "Hi Sarah, duo bookings start at two hours. Alex Guillen",
+      compressed_draft: "Two hours. Want me to hold the date? Alex Guillen" };
+    mockClaudeForPipeline([duo1h, said, MOCK_GATE_PASS]);
+    assert.ok(!(await runPipeline("Duo for one hour")).gate.fail_reasons.some((r) => r.startsWith("priced_hours_")));
+  });
+
   it("returns verified: true when gate passes", async () => {
     mockClaudeForPipeline([MOCK_CLASSIFICATION, MOCK_GENERATION, MOCK_GATE_PASS]);
     const result = await runPipeline("I need a guitarist");

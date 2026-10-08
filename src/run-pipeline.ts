@@ -254,7 +254,7 @@ export async function runPipeline(
     drafts.full_draft,
     drafts.compressed_draft,
     enriched.platform,
-    { gracefulDecline: enriched.graceful_decline === true, pricing },
+    { gracefulDecline: enriched.graceful_decline === true, pricing, askedHours: enriched.duration_hours },
   );
 
   // Apply auto-fixes (em dashes replaced with commas)
@@ -323,7 +323,7 @@ export async function runEditPipeline(
 
   // Post-check: auto-fix em dashes, flag banned phrases
   const postCheck = postCheckDrafts(drafts.full_draft, drafts.compressed_draft, classification.platform,
-    { gracefulDecline: classification.graceful_decline === true, pricing });
+    { gracefulDecline: classification.graceful_decline === true, pricing, askedHours: classification.duration_hours });
   const cleanedDrafts: Drafts = {
     full_draft: postCheck.full_draft,
     compressed_draft: postCheck.compressed_draft,

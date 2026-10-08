@@ -104,7 +104,7 @@ export function postCheckDrafts(
   fullDraft: string,
   compressedDraft: string,
   platform?: string,
-  options: { gracefulDecline?: boolean; pricing?: PricingResult } = {},
+  options: { gracefulDecline?: boolean; pricing?: PricingResult; askedHours?: number } = {},
 ): PostCheckResult {
   const violations: string[] = [];
 
@@ -190,6 +190,12 @@ export function postCheckDrafts(
     violations.push(...belowFloorPrices(cleanedCompressed, "compressed", options.pricing));
   }
 
+  // --- Check: the hours the draft states are the hours priced (Codex round 1, no 1-hour duo, P1) ---
+  if (options.pricing && options.askedHours !== undefined) {
+    violations.push(...pricedHoursMissing(cleanedFull, "full", options.pricing, options.askedHours));
+    violations.push(...pricedHoursMissing(cleanedCompressed, "compressed", options.pricing, options.askedHours));
+  }
+
   return {
     full_draft: cleanedFull,
     compressed_draft: cleanedCompressed,
@@ -248,6 +254,18 @@ function dollarAmounts(text: string): { text: string; amount: number }[] {
   for (const m of text.matchAll(new RegExp(`(?:US)?\\$\\s?${run}${suffix}`, "gi"))) add(m[1], m[2], m.index ?? 0);
   for (const m of text.matchAll(new RegExp(`(?<![$\\d.,])${run}${suffix}\\s?(?:dollars?|usd|bucks)\\b`, "gi"))) add(m[1], m[2], m.index ?? 0);
   return found.sort((a, b) => a.at - b.at);
+}
+
+// When pricing rounded the request UP (1h -> 2h duo/mariachi, 2.5h -> 3h), the draft must name the
+// priced hours ("2 hours", "two-hour", "2hr"): the prompt says so, this makes it a rule.
+const HOUR_WORDS = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight"];
+function pricedHoursMissing(text: string, label: string, pricing: PricingResult, askedHours: number): string[] {
+  const h = pricing.duration_hours;
+  if (!(pricing.quote_price > 0) || !(h > askedHours)) return [];
+  const word = Number.isInteger(h) && HOUR_WORDS[h] ? `|${HOUR_WORDS[h]}` : "";
+  const stated = new RegExp(`\\b(?:${h}${word})(?:\\s|-)?(?:hours?|hrs?|h)\\b`, "i");
+  return stated.test(text) ? []
+    : [`priced_hours_${label}: the client asked for ${askedHours}h but the price is for ${h}h; the draft must say ${h} hours`];
 }
 
 /** Escape special regex characters in a string. */
