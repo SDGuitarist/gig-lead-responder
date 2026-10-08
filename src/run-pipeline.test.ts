@@ -195,6 +195,19 @@ describe("runPipeline", () => {
     assert.ok(!(await runPipeline("Duo for one hour")).gate.fail_reasons.some((r) => r.startsWith("priced_hours_")));
   });
 
+  // Codex round 2 (no 1-hour duo) P2: the SMS edit path enforces it too, reading the ASKED hours
+  // from the stored classification (not the priced hours, which would never differ).
+  it("priced hours stated wiring: an edited 1-hour duo draft that does not say 2 hours fails the gate", async () => {
+    const duo1h = { ...MOCK_CLASSIFICATION, format_recommended: "duo", duration_hours: 1 } as unknown as Classification;
+    mockClaudeForPipeline([duo1h, MOCK_GENERATION, MOCK_GATE_PASS]);
+    const { pricing } = await runPipeline("Duo for one hour");
+    assert.equal(pricing.duration_hours, 2, "control: priced at 2 hours");
+    mockClaudeForPipeline([MOCK_GENERATION, MOCK_GATE_PASS]); // edited draft states no hours
+    const edit = await runEditPipeline(duo1h, pricing, "Make it shorter");
+    assert.equal(edit.gate.gate_status, "fail");
+    assert.ok(edit.gate.fail_reasons.some((r) => r.startsWith("priced_hours_full: the client asked for 1h")), edit.gate.fail_reasons.join(" | "));
+  });
+
   it("returns verified: true when gate passes", async () => {
     mockClaudeForPipeline([MOCK_CLASSIFICATION, MOCK_GENERATION, MOCK_GATE_PASS]);
     const result = await runPipeline("I need a guitarist");

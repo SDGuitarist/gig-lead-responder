@@ -191,9 +191,14 @@ export function postCheckDrafts(
   }
 
   // --- Check: the hours the draft states are the hours priced (Codex round 1, no 1-hour duo, P1) ---
-  if (options.pricing && options.askedHours !== undefined) {
-    violations.push(...pricedHoursMissing(cleanedFull, "full", options.pricing, options.askedHours));
-    violations.push(...pricedHoursMissing(cleanedCompressed, "compressed", options.pricing, options.askedHours));
+  // Ordinary quotes only (Codex round 2): residency, graceful-decline and no-viable-scope drafts
+  // correctly state other hours or none, and an asked duration must be a positive number.
+  const asked = options.askedHours;
+  const pr = options.pricing;
+  if (pr && typeof asked === "number" && Number.isFinite(asked) && asked > 0 && !options.gracefulDecline
+      && !pr.residency && pr.budget.tier !== "no_viable_scope") {
+    violations.push(...pricedHoursMissing(cleanedFull, "full", pr, asked));
+    violations.push(...pricedHoursMissing(cleanedCompressed, "compressed", pr, asked));
   }
 
   return {

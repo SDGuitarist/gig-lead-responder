@@ -31,3 +31,19 @@ test("priced hours stated: 2.5 asked priced at 3 needs 3 hours; same hours asked
   assert.deepEqual(postCheckDrafts("1 hour", "1 hour", undefined, { pricing: duo2h }).violations
     .filter((v) => v.startsWith("priced_hours_")), [], "no askedHours given: not checked");
 });
+
+// Codex round 2 (no 1-hour duo) P1: the check fired on drafts that correctly state no hours.
+// It is for ordinary quotes only: residency, graceful declines and no-viable-scope redirects are
+// skipped, and an asked duration must be a positive number.
+test("priced hours stated: residency, graceful decline, no-viable-scope and a 0 or missing ask are not checked", () => {
+  const residency = { ...duo2h, residency: { tier: "R2", cadence: "weekly", hours: 2, rate: 350, floor: 350, reason: null } } as PricingResult;
+  assert.deepEqual(hours("Weekly programming sounds great.", "Let's talk cadence.", 1, residency), []);
+  assert.deepEqual(postCheckDrafts("I'm not the right fit for this one.", "Not a fit, sorry.", undefined,
+    { pricing: duo2h, askedHours: 1, gracefulDecline: true }).violations.filter((v) => v.startsWith("priced_hours_")), []);
+  const noScope = { ...duo2h, budget: { tier: "no_viable_scope", gap: 600 } } as PricingResult;
+  assert.deepEqual(hours("My shortest set is $1000 for 2hr.", "Shortest set, $1000.", 1, noScope), []);
+  assert.deepEqual(hours("A great set, $1,100.", "$1,100.", 0), [], "asked 0");
+  assert.deepEqual(hours("A great set, $1,100.", "$1,100.", Number.NaN), [], "asked NaN");
+  assert.deepEqual(hours("A great set, $1,100.", "$1,100.", null as unknown as number), [], "asked null");
+  assert.equal(hours("A great set, $1,100.", "$1,100.", 1).length, 2, "control: an ordinary 1h -> 2h quote is still checked");
+});
