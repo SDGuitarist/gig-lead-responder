@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { minimumProfitHold } from "./pipeline/price.js";
+import { detectBudgetGap, minimumProfitHold } from "./pipeline/price.js";
 import { RATE_TABLES } from "./data/rates.js";
 import { withoutHoldNotes, type Format, type PricingResult } from "./types.js";
 
@@ -98,4 +98,25 @@ test("port manifest R295: a duo's 2-3h scoped alternative under $150 is held; a 
     "minimum_profit: duo scoped alternative 2h at $700 leaves $100 after $600 for the second musician (under $150); Alex prices it");
   assert.equal(minimumProfitHold(withAlt(2, 1000)), null);
   assert.equal(minimumProfitHold(withAlt(1, 700)), null, "1h alternative: outside Alex's range");
+});
+
+// Duo review round 2 (closed by Alex 2026-10-07, no round 3): a 4h alternative under a 2-3h primary
+// would escape the duo check, but findScopedAlternative only ever offers the next SHORTER duration.
+// This pins that, across every rate table, tier, duration and a sweep of budgets.
+test("port manifest R295: a scoped alternative is always shorter than the quoted duration", () => {
+  let alts = 0;
+  for (const [format, table] of Object.entries(RATE_TABLES) as [Format, (typeof RATE_TABLES)[Format]][]) {
+    for (const [h, tiers] of Object.entries(table)) {
+      for (const [tier, r] of Object.entries(tiers)) {
+        if (!r) continue;
+        for (let budget = 50; budget <= 6000; budget += 50) {
+          const g = detectBudgetGap(budget, r.floor, format, Number(h), tier, table);
+          if (g.tier !== "large") continue;
+          alts++;
+          assert.ok(g.scoped_alternative.duration_hours < Number(h), `${format} ${h}h ${tier} budget ${budget}`);
+        }
+      }
+    }
+  }
+  assert.ok(alts > 100, `control: ${alts} alternatives produced`);
 });
