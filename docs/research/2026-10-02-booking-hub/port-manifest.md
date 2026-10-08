@@ -375,7 +375,7 @@
 | R359 | F16 | Vagueness Assessment | ALREADY PRESENT | `src/prompts/classify.ts` Step 2.5 vagueness | always |  |  |
 | R360 | F16 | Decision Gate | ALREADY PRESENT | `src/prompts/classify.ts` Step 2.5 decision gate; binary question in `src/prompts/generate.ts:85` | always |  |  |
 | R361 | F16 | Step 2.75: Stealth Premium Check | ALREADY PRESENT | `src/prompts/classify.ts` Step 2.75 (`stealth_premium`) | always |  |  |
-| R362 | F16 | Step 3: Pricing Strategy | TO PORT | **$150 minimum profit half PORTED 2026-10-07** (`minimumProfitHold`, `src/pipeline/price.ts`, test `port manifest R295`). Still open: "withhold premium signals from subcontractors". The app never contacts subcontractors (Alex sources them himself), so there is no surface to build it on; NOT PORTED needs Alex's approval | sourced delivery |  |  |
+| R362 | F16 | Step 3: Pricing Strategy | NOT PORTED | $150 minimum profit half PORTED 2026-10-07 (`minimumProfitHold`, `src/pipeline/price.ts`, test `port manifest R295`). "Withhold premium signals from subcontractors": NOT PORTED, approved by Alex 2026-10-07: the app never contacts subcontractors (Alex sources them himself), so there is no surface to build it on | sourced delivery |  |  |
 | R363 | F16 | Competition-Weighted Matrix | ALREADY PRESENT | `src/prompts/classify.ts` Step 3 matrix | always |  |  |
 | R364 | F16 | Step 4: Tier Classification | ALREADY PRESENT | `src/prompts/classify.ts` Step 4 | always |  |  |
 | R365 | F16 | Premium Tier (ANY ONE triggers) → Rate Card T3 | ALREADY PRESENT | `src/prompts/classify.ts` Step 4 premium + T3 mapping | always |  |  |
