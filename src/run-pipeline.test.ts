@@ -2,7 +2,7 @@ import { GUT_CHECK_KEYS } from "./types.js";
 import { describe, it, before, after } from "node:test";
 import assert from "node:assert/strict";
 import { setClaudeRequesterForTests } from "./claude.js";
-import { runPipeline } from "./run-pipeline.js";
+import { runPipeline, runEditPipeline } from "./run-pipeline.js";
 import type { Classification, PricingResult } from "./types.js";
 
 // Mock Claude to return valid classification + generation + verification
@@ -140,6 +140,23 @@ describe("runPipeline", () => {
     };
     assert.match(await concerns(true), /GigSalad displays no count, so competition_quote_count must be 0, but classification has 3/);
     assert.doesNotMatch(await concerns(undefined), /GigSalad displays/);
+  });
+
+  // R058 (Alex option a): the written-price check runs on BOTH drafting paths. If a call site
+  // stopped passing pricing, the check would switch off with every unit test green.
+  it("port manifest R058 wiring: a draft priced below the floor is not verified, on both paths", async () => {
+    const cheap = { ...MOCK_GENERATION, full_draft: "Hi Sarah, two hours is $100. Alex Guillen" };
+    mockClaudeForPipeline([MOCK_CLASSIFICATION, cheap, MOCK_GATE_PASS]); // solo T2P 2h: floor $550
+    const out = await runPipeline("I need a guitarist for two hours");
+    assert.equal(out.verified, false);
+    assert.ok(out.gate.fail_reasons.some((r) => r.startsWith("price_below_floor_full: $100")), out.gate.fail_reasons.join(" | "));
+    mockClaudeForPipeline([MOCK_CLASSIFICATION, MOCK_GENERATION, MOCK_GATE_PASS]);
+    assert.equal((await runPipeline("I need a guitarist for two hours")).verified, true, "control: the same run without the bad price");
+
+    mockClaudeForPipeline([cheap, MOCK_GATE_PASS]);
+    const edit = await runEditPipeline(MOCK_CLASSIFICATION as unknown as Classification, out.pricing, "Make it shorter");
+    assert.equal(edit.gate.gate_status, "fail");
+    assert.ok(edit.gate.fail_reasons.some((r) => r.startsWith("price_below_floor_full: $100")));
   });
 
   it("returns verified: true when gate passes", async () => {

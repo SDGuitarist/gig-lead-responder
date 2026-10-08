@@ -1,5 +1,5 @@
 import { RATE_TABLES, type FormatRates, type TierRates } from "../data/rates.js";
-import { rateTableFor, residencyStatesPrice } from "../pipeline/price.js";
+import { findMinFloor, rateTableFor, residencyStatesPrice } from "../pipeline/price.js";
 import { SETUP_SPACE } from "../data/setup-space.js";
 import { VOICE_REFERENCES } from "../data/voice-references.js";
 import { withoutHoldNotes, CONCERN_4PIECE_ALT, CONCERN_FULL_ENSEMBLE, GUT_CHECK_KEYS, GUT_CHECK_THRESHOLD, GUT_CHECK_TOTAL, type Classification, type Format, type PricingResult, type ResidencyQuote } from "../types.js";
@@ -493,24 +493,3 @@ Total (performance + travel): $${total}
 Present ONE total number ($${total}) to the client. Do NOT itemize the travel fee separately unless the client asks. The travel fee is baked into the quote.`;
 }
 
-/**
- * Find the minimum floor price across all durations for a format+tier_key.
- * Used by no_viable_scope mode to state the absolute minimum.
- */
-function findMinFloor(
-  rateTable: FormatRates,
-  tier_key: string,
-): { min_floor: number; min_duration: number } {
-  let min_floor = Infinity;
-  let min_duration = 0;
-
-  for (const [durationKey, tiers] of Object.entries(rateTable)) {
-    const rates = tiers[tier_key as keyof TierRates];
-    if (rates && rates.floor < min_floor) {
-      min_floor = rates.floor;
-      min_duration = Number(durationKey);
-    }
-  }
-
-  return { min_floor, min_duration };
-}

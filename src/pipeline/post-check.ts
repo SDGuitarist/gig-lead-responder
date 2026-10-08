@@ -3,6 +3,8 @@
  * Runs AFTER AI generate+verify to catch violations the AI self-policing misses.
  * Auto-fixes what it can (em dashes), flags what it can't (banned phrases).
  */
+import { findMinFloor, rateTableFor } from "./price.js";
+import type { PricingResult } from "../types.js";
 
 export interface PostCheckResult {
   full_draft: string;         // cleaned draft (auto-fixes applied)
@@ -102,7 +104,7 @@ export function postCheckDrafts(
   fullDraft: string,
   compressedDraft: string,
   platform?: string,
-  options: { gracefulDecline?: boolean } = {},
+  options: { gracefulDecline?: boolean; pricing?: PricingResult } = {},
 ): PostCheckResult {
   const violations: string[] = [];
 
@@ -182,11 +184,48 @@ export function postCheckDrafts(
     }
   }
 
+  // --- Check: a written price below the floor (port manifest R058/R072/R104, Alex option a) ---
+  if (options.pricing) {
+    violations.push(...belowFloorPrices(cleanedFull, "full", options.pricing));
+    violations.push(...belowFloorPrices(cleanedCompressed, "compressed", options.pricing));
+  }
+
   return {
     full_draft: cleanedFull,
     compressed_draft: cleanedCompressed,
     violations,
   };
+}
+
+/**
+ * Every dollar figure the app hands the model: the quote, the travel fee and the quote+travel
+ * total, a 50% deposit of either (rounded both ways), the scoped alternative, the no-viable-scope
+ * minimum and the residency rate. Anything else below the floor is a price the model made up (e.g.
+ * an unpriced 4-piece). NOT the client's stated budget (Alex 2026-10-07): "$400 works for me" is the
+ * likeliest too-low price, so a draft echoing a below-floor budget is held too.
+ */
+function belowFloorPrices(text: string, label: string, pricing: PricingResult): string[] {
+  if (!(pricing.floor > 0) || !(pricing.quote_price > 0)) return []; // placeholder pricing: nothing to check
+  const totals = [pricing.quote_price];
+  const supplied = new Set<number>();
+  if (pricing.travel && !pricing.travel.included_in_price && pricing.travel.fee > 0) {
+    supplied.add(pricing.travel.fee);
+    totals.push(pricing.quote_price + pricing.travel.fee);
+  }
+  for (const t of totals) { supplied.add(t); supplied.add(Math.floor(t / 2)); supplied.add(Math.ceil(t / 2)); }
+  if (pricing.budget.tier === "large") supplied.add(pricing.budget.scoped_alternative.price);
+  if (pricing.budget.tier === "no_viable_scope") supplied.add(findMinFloor(rateTableFor(pricing), pricing.tier_key).min_floor);
+  if (pricing.residency?.rate) supplied.add(pricing.residency.rate);
+
+  const out: string[] = [];
+  // "$1M", "$2 million", "$5k" are never below a floor; skip them rather than misread "$1".
+  for (const m of text.matchAll(/\$\s?(\d{1,3}(?:,\d{3})+|\d+)(?:\.\d{1,2})?(?!\s*(?:k|m|mm|million|thousand)\b)(?![\d,])/gi)) {
+    const amount = Number(m[1].replace(/,/g, ""));
+    if (amount < pricing.floor && !supplied.has(amount)) {
+      out.push(`price_below_floor_${label}: $${m[1]} is below the $${pricing.floor} floor and is not a figure the app supplied`);
+    }
+  }
+  return [...new Set(out)];
 }
 
 /** Escape special regex characters in a string. */

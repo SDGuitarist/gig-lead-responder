@@ -316,3 +316,25 @@ export function lookupResidencyRate(tier: ResidencyTier, hours: number, cadence:
 export function residencyStatesPrice(classification: Pick<Classification, "price_asked">, q: ResidencyQuote): boolean {
   return classification.price_asked === true && q.rate !== null;
 }
+
+/**
+ * Find the minimum floor price across all durations for a format+tier_key.
+ * Used by no_viable_scope mode to state the absolute minimum.
+ */
+export function findMinFloor(
+  rateTable: FormatRates,
+  tier_key: string,
+): { min_floor: number; min_duration: number } {
+  let min_floor = Infinity;
+  let min_duration = 0;
+
+  for (const [durationKey, tiers] of Object.entries(rateTable)) {
+    const rates = tiers[tier_key as keyof TierRates];
+    if (rates && rates.floor < min_floor) {
+      min_floor = rates.floor;
+      min_duration = Number(durationKey);
+    }
+  }
+
+  return { min_floor, min_duration };
+}
