@@ -52,14 +52,8 @@ export const SOLO_RATES: FormatRates = {
 
 // --- Duo (Guitar + Second Musician) ---
 // Source: Rate_Card_Solo_Duo.md
+// No 1-hour row (Alex 2026-10-07): like mariachi, a 1-hour request is booked and priced as 2 hours.
 export const DUO_RATES: FormatRates = {
-  "1": {
-    T1: { anchor: 700, floor: 700 },
-    T2P: { anchor: 950, floor: 850 },
-    T2D: { anchor: 1100, floor: 1000 },
-    T3P: { anchor: 1050, floor: 950 },
-    T3D: { anchor: 1200, floor: 1100 },
-  },
   "2": {
     T1: { anchor: 700, floor: 700 },
     T2P: { anchor: 1100, floor: 1000 },
@@ -85,14 +79,8 @@ export const DUO_RATES: FormatRates = {
 
 // --- Flamenco Duo (Guitar + Cajón) ---
 // Source: Rate_Card_Solo_Duo.md — specialty cultural premium
+// No 1-hour row (Alex 2026-10-07): like mariachi, a 1-hour request is booked and priced as 2 hours.
 export const FLAMENCO_DUO_RATES: FormatRates = {
-  "1": {
-    T1: { anchor: 750, floor: 750 },
-    T2P: { anchor: 950, floor: 850 },
-    T2D: { anchor: 1100, floor: 1000 },
-    T3P: { anchor: 1200, floor: 1100 },
-    T3D: { anchor: 1400, floor: 1250 },
-  },
   "2": {
     T1: { anchor: 750, floor: 750 },
     T2P: { anchor: 1100, floor: 1000 },
