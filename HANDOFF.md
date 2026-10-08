@@ -63,8 +63,12 @@ FIRST gate (stop and ask Alex if anything differs):
   git rev-parse HEAD; git rev-parse origin/feat/hub-phase0  # expect: identical
   git status --short                                        # expect: clean
 Read: HANDOFF.md "START HERE — pricing session", CLAUDE.md.
-No answer from Alex is pending. Next: the next pricing group, quote formatting by tier (R300-R302): pull the
-Project's rules from ~/Data/gig-lead-responder/ and SHOW ALEX example replies before writing any code. Then the next pricing group: quote formatting by tier (R300-R302), showing Alex first.
+R300-R302 (quote formatting by tier) SHOWN TO ALEX 2026-10-07, waiting (no code). Alex's real sent replies
+(src/data/voice-references.ts: Patterson, Starikov, Miranda) use a STRUCTURED price line for T3 and T2 alike
+("Solo Spanish Guitar [price] 3 hours | Professional sound, setup/breakdown, ..."); the Project's T2 template
+("typically runs around $X ... Does that work?") hedges and conflicts with single-number rules. Asked: (1)
+structured line for every tier (recommended); (2) the "what's included" clause only for formats Alex performs,
+or all; (3) omit the trio/ensemble "Extension available at $[rate]/half hour" until he gives a rate (recommended). Then the next pricing group: quote formatting by tier (R300-R302), showing Alex first.
 One concern per commit, failing test first, commit only on a green suite; npm run test:match (exit 3 = zero matches).
 Codex: `codex exec -s workspace-write "..." < /dev/null`; check git status after; record every verdict in docs/reviews/.
 HARD GATE: never start the Mac poller or server against real mail. Never open data/leads.db from a test.
