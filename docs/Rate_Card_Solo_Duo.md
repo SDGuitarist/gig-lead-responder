@@ -47,7 +47,7 @@ Spanish, classical, Latin — with or without vocals. 100% margin (no payout).
 
 60/40 split — you keep 60%. Travel modifier: +$250-300 outside SD County.
 
-**1 hr:** T1 $700 | T2P $950/$850 | T2D $1,100/$1,000 | T3P $1,050/$950 | T3D $1,200/$1,100
+**1 hr:** not offered (Alex 2026-10-07). A 1-hour request is booked and priced as 2 hours, like mariachi.
 **2 hrs:** T1 $700 | T2P $1,100/$1,000 | T2D $1,300/$1,200 | T3P $1,495/$1,325 | T3D $1,700/$1,500
 **3 hrs:** T1 $700 | T2P $1,400/$1,275 | T2D $1,700/$1,500 | T3P $1,700/$1,575 | T3D $2,200/$1,900
 **4 hrs:** T1 $700 | T2P $1,750/$1,575 | T2D $2,100/$1,900 | T3P $2,200/$1,925 | T3D $2,800/$2,450
@@ -58,7 +58,7 @@ Spanish, classical, Latin — with or without vocals. 100% margin (no payout).
 
 Specialty cultural premium — exceeds standard duo at T3 by 10-15%. Same 60/40 split.
 
-**1 hr:** T1 $750 | T2P $950/$850 | T2D $1,100/$1,000 | T3P $1,200/$1,100 | T3D $1,400/$1,250
+**1 hr:** not offered (Alex 2026-10-07). A 1-hour request is booked and priced as 2 hours, like mariachi.
 **2 hrs:** T1 $750 | T2P $1,100/$1,000 | T2D $1,350/$1,200 | T3P $1,595/$1,400 | T3D $1,895/$1,700
 **3 hrs:** T1 $750 | T2P $1,400/$1,275 | T2D $1,700/$1,500 | T3P $1,895/$1,750 | T3D $2,400/$2,100
 **4 hrs:** T1 $750 | T2P $1,750/$1,575 | T2D $2,100/$1,900 | T3P $2,350/$2,100 | T3D $2,995/$2,650
