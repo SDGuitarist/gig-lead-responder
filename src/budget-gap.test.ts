@@ -96,9 +96,9 @@ describe("detectBudgetGap — gap tiers", () => {
 // --- detectBudgetGap: scope-down edge cases ---
 
 describe("detectBudgetGap — scope-down", () => {
-  it("duo at 2hr with large gap → no_viable_scope (scope-down 1hr floor $850 too high for $450 budget)", () => {
+  it("duo at 2hr with large gap → no_viable_scope (no shorter duo duration exists)", () => {
     // Synthetic floor 600. Budget = 450 → gap = 150 (large range)
-    // Scope-down: Duo 1hr T2P floor = 850 (rates.ts). 850 >= 450 + 75 = 525? Yes → null
+    // Scope-down: none. Duo has no 1-hour row since Alex 2026-10-07 (2 hours is the shortest).
     const result = detectBudgetGap(450, 600, "duo", 2, "T2P");
     assert.equal(result.tier, "no_viable_scope");
     assert.equal((result as { gap: number }).gap, 150);

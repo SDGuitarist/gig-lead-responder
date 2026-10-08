@@ -38,5 +38,14 @@ test("quoted hours are the hours priced: the draft is told when they differ from
     platform: "yelp" }) as unknown as Classification;
   const asked1 = buildGeneratePrompt(full(1), lookupPrice(full(1)), "ctx");
   assert.ok(asked1.includes("The client asked for 1hr; this rate is for 2hr"), "1h mariachi → 2h minimum, said plainly");
+  // Codex round 1 (no 1-hour duo) P2: the duos follow the same rule since Alex 2026-10-07.
+  for (const format of ["duo", "flamenco_duo"]) {
+    const duo = { ...full(1), format_recommended: format, format_requested: format } as Classification;
+    assert.ok(buildGeneratePrompt(duo, lookupPrice(duo), "ctx").includes("The client asked for 1hr; this rate is for 2hr"), format);
+  }
+  for (const format of ["solo", "sourced_cultural_duo"]) {
+    const one = { ...full(1), format_recommended: format, format_requested: format } as Classification;
+    assert.ok(!buildGeneratePrompt(one, lookupPrice(one), "ctx").includes("this rate is for 2hr"), `${format} keeps 1 hour`);
+  }
   assert.ok(!buildGeneratePrompt(full(2), lookupPrice(full(2)), "ctx").includes("The client asked for"), "control: exact match says nothing");
 });
