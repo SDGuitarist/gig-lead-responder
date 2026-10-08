@@ -184,7 +184,7 @@ export function postCheckDrafts(
     }
   }
 
-  // --- Check: a written price below the floor (port manifest R058/R072/R104, Alex option a) ---
+  // --- Check: a written price below the quote (port manifest R058/R072/R104; Alex option c, 2026-10-07) ---
   if (options.pricing) {
     violations.push(...belowFloorPrices(cleanedFull, "full", options.pricing));
     violations.push(...belowFloorPrices(cleanedCompressed, "compressed", options.pricing));
@@ -199,10 +199,12 @@ export function postCheckDrafts(
 
 /**
  * Every dollar figure the app hands the model: the quote, the travel fee and the quote+travel
- * total, a 50% deposit of either (rounded both ways), the scoped alternative, the no-viable-scope
- * minimum and the residency rate. Anything else below the floor is a price the model made up (e.g.
- * an unpriced 4-piece). NOT the client's stated budget (Alex 2026-10-07): "$400 works for me" is the
- * likeliest too-low price, so a draft echoing a below-floor budget is held too.
+ * total, a 50% deposit of either (rounded both ways), the budget gap, the scoped alternative, the
+ * no-viable-scope minimum and the residency rate. Any OTHER figure below the price the client is
+ * told (the quote, or quote+travel) is held: below the floor (Alex option a, 2026-10-06), and also
+ * undercutting the quote above the floor (option c, Alex 2026-10-07). Figures above it ($1M
+ * insurance, an upgrade) are not checked. NOT the client's stated budget (Alex 2026-10-07): "$400
+ * works for me" is the likeliest too-low price. A malformed amount is held as unreadable.
  */
 function belowFloorPrices(text: string, label: string, pricing: PricingResult): string[] {
   if (!(pricing.floor > 0) || !(pricing.quote_price > 0)) return []; // placeholder pricing: nothing to check
@@ -217,31 +219,34 @@ function belowFloorPrices(text: string, label: string, pricing: PricingResult): 
   if (pricing.budget.tier === "large") supplied.add(pricing.budget.scoped_alternative.price);
   if (pricing.budget.tier === "no_viable_scope") supplied.add(findMinFloor(rateTableFor(pricing), pricing.tier_key).min_floor);
   if (pricing.residency?.rate) supplied.add(pricing.residency.rate);
+  const told = Math.max(...totals);
 
   const out: string[] = [];
   for (const { text: shown, amount } of dollarAmounts(text)) {
-    if (amount < pricing.floor && !supplied.has(amount)) {
-      out.push(`price_below_floor_${label}: ${shown} is below the $${pricing.floor} floor and is not a figure the app supplied`);
+    if (Number.isNaN(amount)) out.push(`price_unreadable_${label}: ${shown} is not a readable amount`);
+    else if (amount < told && !supplied.has(amount)) {
+      out.push(`price_below_quote_${label}: ${shown} is below the $${told} quote and is not a figure the app supplied`);
     }
   }
   return [...new Set(out)];
 }
 
-// Codex round 1 (written price): read the WHOLE number and its suffix before judging, so
-// "$1.5k" is 1500 (not "$1"), and count "400 dollars" / "400 USD" / "400 bucks" / "US$400" too.
-// Residue: amounts spelled out in words ("four hundred") are not read.
+// Read the WHOLE digit run first (no backtracking to a shorter number), then validate it: "$1.5k"
+// is 1500, "$1,2345" is unreadable (NaN, held; Codex round 2), a sentence comma after a number is
+// dropped. Counts US$, "N dollars", "N USD", "N bucks". Residue: amounts spelled out in words.
 const MULTIPLIER: Record<string, number> = { k: 1e3, thousand: 1e3, m: 1e6, mm: 1e6, million: 1e6 };
+const VALID_NUMBER = /^(?:\d{1,3}(?:,\d{3})+|\d+)(?:\.\d+)?$/;
 function dollarAmounts(text: string): { text: string; amount: number }[] {
-  const num = "(\\d{1,3}(?:,\\d{3})+(?:\\.\\d+)?|\\d+(?:\\.\\d+)?)";
+  const run = "(\\d[\\d,]*(?:\\.\\d+)?)";
   const suffix = "(?:\\s?(k|thousand|mm|m|million)\\b)?";
   const found: { text: string; amount: number; at: number }[] = [];
-  const value = (n: string, mult?: string) => Number(n.replace(/,/g, "")) * (mult ? MULTIPLIER[mult.toLowerCase()] : 1);
-  for (const m of text.matchAll(new RegExp(`(?:US)?\\$\\s?${num}${suffix}`, "gi"))) {
-    found.push({ text: `$${m[1]}${m[2] ? m[2] : ""}`, amount: value(m[1], m[2]), at: m.index ?? 0 });
-  }
-  for (const m of text.matchAll(new RegExp(`(?<![$\\d.,])${num}${suffix}\\s?(?:dollars?|usd|bucks)\\b`, "gi"))) {
-    found.push({ text: `$${m[1]}${m[2] ? m[2] : ""}`, amount: value(m[1], m[2]), at: m.index ?? 0 });
-  }
+  const add = (raw: string, mult: string | undefined, at: number) => {
+    const n = raw.replace(/,+$/, "");
+    const amount = VALID_NUMBER.test(n) ? Number(n.replace(/,/g, "")) * (mult ? MULTIPLIER[mult.toLowerCase()] : 1) : NaN;
+    found.push({ text: `$${n}${mult ?? ""}`, amount, at });
+  };
+  for (const m of text.matchAll(new RegExp(`(?:US)?\\$\\s?${run}${suffix}`, "gi"))) add(m[1], m[2], m.index ?? 0);
+  for (const m of text.matchAll(new RegExp(`(?<![$\\d.,])${run}${suffix}\\s?(?:dollars?|usd|bucks)\\b`, "gi"))) add(m[1], m[2], m.index ?? 0);
   return found.sort((a, b) => a.at - b.at);
 }
 

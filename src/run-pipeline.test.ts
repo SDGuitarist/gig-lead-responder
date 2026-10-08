@@ -149,14 +149,14 @@ describe("runPipeline", () => {
     mockClaudeForPipeline([MOCK_CLASSIFICATION, cheap, MOCK_GATE_PASS]); // solo T2P 2h: floor $550
     const out = await runPipeline("I need a guitarist for two hours");
     assert.equal(out.verified, false);
-    assert.ok(out.gate.fail_reasons.some((r) => r.startsWith("price_below_floor_full: $100")), out.gate.fail_reasons.join(" | "));
+    assert.ok(out.gate.fail_reasons.some((r) => r.startsWith("price_below_quote_full: $100")), out.gate.fail_reasons.join(" | "));
     mockClaudeForPipeline([MOCK_CLASSIFICATION, MOCK_GENERATION, MOCK_GATE_PASS]);
     assert.equal((await runPipeline("I need a guitarist for two hours")).verified, true, "control: the same run without the bad price");
 
     mockClaudeForPipeline([cheap, MOCK_GATE_PASS]);
     const edit = await runEditPipeline(MOCK_CLASSIFICATION as unknown as Classification, out.pricing, "Make it shorter");
     assert.equal(edit.gate.gate_status, "fail");
-    assert.ok(edit.gate.fail_reasons.some((r) => r.startsWith("price_below_floor_full: $100")));
+    assert.ok(edit.gate.fail_reasons.some((r) => r.startsWith("price_below_quote_full: $100")));
   });
 
   // R295 (Alex 2026-10-07): the minimum-profit note is attached on the FINAL price, so the router
