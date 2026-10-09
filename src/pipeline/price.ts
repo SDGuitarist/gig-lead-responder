@@ -440,3 +440,22 @@ export function t4FallbackHold(classification: Pick<Classification, "rate_card_t
     ? `t4: no T4 price for ${pricing.format} ${pricing.duration_hours}h; the draft uses the T3 price as a reference; Alex prices it`
     : null;
 }
+
+// Every nonprofit lead is held (R403; Alex 2026-10-09: a priced NP2 is still reviewed before sending).
+// This note says whether NP2 priced it and, if not, why; the classify-stage note does the holding.
+export function nonprofitPriceNote(classification: Pick<Classification, "nonprofit_buyer" | "np_tier" | "rate_card_tier" | "engagement_type">,
+  pricing: Pick<PricingResult, "format" | "duration_hours" | "quote_price" | "in_kind" | "rate_table">): string | null {
+  if (classification.nonprofit_buyer !== true) return null;
+  const h = pricing.duration_hours;
+  if (pricing.in_kind) {
+    return `nonprofit: NP2 ${pricing.format} ${h}h at $${pricing.quote_price} (standard $${pricing.in_kind.standard}, ` +
+      "in-kind line in the drafts); Alex reviews before sending";
+  }
+  const what = `${classification.np_tier ?? "NP tier unsure"} ${pricing.format} ${h}h`;
+  const np2 = rateTableFor(pricing)[String(h)]?.NP2;
+  const why = classification.rate_card_tier === "T4" ? `${what} was classified T4`
+    : classification.engagement_type === "residency" ? `${what} is a residency`
+    : classification.np_tier === "NP2" && np2 ? `${what}, standard $${pricing.quote_price} is not $${NP_MIN_IN_KIND} above the NP2 $${np2.floor}`
+    : `${what} has no NP rate`;
+  return `nonprofit: no NP price (${why}); the draft uses the standard price; Alex prices it`;
+}

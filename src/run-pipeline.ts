@@ -1,6 +1,6 @@
 import { classifyLead } from "./pipeline/classify.js";
 import { verifyClassificationHeuristics } from "./pipeline/classify-verify.js";
-import { lookupPrice, budgetGapFor, minimumProfitHold, t4FallbackHold } from "./pipeline/price.js";
+import { lookupPrice, budgetGapFor, minimumProfitHold, nonprofitPriceNote, t4FallbackHold } from "./pipeline/price.js";
 import { enrichClassification } from "./pipeline/enrich.js";
 import { getTodayISO } from "./utils/dates.js";
 import { selectContext } from "./pipeline/context.js";
@@ -216,6 +216,9 @@ export async function runPipeline(
   // T4 with no T4 price for this format (R403): priced at the T3 reference, held for Alex.
   const t4Note = t4FallbackHold(enriched, pricing);
   if (t4Note) enriched.flagged_concerns = [...enriched.flagged_concerns, t4Note];
+  // Nonprofit (R403): whether NP2 priced it, and why not; the lead is already held by the classify note.
+  const npNote = nonprofitPriceNote(enriched, pricing);
+  if (npNote) enriched.flagged_concerns = [...enriched.flagged_concerns, npNote];
   timing.price = Date.now() - start;
   onStage?.({
     stage: 2, name: "price", status: "done",

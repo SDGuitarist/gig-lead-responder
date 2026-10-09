@@ -154,10 +154,11 @@ export function verifyClassificationHeuristics(
   }
 
   // Nonprofit / fundraiser buyers (port manifest R403; Alex Sept 15 and 2026-10-09): routed on who pays,
-  // never premium on the venue alone, and every one is held for Alex until the NP rates are set. A lead
+  // never premium on the venue alone, and every one is held for Alex, priced or not (Alex 2026-10-09:
+  // NP2 is reviewed before sending; price.ts nonprofitPriceNote says whether NP2 priced it). A lead
   // that SAYS nonprofit but was not classified as one is held too (the model can miss who pays).
   if (classification.nonprofit_buyer === true) {
-    addWarning(warnings, "nonprofit: NP track (decided by who pays, not the venue); Alex prices it until the NP rates are set");
+    addWarning(warnings, "nonprofit: NP track (decided by who pays, not the venue); Alex reviews every nonprofit lead before it is sent");
   } else if (NONPROFIT_SIGNAL.test(rawText)) {
     addWarning(warnings, "classification_verify: raw lead mentions a nonprofit or fundraiser but nonprofit_buyer is false");
   }

@@ -3,8 +3,9 @@ import assert from "node:assert/strict";
 import { buildClassifyPrompt } from "./prompts/classify.js";
 import { classifyLead } from "./pipeline/classify.js";
 import { setClaudeRequesterForTests } from "./claude.js";
-import { budgetGapFor, lookupPrice } from "./pipeline/price.js";
-import type { Classification } from "./types.js";
+import { budgetGapFor, lookupPrice, nonprofitPriceNote } from "./pipeline/price.js";
+import { verifyClassificationHeuristics } from "./pipeline/classify-verify.js";
+import { withoutHoldNotes, type Classification } from "./types.js";
 
 // Port manifest R403, NP2 (Alex 2026-10-09). NP2 = established foundation, solo only: 1h $500, 2h $695,
 // quoted AT the floor. NP1, NP3, NP2 3-4h and any NP duo: no NP price, held. Alex chose a classifier field
@@ -47,6 +48,8 @@ test("port manifest R403 NP2: np_tier parses only NP1/NP2/NP3, and only for a no
 // line needs the price the lead would get WITHOUT the NP track (the normal lookup): it is kept as
 // in_kind.standard. Alex: when that standard is not at least $100 above the NP price, no NP price (a $5
 // or $50 contribution line is not worth sending); the lead keeps its normal price and stays held. NP1, NP3, unsure, 3-4h, duo, T4, residency: same.
+const notes = (text: string, np: boolean) =>
+  verifyClassificationHeuristics(text, { ...valid, nonprofit_buyer: np } as unknown as Classification).warnings;
 const lead = (over: Partial<Classification> = {}) =>
   ({ ...valid, nonprofit_buyer: true, np_tier: "NP2", ...over }) as unknown as Classification;
 test("port manifest R403 NP2: an NP2 solo 1h or 2h is quoted at the NP2 floor with the standard price kept", () => {
@@ -87,4 +90,35 @@ test("port manifest R403 NP2: a budget below the 2h NP2 price scopes down to the
   const c = lead({ rate_card_tier: "T3", lead_source_column: "D", stated_budget: 550 });
   const p = lookupPrice(c);
   assert.deepEqual(budgetGapFor(c, p), { tier: "large", gap: 145, scoped_alternative: { duration_hours: 1, price: 500 } });
+});
+
+// Step 3 (Alex 2026-10-09): a priced NP2 lead is STILL held (Alex reviews before sending); every other
+// nonprofit lead says why it has no NP price. Both are hold notes, never shown to the drafter.
+test("port manifest R403 NP2: every nonprofit lead stays held, and the note says whether NP2 priced it", () => {
+  assert.deepEqual(notes("Donor dinner", true).filter((x) => x.startsWith("nonprofit:")),
+    ["nonprofit: NP track (decided by who pays, not the venue); Alex reviews every nonprofit lead before it is sent"]);
+  const priced = lead({ rate_card_tier: "T3", lead_source_column: "P" });
+  assert.equal(nonprofitPriceNote(priced, lookupPrice(priced)),
+    "nonprofit: NP2 solo 2h at $695 (standard $795, in-kind line in the drafts); Alex reviews before sending");
+  const low = lead({ rate_card_tier: "T2", lead_source_column: "P" });
+  assert.equal(nonprofitPriceNote(low, lookupPrice(low)),
+    "nonprofit: no NP price (NP2 solo 2h, standard $595 is not $100 above the NP2 $695); the draft uses the standard price; Alex prices it");
+  const np1 = lead({ np_tier: "NP1", rate_card_tier: "T3", lead_source_column: "D" });
+  assert.equal(nonprofitPriceNote(np1, lookupPrice(np1)),
+    "nonprofit: no NP price (NP1 solo 2h has no NP rate); the draft uses the standard price; Alex prices it");
+  const unsure = lead({ np_tier: null, format_recommended: "duo", rate_card_tier: "T3", lead_source_column: "D" });
+  assert.equal(nonprofitPriceNote(unsure, lookupPrice(unsure)),
+    "nonprofit: no NP price (NP tier unsure duo 2h has no NP rate); the draft uses the standard price; Alex prices it");
+  const t4 = lead({ rate_card_tier: "T4" });
+  assert.equal(nonprofitPriceNote(t4, lookupPrice(t4)),
+    "nonprofit: no NP price (NP2 solo 2h was classified T4); the draft uses the standard price; Alex prices it");
+  const res = lead({ engagement_type: "residency", rate_card_tier: "T3", lead_source_column: "D" });
+  assert.equal(nonprofitPriceNote(res, lookupPrice(res)),
+    "nonprofit: no NP price (NP2 solo 2h is a residency); the draft uses the standard price; Alex prices it");
+  const notNp = lead({ nonprofit_buyer: false, rate_card_tier: "T3", lead_source_column: "D" });
+  assert.equal(nonprofitPriceNote(notNp, lookupPrice(notNp)), null);
+  for (const n of [nonprofitPriceNote(priced, lookupPrice(priced)), nonprofitPriceNote(np1, lookupPrice(np1))]) {
+    const c = { ...priced, flagged_concerns: [n as string] } as Classification;
+    assert.deepEqual(withoutHoldNotes(c).flagged_concerns, [], "never reaches the drafting prompts");
+  }
 });

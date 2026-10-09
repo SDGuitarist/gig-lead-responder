@@ -70,7 +70,7 @@ const notes = (text: string, np: boolean) => verifyClassificationHeuristics(text
 test("port manifest R403: a nonprofit buyer is held for Alex, and the note stays out of the drafts", () => {
   const w = notes("Cocktail hour for our members", true);
   assert.deepEqual(w.filter((x) => x.startsWith("nonprofit:")),
-    ["nonprofit: NP track (decided by who pays, not the venue); Alex prices it until the NP rates are set"]);
+    ["nonprofit: NP track (decided by who pays, not the venue); Alex reviews every nonprofit lead before it is sent"]);
   const held = verifyClassificationHeuristics("Cocktail hour", cl(true)).classification;
   assert.ok(!withoutHoldNotes(held).flagged_concerns.some((f) => f.startsWith("nonprofit:")));
 });
