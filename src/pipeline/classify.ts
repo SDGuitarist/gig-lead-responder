@@ -86,6 +86,12 @@ export function normalizeNpTier(value: unknown, nonprofitBuyer: boolean): NpTier
   return nonprofitBuyer && (value === "NP1" || value === "NP2" || value === "NP3") ? value : null;
 }
 
+/** organization_name (R403): a trimmed non-empty string, and only for a nonprofit buyer; else null. */
+export function normalizeOrganizationName(value: unknown, nonprofitBuyer: boolean): string | null {
+  const name = typeof value === "string" ? value.trim() : "";
+  return nonprofitBuyer && name ? name : null;
+}
+
 const validateClassification = (raw: unknown): Classification => {
   if (typeof raw !== "object" || raw === null || Array.isArray(raw)) throw new ClassificationError("Expected JSON object from LLM");
   const obj = raw as Record<string, unknown>;
@@ -155,6 +161,7 @@ const validateClassification = (raw: unknown): Classification => {
   obj.extended_dancer = normalizeExtendedDancer(obj.extended_dancer);
   obj.nonprofit_buyer = normalizeNonprofitBuyer(obj.nonprofit_buyer);
   obj.np_tier = normalizeNpTier(obj.np_tier, obj.nonprofit_buyer as boolean);
+  obj.organization_name = normalizeOrganizationName(obj.organization_name, obj.nonprofit_buyer as boolean);
   obj.graceful_decline = normalizeGracefulDecline(obj.graceful_decline);
   obj.delivery_mode = deliveryModeFor(obj.format_recommended);
   Object.assign(obj, normalizeEngagement(obj));

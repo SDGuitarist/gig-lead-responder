@@ -118,6 +118,9 @@ export interface Classification {
   // NP tier (R403, Alex 2026-10-09): NP1 grassroots, NP2 established foundation, NP3 institutional
   // fundraiser; null = not a nonprofit buyer or unsure (held, no NP price). normalizeNpTier.
   np_tier?: NpTier | null;
+  // The paying organization's name as the lead writes it (R403 in-kind line; nonprofit buyers only, else
+  // null). The drafter never sees the lead, so the app writes this into the line. normalizeOrganizationName.
+  organization_name?: string | null;
 
   // Who delivers the gig (port manifest R349): derived in code from the format
   // by the Instrument Rule (classify.ts deliveryModeFor), never guessed by the model.

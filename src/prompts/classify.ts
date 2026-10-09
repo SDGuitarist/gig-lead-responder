@@ -181,6 +181,8 @@ np_tier (a nonprofit buyer only, else null):
 - "NP3": institutional fundraiser: a large institution's event (hospital, university, museum, national charity gala).
 - unsure, or anything else: null.
 
+organization_name (a nonprofit buyer only, else null): the paying organization's name as the lead writes it, without a leading "the" (e.g. "Example Arts Foundation"). null when the lead does not name it; never guess one.
+
 ## ENGAGEMENT TYPE
 
 Check this before pricing: a private event and a residency are different products.
@@ -220,6 +222,7 @@ Return ONLY this JSON object (no markdown fences, no explanation):
   "stealth_premium": boolean,
   "nonprofit_buyer": boolean,
   "np_tier": "NP1" | "NP2" | "NP3" | null,
+  "organization_name": string | null,
   "stealth_premium_signals": string[],
   "tier": "premium" | "standard" | "qualification",
   "rate_card_tier": "T1" | "T2" | "T3" | "T4",

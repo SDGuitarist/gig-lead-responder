@@ -240,3 +240,17 @@ test("port manifest R403 NP2: the in-kind line must follow the price line", () =
   assert.deepEqual(v(`Solo guitar, $695, 2 hours. ${line}`), [], "same line");
   assert.equal(v(`Solo guitar, $6950, 2 hours\n${line}`).length, 2, "a different amount is not the price line");
 });
+
+// Execution finding (Alex 2026-10-09): the drafting model never sees the lead text, so it could not fill
+// [organization] (3 of 3 local runs: "your organization", "your foundation", left unfilled). The classifier,
+// which reads the lead, extracts organization_name (nonprofit buyers only); the app writes it into the line.
+test("port manifest R403 NP2: the classifier extracts organization_name for a nonprofit buyer only", async () => {
+  const p = buildClassifyPrompt("2026-10-09");
+  assert.match(p, /"organization_name": string \| null/);
+  assert.match(p, /organization_name[^\n]*nonprofit buyer only[^\n]*as the lead writes it[^\n]*without a leading "the"/i);
+  assert.equal((await classifyAs({ ...valid, nonprofit_buyer: true, organization_name: "  Example Arts Foundation " })).organization_name, "Example Arts Foundation");
+  for (const v of ["", "   ", 7, null, undefined, ["x"]]) {
+    assert.equal((await classifyAs({ ...valid, nonprofit_buyer: true, organization_name: v })).organization_name, null, JSON.stringify(v));
+  }
+  assert.equal((await classifyAs({ ...valid, nonprofit_buyer: false, organization_name: "Example Co" })).organization_name, null, "not a nonprofit buyer");
+});
