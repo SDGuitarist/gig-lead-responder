@@ -207,6 +207,8 @@ export interface PricingResult {
   rate_table?: "mariachi_full_outside_sd";
   /** Every residency (port manifest R281/R286): per-night residency quote (solo) or a private-event series (non-solo); rate null = held for Alex. */
   residency?: ResidencyQuote;
+  /** NP2 priced (port manifest R403): the price the lead would get without the NP track, for the in-kind line. */
+  in_kind?: { standard: number };
 }
 
 export interface Drafts {

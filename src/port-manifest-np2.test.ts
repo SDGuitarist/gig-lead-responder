@@ -3,6 +3,8 @@ import assert from "node:assert/strict";
 import { buildClassifyPrompt } from "./prompts/classify.js";
 import { classifyLead } from "./pipeline/classify.js";
 import { setClaudeRequesterForTests } from "./claude.js";
+import { budgetGapFor, lookupPrice } from "./pipeline/price.js";
+import type { Classification } from "./types.js";
 
 // Port manifest R403, NP2 (Alex 2026-10-09). NP2 = established foundation, solo only: 1h $500, 2h $695,
 // quoted AT the floor. NP1, NP3, NP2 3-4h and any NP duo: no NP price, held. Alex chose a classifier field
@@ -39,4 +41,50 @@ test("port manifest R403 NP2: np_tier parses only NP1/NP2/NP3, and only for a no
     assert.equal((await classifyAs({ ...valid, nonprofit_buyer: true, np_tier: v })).np_tier, null, String(v));
   }
   assert.equal((await classifyAs({ ...valid, nonprofit_buyer: false, np_tier: "NP2" })).np_tier, null, "not a nonprofit buyer: no NP tier");
+});
+
+// Step 2 (Alex 2026-10-09): NP2 solo 1h $500, 2h $695, quoted AT the floor (anchor = floor). The in-kind
+// line needs the price the lead would get WITHOUT the NP track (the normal lookup): it is kept as
+// in_kind.standard. Alex: when that standard is not at least $100 above the NP price, no NP price (a $5
+// or $50 contribution line is not worth sending); the lead keeps its normal price and stays held. NP1, NP3, unsure, 3-4h, duo, T4, residency: same.
+const lead = (over: Partial<Classification> = {}) =>
+  ({ ...valid, nonprofit_buyer: true, np_tier: "NP2", ...over }) as unknown as Classification;
+test("port manifest R403 NP2: an NP2 solo 1h or 2h is quoted at the NP2 floor with the standard price kept", () => {
+  const two = lookupPrice(lead({ rate_card_tier: "T3", lead_source_column: "P" }));
+  assert.deepEqual([two.tier_key, two.anchor, two.floor, two.quote_price, two.in_kind?.standard], ["NP2", 695, 695, 695, 795]);
+  const one = lookupPrice(lead({ duration_hours: 1, rate_card_tier: "T3", lead_source_column: "D" }));
+  assert.deepEqual([one.tier_key, one.quote_price, one.in_kind?.standard], ["NP2", 500, 650]);
+  const flex = lookupPrice(lead({ competition_level: "extreme", rate_card_tier: "T3", lead_source_column: "D" }));
+  assert.deepEqual([flex.quote_price, flex.in_kind?.standard], [695, 795], "competition never moves NP2 off the floor; standard is the normal quote");
+  const halfHour = lookupPrice(lead({ duration_hours: 1.5, rate_card_tier: "T3", lead_source_column: "P" }));
+  assert.deepEqual([halfHour.tier_key, halfHour.duration_hours, halfHour.quote_price], ["NP2", 2, 695], "1.5h rounds up to the 2h NP2 price");
+});
+test("port manifest R403 NP2: no NP price unless the standard price is at least $100 above it", () => {
+  // 2h: T1 $500, T2P $595, T2D $700 ($5); 1h: T1 $500, T2P $550 ($50), T2D $595 ($95); 2h T3P under high competition $761 ($66).
+  for (const [hours, tier, col, comp] of [[2, "T1", "D", "low"], [2, "T2", "P", "low"], [2, "T2", "D", "low"], [1, "T1", "D", "low"],
+    [1, "T2", "P", "low"], [1, "T2", "D", "low"], [2, "T3", "P", "high"]] as const) {
+    const p = lookupPrice(lead({ duration_hours: hours, rate_card_tier: tier, lead_source_column: col, competition_level: comp }));
+    assert.equal(p.in_kind, undefined, `${hours}h ${tier}${col} ${comp}`);
+    assert.notEqual(p.tier_key, "NP2", `${hours}h ${tier}${col} ${comp}`);
+  }
+  const boundary = lookupPrice(lead({ duration_hours: 1, rate_card_tier: "T3", lead_source_column: "P" }));
+  assert.deepEqual([boundary.tier_key, boundary.quote_price, boundary.in_kind?.standard], ["NP2", 500, 600], "exactly $100 above: priced");
+});
+test("port manifest R403 NP2: NP1, NP3, unsure, 3-4h, duo, T4, residency and a non-nonprofit get no NP price", () => {
+  const t3 = { rate_card_tier: "T3", lead_source_column: "D" } as const;
+  for (const [label, over] of [
+    ["NP1", { np_tier: "NP1" }], ["NP3", { np_tier: "NP3" }], ["unsure", { np_tier: null }],
+    ["3h", { duration_hours: 3 }], ["4h", { duration_hours: 4 }], ["duo", { format_recommended: "duo" }],
+    ["T4", { rate_card_tier: "T4" }], ["residency", { engagement_type: "residency" }],
+    ["not a nonprofit buyer", { nonprofit_buyer: false }],
+  ] as const) {
+    const p = lookupPrice(lead({ ...t3, ...over } as Partial<Classification>));
+    assert.notEqual(p.tier_key, "NP2", label);
+    assert.equal(p.in_kind, undefined, label);
+  }
+});
+test("port manifest R403 NP2: a budget below the 2h NP2 price scopes down to the 1h NP2 price", () => {
+  const c = lead({ rate_card_tier: "T3", lead_source_column: "D", stated_budget: 550 });
+  const p = lookupPrice(c);
+  assert.deepEqual(budgetGapFor(c, p), { tier: "large", gap: 145, scoped_alternative: { duration_hours: 1, price: 500 } });
 });

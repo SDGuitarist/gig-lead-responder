@@ -53,7 +53,28 @@ const DUO_FORMATS: ReadonlySet<Format> = new Set([
  * @param travelData - Optional travel fee data from ZIP lookup.
  *   When provided, a TravelComponent is attached to the result.
  */
+const NP_MIN_IN_KIND = 100; // Alex 2026-10-09: the smallest in-kind contribution worth a line
+
 export function lookupPrice(
+  classification: Classification,
+  travelData?: TravelFeeData | null,
+): PricingResult {
+  const standard = lookupStandardPrice(classification, travelData);
+  // NP2 (port manifest R403, Alex 2026-10-09): an established-foundation solo at 1-2h is quoted AT the
+  // NP2 floor, and the standard price is kept for the in-kind line. Only when the standard is at least
+  // $100 above the NP2 price (Alex: a $5 or $50 contribution line is not worth sending); anything else
+  // keeps the standard price and is held for Alex. Solo only because only SOLO_RATES has NP2 rows.
+  const np2 = rateTableFor(standard)[String(standard.duration_hours)]?.NP2;
+  if (np2 && classification.nonprofit_buyer === true && classification.np_tier === "NP2"
+    && classification.rate_card_tier !== "T4"
+    && classification.engagement_type !== "residency" && standard.quote_price - np2.floor >= NP_MIN_IN_KIND) {
+    return { ...standard, tier_key: "NP2", anchor: np2.floor, floor: np2.floor, quote_price: np2.floor,
+      competition_position: "NP2 at the floor", in_kind: { standard: standard.quote_price } };
+  }
+  return standard;
+}
+
+function lookupStandardPrice(
   classification: Classification,
   travelData?: TravelFeeData | null,
 ): PricingResult {

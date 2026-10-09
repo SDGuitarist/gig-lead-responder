@@ -13,6 +13,8 @@ export interface TierRates {
   T3D: RateEntry;
   /** T4 luxury corporate (port manifest R403): one price per duration, no P/D split, like T1. */
   T4?: RateEntry;
+  /** NP2 established foundation (port manifest R403, Alex 2026-10-09): solo 1-2h only, at the floor. */
+  NP2?: RateEntry;
 }
 
 export interface FormatRates {
@@ -29,6 +31,7 @@ export const SOLO_RATES: FormatRates = {
     T3P: { anchor: 600, floor: 550 },
     T3D: { anchor: 650, floor: 595 },
     T4: { anchor: 975, floor: 875 },
+    NP2: { anchor: 500, floor: 500 },
   },
   "2": {
     T1: { anchor: 500, floor: 500 },
@@ -37,6 +40,7 @@ export const SOLO_RATES: FormatRates = {
     T3P: { anchor: 795, floor: 750 },
     T3D: { anchor: 895, floor: 795 },
     T4: { anchor: 1350, floor: 1200 },
+    NP2: { anchor: 695, floor: 695 },
   },
   "3": {
     T1: { anchor: 500, floor: 500 },
