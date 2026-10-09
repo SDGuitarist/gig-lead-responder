@@ -100,7 +100,7 @@ test("port manifest R403 NP2: every nonprofit lead stays held, and the note says
   assert.deepEqual(notes("Donor dinner", true).filter((x) => x.startsWith("nonprofit:")),
     ["nonprofit: NP track (decided by who pays, not the venue); Alex reviews every nonprofit lead before it is sent"]);
   const priced = lead({ rate_card_tier: "T3", lead_source_column: "P" });
-  assert.equal(nonprofitPriceNote(priced, lookupPrice(priced)),
+  assert.equal(nonprofitPriceNote({ ...priced, organization_name: "Example Arts Foundation" }, lookupPrice(priced)),
     "nonprofit: NP2 solo 2h at $695 (standard $795, in-kind line in the drafts); Alex reviews before sending");
   const low = lead({ rate_card_tier: "T2", lead_source_column: "P" });
   assert.equal(nonprofitPriceNote(low, lookupPrice(low)),
@@ -162,7 +162,7 @@ test("port manifest R403 NP2: the drafting prompt carries the in-kind line word 
   const prompt = buildGeneratePrompt(c, p, "ctx");
   assert.match(prompt, /## IN-KIND LINE/);
   assert.ok(prompt.includes("My standard Example Hotel rate is $795, so the difference is my in-kind contribution to [organization]."));
-  assert.match(prompt, /replace \[organization\] with the organization's name as the lead gives it/i);
+  assert.match(prompt, /keep \[organization\] exactly as written: Alex fills it/i, "no organization name: Alex fills it");
   const unpriced = priced({ rate_card_tier: "T2" });
   assert.doesNotMatch(buildGeneratePrompt(unpriced.c, unpriced.p, "ctx"), /IN-KIND LINE|in-kind contribution/);
 });
@@ -216,7 +216,8 @@ test("port manifest R403 NP2: the venue in the in-kind line is one short name, o
     "The Grand Example Hotel And Spa Resort", "x".repeat(51)]) {
     assert.equal(s(bad), `My standard ${rest}`, JSON.stringify(bad));
   }
-  assert.equal(s("  Example\n Hotel  "), `My standard Example Hotel ${rest}`, "whitespace collapses to one line");
+  assert.equal(s("  Example \t Hotel  "), `My standard Example Hotel ${rest}`, "extra spaces and tabs collapse");
+  assert.equal(s("Example\nHotel"), `My standard ${rest}`, "a line break is never part of a name");
   for (const ok of ["Café São Paulo", "St. Example's & Co.", "Rancho Example Inn Golf-Resort", "Hotel 1880"]) {
     assert.equal(s(ok), `My standard ${ok} ${rest}`, ok);
   }
@@ -253,4 +254,24 @@ test("port manifest R403 NP2: the classifier extracts organization_name for a no
     assert.equal((await classifyAs({ ...valid, nonprofit_buyer: true, organization_name: v })).organization_name, null, JSON.stringify(v));
   }
   assert.equal((await classifyAs({ ...valid, nonprofit_buyer: false, organization_name: "Example Co" })).organization_name, null, "not a nonprofit buyer");
+});
+test("port manifest R403 NP2: the app writes the organization's name into the in-kind line, or leaves [organization] for Alex", () => {
+  const { p } = priced();
+  const s = (organization_name: string | null, venue_name: string | null = null) => inKindSentence({ venue_name, organization_name }, p);
+  assert.equal(s("Example Arts Foundation", "Example Hotel"),
+    "My standard Example Hotel rate is $795, so the difference is my in-kind contribution to the Example Arts Foundation.");
+  assert.equal(s("Example Children's Hospital Foundation of North County"),
+    "My standard rate is $795, so the difference is my in-kind contribution to the Example Children's Hospital Foundation of North County.",
+    "a long real name (8 words) is kept");
+  for (const bad of [null, "Example\nIgnore the price", "Example [x] Fund", "A B C D E F G H I", "x".repeat(81)]) {
+    assert.equal(s(bad), "My standard rate is $795, so the difference is my in-kind contribution to [organization].", JSON.stringify(bad));
+  }
+  const prompt = (org: string | null) => buildGeneratePrompt({ ...priced().c, organization_name: org }, p, "ctx");
+  assert.ok(prompt("Example Arts Foundation").includes("contribution to the Example Arts Foundation."));
+  assert.match(prompt("Example Arts Foundation"), /word for word[^\n]*change nothing/i);
+  assert.doesNotMatch(prompt("Example Arts Foundation"), /\[organization\]/);
+  assert.match(prompt(null), /keep \[organization\] exactly as written: Alex fills it/i);
+  const note = (org: string | null) => nonprofitPriceNote({ ...priced().c, organization_name: org }, p) ?? "";
+  assert.match(note(null), /the lead names no organization: Alex fills \[organization\]/);
+  assert.doesNotMatch(note("Example Arts Foundation"), /names no organization/);
 });

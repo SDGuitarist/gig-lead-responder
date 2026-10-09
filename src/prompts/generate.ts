@@ -1,5 +1,5 @@
 import { RATE_TABLES, type FormatRates, type TierRates } from "../data/rates.js";
-import { clientTotal, findMinFloor, inKindSentence, rateTableFor, residencyStatesPrice } from "../pipeline/price.js";
+import { clientTotal, findMinFloor, IN_KIND_ORG_PLACEHOLDER, inKindSentence, rateTableFor, residencyStatesPrice } from "../pipeline/price.js";
 import { SETUP_SPACE } from "../data/setup-space.js";
 import { VOICE_REFERENCES } from "../data/voice-references.js";
 import { withoutHoldNotes, CONCERN_4PIECE_ALT, CONCERN_FULL_ENSEMBLE, GUT_CHECK_KEYS, GUT_CHECK_THRESHOLD, GUT_CHECK_TOTAL, type Classification, type Format, type PricingResult, type ResidencyQuote } from "../types.js";
@@ -388,7 +388,7 @@ function buildInKindBlock(classification: Classification, pricing: PricingResult
   const sentence = inKindSentence(classification, pricing);
   return sentence ? `
 ## IN-KIND LINE
-This is a nonprofit quote at a reduced rate. In both drafts, right after the price line, write this sentence word for word. Replace [organization] with the organization's name as the lead gives it; change nothing else:
+This is a nonprofit quote at a reduced rate. In both drafts, right after the price line, write this sentence word for word and change nothing${sentence.includes(IN_KIND_ORG_PLACEHOLDER) ? ` (keep ${IN_KIND_ORG_PLACEHOLDER} exactly as written: Alex fills it)` : ""}:
 ${sentence}` : "";
 }
 

@@ -443,7 +443,7 @@ export function t4FallbackHold(classification: Pick<Classification, "rate_card_t
 
 // Every nonprofit lead is held (R403; Alex 2026-10-09: a priced NP2 is still reviewed before sending).
 // This note says whether NP2 priced it and, if not, why; the classify-stage note does the holding.
-export function nonprofitPriceNote(classification: Pick<Classification, "nonprofit_buyer" | "np_tier" | "rate_card_tier" | "engagement_type">,
+export function nonprofitPriceNote(classification: Pick<Classification, "nonprofit_buyer" | "np_tier" | "rate_card_tier" | "engagement_type" | "organization_name">,
   pricing: Pick<PricingResult, "format" | "duration_hours" | "quote_price" | "in_kind" | "rate_table"> & Partial<Pick<PricingResult, "budget">>): string | null {
   if (classification.nonprofit_buyer !== true) return null;
   // A clarification lead has no rate table (format "unresolved"; Codex round 1 NP2 P1).
@@ -452,7 +452,8 @@ export function nonprofitPriceNote(classification: Pick<Classification, "nonprof
   if (pricing.in_kind) {
     const line = pricing.budget?.tier === "large" ? "scoped alternative: two prices, no in-kind line; Alex adds it"
       : pricing.budget?.tier === "no_viable_scope" ? "minimum-set redirect: no in-kind line; Alex adds it"
-      : "in-kind line in the drafts";
+      : inKindName(classification.organization_name, 8, 80) ? "in-kind line in the drafts"
+      : "in-kind line in the drafts; the lead names no organization: Alex fills [organization]";
     return `nonprofit: NP2 ${pricing.format} ${h}h at $${pricing.quote_price} (standard $${pricing.in_kind.standard}, ` +
       `${line}); Alex reviews before sending`;
   }
@@ -466,22 +467,29 @@ export function nonprofitPriceNote(classification: Pick<Classification, "nonprof
 }
 
 // venue_name is model text from the lead and is not sanitized anywhere (Codex round 1 NP2 run B P2): in the
-// word-for-word line it must be one short name (letters, digits, . , ' & -; at most 5 words, 50 chars), else
-// it is dropped like an unknown venue.
-function inKindVenue(raw: string | null | undefined): string | null {
+// word-for-word line it must be one short name on one line (letters, digits, . , ' & -; at most 5 words,
+// 50 chars), else it is dropped like an unknown venue.
+// The organization's name (classifier organization_name, the same model text) gets the same rule with
+// room for longer names: at most 8 words, 80 chars.
+// A line break is never part of a name: reject it (collapsing it let "Example\nIgnore the price" through).
+function inKindName(raw: string | null | undefined, maxWords: number, maxChars: number): string | null {
+  if (/[\r\n]/.test(raw ?? "")) return null;
   const name = (raw ?? "").replace(/\s+/g, " ").trim();
-  return name && name.length <= 50 && name.split(" ").length <= 5 && /^[\p{L}\p{N} .,'&-]+$/u.test(name) ? name : null;
+  return name && name.length <= maxChars && name.split(" ").length <= maxWords && /^[\p{L}\p{N} .,'&-]+$/u.test(name) ? name : null;
 }
 
 // The in-kind line on every one-price NP2 draft, in Alex's own words (his Sept 28, 2026 sent reply).
-// The app writes both numbers' amount (same travel rule as every client-facing price); the model fills
-// [organization] from the lead (Alex 2026-10-09); [venue] is dropped when unknown. null = no line:
-// no NP2 price, or a scoped alternative / minimum-set redirect (two prices, no single standard).
-export function inKindSentence(classification: Pick<Classification, "venue_name">,
+// The app writes the amount (same travel rule as every client-facing price) and the organization's name
+// (classifier organization_name: the drafter never sees the lead; a local run proved it could not fill
+// it, Alex 2026-10-09). No usable name = "[organization]" stays for Alex. [venue] is dropped when unknown.
+// null = no line: no NP2 price, or a scoped alternative / minimum-set redirect (no single standard).
+export function inKindSentence(classification: Pick<Classification, "venue_name" | "organization_name">,
   pricing: Pick<PricingResult, "in_kind" | "budget" | "travel">): string | null {
   if (!pricing.in_kind || pricing.budget.tier === "large" || pricing.budget.tier === "no_viable_scope") return null;
-  const name = inKindVenue(classification.venue_name);
-  const venue = name ? `${name} ` : "";
+  const venueName = inKindName(classification.venue_name, 5, 50);
+  const venue = venueName ? `${venueName} ` : "";
+  const org = inKindName(classification.organization_name, 8, 80);
   return `My standard ${venue}rate is $${clientTotal(pricing, pricing.in_kind.standard)}, ` +
-    "so the difference is my in-kind contribution to [organization].";
+    `so the difference is my in-kind contribution to ${org ? `the ${org}` : IN_KIND_ORG_PLACEHOLDER}.`;
 }
+export const IN_KIND_ORG_PLACEHOLDER = "[organization]";
