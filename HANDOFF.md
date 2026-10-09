@@ -71,7 +71,12 @@ FIRST gate (stop and ask Alex if anything differs):
   git rev-parse HEAD; git rev-parse origin/feat/hub-phase0  # expect: identical
   git status --short                                        # expect: clean
 Read: HANDOFF.md "START HERE — pricing session", CLAUDE.md.
-No Codex review is open and no answer from Alex is pending. Every pricing review this session is CLOSED.
+No Codex review is open. Every pricing review this session is CLOSED. ONE answer from Alex is pending (Alex's catch
+2026-10-09): the residency-series fix `1fba7c4` makes a series with a travel fee "$1,250 per night" (travel EVERY
+night, ~$600/month extra for a weekly venue), decided as a consistency fix, not a pricing decision; no doc covers
+recurring travel. Options: (a) travel every night (as built), (b) none for recurring, (c) base per night and
+travel arranged separately per venue (Claude's recommendation; residency leads are always held). Build nothing on
+it until he answers.
 Next pricing group: T4 / NP tiers (R403, then F1 R020-R025). Pull the Project's numbers from ~/Data/gig-lead-responder/
 (several are "to be set" in the source) and SHOW ALEX EVERY PRICE BEFORE WRITING CODE; no new or changed price
 without his explicit OK.
