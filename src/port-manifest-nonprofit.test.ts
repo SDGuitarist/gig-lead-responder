@@ -121,3 +121,15 @@ test("port manifest R403: the backup check does not hold harmless uses of founda
     assert.ok(!backup(text), text);
   }
 });
+
+// Codex round 2 (NP routing, both runs) P2: bare "PTO" held paid-time-off leads ("our PTO policy").
+// PTO now counts only with school context in the lead; PTA and "parent-teacher" are never ambiguous.
+test("port manifest R403: PTO is a nonprofit signal only with school context", () => {
+  for (const text of ["PTO movie night for the school", "School PTO family night", "Elementary PTO fundraiser dinner",
+    "Parent Teacher Organization spring dinner", "parent-teacher association night", "School PTA family night"]) {
+    assert.ok(backup(text), text);
+  }
+  for (const text of ["PTO accrued for the team", "Our PTO policy covers the holiday party", "Team offsite, half the staff on PTO"]) {
+    assert.ok(!backup(text), text);
+  }
+});
