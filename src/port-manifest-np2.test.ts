@@ -287,3 +287,14 @@ test("port manifest R403 NP2: with no organization name the draft keeps [organiz
     "in_kind_line_compressed: the NP2 draft must carry Alex's in-kind line word for word",
     "in_kind_org_missing: the lead names no organization; Alex fills [organization] before sending"], "a generic fill is not the line");
 });
+
+// Codex round 2 (NP2) P2: a name the classifier returned with its leading "The" read "to the The ...".
+test("port manifest R403 NP2: an organization name starting with The is not doubled", () => {
+  const { p } = priced();
+  const s = (organization_name: string) => inKindSentence({ venue_name: null, organization_name }, p) ?? "";
+  for (const name of ["The Example Red Cross", "the Example Red Cross", "THE Example Red Cross"]) {
+    assert.match(s(name), /contribution to the Example Red Cross\.$/, name);
+  }
+  assert.match(s("Theater Example Guild"), /contribution to the Theater Example Guild\.$/, "a word that merely starts with The");
+  assert.match(s("YMCA"), /contribution to the YMCA\.$/);
+});

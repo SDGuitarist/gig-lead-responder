@@ -488,7 +488,8 @@ export function inKindSentence(classification: Pick<Classification, "venue_name"
   if (!pricing.in_kind || pricing.budget.tier === "large" || pricing.budget.tier === "no_viable_scope") return null;
   const venueName = inKindName(classification.venue_name, 5, 50);
   const venue = venueName ? `${venueName} ` : "";
-  const org = inKindName(classification.organization_name, 8, 80);
+  // The app adds "the"; a name returned with its own leading "The" is not doubled (Codex round 2 NP2 P2).
+  const org = inKindName(classification.organization_name, 8, 80)?.replace(/^the\s+/i, "") || null;
   return `My standard ${venue}rate is $${clientTotal(pricing, pricing.in_kind.standard)}, ` +
     `so the difference is my in-kind contribution to ${org ? `the ${org}` : IN_KIND_ORG_PLACEHOLDER}.`;
 }
