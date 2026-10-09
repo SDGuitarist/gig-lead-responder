@@ -397,3 +397,11 @@ export function minimumProfitHold(
   }
   return null;
 }
+
+// The price the client is told for a base price: base + the travel fee, exactly when the generate
+// prompt's travel section adds one (not a custom quote, not included in the price, not Local).
+// One rule for every client-facing number (Codex round 1, price line: two totals to one client).
+export function clientTotal(pricing: Pick<PricingResult, "travel">, base: number): number {
+  const t = pricing.travel;
+  return t && !t.custom_quote_required && !t.included_in_price && t.band !== "Local" ? base + t.fee : base;
+}

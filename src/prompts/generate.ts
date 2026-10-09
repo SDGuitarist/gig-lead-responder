@@ -1,5 +1,5 @@
 import { RATE_TABLES, type FormatRates, type TierRates } from "../data/rates.js";
-import { findMinFloor, rateTableFor, residencyStatesPrice } from "../pipeline/price.js";
+import { clientTotal, findMinFloor, rateTableFor, residencyStatesPrice } from "../pipeline/price.js";
 import { SETUP_SPACE } from "../data/setup-space.js";
 import { VOICE_REFERENCES } from "../data/voice-references.js";
 import { withoutHoldNotes, CONCERN_4PIECE_ALT, CONCERN_FULL_ENSEMBLE, GUT_CHECK_KEYS, GUT_CHECK_THRESHOLD, GUT_CHECK_TOTAL, type Classification, type Format, type PricingResult, type ResidencyQuote } from "../types.js";
@@ -368,15 +368,19 @@ GENERALIZATION: This rule applies to ALL cultural terms. Adjacent terms from the
 const ALEX_PERFORMS: ReadonlySet<string> = new Set(["solo", "duo", "flamenco_duo", "flamenco_trio", "flamenco_trio_full"]);
 function buildPriceLineBlock(pricing: PricingResult): string {
   if (pricing.budget.tier === "no_viable_scope") return "";
-  const t = pricing.travel;
-  const price = t && !t.included_in_price && t.fee > 0 && t.band !== "Local" ? pricing.quote_price + t.fee : pricing.quote_price;
   const included = ALEX_PERFORMS.has(pricing.format) ? " | Professional sound, setup and breakdown, repertoire shaped to their event" : "";
+  const line = (price: number, hours: number) => `[Format name], $${clientTotal(pricing, price)}, ${hours} hour${hours === 1 ? "" : "s"}${included}`;
+  const alt = pricing.budget.tier === "large" ? pricing.budget.scoped_alternative : null;
+  const lines = alt
+    ? `State exactly TWO prices, each once, on their own lines, in this order (the budget section above):
+1. The scoped set: ${line(alt.price, alt.duration_hours)}
+2. The full set, as the upgrade: ${line(pricing.quote_price, pricing.duration_hours)}`
+    : `State the price ONCE, on its own line, in this shape:
+${line(pricing.quote_price, pricing.duration_hours)}`;
   return `
 ## PRICE LINE
-State the price ONCE, on its own line, in both drafts, in this shape (the format in plain words):
-[Format name], $${price}, ${pricing.duration_hours} hours${included}
-One confident number: never "around", "typically", "starting at" or a range. No extension or add-on price.
-When the client's budget is short, a budget section may add its one scoped alternative; that is the only other price.`;
+In both drafts, the format in plain words. ${lines}
+One confident number per line: never "around", "typically", "starting at" or a range. No extension or add-on price.`;
 }
 
 /**
@@ -423,7 +427,7 @@ function buildBudgetModeBlock(
   if (budget.tier === "small") {
     return `
 ## BUDGET MODE: SMALL GAP (OVERRIDES STEALTH PREMIUM)
-The client stated a budget of $${stated}. Your rate is $${pricing.quote_price}. The gap is small ($${budget.gap}). In your validation step, add ONE sentence that names the rate directly. Be matter-of-fact: "You mentioned $${stated} — my rate for a ${pricing.duration_hours}hr ${pricing.format} set is $${pricing.quote_price}, fully self-contained." No apology. No negotiation framing.
+The client stated a budget of $${stated}. Your rate is $${clientTotal(pricing, pricing.quote_price)}. The gap is small ($${budget.gap}). In your validation step, add ONE sentence that names the rate directly. Be matter-of-fact: "You mentioned $${stated} — my rate for a ${pricing.duration_hours}hr ${pricing.format} set is $${clientTotal(pricing, pricing.quote_price)}, fully self-contained." No apology. No negotiation framing.
 
 Word count: 100-125 words.
 `;
@@ -433,12 +437,12 @@ Word count: 100-125 words.
     const alt = budget.scoped_alternative;
     return `
 ## BUDGET MODE: LARGE GAP — OFFER SCOPED ALTERNATIVE (OVERRIDES STEALTH PREMIUM)
-The client stated a budget of $${stated}. Your ${pricing.duration_hours}hr rate starts at $${pricing.floor} — above their range. A ${alt.duration_hours}hr set starts at $${alt.price}.
+The client stated a budget of $${stated}. Your ${pricing.duration_hours}hr rate starts at $${clientTotal(pricing, pricing.floor)} — above their range. A ${alt.duration_hours}hr set starts at $${clientTotal(pricing, alt.price)}.
 
 Structure:
 1. Cinematic opening (same as standard — still hook them)
 2. Lead with the scoped option as a concrete yes — one confident sentence naming the duration, format, and price. Make it feel like a complete experience, not a consolation.
-3. Name the upgrade: "If you want the full ${pricing.duration_hours}hr set, that's $${pricing.quote_price}." One sentence, no pressure.
+3. Name the upgrade: "If you want the full ${pricing.duration_hours}hr set, that's $${clientTotal(pricing, pricing.quote_price)}." One sentence, no pressure.
 4. CTA: "Want me to hold [date] for the ${alt.duration_hours}hr set?"
 
 Do NOT lead with the higher price. Do NOT enumerate concessions. Do NOT use "normally" or "instead" or "but" framing.
@@ -464,11 +468,11 @@ Word count: 100-125 words.
 
   return `
 ## BUDGET MODE: NO VIABLE SCOPE — WARM REDIRECT (OVERRIDES STEALTH PREMIUM)
-The client stated a budget of $${stated}. Your minimum for any ${pricing.format} set is $${min_floor} for ${min_duration}hr. No combination fits their budget.
+The client stated a budget of $${stated}. Your minimum for any ${pricing.format} set is $${clientTotal(pricing, min_floor)} for ${min_duration}hr. No combination fits their budget.
 
 Write a warm redirect (NOT a rejection):
 1. Acknowledge what they're planning — show you read the lead.
-2. Be direct about the floor: "My ${pricing.format} sets start at $${min_floor}."
+2. Be direct about the floor: "My ${pricing.format} sets start at $${clientTotal(pricing, min_floor)}."
 3. Suggest a concrete alternative: "A curated playlist or a DJ could work well for your setting and budget."
 4. Leave the door open: "If your budget shifts, I'd love to help."
 

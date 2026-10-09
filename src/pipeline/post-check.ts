@@ -3,7 +3,7 @@
  * Runs AFTER AI generate+verify to catch violations the AI self-policing misses.
  * Auto-fixes what it can (em dashes), flags what it can't (banned phrases).
  */
-import { findMinFloor, rateTableFor } from "./price.js";
+import { clientTotal, findMinFloor, rateTableFor } from "./price.js";
 import type { PricingResult } from "../types.js";
 
 export interface PostCheckResult {
@@ -227,8 +227,14 @@ function belowFloorPrices(text: string, label: string, pricing: PricingResult): 
   }
   for (const t of totals) { supplied.add(t); supplied.add(Math.floor(t / 2)); supplied.add(Math.ceil(t / 2)); }
   if (pricing.budget.tier === "small" || pricing.budget.tier === "large") supplied.add(pricing.budget.gap);
-  if (pricing.budget.tier === "large") supplied.add(pricing.budget.scoped_alternative.price);
-  if (pricing.budget.tier === "no_viable_scope") supplied.add(findMinFloor(rateTableFor(pricing), pricing.tier_key).min_floor);
+  // The scoped set and the no-viable-scope minimum, as base and as the client total (with its
+  // deposit): the prompt states the total (clientTotal, Codex round 1, price line).
+  const alsoTotal = (base: number) => {
+    const total = clientTotal(pricing, base);
+    for (const n of [base, total, Math.floor(total / 2), Math.ceil(total / 2)]) supplied.add(n);
+  };
+  if (pricing.budget.tier === "large") alsoTotal(pricing.budget.scoped_alternative.price);
+  if (pricing.budget.tier === "no_viable_scope") alsoTotal(findMinFloor(rateTableFor(pricing), pricing.tier_key).min_floor);
   if (pricing.residency?.rate) supplied.add(pricing.residency.rate);
   const told = Math.max(...totals);
 

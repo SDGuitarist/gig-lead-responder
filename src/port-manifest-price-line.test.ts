@@ -30,7 +30,7 @@ test("port manifest R300: an ordinary quote gets one structured price line, for 
 });
 
 test("port manifest R301: the what's-included clause is only on formats Alex performs", () => {
-  for (const f of ["solo", "duo", "flamenco_duo", "flamenco_trio"]) {
+  for (const f of ["solo", "duo", "flamenco_duo", "flamenco_trio", "flamenco_trio_full"]) {
     assert.ok(prompt(cls(f)).includes("| Professional sound, setup and breakdown, repertoire shaped to their event"), f);
   }
   for (const f of ["mariachi_full", "bolero_trio", "sourced_cultural_duo"]) {
@@ -56,4 +56,31 @@ test("port manifest R300: with a travel fee the price line states the total", ()
   const c = cls("solo");
   const travel = { ...lookupPrice(c), travel: { fee: 150, band: "Near", miles: 40, zip: "92025", musician_stipend: 0, custom_quote_required: false } } as PricingResult;
   assert.match(prompt(c, travel), /\[Format name\], \$745, 2 hours/);
+});
+
+// Codex round 1 (price line). P1: with travel, the budget sections stated the base price while the
+// travel and price-line sections stated the total: two totals to one client. Every client-facing
+// price is now clientTotal() (base + the fee the travel section adds). P1: a large gap needs TWO
+// prices (the scoped set, then the full set); the price line now names exactly the prices each
+// budget mode states, in order.
+const near = { fee: 150, band: "Near", miles: 40, zip: "92025", musician_stipend: 0, custom_quote_required: false };
+test("port manifest R300: a small budget gap with travel states one total everywhere", () => {
+  const c = cls("solo", { stated_budget: 700 });
+  const p = { ...lookupPrice(c), travel: near, budget: { tier: "small", gap: 50 } } as PricingResult;
+  const out = prompt(c, p);
+  assert.match(out, /my rate for a 2hr solo set is \$745/);
+  assert.match(out, /\[Format name\], \$745, 2 hours/);
+  assert.doesNotMatch(out, /Your rate is \$595/);
+});
+
+test("port manifest R300: a large budget gap states the scoped set then the full set, both as totals", () => {
+  const c = cls("solo", { stated_budget: 450 });
+  const p = { ...lookupPrice(c), travel: near, budget: { tier: "large", gap: 100, scoped_alternative: { duration_hours: 1, price: 500 } } } as PricingResult;
+  const out = prompt(c, p);
+  const line = out.slice(out.indexOf("## PRICE LINE"));
+  assert.ok(line.indexOf("$650, 1 hour") > 0 && line.indexOf("$745, 2 hours") > line.indexOf("$650, 1 hour"), line);
+  assert.match(out, /A 1hr set starts at \$650/);
+  assert.match(out, /that's \$745\./);
+  const noTravel = prompt(c, { ...p, travel: null });
+  assert.match(noTravel.slice(noTravel.indexOf("## PRICE LINE")), /\$500, 1 hour[\s\S]*\$595, 2 hours/);
 });

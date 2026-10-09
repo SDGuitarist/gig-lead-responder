@@ -89,3 +89,11 @@ test("port manifest R058: with a travel fee the threshold is the total the clien
   assert.match(check("All in, $700.", travel).join(" "), /\$700 is below the \$745 quote/);
   assert.deepEqual(check("All in, $745.", travel), []);
 });
+
+// Codex round 1 (price line) P1: a large-gap draft with travel states the scoped set's TOTAL; the
+// written-price check must accept it (and its deposit).
+test("port manifest R058: a scoped alternative's travel-inclusive total is a supplied figure", () => {
+  const p = { ...base, travel: { fee: 150, band: "Near", miles: 40, zip: "92025", musician_stipend: 0, custom_quote_required: false },
+    budget: { tier: "large", gap: 100, scoped_alternative: { duration_hours: 1, price: 500 } } } as PricingResult;
+  assert.deepEqual(check("One hour, $650 all in; $325 holds the date. The full two hours is $745.", p), []);
+});
