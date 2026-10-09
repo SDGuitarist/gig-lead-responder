@@ -11,6 +11,8 @@ export interface TierRates {
   T2D: RateEntry;
   T3P: RateEntry;
   T3D: RateEntry;
+  /** T4 luxury corporate (port manifest R403): one price per duration, no P/D split, like T1. */
+  T4?: RateEntry;
 }
 
 export interface FormatRates {
@@ -26,6 +28,7 @@ export const SOLO_RATES: FormatRates = {
     T2D: { anchor: 595, floor: 550 },
     T3P: { anchor: 600, floor: 550 },
     T3D: { anchor: 650, floor: 595 },
+    T4: { anchor: 975, floor: 875 },
   },
   "2": {
     T1: { anchor: 500, floor: 500 },
@@ -33,6 +36,7 @@ export const SOLO_RATES: FormatRates = {
     T2D: { anchor: 700, floor: 650 },
     T3P: { anchor: 795, floor: 750 },
     T3D: { anchor: 895, floor: 795 },
+    T4: { anchor: 1350, floor: 1200 },
   },
   "3": {
     T1: { anchor: 500, floor: 500 },
@@ -40,6 +44,7 @@ export const SOLO_RATES: FormatRates = {
     T2D: { anchor: 895, floor: 795 },
     T3P: { anchor: 895, floor: 895 },
     T3D: { anchor: 1200, floor: 1000 },
+    T4: { anchor: 1800, floor: 1600 },
   },
   "4": {
     T1: { anchor: 500, floor: 500 },
@@ -47,12 +52,14 @@ export const SOLO_RATES: FormatRates = {
     T2D: { anchor: 1100, floor: 1000 },
     T3P: { anchor: 1250, floor: 1100 },
     T3D: { anchor: 1500, floor: 1400 },
+    T4: { anchor: 2200, floor: 2000 },
   },
 };
 
 // --- Duo (Guitar + Second Musician) ---
 // Source: Rate_Card_Solo_Duo.md
 // No 1-hour row (Alex 2026-10-07): like mariachi, a 1-hour request is booked and priced as 2 hours.
+// T4 (Alex 2026-10-09): 1.5x T3D for duo and flamenco duo; solo per the Project's T4 decisions + 1h at 1.5x T3D.
 export const DUO_RATES: FormatRates = {
   "2": {
     T1: { anchor: 700, floor: 700 },
@@ -60,6 +67,7 @@ export const DUO_RATES: FormatRates = {
     T2D: { anchor: 1300, floor: 1200 },
     T3P: { anchor: 1495, floor: 1325 },
     T3D: { anchor: 1700, floor: 1500 },
+    T4: { anchor: 2550, floor: 2250 },
   },
   "3": {
     T1: { anchor: 700, floor: 700 },
@@ -67,6 +75,7 @@ export const DUO_RATES: FormatRates = {
     T2D: { anchor: 1700, floor: 1500 },
     T3P: { anchor: 1700, floor: 1575 },
     T3D: { anchor: 2200, floor: 1900 },
+    T4: { anchor: 3300, floor: 2850 },
   },
   "4": {
     T1: { anchor: 700, floor: 700 },
@@ -74,6 +83,7 @@ export const DUO_RATES: FormatRates = {
     T2D: { anchor: 2100, floor: 1900 },
     T3P: { anchor: 2200, floor: 1925 },
     T3D: { anchor: 2800, floor: 2450 },
+    T4: { anchor: 4200, floor: 3675 },
   },
 };
 
@@ -87,6 +97,7 @@ export const FLAMENCO_DUO_RATES: FormatRates = {
     T2D: { anchor: 1350, floor: 1200 },
     T3P: { anchor: 1595, floor: 1400 },
     T3D: { anchor: 1895, floor: 1700 },
+    T4: { anchor: 2845, floor: 2550 },
   },
   "3": {
     T1: { anchor: 750, floor: 750 },
@@ -94,6 +105,7 @@ export const FLAMENCO_DUO_RATES: FormatRates = {
     T2D: { anchor: 1700, floor: 1500 },
     T3P: { anchor: 1895, floor: 1750 },
     T3D: { anchor: 2400, floor: 2100 },
+    T4: { anchor: 3600, floor: 3150 },
   },
   "4": {
     T1: { anchor: 750, floor: 750 },
@@ -101,6 +113,7 @@ export const FLAMENCO_DUO_RATES: FormatRates = {
     T2D: { anchor: 2100, floor: 1900 },
     T3P: { anchor: 2350, floor: 2100 },
     T3D: { anchor: 2995, floor: 2650 },
+    T4: { anchor: 4495, floor: 3975 },
   },
 };
 

@@ -5,7 +5,7 @@ export const CONCERN_FULL_ENSEMBLE = "mention_full_ensemble_upgrade" as const;
 // Hold notes for Alex ride in flagged_concerns so the router holds the lead (any
 // flagged concern holds), but they are not concerns a draft answers: the generate
 // and verify prompts see the classification without them.
-export const HOLD_NOTE_PREFIXES = ["classification_verify:", "graceful_decline:", "residency:", "holiday_peak:", "minimum_profit:", "nonprofit:"] as const;
+export const HOLD_NOTE_PREFIXES = ["classification_verify:", "graceful_decline:", "residency:", "holiday_peak:", "minimum_profit:", "nonprofit:", "t4:"] as const;
 export function withoutHoldNotes<T extends { flagged_concerns: string[] }>(c: T): T {
   return { ...c, flagged_concerns: c.flagged_concerns.filter((f) => !HOLD_NOTE_PREFIXES.some((p) => f.startsWith(p))) };
 }
@@ -68,7 +68,7 @@ export interface Classification {
 
   // Pricing
   tier: "premium" | "standard" | "qualification";
-  rate_card_tier: "T1" | "T2" | "T3";
+  rate_card_tier: "T1" | "T2" | "T3" | "T4"; // T4: luxury corporate (R403), never a nonprofit buyer
   lead_source_column: "P" | "D";
   price_point: "full_premium" | "slight_premium" | "at_market" | "below_market";
 

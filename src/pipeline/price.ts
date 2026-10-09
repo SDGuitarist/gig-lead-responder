@@ -88,8 +88,8 @@ export function lookupPrice(
   }
 
   // 3. Build tier+source key
-  // T1 has no P/D split — it's just "T1"
-  const tierKey = rate_card_tier === "T1" ? "T1" : `${rate_card_tier}${lead_source_column}`;
+  // T1 and T4 have no P/D split: just "T1" / "T4"
+  const tierKey = rate_card_tier === "T1" || rate_card_tier === "T4" ? rate_card_tier : `${rate_card_tier}${lead_source_column}`;
 
   // 4. Look up anchor and floor (fall back to T2P if T1 is missing for this format)
   let rates = durationRates[tierKey as keyof TierRates];
@@ -98,6 +98,11 @@ export function lookupPrice(
     rates = durationRates.T2P;
     effectiveTierKey = "T2P";
     console.warn(`No T1 rates for ${format_recommended}/${durationKey} — falling back to T2P`);
+  }
+  // A format with no T4 price is priced at its T3 reference and held (t4FallbackHold, Alex 2026-10-09).
+  if (!rates && tierKey === "T4") {
+    effectiveTierKey = `T3${lead_source_column}`;
+    rates = durationRates[effectiveTierKey as keyof TierRates];
   }
   if (!rates) {
     const available = Object.keys(durationRates).join(", ");
@@ -404,4 +409,13 @@ export function minimumProfitHold(
 export function clientTotal(pricing: Pick<PricingResult, "travel">, base: number): number {
   const t = pricing.travel;
   return t && !t.custom_quote_required && !t.included_in_price && t.band !== "Local" ? base + t.fee : base;
+}
+
+// T4 with no T4 price for this format (port manifest R403; Alex 2026-10-09: hold, never invent one):
+// lookupPrice used the T3 price as a reference, and the lead is held for Alex.
+export function t4FallbackHold(classification: Pick<Classification, "rate_card_tier">,
+  pricing: Pick<PricingResult, "tier_key" | "format" | "duration_hours" | "quote_price">): string | null {
+  return classification.rate_card_tier === "T4" && pricing.tier_key !== "T4" && pricing.quote_price > 0
+    ? `t4: no T4 price for ${pricing.format} ${pricing.duration_hours}h; the draft uses the T3 price as a reference; Alex prices it`
+    : null;
 }
