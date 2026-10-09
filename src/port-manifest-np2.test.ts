@@ -5,6 +5,7 @@ import { classifyLead } from "./pipeline/classify.js";
 import { setClaudeRequesterForTests } from "./claude.js";
 import { budgetGapFor, inKindSentence, lookupPrice, nonprofitPriceNote } from "./pipeline/price.js";
 import { buildGeneratePrompt } from "./prompts/generate.js";
+import { postCheckDrafts } from "./pipeline/post-check.js";
 import { verifyClassificationHeuristics } from "./pipeline/classify-verify.js";
 import { withoutHoldNotes, type Classification, type PricingResult } from "./types.js";
 
@@ -161,4 +162,24 @@ test("port manifest R403 NP2: the drafting prompt carries the in-kind line word 
   assert.match(prompt, /replace \[organization\] with the organization's name as the lead gives it/i);
   const unpriced = priced({ rate_card_tier: "T2" });
   assert.doesNotMatch(buildGeneratePrompt(unpriced.c, unpriced.p, "ctx"), /IN-KIND LINE|in-kind contribution/);
+});
+
+// Step 5: a one-price NP2 draft without the line, with a changed amount or wording, or with
+// [organization] left unfilled, is held (post-check), in either draft.
+test("port manifest R403 NP2: the post-check holds a draft whose in-kind line is missing, changed or unfilled", () => {
+  const { p } = priced();
+  const expected = "My standard rate is $795, so the difference is my in-kind contribution to [organization].";
+  const good = "Solo guitar, $695, 2 hours\nMy standard rate is $795, so the difference is my in-kind contribution to the Example Foundation.";
+  const v = (full: string, compressed = good, inKind: string | null = expected) =>
+    postCheckDrafts(full, compressed, undefined, { pricing: p, askedHours: 2, inKind }).violations.filter((x) => x.startsWith("in_kind_line"));
+  assert.deepEqual(v(good), []);
+  assert.deepEqual(v(good.replace("the Example Foundation", "St. Mary's Example Foundation")), [], "a period inside the name is fine");
+  assert.deepEqual(v("Solo guitar, $695, 2 hours"), ["in_kind_line_full: the NP2 draft must carry Alex's in-kind line word for word"]);
+  assert.deepEqual(v(good, "Solo guitar, $695, 2 hours"), ["in_kind_line_compressed: the NP2 draft must carry Alex's in-kind line word for word"]);
+  assert.equal(v(good.replace("$795", "$800")).length, 1, "a changed amount");
+  assert.equal(v(good.replace("the difference", "the gap")).length, 1, "changed wording");
+  assert.equal(v(good.replace("the Example Foundation", "[organization]")).length, 1, "the placeholder left in");
+  assert.equal(v(good.replace(" the Example Foundation", "")).length, 1, "no organization at all");
+  assert.equal(v(good.replace("the Example Foundation", "...")).length, 1, "punctuation, no name");
+  assert.deepEqual(v("Solo guitar, $695, 2 hours", "x", null), [], "no line expected: not checked");
 });

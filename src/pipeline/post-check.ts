@@ -104,7 +104,7 @@ export function postCheckDrafts(
   fullDraft: string,
   compressedDraft: string,
   platform?: string,
-  options: { gracefulDecline?: boolean; pricing?: PricingResult; askedHours?: number } = {},
+  options: { gracefulDecline?: boolean; pricing?: PricingResult; askedHours?: number; inKind?: string | null } = {},
 ): PostCheckResult {
   const violations: string[] = [];
 
@@ -201,11 +201,28 @@ export function postCheckDrafts(
     violations.push(...pricedHoursMissing(cleanedCompressed, "compressed", pr, asked));
   }
 
+  // --- Check: Alex's in-kind line on a one-price NP2 draft (port manifest R403; inKindSentence) ---
+  if (options.inKind) {
+    for (const [label, text] of [["full", cleanedFull], ["compressed", cleanedCompressed]] as const) {
+      if (!hasInKindLine(text, options.inKind)) {
+        violations.push(`in_kind_line_${label}: the NP2 draft must carry Alex's in-kind line word for word`);
+      }
+    }
+  }
+
   return {
     full_draft: cleanedFull,
     compressed_draft: cleanedCompressed,
     violations,
   };
+}
+
+// The sentence word for word up to [organization], then a filled-in name (no placeholder brackets)
+// ending the sentence on the same line.
+function hasInKindLine(text: string, expected: string): boolean {
+  const prefix = expected.slice(0, expected.indexOf("[organization]"));
+  const at = text.indexOf(prefix);
+  return at !== -1 && /^[^\n[\]]*\w[^\n[\]]*\./.test(text.slice(at + prefix.length));
 }
 
 /**

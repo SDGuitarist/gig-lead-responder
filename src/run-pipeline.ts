@@ -1,6 +1,6 @@
 import { classifyLead } from "./pipeline/classify.js";
 import { verifyClassificationHeuristics } from "./pipeline/classify-verify.js";
-import { lookupPrice, budgetGapFor, minimumProfitHold, nonprofitPriceNote, t4FallbackHold } from "./pipeline/price.js";
+import { lookupPrice, budgetGapFor, inKindSentence, minimumProfitHold, nonprofitPriceNote, t4FallbackHold } from "./pipeline/price.js";
 import { enrichClassification } from "./pipeline/enrich.js";
 import { getTodayISO } from "./utils/dates.js";
 import { selectContext } from "./pipeline/context.js";
@@ -260,7 +260,8 @@ export async function runPipeline(
     drafts.full_draft,
     drafts.compressed_draft,
     enriched.platform,
-    { gracefulDecline: enriched.graceful_decline === true, pricing, askedHours: enriched.duration_hours },
+    { gracefulDecline: enriched.graceful_decline === true, pricing, askedHours: enriched.duration_hours,
+      inKind: inKindSentence(enriched, pricing) },
   );
 
   // Apply auto-fixes (em dashes replaced with commas)
@@ -329,7 +330,8 @@ export async function runEditPipeline(
 
   // Post-check: auto-fix em dashes, flag banned phrases
   const postCheck = postCheckDrafts(drafts.full_draft, drafts.compressed_draft, classification.platform,
-    { gracefulDecline: classification.graceful_decline === true, pricing, askedHours: classification.duration_hours });
+    { gracefulDecline: classification.graceful_decline === true, pricing, askedHours: classification.duration_hours,
+      inKind: inKindSentence(classification, pricing) });
   const cleanedDrafts: Drafts = {
     full_draft: postCheck.full_draft,
     compressed_draft: postCheck.compressed_draft,
