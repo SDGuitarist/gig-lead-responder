@@ -171,12 +171,12 @@ test("port manifest R403 NP2: the drafting prompt carries the in-kind line word 
 // [organization] left unfilled, is held (post-check), in either draft.
 test("port manifest R403 NP2: the post-check holds a draft whose in-kind line is missing, changed or unfilled", () => {
   const { p } = priced();
-  const expected = "My standard rate is $795, so the difference is my in-kind contribution to [organization].";
+  const expected = "My standard rate is $795, so the difference is my in-kind contribution to the Example Foundation.";
   const good = "Solo guitar, $695, 2 hours\nMy standard rate is $795, so the difference is my in-kind contribution to the Example Foundation.";
   const v = (full: string, compressed = good, inKind: string | null = expected) =>
     postCheckDrafts(full, compressed, undefined, { pricing: p, askedHours: 2, inKind }).violations.filter((x) => x.startsWith("in_kind_line"));
   assert.deepEqual(v(good), []);
-  assert.deepEqual(v(good.replace("the Example Foundation", "St. Mary's Example Foundation")), [], "a period inside the name is fine");
+  assert.equal(v(good.replace("the Example Foundation", "the St. Example Foundation")).length, 1, "a different organization name");
   assert.deepEqual(v("Solo guitar, $695, 2 hours"), ["in_kind_line_full: the NP2 draft must carry Alex's in-kind line word for word"]);
   assert.deepEqual(v(good, "Solo guitar, $695, 2 hours"), ["in_kind_line_compressed: the NP2 draft must carry Alex's in-kind line word for word"]);
   assert.equal(v(good.replace("$795", "$800")).length, 1, "a changed amount");
@@ -191,8 +191,8 @@ test("port manifest R403 NP2: the post-check holds a draft whose in-kind line is
   assert.equal(v(good + "\nThat is a $105 in-kind gift to your cause.").length, 1, "a second in-kind figure");
   assert.equal(v(good + "\nWe have a standard sound check, and the rate includes setup.").length, 0,
     "ordinary words far apart are not a standard-rate statement");
-  const dotted = "My standard St. Example Hotel rate is $795, so the difference is my in-kind contribution to [organization].";
-  const dottedDraft = `Solo guitar, $695, 2 hours\n${dotted.replace("[organization]", "the Example Foundation")}`;
+  const dotted = "My standard St. Example Hotel rate is $795, so the difference is my in-kind contribution to the Example Foundation.";
+  const dottedDraft = `Solo guitar, $695, 2 hours\n${dotted}`;
   assert.deepEqual(v(dottedDraft, dottedDraft, dotted), [],
     "a venue name with a period is still the expected line");
 });
@@ -229,7 +229,7 @@ test("port manifest R403 NP2: the venue in the in-kind line is one short name, o
 // line), as the prompt asks; presence anywhere was accepted.
 test("port manifest R403 NP2: the in-kind line must follow the price line", () => {
   const { p } = priced();
-  const expected = "My standard rate is $795, so the difference is my in-kind contribution to [organization].";
+  const expected = "My standard rate is $795, so the difference is my in-kind contribution to the Example Foundation.";
   const line = "My standard rate is $795, so the difference is my in-kind contribution to the Example Foundation.";
   const v = (full: string) => postCheckDrafts(full, full, undefined, { pricing: p, askedHours: 2, inKind: expected })
     .violations.filter((x) => x.startsWith("in_kind_line"));
@@ -274,4 +274,16 @@ test("port manifest R403 NP2: the app writes the organization's name into the in
   const note = (org: string | null) => nonprofitPriceNote({ ...priced().c, organization_name: org }, p) ?? "";
   assert.match(note(null), /the lead names no organization: Alex fills \[organization\]/);
   assert.doesNotMatch(note("Example Arts Foundation"), /names no organization/);
+});
+test("port manifest R403 NP2: with no organization name the draft keeps [organization] and the lead is held for Alex to fill it", () => {
+  const { p } = priced();
+  const expected = "My standard rate is $795, so the difference is my in-kind contribution to [organization].";
+  const v = (full: string) => postCheckDrafts(full, full, undefined, { pricing: p, askedHours: 2, inKind: expected })
+    .violations.filter((x) => x.startsWith("in_kind"));
+  assert.deepEqual(v(`Solo guitar, $695, 2 hours\n${expected}`),
+    ["in_kind_org_missing: the lead names no organization; Alex fills [organization] before sending"]);
+  assert.deepEqual(v("Solo guitar, $695, 2 hours\nMy standard rate is $795, so the difference is my in-kind contribution to your organization."), [
+    "in_kind_line_full: the NP2 draft must carry Alex's in-kind line word for word",
+    "in_kind_line_compressed: the NP2 draft must carry Alex's in-kind line word for word",
+    "in_kind_org_missing: the lead names no organization; Alex fills [organization] before sending"], "a generic fill is not the line");
 });

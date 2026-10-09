@@ -3,7 +3,7 @@
  * Runs AFTER AI generate+verify to catch violations the AI self-policing misses.
  * Auto-fixes what it can (em dashes), flags what it can't (banned phrases).
  */
-import { clientTotal, findMinFloor, rateTableFor } from "./price.js";
+import { clientTotal, findMinFloor, IN_KIND_ORG_PLACEHOLDER, rateTableFor } from "./price.js";
 import type { PricingResult } from "../types.js";
 
 export interface PostCheckResult {
@@ -209,6 +209,10 @@ export function postCheckDrafts(
         violations.push(`in_kind_line_${label}: the NP2 draft must carry Alex's in-kind line word for word`);
       }
     }
+    // No usable organization name (inKindSentence kept the placeholder): Alex fills it.
+    if (options.inKind.includes(IN_KIND_ORG_PLACEHOLDER)) {
+      violations.push(`in_kind_org_missing: the lead names no organization; Alex fills ${IN_KIND_ORG_PLACEHOLDER} before sending`);
+    }
   }
 
   return {
@@ -218,22 +222,19 @@ export function postCheckDrafts(
   };
 }
 
-// The sentence word for word up to [organization], then a filled-in name (no placeholder brackets)
-// ending the sentence on the same line. Every in-kind or standard-rate statement in the draft must be
-// that line (Codex round 1 NP2 P2: a second, contradicting figure next to the right line).
+// The app writes the whole sentence (amount, venue, organization: inKindSentence), so the draft must carry it
+// exactly. Every in-kind or standard-rate statement must be that line (Codex round 1 NP2 P2: a second,
+// contradicting figure), and it must sit on the price line or the next non-empty line (run B P2).
 const IN_KIND_MENTION = /in-kind/gi;
 const STANDARD_RATE_STATEMENT = /\bstandard\b(?:\s+\S+){0,5}?\s+rate\s+(?:is|was)\s+\$/gi;
-// It must also sit on the price line or the next non-empty line (Codex round 1 NP2 run B P2: anywhere passed).
 function hasInKindLine(text: string, expected: string, price: number): boolean {
-  const prefix = expected.slice(0, expected.indexOf("[organization]"));
   const lines = text.split("\n");
   const priceLines = lines.flatMap((l, i) => (dollarAmounts(l).some((d) => d.amount === price) ? [i] : []));
   const nextNonEmpty = (i: number) => lines.findIndex((l, j) => j > i && l.trim() !== "");
   const placed = (i: number) => priceLines.some((pl) => i === pl || i === nextNonEmpty(pl));
   let valid = 0;
   for (const [i, line] of lines.entries()) {
-    for (let at = line.indexOf(prefix); at !== -1; at = line.indexOf(prefix, at + 1)) {
-      if (!/^[^[\]]*\w[^[\]]*\./.test(line.slice(at + prefix.length))) continue;
+    for (let at = line.indexOf(expected); at !== -1; at = line.indexOf(expected, at + 1)) {
       if (!placed(i)) return false;
       valid++;
     }
