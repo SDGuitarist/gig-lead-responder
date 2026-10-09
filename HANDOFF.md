@@ -1,12 +1,32 @@
 # HANDOFF -- Gig Lead Responder
 
-**Date:** 2026-10-05
+**Date:** 2026-10-09
 **Branch:** `feat/hub-phase0` (cut from `docs/booking-hub-brainstorm` at `c644210`; pushed; not merged)
 **Phase:** Work, Phase 0 **in progress**. 0.1, 0.2 (code), 0.3 (all but the alert half of `invalid_grant alerts`), 0.4, S1, S1-adv done. **0.5 port: 29 TO PORT remain.** 0.6 blocked. **GigSalad portal reading BUILT.** Module 1 not started.
 
-## START HERE — pricing session (2026-10-05..07)
+## START HERE — pricing session (2026-10-05..09)
 
-**State:** branch `feat/hub-phase0`, pushed. Suite: **700 pass / 0 fail / 1 skip**.
+**State:** branch `feat/hub-phase0`, pushed. Suite: **710 pass / 0 fail / 1 skip**.
+
+**NP2 (R403) — BUILT 2026-10-09, Codex round 1 OPEN** (`8008311`..`1cc4402`, 5 code commits + manifest). Alex's
+decisions this session (asked before code):
+- Tell NP tiers apart with a classifier field `np_tier` (NP1 grassroots / NP2 established foundation / NP3
+  institutional; unsure = null), Alex-approved definitions in `src/prompts/classify.ts`.
+- A priced NP2 lead is STILL HELD (Alex reviews every nonprofit lead before sending). Classify note text changed
+  from "until the NP rates are set" to "Alex reviews every nonprofit lead before it is sent".
+- NP2 price only when the standard price (the normal lookup, without the NP track) is **at least $100 above** it
+  (Alex, after seeing that most 2h nonprofit leads sit at T1/T2 = $500-$700 and a $700 standard gives a $5 line).
+  In practice: only T3 leads get NP2 (1h T3P/T3D, 2h T3P/T3D at low/medium competition). Most NP leads are priced
+  by Alex by hand. `NP_MIN_IN_KIND` in `src/pipeline/price.ts`.
+- In-kind line, Alex's words: the app writes the amount (clientTotal: same travel rule as the price), the model fills
+  [organization] from the lead, [venue] dropped when unknown. One-price drafts only: a scoped alternative or
+  minimum-set redirect has no single standard, so no line and the hold note says "Alex adds it".
+- Post-check holds a draft whose line is missing, changed, or has [organization] unfilled (both drafts; both
+  drafting paths incl. SMS edit).
+**Known gaps (NP2):** the run-pipeline wiring of `nonprofitPriceNote` and the `inKind` post-check option is not
+tested (same as the T4 and minimum-profit notes; the lead is held by the classify note regardless). No real model
+draft has carried the in-kind line; the LLM verify gate's reaction to a second dollar figure is unmeasured. An SMS
+edit asking to drop the line would fail the post-check (held). NP1, NP3, NP2 3-4h, NP duo: no price (held).
 
 **CLOSED reviews this session (all of them; none open):** R358 competition count (R3 GO, authorized); R292
 holiday/peak hold (R2 test fix, no R3 per Alex); $150 minimum profit R295/R362 (R2 GO); written-price check
@@ -65,6 +85,16 @@ reachable means deciding which leads become sourced bookings (traditions, ensemb
 **Remaining TO PORT (19):** T4/NP (R403, then F1 R020-R025). Other: R006, R081-R089 + R405 (PF-Intel
 production data, ask first), R329, R398 (later module).
 
+### Three Questions (NP2 work session, 2026-10-09)
+1. **Hardest implementation decision?** What "[standard]" means. The app's normal price for a nonprofit is
+   T1/T2 (the who-pays rule removed venue premium), but Alex's line says "my standard [venue] rate": the two
+   decisions conflict. Alex chose the $100 minimum, so NP2 rarely fires; the conflict itself is still open.
+2. **Considered changing but left alone?** Computing a standard for the scoped 1h alternative so the two-price
+   budget draft could carry the line too: more plumbing for a rare case that is held anyway.
+3. **Least confident going into review?** Whether the drafting model writes the in-kind sentence word for word
+   (the post-check holds it if not, but a high false-hold rate would make NP2 useless), and whether the LLM verify
+   gate penalises the second dollar figure.
+
 ### Three Questions (pricing session)
 1. **Hardest implementation decision?** The written-price exempt list: every exemption is a hole, and the two most
    tempting ones (the client's budget, a floor-only threshold) were exactly where Alex found the gaps.
@@ -81,20 +111,14 @@ FIRST gate (stop and ask Alex if anything differs):
   pwd; git fetch origin; git branch --show-current          # expect: feat/hub-phase0
   git rev-parse HEAD; git rev-parse origin/feat/hub-phase0  # expect: identical
   git status --short                                        # expect: clean
-Read: HANDOFF.md "START HERE — pricing session", CLAUDE.md, src/port-manifest-nonprofit.test.ts.
-No Codex review is open. Build NP2 (port manifest R403, last pricing step). Alex's decisions (2026-10-09):
-- NP2 = established foundation, solo only: 1h $500, 2h $695, quoted AT the floor (anchor = floor, no spread).
-- Every NP quote carries his in-kind line, in his own words (his Sept 28, 2026 sent reply):
-  "My standard [venue] rate is $[standard], so the difference is my in-kind contribution to [organization]."
-  [standard] = the price the lead would get WITHOUT the nonprofit track (the app's normal lookup). Never put a real
-  client or organization name in the repo; use placeholders.
-- NP1, NP3, NP2 3-4h and any NP duo: no price; keep HELD (the "nonprofit:" hold already exists).
-- Decide with Alex first: does an NP2 lead with a price still get held (today every nonprofit lead is held), or may it
-  auto-send? And how is NP1 vs NP2 vs NP3 told apart (classifier field)? Show him before writing code.
-Open item for Alex (not this build): plan the sourced-formats work (no code path chooses a sourced_cultural_* format).
-One concern per commit, failing test first, mutation-check each new test, commit only on a green suite + tsc.
-Codex: write the prompt to the scratchpad AND pbcopy it (Alex runs it too); `codex exec -s workspace-write "..." < /dev/null`;
-record every run (his and yours) in docs/reviews/; take the stricter verdict when runs disagree.
+Read: HANDOFF.md "START HERE — pricing session" (NP2 block), CLAUDE.md, src/port-manifest-np2.test.ts,
+docs/reviews/2026-10-09-np2-codex-round1.md.
+NP2 Codex round 1 is OPEN. If the record has no verdict yet, ask Alex for his run's output and record it.
+Then apply the fix contract (~/.claude/docs/mandatory-review-workflow.md) to real findings: failing test first,
+mutation-check, one concern per commit, green suite + tsc. Stricter verdict wins when runs disagree.
+A 2nd NO-GO stops automatic iteration; round 3 only with "Round 3 authorized by Alejandro: YES".
+Open items for Alex (not this build): NP1/NP3/NP2 3-4h/NP duo prices; whether "[standard]" should be a venue-level
+(T3) rate rather than the normal lookup; plan the sourced-formats work.
 HARD GATE: never start the Mac poller or server against real mail. Never open data/leads.db from a test.
 STOP and ask Alex before: any real send; any GigSalad click or opening GigSalad/Yelp lead pages; Full Disk Access;
 any change to .env or production data; any new or changed price. Do not start Module 1. Update HANDOFF.md before stopping.
