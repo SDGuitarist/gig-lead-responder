@@ -1,7 +1,6 @@
 # Codex round 2 — NP2 round-1 fixes + execution fix (`67fc89a`..`3072e6d`)
 
-**Verdict: NO-GO** (run A, Claude Code: NO-GO, 4 P2). Run B (Alex): not recorded (no output pasted; Alex chose
-option B after run A). This is the SECOND NO-GO: automatic iteration stopped. Alex 2026-10-09 chose option **B**
+**Verdict: NO-GO** (run A, Claude Code: NO-GO, 4 P2). Run B (Alex): SKIPPED (Alex, 2026-10-09). This is the SECOND NO-GO: automatic iteration stopped. Alex 2026-10-09 chose option **B**
 (fix all four, then round 3, which he runs inside Codex himself) over A (fix and ship) and C (accept as is).
 Claude Code recommended A (findings are post-check regex edges on drafts that are always held for Alex).
 
@@ -49,4 +48,4 @@ Verification: `npm run test:match -- "port manifest R403"` passed 153/153; `npx 
 
 ## Run B (Alex)
 
-_not recorded_
+Skipped (Alex, 2026-10-09).
