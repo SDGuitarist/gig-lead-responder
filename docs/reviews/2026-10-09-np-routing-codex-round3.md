@@ -20,3 +20,27 @@ The PTO-specific bare-word regression is fixed, but the whole-detector uncertain
 - `npm run test:match -- "tier A venue hold"` — 121 passed.
 - `npx tsc --noEmit` — passed.
 - Revert-test concern: the added PTO tests are mutation-sensitive according to the commit evidence.
+
+## Run A (Claude Code), verbatim: GO
+
+The two runs of the same prompt DISAGREE (run A GO, run B NO-GO with 2 P2). Treated conservatively: the round counts as NO-GO and the hard cap stands; Alex decides what ships.
+
+## Verdict: GO
+
+No P1, P2, or P3 findings.
+
+- `PTO` now requires school-related context.
+- Paid-time-off examples remain unheld.
+- Clear nonprofit signals, PTA, parent-teacher, and foundation cases remain covered.
+- Tier A skipping still applies only when classified or detected as nonprofit.
+- Regression tests are mutation-sensitive: reverting the PTO condition would fail the paid-time-off cases.
+
+Checks passed:
+
+- R403 tests: 128 passed
+- Tier A venue tests: 121 passed
+- `npx tsc --noEmit`
+- Worktree clean
+
+Checked clean.
+
