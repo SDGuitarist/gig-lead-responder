@@ -6,7 +6,7 @@
 
 ## START HERE — pricing session (2026-10-05..07)
 
-**State:** branch `feat/hub-phase0`, pushed. Suite: **678 pass / 0 fail / 1 skip**.
+**State:** branch `feat/hub-phase0`, pushed. Suite: **679 pass / 0 fail / 1 skip**.
 
 **CLOSED reviews this session (all of them; none open):** R358 competition count (R3 GO, authorized); R292
 holiday/peak hold (R2 test fix, no R3 per Alex); $150 minimum profit R295/R362 (R2 GO); written-price check
@@ -40,14 +40,13 @@ and priced as 2 hours (duo T2P $1,100 anchor; no-viable-scope minimum $1000 for 
 rounded the request up, both drafts must state the priced hours, or the lead is held (skips residency, graceful
 decline, no-viable-scope, clarification; asked hours must be > 0). Records `docs/reviews/2026-10-07-duo-2h-*`.
 
-**R300-R302 structured price line — BUILT, HARD CAP FIRED (3rd NO-GO), Alex decides what ships.** Alex 2026-10-09
-chose his own replies' format ("[Format], $[price], [hours] hours", included clause only on formats he performs,
-every tier, no extension price). `clientTotal()` (price.ts) is the one client-facing total; the PRICING header names
-"Price the client is told" and marks raw numbers internal; post-check uses clientTotal. R1, R2 (run twice) and R3
-(run twice) NO-GO, all recorded in `docs/reviews/2026-10-09-price-line-codex-round{1,2,3}.md`. **Remaining (both R3
-runs agree): a residency SERIES with a travel fee states q.rate ($1,100) beside the travel total ($1,250).** Real and
-reachable; predates this range. Claude's round 2 note calling it unreachable was WRONG (corrected in the records).
-Fix is one line (`clientTotal(pricing, q.rate)`) + a test. Waiting on Alex: ship with that fix (no more Codex), or not.
+**R300-R302 structured price line — DONE, review CLOSED.** Alex 2026-10-09 chose his own replies' format
+("[Format], $[price], [hours] hours", included clause only on formats he performs, every tier, no extension price).
+`clientTotal()` (price.ts) is the one client-facing total everywhere (header, budget modes, price line, residency
+series, post-check). R1/R2/R3 NO-GO (R2 and R3 each run twice: Claude + Alex); the HARD CAP fired after R3; Alex
+chose to fix the last finding (residency series + travel, `1fba7c4`) and ship with no further Codex round.
+Records `docs/reviews/2026-10-09-price-line-codex-round{1,2,3}.md` (round 2 carries a correction: Claude wrongly
+called the residency-series case unreachable). Dual-format mariachi with a fee: unreachable, left as is.
 
 **Known gaps:** trio/mariachi/bolero minimum profit unchecked (no cost data); holiday hold reads the model's
 `event_date_iso`; written amounts spelled out in words are not read.
@@ -72,12 +71,10 @@ FIRST gate (stop and ask Alex if anything differs):
   git rev-parse HEAD; git rev-parse origin/feat/hub-phase0  # expect: identical
   git status --short                                        # expect: clean
 Read: HANDOFF.md "START HERE — pricing session", CLAUDE.md.
-R300-R302 (quote formatting by tier) SHOWN TO ALEX 2026-10-07, waiting (no code). Alex's real sent replies
-(src/data/voice-references.ts: Patterson, Starikov, Miranda) use a STRUCTURED price line for T3 and T2 alike
-("Solo Spanish Guitar [price] 3 hours | Professional sound, setup/breakdown, ..."); the Project's T2 template
-("typically runs around $X ... Does that work?") hedges and conflicts with single-number rules. Asked: (1)
-structured line for every tier (recommended); (2) the "what's included" clause only for formats Alex performs,
-or all; (3) omit the trio/ensemble "Extension available at $[rate]/half hour" until he gives a rate (recommended). Then the next pricing group: quote formatting by tier (R300-R302), showing Alex first.
+No Codex review is open and no answer from Alex is pending. Every pricing review this session is CLOSED.
+Next pricing group: T4 / NP tiers (R403, then F1 R020-R025). Pull the Project's numbers from ~/Data/gig-lead-responder/
+(several are "to be set" in the source) and SHOW ALEX EVERY PRICE BEFORE WRITING CODE; no new or changed price
+without his explicit OK.
 One concern per commit, failing test first, commit only on a green suite; npm run test:match (exit 3 = zero matches).
 Codex: `codex exec -s workspace-write "..." < /dev/null`; check git status after; record every verdict in docs/reviews/.
 HARD GATE: never start the Mac poller or server against real mail. Never open data/leads.db from a test.

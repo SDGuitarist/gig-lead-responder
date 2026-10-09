@@ -73,3 +73,12 @@ Checked clean:
 - npx tsc --noEmit — passed
 - Worktree remains clean
 - No files edited
+
+---
+
+**Closed 2026-10-09 (Alex chose option (a): fix and ship, no further Codex round; hard cap honoured).** `1fba7c4`: the
+residency-series price is `clientTotal(pricing, q.rate)`, so it and the travel block state one total. Test
+`residency series: with a travel fee, the per-night price is the one client total` (mutation-checked: reverting to
+`q.rate` fails it). The run A P2 (dual-format mariachi) is unreachable through normal pricing (Codex says so; run B
+found the reachable dual-format paths consistent): left as is. Not Codex-reviewed, by Alex's decision. Price-line
+review CLOSED.
