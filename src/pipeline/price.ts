@@ -450,8 +450,9 @@ export function nonprofitPriceNote(classification: Pick<Classification, "nonprof
   if (pricing.format === "unresolved") return "nonprofit: no NP price (the format is not known yet: clarifying first); Alex prices it";
   const h = pricing.duration_hours;
   if (pricing.in_kind) {
-    const line = pricing.budget?.tier === "large" || pricing.budget?.tier === "no_viable_scope"
-      ? "two prices in the draft: no in-kind line; Alex adds it" : "in-kind line in the drafts";
+    const line = pricing.budget?.tier === "large" ? "scoped alternative: two prices, no in-kind line; Alex adds it"
+      : pricing.budget?.tier === "no_viable_scope" ? "minimum-set redirect: no in-kind line; Alex adds it"
+      : "in-kind line in the drafts";
     return `nonprofit: NP2 ${pricing.format} ${h}h at $${pricing.quote_price} (standard $${pricing.in_kind.standard}, ` +
       `${line}); Alex reviews before sending`;
   }

@@ -152,7 +152,10 @@ test("port manifest R403 NP2: the in-kind sentence is Alex's own, with the venue
   const small = priced({}, 650);
   assert.equal(small.p.budget.tier, "small");
   assert.ok(inKindSentence(small.c, small.p), "a small gap still states one price: the line stays");
-  assert.match(nonprofitPriceNote(scoped.c, scoped.p) ?? "", /two prices in the draft: no in-kind line; Alex adds it/);
+  // Codex round 1 (NP2) P2: each budget draft names itself; the redirect states one minimum, not two prices.
+  assert.match(nonprofitPriceNote(scoped.c, scoped.p) ?? "", /scoped alternative: two prices, no in-kind line; Alex adds it/);
+  assert.match(nonprofitPriceNote(redirect.c, redirect.p) ?? "", /minimum-set redirect: no in-kind line; Alex adds it/);
+  assert.doesNotMatch(nonprofitPriceNote(redirect.c, redirect.p) ?? "", /two prices/);
 });
 test("port manifest R403 NP2: the drafting prompt carries the in-kind line word for word, only when it applies", () => {
   const { c, p } = priced({ venue_name: "Example Hotel" });
