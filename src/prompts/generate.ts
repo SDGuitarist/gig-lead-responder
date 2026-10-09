@@ -67,7 +67,7 @@ Quote price: $${pricing.quote_price}
 Anchor: $${pricing.anchor} | Floor: $${pricing.floor}
 Position: ${pricing.competition_position}
 Format: ${pricing.format} | Duration: ${pricing.duration_hours}hr | Tier: ${pricing.tier_key}${pricing.duration_hours !== classification.duration_hours ? `\nThe client asked for ${classification.duration_hours}hr; this rate is for ${pricing.duration_hours}hr (the rate card has no ${classification.duration_hours}-hour rate). State ${pricing.duration_hours} hours in the draft, plainly, never ${classification.duration_hours}.` : ""}${pricing.format === "flamenco_trio" && pricing.duration_hours === 3 && classification.extended_dancer ? "\nConfiguration: the dancer performs 2 of the 3 hours (the client asked for more dance time). Say so in the draft." : ""}
-${buildTravelBlock(pricing)}
+${buildTravelBlock(pricing)}${buildPriceLineBlock(pricing)}
 `}
 
 ## INJECTED CONTEXT (business logic docs)
@@ -359,6 +359,24 @@ PASS: "Las Mañanitas at her table, three generations surrounding her"
 WHY: Las Mañanitas IS the birthday song. Name it — the family knows exactly what it is and hearing it named creates instant recognition.
 
 GENERALIZATION: This rule applies to ALL cultural terms. Adjacent terms from the same tradition are NOT interchangeable — each names a distinct event. Match the term to the event signal in the lead.`;
+}
+
+// Port manifest R300-R302 (Alex 2026-10-09): one structured price line, whatever the tier, as in
+// his own sent replies (Patterson, Starikov, Miranda), not the Project's T2 "typically runs around".
+// The included clause is true only for formats Alex performs; no extension price (no rate exists).
+// No-viable-scope keeps its own minimum-set statement (residency and clarification never reach here).
+const ALEX_PERFORMS: ReadonlySet<string> = new Set(["solo", "duo", "flamenco_duo", "flamenco_trio", "flamenco_trio_full"]);
+function buildPriceLineBlock(pricing: PricingResult): string {
+  if (pricing.budget.tier === "no_viable_scope") return "";
+  const t = pricing.travel;
+  const price = t && !t.included_in_price && t.fee > 0 && t.band !== "Local" ? pricing.quote_price + t.fee : pricing.quote_price;
+  const included = ALEX_PERFORMS.has(pricing.format) ? " | Professional sound, setup and breakdown, repertoire shaped to their event" : "";
+  return `
+## PRICE LINE
+State the price ONCE, on its own line, in both drafts, in this shape (the format in plain words):
+[Format name], $${price}, ${pricing.duration_hours} hours${included}
+One confident number: never "around", "typically", "starting at" or a range. No extension or add-on price.
+When the client's budget is short, a budget section may add its one scoped alternative; that is the only other price.`;
 }
 
 /**
