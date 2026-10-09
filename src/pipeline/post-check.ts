@@ -227,7 +227,8 @@ export function postCheckDrafts(
 // contradicting figure), and it must sit on the price line or the next non-empty line (run B P2). The price
 // line states the NP price AND the priced hours (Codex round 2 NP2 P2: "budget is $695" is not it).
 const IN_KIND_MENTION = /in-kind/gi;
-const STANDARD_RATE_STATEMENT = /\bstandard\b(?:\s+\S+){0,5}?\s+rate\s+(?:is|was)\s+\$/gi;
+// Alex's own rate claim ("my standard ... rate is $"), not any "standard" near "rate" (Codex round 2 NP2 P2).
+const STANDARD_RATE_STATEMENT = /\bmy\s+(?:\S+\s+){0,2}?standard\b(?:\s+\S+){0,5}?\s+rate\s+(?:is|was)\s+\$/gi;
 function hasInKindLine(text: string, expected: string, price: number, hours: number): boolean {
   const lines = text.split("\n");
   const hoursStated = statesHours(hours);

@@ -316,3 +316,17 @@ test("port manifest R403 NP2: only a line with the NP price and the priced hours
   assert.deepEqual(postCheckDrafts(`Solo guitar, $500, 1 hour | Professional sound\n${line1}`, `Solo guitar, $500, 1 hour\n${line1}`,
     undefined, { pricing: one.p, askedHours: 1, inKind: line1 }).violations.filter((x) => x.startsWith("in_kind")), [], "the real run's 1-hour shape");
 });
+
+// Codex round 2 (NP2) P2: ordinary prose ("our standard sound check, and the rate is $800") counted as a second
+// standard-rate statement. The contradicting claim this guards is Alex's own: "my standard ... rate is $".
+test("port manifest R403 NP2: only a first-person standard-rate claim counts as a contradicting figure", () => {
+  const { p } = priced();
+  const expected = "My standard rate is $795, so the difference is my in-kind contribution to the Example Foundation.";
+  const draft = `Solo guitar, $695, 2 hours\n${expected}`;
+  const v = (extra: string) => postCheckDrafts(`${draft}\n${extra}`, draft, undefined, { pricing: p, askedHours: 2, inKind: expected })
+    .violations.filter((x) => x.startsWith("in_kind_line"));
+  assert.deepEqual(v("Our standard sound check, and the rate is $800."), [], "prose about a sound check");
+  assert.deepEqual(v("The venue's standard room rate is $300 a night."), [], "someone else's rate");
+  assert.equal(v("My standard rate is $800 for most events.").length, 1, "Alex's own contradicting rate");
+  assert.equal(v("my usual standard performance rate was $900.").length, 1);
+});
