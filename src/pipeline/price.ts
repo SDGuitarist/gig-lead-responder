@@ -465,6 +465,14 @@ export function nonprofitPriceNote(classification: Pick<Classification, "nonprof
   return `nonprofit: no NP price (${why}); the draft uses the standard price; Alex prices it`;
 }
 
+// venue_name is model text from the lead and is not sanitized anywhere (Codex round 1 NP2 run B P2): in the
+// word-for-word line it must be one short name (letters, digits, . , ' & -; at most 5 words, 50 chars), else
+// it is dropped like an unknown venue.
+function inKindVenue(raw: string | null | undefined): string | null {
+  const name = (raw ?? "").replace(/\s+/g, " ").trim();
+  return name && name.length <= 50 && name.split(" ").length <= 5 && /^[\p{L}\p{N} .,'&-]+$/u.test(name) ? name : null;
+}
+
 // The in-kind line on every one-price NP2 draft, in Alex's own words (his Sept 28, 2026 sent reply).
 // The app writes both numbers' amount (same travel rule as every client-facing price); the model fills
 // [organization] from the lead (Alex 2026-10-09); [venue] is dropped when unknown. null = no line:
@@ -472,7 +480,8 @@ export function nonprofitPriceNote(classification: Pick<Classification, "nonprof
 export function inKindSentence(classification: Pick<Classification, "venue_name">,
   pricing: Pick<PricingResult, "in_kind" | "budget" | "travel">): string | null {
   if (!pricing.in_kind || pricing.budget.tier === "large" || pricing.budget.tier === "no_viable_scope") return null;
-  const venue = classification.venue_name?.trim() ? `${classification.venue_name.trim()} ` : "";
+  const name = inKindVenue(classification.venue_name);
+  const venue = name ? `${name} ` : "";
   return `My standard ${venue}rate is $${clientTotal(pricing, pricing.in_kind.standard)}, ` +
     "so the difference is my in-kind contribution to [organization].";
 }
