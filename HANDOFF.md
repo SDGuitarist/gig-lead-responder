@@ -81,22 +81,20 @@ FIRST gate (stop and ask Alex if anything differs):
   pwd; git fetch origin; git branch --show-current          # expect: feat/hub-phase0
   git rev-parse HEAD; git rev-parse origin/feat/hub-phase0  # expect: identical
   git status --short                                        # expect: clean
-Read: HANDOFF.md "START HERE — pricing session", CLAUDE.md.
-No Codex review is open and no answer from Alex is pending. Every pricing review this session is CLOSED.
-Recurring-series travel: Alex chose (c) 2026-10-09 (`7cb816a`): a series states its BASE per-night price and travel is
-arranged separately, venue by venue (no fee or total in the draft). Not Codex-reviewed (follows the hard-capped
-price-line review; small and test-pinned).
-R403 NP routing DONE, review CLOSED (R1-R3; hard cap after R3, runs disagreed GO/NO-GO; Alex chose option (a),
-`4c4b2fa`): classify nonprofit_buyer (who pays; a planner booking for a nonprofit counts: NP beats T4), fundraiser/donor
-no longer premium, a nonprofit buyer beats venue premium everywhere (incl. the Tier A check), every nonprofit lead
-HELD (`nonprofit:`). The text backup is a stated MINIMUM safety net (keywords + named nonprofits), not a complete
-detector: known gap, a nonprofit lead with no keyword relies on the classifier. Records
-`docs/reviews/2026-10-09-np-routing-codex-round{1,2,3}.md`. NEXT: NP2 prices with Alex's in-kind line. Then T4 solo rows (Alex confirmed 2h $1,350/$1,200, 3h $1,800/$1,600, 4h $2,200/$2,000; 1h and duo
-HELD, Claude's recommendation, Alex to confirm) and NP2 prices (1h $500, 2h $695 at the floor) with the in-kind line in
-Alex's own words: "My standard [venue] rate is $[X], so the difference is my in-kind contribution to [organization]"
-(his Sept 28, 2026 sent reply; one data point). NP1, NP3, NP2 3-4h, NP duo: held until he sets them.
-One concern per commit, failing test first, commit only on a green suite; npm run test:match (exit 3 = zero matches).
-Codex: `codex exec -s workspace-write "..." < /dev/null`; check git status after; record every verdict in docs/reviews/.
+Read: HANDOFF.md "START HERE — pricing session", CLAUDE.md, src/port-manifest-nonprofit.test.ts.
+No Codex review is open. Build NP2 (port manifest R403, last pricing step). Alex's decisions (2026-10-09):
+- NP2 = established foundation, solo only: 1h $500, 2h $695, quoted AT the floor (anchor = floor, no spread).
+- Every NP quote carries his in-kind line, in his own words (his Sept 28, 2026 sent reply):
+  "My standard [venue] rate is $[standard], so the difference is my in-kind contribution to [organization]."
+  [standard] = the price the lead would get WITHOUT the nonprofit track (the app's normal lookup). Never put a real
+  client or organization name in the repo; use placeholders.
+- NP1, NP3, NP2 3-4h and any NP duo: no price; keep HELD (the "nonprofit:" hold already exists).
+- Decide with Alex first: does an NP2 lead with a price still get held (today every nonprofit lead is held), or may it
+  auto-send? And how is NP1 vs NP2 vs NP3 told apart (classifier field)? Show him before writing code.
+Open item for Alex (not this build): plan the sourced-formats work (no code path chooses a sourced_cultural_* format).
+One concern per commit, failing test first, mutation-check each new test, commit only on a green suite + tsc.
+Codex: write the prompt to the scratchpad AND pbcopy it (Alex runs it too); `codex exec -s workspace-write "..." < /dev/null`;
+record every run (his and yours) in docs/reviews/; take the stricter verdict when runs disagree.
 HARD GATE: never start the Mac poller or server against real mail. Never open data/leads.db from a test.
 STOP and ask Alex before: any real send; any GigSalad click or opening GigSalad/Yelp lead pages; Full Disk Access;
 any change to .env or production data; any new or changed price. Do not start Module 1. Update HANDOFF.md before stopping.
