@@ -97,3 +97,9 @@ Checked clean:
 - npx tsc --noEmit — passed
 - Worktree remains clean
 - No files edited
+
+---
+
+**Correction (2026-10-09, after round 3):** the residency-series bullet above is wrong. Equal bases do not make the
+series sentence and the travel total agree; round 3 showed the contradiction is reachable. See
+`2026-10-09-price-line-codex-round3.md`.
