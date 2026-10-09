@@ -115,6 +115,9 @@ export interface Classification {
   // Port manifest R403: the organization paying is a nonprofit or the event is its fundraiser (who pays,
   // not the venue; a planner booking for one counts). Only a real true (normalizeNonprofitBuyer).
   nonprofit_buyer?: boolean;
+  // NP tier (R403, Alex 2026-10-09): NP1 grassroots, NP2 established foundation, NP3 institutional
+  // fundraiser; null = not a nonprofit buyer or unsure (held, no NP price). normalizeNpTier.
+  np_tier?: NpTier | null;
 
   // Who delivers the gig (port manifest R349): derived in code from the format
   // by the Instrument Rule (classify.ts deliveryModeFor), never guessed by the model.
@@ -187,6 +190,8 @@ export type BudgetGapResult =
   | { tier: "small"; gap: number }
   | { tier: "large"; gap: number; scoped_alternative: ScopedAlternative }
   | { tier: "no_viable_scope"; gap: number };
+
+export type NpTier = "NP1" | "NP2" | "NP3";
 
 export interface PricingResult {
   format: RecommendedFormat;

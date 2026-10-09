@@ -2,7 +2,7 @@ import { callClaude } from "../claude.js";
 import { ClassificationError } from "../errors.js";
 import { buildClassifyPrompt } from "../prompts/classify.js";
 import { wrapUntrustedData } from "../utils/sanitize.js";
-import type { Classification, DeliveryMode, EngagementType, EventArc, Format, ResidencyCadence, ResidencyTier } from "../types.js";
+import type { Classification, DeliveryMode, EngagementType, EventArc, Format, NpTier, ResidencyCadence, ResidencyTier } from "../types.js";
 
 const VALID_COMPETITION = new Set(["low", "medium", "high", "extreme"]);
 const VALID_TIERS = new Set(["premium", "standard", "qualification"]);
@@ -81,6 +81,11 @@ export function normalizeNonprofitBuyer(value: unknown): boolean {
   return value === true;
 }
 
+/** NP tier (R403): only "NP1" | "NP2" | "NP3", and only for a nonprofit buyer; anything else null (unsure). */
+export function normalizeNpTier(value: unknown, nonprofitBuyer: boolean): NpTier | null {
+  return nonprofitBuyer && (value === "NP1" || value === "NP2" || value === "NP3") ? value : null;
+}
+
 const validateClassification = (raw: unknown): Classification => {
   if (typeof raw !== "object" || raw === null || Array.isArray(raw)) throw new ClassificationError("Expected JSON object from LLM");
   const obj = raw as Record<string, unknown>;
@@ -149,6 +154,7 @@ const validateClassification = (raw: unknown): Classification => {
   obj.event_arc = normalizeEventArc(obj.event_arc);
   obj.extended_dancer = normalizeExtendedDancer(obj.extended_dancer);
   obj.nonprofit_buyer = normalizeNonprofitBuyer(obj.nonprofit_buyer);
+  obj.np_tier = normalizeNpTier(obj.np_tier, obj.nonprofit_buyer as boolean);
   obj.graceful_decline = normalizeGracefulDecline(obj.graceful_decline);
   obj.delivery_mode = deliveryModeFor(obj.format_recommended);
   Object.assign(obj, normalizeEngagement(obj));

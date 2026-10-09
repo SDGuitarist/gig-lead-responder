@@ -175,6 +175,12 @@ Otherwise false. Never true when the request is within what Alex offers.
 
 nonprofit_buyer: true when the organization paying is a nonprofit, foundation, charity or school, or the event is a fundraiser, gala or donor event benefiting one. Decide on who pays, not on the venue: a luxury venue at a fundraiser is often donated or discounted, so it signals a strong development team, not an entertainment budget. A nonprofit buyer is never premium on the venue alone: do not count the venue, Tier A or Tier B, or the location as stealth premium signals for them. A planner or events company booking for a nonprofit or its fundraiser: nonprofit_buyer is true (the nonprofit pays, so the nonprofit track wins over any luxury-corporate tier). Otherwise false.
 
+np_tier (a nonprofit buyer only, else null):
+- "NP1": grassroots: a volunteer-run or small community group, PTA/PTO, church group, local club, a first-time small benefit.
+- "NP2": established foundation: a named foundation or nonprofit with staff or a development team, running its own donor dinner, gala or reception.
+- "NP3": institutional fundraiser: a large institution's event (hospital, university, museum, national charity gala).
+- unsure, or anything else: null.
+
 ## ENGAGEMENT TYPE
 
 Check this before pricing: a private event and a residency are different products.
@@ -213,6 +219,7 @@ Return ONLY this JSON object (no markdown fences, no explanation):
   "competition_quote_count": number,
   "stealth_premium": boolean,
   "nonprofit_buyer": boolean,
+  "np_tier": "NP1" | "NP2" | "NP3" | null,
   "stealth_premium_signals": string[],
   "tier": "premium" | "standard" | "qualification",
   "rate_card_tier": "T1" | "T2" | "T3" | "T4",
