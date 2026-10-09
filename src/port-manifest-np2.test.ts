@@ -298,3 +298,21 @@ test("port manifest R403 NP2: an organization name starting with The is not doub
   assert.match(s("Theater Example Guild"), /contribution to the Theater Example Guild\.$/, "a word that merely starts with The");
   assert.match(s("YMCA"), /contribution to the YMCA\.$/);
 });
+
+// Codex round 2 (NP2) P2: a prose sentence that happens to state the NP amount ("budget is $695") counted as
+// the price line. The price line states the NP price AND the priced hours (the app's PRICE LINE shape).
+test("port manifest R403 NP2: only a line with the NP price and the priced hours is the price line", () => {
+  const { p } = priced();
+  const expected = "My standard rate is $795, so the difference is my in-kind contribution to the Example Foundation.";
+  const v = (full: string) => postCheckDrafts(full, full, undefined, { pricing: p, askedHours: 2, inKind: expected })
+    .violations.filter((x) => x.startsWith("in_kind_line"));
+  assert.equal(v(`The client's budget is $695.\n${expected}`).length, 2, "an amount in prose is not the price line");
+  assert.equal(v(`Solo guitar, $695 for the evening\n${expected}`).length, 2, "no hours: not the price line");
+  assert.equal(v(`Solo guitar, $695, 3 hours\n${expected}`).length, 2, "the wrong hours: not the price line");
+  assert.deepEqual(v(`Solo guitar, $695, 2 hours\n${expected}`), []);
+  assert.deepEqual(v(`Solo guitar, $695, two hours\n${expected}`), [], "hours in words");
+  const one = priced({ duration_hours: 1, lead_source_column: "D" });
+  const line1 = "My standard rate is $650, so the difference is my in-kind contribution to the Example Foundation.";
+  assert.deepEqual(postCheckDrafts(`Solo guitar, $500, 1 hour | Professional sound\n${line1}`, `Solo guitar, $500, 1 hour\n${line1}`,
+    undefined, { pricing: one.p, askedHours: 1, inKind: line1 }).violations.filter((x) => x.startsWith("in_kind")), [], "the real run's 1-hour shape");
+});

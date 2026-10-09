@@ -205,7 +205,7 @@ export function postCheckDrafts(
   if (options.inKind && options.pricing) {
     const price = clientTotal(options.pricing, options.pricing.quote_price);
     for (const [label, text] of [["full", cleanedFull], ["compressed", cleanedCompressed]] as const) {
-      if (!hasInKindLine(text, options.inKind, price)) {
+      if (!hasInKindLine(text, options.inKind, price, options.pricing.duration_hours)) {
         violations.push(`in_kind_line_${label}: the NP2 draft must carry Alex's in-kind line word for word`);
       }
     }
@@ -224,12 +224,14 @@ export function postCheckDrafts(
 
 // The app writes the whole sentence (amount, venue, organization: inKindSentence), so the draft must carry it
 // exactly. Every in-kind or standard-rate statement must be that line (Codex round 1 NP2 P2: a second,
-// contradicting figure), and it must sit on the price line or the next non-empty line (run B P2).
+// contradicting figure), and it must sit on the price line or the next non-empty line (run B P2). The price
+// line states the NP price AND the priced hours (Codex round 2 NP2 P2: "budget is $695" is not it).
 const IN_KIND_MENTION = /in-kind/gi;
 const STANDARD_RATE_STATEMENT = /\bstandard\b(?:\s+\S+){0,5}?\s+rate\s+(?:is|was)\s+\$/gi;
-function hasInKindLine(text: string, expected: string, price: number): boolean {
+function hasInKindLine(text: string, expected: string, price: number, hours: number): boolean {
   const lines = text.split("\n");
-  const priceLines = lines.flatMap((l, i) => (dollarAmounts(l).some((d) => d.amount === price) ? [i] : []));
+  const hoursStated = statesHours(hours);
+  const priceLines = lines.flatMap((l, i) => (dollarAmounts(l).some((d) => d.amount === price) && hoursStated.test(l) ? [i] : []));
   const nextNonEmpty = (i: number) => lines.findIndex((l, j) => j > i && l.trim() !== "");
   const placed = (i: number) => priceLines.some((pl) => i === pl || i === nextNonEmpty(pl));
   let valid = 0;
@@ -308,12 +310,16 @@ function dollarAmounts(text: string): { text: string; amount: number }[] {
 // When pricing rounded the request UP (1h -> 2h duo/mariachi, 2.5h -> 3h), the draft must name the
 // priced hours ("2 hours", "two-hour", "2hr"): the prompt says so, this makes it a rule.
 const HOUR_WORDS = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight"];
+// "2 hours", "two-hour", "2hr": the hours a draft states (pricedHoursMissing, the in-kind price line).
+function statesHours(h: number): RegExp {
+  const word = Number.isInteger(h) && HOUR_WORDS[h] ? `|${HOUR_WORDS[h]}` : "";
+  return new RegExp(`\\b(?:${h}${word})(?:\\s|-)?(?:hours?|hrs?|h)\\b`, "i");
+}
+
 function pricedHoursMissing(text: string, label: string, pricing: PricingResult, askedHours: number): string[] {
   const h = pricing.duration_hours;
   if (!(pricing.quote_price > 0) || !(h > askedHours)) return [];
-  const word = Number.isInteger(h) && HOUR_WORDS[h] ? `|${HOUR_WORDS[h]}` : "";
-  const stated = new RegExp(`\\b(?:${h}${word})(?:\\s|-)?(?:hours?|hrs?|h)\\b`, "i");
-  return stated.test(text) ? []
+  return statesHours(h).test(text) ? []
     : [`priced_hours_${label}: the client asked for ${askedHours}h but the price is for ${h}h; the draft must say ${h} hours`];
 }
 
