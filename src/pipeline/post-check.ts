@@ -202,9 +202,10 @@ export function postCheckDrafts(
   }
 
   // --- Check: Alex's in-kind line on a one-price NP2 draft (port manifest R403; inKindSentence) ---
-  if (options.inKind) {
+  if (options.inKind && options.pricing) {
+    const price = clientTotal(options.pricing, options.pricing.quote_price);
     for (const [label, text] of [["full", cleanedFull], ["compressed", cleanedCompressed]] as const) {
-      if (!hasInKindLine(text, options.inKind)) {
+      if (!hasInKindLine(text, options.inKind, price)) {
         violations.push(`in_kind_line_${label}: the NP2 draft must carry Alex's in-kind line word for word`);
       }
     }
@@ -222,11 +223,20 @@ export function postCheckDrafts(
 // that line (Codex round 1 NP2 P2: a second, contradicting figure next to the right line).
 const IN_KIND_MENTION = /in-kind/gi;
 const STANDARD_RATE_STATEMENT = /\bstandard\b(?:\s+\S+){0,5}?\s+rate\s+(?:is|was)\s+\$/gi;
-function hasInKindLine(text: string, expected: string): boolean {
+// It must also sit on the price line or the next non-empty line (Codex round 1 NP2 run B P2: anywhere passed).
+function hasInKindLine(text: string, expected: string, price: number): boolean {
   const prefix = expected.slice(0, expected.indexOf("[organization]"));
+  const lines = text.split("\n");
+  const priceLines = lines.flatMap((l, i) => (dollarAmounts(l).some((d) => d.amount === price) ? [i] : []));
+  const nextNonEmpty = (i: number) => lines.findIndex((l, j) => j > i && l.trim() !== "");
+  const placed = (i: number) => priceLines.some((pl) => i === pl || i === nextNonEmpty(pl));
   let valid = 0;
-  for (let at = text.indexOf(prefix); at !== -1; at = text.indexOf(prefix, at + 1)) {
-    if (/^[^\n[\]]*\w[^\n[\]]*\./.test(text.slice(at + prefix.length))) valid++;
+  for (const [i, line] of lines.entries()) {
+    for (let at = line.indexOf(prefix); at !== -1; at = line.indexOf(prefix, at + 1)) {
+      if (!/^[^[\]]*\w[^[\]]*\./.test(line.slice(at + prefix.length))) continue;
+      if (!placed(i)) return false;
+      valid++;
+    }
   }
   const count = (re: RegExp) => (text.match(re) ?? []).length;
   return valid > 0 && count(IN_KIND_MENTION) === valid && count(STANDARD_RATE_STATEMENT) === valid;
