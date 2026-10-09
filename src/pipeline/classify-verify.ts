@@ -16,7 +16,13 @@ const CULTURAL_CONTEXT_PATTERNS = [
   /\bspanish guitar\b/i,
 ];
 
-const NONPROFIT_SIGNAL = /\b(?:non-?profit|foundation|fundrais\w*|charit(?:y|able)|donors?)\b|\b501\s?\(c\)/i;
+// Words that say a nonprofit or fundraiser (R403 backup; Codex round 1 widened it). "Foundation" counts
+// only as an organization, never a venue's "Foundation Room", a band called "The Foundation" or a
+// foundation stone (case-sensitive name form, or "our foundation", or foundation + an event word).
+const NONPROFIT_WORDS = /\b(?:non-?profit|fundrais\w*|charit(?:y|able)|donors?|galas?|auction|benefit(?:t)?ing|benefit\s+(?:dinner|gala|concert|event|show|night|luncheon|for)|PTA|PTO|booster\s+club)\b|\b501\s?\(c\)/i;
+const FOUNDATION_NAME = /\b(?!The\b)[A-Z][\w'&.-]*\s+Foundation\b(?!\s+Room)/;
+const FOUNDATION_ORG = /\bour\s+foundation\b|\bfoundation(?:'s)?\s+(?:gala|dinner|board|donors?|fundraiser|benefit|luncheon)\b/i;
+const NONPROFIT_SIGNAL = { test: (text: string) => NONPROFIT_WORDS.test(text) || FOUNDATION_NAME.test(text) || FOUNDATION_ORG.test(text) };
 
 function addWarning(warnings: string[], warning: string): void {
   if (!warnings.includes(warning)) warnings.push(warning);

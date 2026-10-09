@@ -102,3 +102,22 @@ test("port manifest R403: a nonprofit buyer overrides venue premium in the promp
   assert.deepEqual(tierA(false, "Foundation dinner at Hotel del Coronado"), [], "text says nonprofit: not forced to T3");
   assert.equal(tierA(false, "Corporate dinner at Hotel del Coronado").length, 1, "control: corporate at Tier A is still checked");
 });
+
+// Codex round 1 (NP routing) P1 + P2: the backup check missed gala / benefit / auction / school PTA, and
+// held harmless uses of "foundation" (a venue's Foundation Room, a band called The Foundation, a
+// foundation stone). "Foundation" now counts only as an organization ("the Example Foundation", "our
+// foundation", "foundation gala/dinner/board/donors/fundraiser").
+const backup = (text: string) => notes(text, false).some((x) => x.startsWith("classification_verify: raw lead mentions a nonprofit"));
+test("port manifest R403: the backup check holds gala, benefit, auction and school PTA leads", () => {
+  for (const text of ["Spring gala, 200 guests", "Benefit dinner for the shelter", "Our event is benefiting the children's hospital",
+    "Silent auction night at the club", "School PTA family night", "PTO movie night for the school", "Booster club dinner",
+    "Annual dinner for the Example Foundation", "Our foundation's board reception", "A foundation gala in May"]) {
+    assert.ok(backup(text), text);
+  }
+});
+test("port manifest R403: the backup check does not hold harmless uses of foundation", () => {
+  for (const text of ["Dinner at the Foundation Room", "We love The Foundation, the band", "Foundation stone ceremony for our new office",
+    "Makeup and foundation are handled by our stylist", "Corporate dinner, 80 guests"]) {
+    assert.ok(!backup(text), text);
+  }
+});
