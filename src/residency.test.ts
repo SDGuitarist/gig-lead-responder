@@ -206,21 +206,35 @@ test("residency series: re-pricing after enrichment changes the format stays in 
   assert.ok(!prompt.includes("Price the client is told: $"));
 });
 
-// Price line review round 3 (both runs; hard cap, Alex chose to fix and ship): a residency SERIES with a
-// travel fee said "$1100 per night" while its travel block said "present ONE total, $1250". The series
-// price is now clientTotal(pricing, q.rate), the same total the travel block states; the written-price
-// check accepts it and its deposit. Custom-quote and no travel keep the base.
-test("residency series: with a travel fee, the per-night price is the one client total", () => {
+// Price line review round 3: a residency SERIES with a travel fee said "$1100 per night" beside a travel
+// block saying "present ONE total, $1250". Alex 2026-10-09 (option c): a recurring series states its BASE
+// per-night price, and travel is arranged separately, venue by venue (no travel fee or total in the draft).
+// Travel already inside the price, or no travel: no travel note.
+const near = { fee: 150, band: "Near", miles: 40, zip: "92025", musician_stipend: 50, custom_quote_required: false };
+const seriesBlock = (travel: unknown) => {
   const c = series({ price_asked: true });
-  const near = { fee: 150, band: "Near", miles: 40, zip: "92025", musician_stipend: 50, custom_quote_required: false };
-  const p = { ...lookupPrice(c), travel: near } as PricingResult;
-  const total = p.quote_price + 150;
-  const block = buildGeneratePrompt(c, p, "ctx").split("## PRICING: RESIDENCY (B2B)")[1];
-  assert.ok(block.includes(`series at $${total} per night`), block.slice(0, 400));
-  assert.ok(!block.includes(`series at $${p.quote_price} per night`));
-  assert.ok(block.includes(`Present ONE total number ($${total})`), "the travel block states the same total");
-  const draft = `Weekly duo programming, $${total} per night for 2 hours. $${Math.round(total / 2)} holds the first date.`;
+  const p = { ...lookupPrice(c), travel } as PricingResult;
+  // The WHOLE residency part of the prompt (an appended travel block starts with "## ", so do not cut there).
+  return { p, block: buildGeneratePrompt(c, p, "ctx").split("## PRICING: RESIDENCY (B2B)")[1] };
+};
+test("residency series: with a travel fee, the base per night and travel arranged separately", () => {
+  const { p, block } = seriesBlock(near);
+  assert.ok(block.includes(`series at $${p.quote_price} per night`), block);
+  assert.ok(!block.includes(`$${p.quote_price + 150}`), "no travel-inclusive total");
+  assert.ok(!block.includes("$150"), "no travel fee");
+  assert.ok(!block.includes("Present ONE total"), "the per-event travel block is not appended");
+  assert.match(block, /travel is arranged separately/i);
+  const draft = `Weekly duo programming, $${p.quote_price} per night for 2 hours. $${p.quote_price / 2} holds the first date. I'll confirm travel with you separately.`;
   assert.deepEqual(postCheckDrafts(draft, draft, undefined, { pricing: p }).violations.filter((v) => v.startsWith("price_")), []);
-  const custom = buildGeneratePrompt(c, { ...p, travel: { ...near, fee: 0, custom_quote_required: true } } as PricingResult, "ctx");
-  assert.ok(custom.includes(`series at $${p.quote_price} per night`), "custom-quote travel: the base");
+});
+
+test("residency series: custom-quote travel is arranged separately too; included or no travel adds no note", () => {
+  const custom = seriesBlock({ ...near, fee: 0, custom_quote_required: true });
+  assert.match(custom.block, /travel is arranged separately/i);
+  assert.ok(custom.block.includes(`series at $${custom.p.quote_price} per night`));
+  for (const travel of [{ ...near, included_in_price: true }, { ...near, band: "Local", fee: 0 }, null]) {
+    const { p, block } = seriesBlock(travel);
+    assert.ok(block.includes(`series at $${p.quote_price} per night`), JSON.stringify(travel));
+    assert.doesNotMatch(block, /travel is arranged separately/i, JSON.stringify(travel));
+  }
 });

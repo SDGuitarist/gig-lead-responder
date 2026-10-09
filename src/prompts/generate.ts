@@ -219,7 +219,7 @@ function buildResidencyPricingBlock(classification: Classification, pricing: Pri
     ? `## PRICING: RESIDENCY (B2B)
 ${frame}
 The venue asked about price. State it once, plainly: ${q.series
-    ? `a ${cadence} ${pricing.format} series at $${clientTotal(pricing, q.rate as number /* residencyStatesPrice: rate is set */)} per night for ${q.hours} hours (a series of private events, no discount).${buildTravelBlock(pricing)}`
+    ? `a ${cadence} ${pricing.format} series at $${q.rate} per night for ${q.hours} hours (a series of private events, no discount).${seriesTravelNote(pricing)}`
     : `$${q.rate} per night for ${q.hours} hours of solo guitar, ${cadence}. Offer to revisit at 3 or 6 months based on how the program performs for them.`} Do not apologize for the number.
 `
     : `## PRICING: RESIDENCY (B2B)
@@ -381,6 +381,16 @@ ${line(pricing.quote_price, pricing.duration_hours)}`;
 ## PRICE LINE
 In both drafts, the format in plain words. ${lines}
 One confident number per line: never "around", "typically", "starting at" or a range. No extension or add-on price.`;
+}
+
+// A recurring series states its BASE per-night price; travel is arranged separately, venue by venue
+// (Alex 2026-10-09, option c: no doc set a per-night, one-time or waived travel rule for a series).
+function seriesTravelNote(pricing: PricingResult): string {
+  const t = pricing.travel;
+  const costs = t && !t.included_in_price && (t.custom_quote_required || (t.band !== "Local" && t.fee > 0));
+  return costs
+    ? " Travel is arranged separately: say Alex will confirm travel with them personally. Do NOT state a travel fee or a travel-inclusive total."
+    : "";
 }
 
 /**
