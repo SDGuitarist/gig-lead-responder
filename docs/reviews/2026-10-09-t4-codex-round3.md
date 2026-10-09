@@ -25,3 +25,9 @@ Checked clean:
 - `npx tsc --noEmit`: passed
 - No files edited; no server, poller, database, network, or browser used
 
+
+---
+
+**Closed 2026-10-09 (Alex chose option (a): fix and ship; hard cap honoured, no round 4).** `f3c44a2`: a T4 lead with a
+missing or unexpected `lead_source_column` fails the "direct" condition and is held. Tested through the matrix and the
+real `routeLead`; mutation-checked. Not Codex-reviewed, by Alex's decision. T4 review CLOSED.

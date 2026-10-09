@@ -48,10 +48,11 @@ chose to fix the last finding (residency series + travel, `1fba7c4`) and ship wi
 Records `docs/reviews/2026-10-09-price-line-codex-round{1,2,3}.md` (round 2 carries a correction: Claude wrongly
 called the residency-series case unreachable). Dual-format mariachi with a fee: unreachable, left as is.
 
-**T4 (R403) — BUILT** (`32a1607`, `9d91d09`, `44e103d`; fix `e373a5e`): Alex-approved T4 rows (solo 1-4h; duo and
-flamenco duo 2-4h; every sourced format 1-3h; 1.5x T3D); T4 = direct luxury corporate only (never platform, ceremony,
-private party/non-corporate event, or nonprofit). Round 1: run A GO, run B (Alex) NO-GO; fixed the private-party P1;
-the nonprofit fail-open P2 is Alex's accepted option (a). Round 2 pending. Records `docs/reviews/2026-10-09-t4-codex-*`.
+**T4 (R403) — DONE, review CLOSED** (R1-R3; hard cap after R3; Alex chose to fix and ship, `f3c44a2`). Alex-approved T4
+rows (solo 1-4h; duo and flamenco duo 2-4h; every sourced format 1-3h; 1.5x T3D). The classifier may emit T4 (luxury
+corporate). A T4 lead is CLEARED only when every condition holds: direct (source column D, not a platform), corporate
+event, private engagement, not a nonprofit, no ceremony; anything else is held, naming why (`t4:`). A format with no
+T4 row is priced at its T3 reference and held. Records `docs/reviews/2026-10-09-t4-codex-round{1,2,3}.md`.
 
 **NEW planned work item (out of the fix loop, Alex to decide):** the five sourced_cultural_* formats are UNREACHABLE.
 The classifier's format list and Instrument Rule only route to mariachi or bolero_trio when Alex cannot play the gig;
@@ -90,8 +91,7 @@ R403 NP routing DONE, review CLOSED (R1-R3; hard cap after R3, runs disagreed GO
 no longer premium, a nonprofit buyer beats venue premium everywhere (incl. the Tier A check), every nonprofit lead
 HELD (`nonprofit:`). The text backup is a stated MINIMUM safety net (keywords + named nonprofits), not a complete
 detector: known gap, a nonprofit lead with no keyword relies on the classifier. Records
-`docs/reviews/2026-10-09-np-routing-codex-round{1,2,3}.md`. NEXT: T4 rows; Claude recommends T4 1h and duo HELD
-(asked; Alex to confirm). Then T4 solo rows (Alex confirmed 2h $1,350/$1,200, 3h $1,800/$1,600, 4h $2,200/$2,000; 1h and duo
+`docs/reviews/2026-10-09-np-routing-codex-round{1,2,3}.md`. NEXT: NP2 prices with Alex's in-kind line. Then T4 solo rows (Alex confirmed 2h $1,350/$1,200, 3h $1,800/$1,600, 4h $2,200/$2,000; 1h and duo
 HELD, Claude's recommendation, Alex to confirm) and NP2 prices (1h $500, 2h $695 at the floor) with the in-kind line in
 Alex's own words: "My standard [venue] rate is $[X], so the difference is my in-kind contribution to [organization]"
 (his Sept 28, 2026 sent reply; one data point). NP1, NP3, NP2 3-4h, NP duo: held until he sets them.
