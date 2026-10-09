@@ -81,7 +81,7 @@ Check for hidden wealth signals. ANY ONE present = stealth_premium: true:
 - Corporate 100+
 - Luxury cues: valet, plated dinner, "black tie", executive audience, VIP
 - Saturday evening at named venue
-- Tier A venues (auto-premium, whatever else the lead says): ${TIER_A_VENUES.map((v) => v.name).join(", ")}
+- Tier A venues (auto-premium, whatever else the lead says, except a nonprofit buyer): ${TIER_A_VENUES.map((v) => v.name).join(", ")}
 - Tier B venues (premium only with another signal: 100+ guests, corporate, Saturday evening): Coasterra, Tom Ham's Lighthouse, Marina Village (corporate or 75+), Brick (large corporate evening). Scripps Seaside Forum and Martin Johnson House are premium for any booking
 - Auto-premium patterns: Private estate in Rancho Santa Fe, La Jolla or Coronado; country club in Rancho Santa Fe, La Jolla or Fairbanks Ranch; winery in Temecula or Ramona; yacht or boat; museum + private event (not a nonprofit or donor event: see BUYER)
 - Context-dependent: downtown rooftop (75+ guests, corporate), waterfront restaurant private buyout (50+), golf club outside a premium zip (tournament or corporate), brewery private event (corporate, 100+)
@@ -102,14 +102,14 @@ Competition × Premium matrix for price_point:
 | Extreme | below_market | at_market |
 
 ### Step 4: Tier Classification
-- **premium**: Luxury venue, corporate at upscale property, "ready to book ASAP" + detailed logistics, 25+ guests at high-end, stealth premium signals
+- **premium**: Luxury venue, corporate at upscale property, "ready to book ASAP" + detailed logistics, 25+ guests at high-end, stealth premium signals (never a nonprofit buyer on the venue alone)
 - **qualification**: Budget mismatch (low budget + big request), vague + key details missing (and low competition), placeholder numbers
 - **standard**: Everything else — clear request, realistic expectations
 
 Rate card tier mapping:
 - T1: Relationship/investment prospects (rare, only if recurring revenue potential)
 - T2: Standard private parties, social events, one-off celebrations
-- T3: Named luxury venues, corporate at upscale properties, milestone celebrations with stealth premium signals. ANY stealth premium signal = T3.
+- T3: Named luxury venues, corporate at upscale properties, milestone celebrations with stealth premium signals. ANY stealth premium signal = T3 (except a nonprofit buyer: the venue alone never makes them T3, see BUYER).
 
 ### Step 5: Timeline + Urgency
 - Comfortable: 6+ weeks out

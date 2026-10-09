@@ -227,6 +227,8 @@ Sparse forms can hide wealthy clients. Check for hidden value:
 
 ### Premium Tier (ANY ONE triggers) → Rate Card T3
 
+A nonprofit or fundraiser buyer is never premium on the venue alone: route on who pays (NP track).
+
 - Iconic/luxury venue (per VENUE_INTEL.md)
 - Corporate at upscale property
 - "Ready to book ASAP" + detailed logistics

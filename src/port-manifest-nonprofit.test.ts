@@ -84,3 +84,21 @@ test("port manifest R403: a lead that says nonprofit but was not classified as o
   assert.ok(!notes("Annual gala for the Example Foundation", true).some((x) => x.startsWith("classification_verify: raw lead mentions a nonprofit")),
     "classified correctly: only the nonprofit note");
 });
+
+// Codex round 1 (NP routing) P1: a nonprofit at a Tier A venue was still told T3 (classify T3 rule,
+// premium tier, Tier A line, PROTOCOL Premium Tier) and the Tier A verifier DEMANDED T3. A nonprofit
+// buyer now beats venue premium everywhere; corporate leads at Tier A venues are still checked.
+test("port manifest R403: a nonprofit buyer overrides venue premium in the prompt, PROTOCOL and the Tier A check", () => {
+  const p = buildClassifyPrompt("2026-10-09");
+  assert.match(p, /ANY stealth premium signal = T3 \(except a nonprofit buyer/);
+  assert.match(p, /Tier A venues \(auto-premium, whatever else the lead says, except a nonprofit buyer\)/);
+  assert.match(p, /- \*\*premium\*\*:[^\n]*\(never a nonprofit buyer on the venue alone\)/);
+  const protocol = readFileSync("docs/PROTOCOL.md", "utf-8");
+  const premium = protocol.slice(protocol.indexOf("### Premium Tier (ANY ONE triggers)"), protocol.indexOf("### Premium Tier (ANY ONE triggers)") + 600);
+  assert.match(premium, /nonprofit or fundraiser buyer is never premium on the venue alone/);
+  const tierA = (np: boolean, text = "Annual gala at Hotel del Coronado") => verifyClassificationHeuristics(text,
+    { ...cl(np), rate_card_tier: "T2", stealth_premium: false } as Classification).warnings.filter((w) => w.includes("Tier A venue"));
+  assert.deepEqual(tierA(true), [], "nonprofit buyer at a Tier A venue: not forced to T3");
+  assert.deepEqual(tierA(false, "Foundation dinner at Hotel del Coronado"), [], "text says nonprofit: not forced to T3");
+  assert.equal(tierA(false, "Corporate dinner at Hotel del Coronado").length, 1, "control: corporate at Tier A is still checked");
+});

@@ -109,7 +109,10 @@ export function verifyClassificationHeuristics(
   // A Tier A venue is auto-premium and premium means T3; pricing reads rate_card_tier,
   // so check that, not just the flag. Any warning holds the lead for Alex.
   const tierA = TIER_A_VENUES.find((v) => v.pattern.test(rawText));
-  if (tierA && (classification.rate_card_tier !== "T3" || !classification.stealth_premium)) {
+  // Not for a nonprofit buyer (R403, Codex round 1): the venue alone never makes them T3; they are held
+  // by the nonprofit check below instead.
+  const nonprofit = classification.nonprofit_buyer === true || NONPROFIT_SIGNAL.test(rawText);
+  if (tierA && !nonprofit && (classification.rate_card_tier !== "T3" || !classification.stealth_premium)) {
     addWarning(warnings, `classification_verify: Tier A venue ${tierA.name} but priced at ${classification.rate_card_tier}` +
       `${classification.stealth_premium ? "" : " and stealth_premium is false"}`);
   }
