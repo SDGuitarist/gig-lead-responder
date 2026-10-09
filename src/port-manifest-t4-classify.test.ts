@@ -22,6 +22,7 @@ const valid = {
   stated_budget: null, event_date_iso: null, timeline_band: "comfortable", close_type: "soft_hold", event_energy: null,
   cultural_context_active: false, cultural_tradition: null, planner_effort_active: false, social_proof_active: false,
   context_modifiers: [], flagged_concerns: [], venue_name: null, client_first_name: null,
+  event_arc: "corporate", // T4 is luxury corporate; the non-corporate hold is tested on its own
 };
 async function classifyAs(out: Record<string, unknown>) {
   setClaudeRequesterForTests((async () => ({ id: "m", type: "message", role: "assistant", model: "t", stop_reason: "end_turn",
@@ -53,4 +54,23 @@ test("port manifest R403 T4: a platform lead or a wedding ceremony at T4 is held
   assert.deepEqual(t4("Wedding ceremony on the lawn, then cocktails"), [msg]);
   assert.deepEqual(t4("Corporate reception, 120 guests"), [], "control: a direct corporate T4 lead is not held for this");
   assert.deepEqual(t4("Wedding ceremony", { rate_card_tier: "T3" }), [], "control: not T4");
+});
+
+// T4 round 1 (run B) P1: the prompt said T4 is never a private party, but no code enforced it, so a
+// direct birthday classified T4 had no concern and could auto-send. T4 is luxury CORPORATE: a T4 lead
+// whose event_arc is not "corporate" (a private celebration, a wedding, a memorial, or none) is held.
+test("port manifest R403 T4: a T4 lead that is not a corporate event is held, and the router holds it", async () => {
+  const { routeLead } = await import("./automation/router.js");
+  const verified = (event_arc: string | null) => verifyClassificationHeuristics("Reception, 120 guests",
+    { ...valid, event_arc, flagged_concerns: [] } as unknown as Classification).classification;
+  const note = "t4: T4 is luxury corporate only, and this event is not corporate; Alex prices it";
+  for (const arc of ["private_celebration", "wedding", "memorial", null]) {
+    assert.ok(verified(arc).flagged_concerns.includes(note), String(arc));
+  }
+  assert.ok(!verified("corporate").flagged_concerns.includes(note), "control: corporate");
+  const route = (event_arc: string | null) => routeLead(
+    { platform: "direct", rawText: "Reception", parseConfidence: "high", parseWarnings: [] } as never,
+    { classification: verified(event_arc), pricing: { quote_price: 1350 }, verified: true } as never);
+  assert.equal(route("private_celebration").action, "hold");
+  assert.equal(route("corporate").action, "auto-send", "control: a clean corporate T4 lead is not held by this rule");
 });

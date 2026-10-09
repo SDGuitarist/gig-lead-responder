@@ -169,6 +169,11 @@ export function verifyClassificationHeuristics(
   if (classification.rate_card_tier === "T4" && (platformLead || /\bceremony\b/i.test(rawText))) {
     addWarning(warnings, "t4: T4 is for direct luxury-corporate leads only (never a platform lead or a wedding ceremony); Alex prices it");
   }
+  // T4 round 1 (run B) P1: never a private party either. T4 is luxury CORPORATE, so a T4 lead whose event
+  // is not classified corporate (private celebration, wedding, memorial, or none) is held.
+  if (classification.rate_card_tier === "T4" && classification.event_arc !== "corporate") {
+    addWarning(warnings, "t4: T4 is luxury corporate only, and this event is not corporate; Alex prices it");
+  }
 
   // Holiday/peak (port manifest R292): the Project quotes these "separately above standard
   // rates" with no number, so every one is held for Alex (Alex 2026-10-05, his date list).
