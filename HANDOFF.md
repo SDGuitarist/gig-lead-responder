@@ -6,14 +6,12 @@
 
 ## START HERE — pricing session (2026-10-05..09)
 
-**State:** branch `feat/hub-phase0`, pushed. Suite: **710 pass / 0 fail / 1 skip**.
+**State:** branch `feat/hub-phase0`, pushed. Suite: **713 pass / 0 fail / 1 skip**.
 
-**NP2 (R403) — BUILT 2026-10-09, Codex round 1: run A NO-GO, fixed; run B (Alex) PENDING** (`8008311`..`1cc4402`,
-5 code commits + manifest). Run A's 3 findings (P1 clarification crash, P2 redirect note text, P2 contradicting
-figure) all real, fixed on branch `fix/np2-r1` (`9f93a75`, `e9a6696`, `ace188b`, record `778561f`), pushed, NOT yet
-on `feat/hub-phase0` (Alex's run B checks HEAD `67fc89a`). After run B: record it, fast-forward
-`feat/hub-phase0` to `fix/np2-r1`, push, remove the `../glr-np2-r1` worktree. Next Codex round = round 2 (a 2nd
-NO-GO stops automatic iteration). Residual: "my usual rate is $800" (no "standard"/"in-kind") is not checked. Alex's
+**NP2 (R403) — BUILT 2026-10-09; Codex round 1 = NO-GO (both runs, 5 distinct real findings, all fixed);
+round 2 OPEN** (build `8008311`..`1cc4402`; fixes `9f93a75`, `e9a6696`, `ace188b`, `de074a3`, `1037ad4`; record
+`docs/reviews/2026-10-09-np2-codex-round1.md`). A 2nd NO-GO stops automatic iteration. Residual: "my usual rate is
+$800" (no "standard"/"in-kind") is not checked; placement rule may hold a good draft; 6+ word venue dropped. Alex's
 decisions this session (asked before code):
 - Tell NP tiers apart with a classifier field `np_tier` (NP1 grassroots / NP2 established foundation / NP3
   institutional; unsure = null), Alex-approved definitions in `src/prompts/classify.ts`.
@@ -118,8 +116,8 @@ FIRST gate (stop and ask Alex if anything differs):
   git status --short                                        # expect: clean
 Read: HANDOFF.md "START HERE — pricing session" (NP2 block), CLAUDE.md, src/port-manifest-np2.test.ts,
 docs/reviews/2026-10-09-np2-codex-round1.md.
-NP2 Codex round 1: run A is recorded and fixed on branch fix/np2-r1 (worktree ../glr-np2-r1). Ask Alex for his run B
-output, record it, fix any new real finding there, then fast-forward feat/hub-phase0 to fix/np2-r1 and push.
+NP2 Codex ROUND 2 is OPEN (round 1 NO-GO, fixed): record both runs in docs/reviews/2026-10-09-np2-codex-round2.md
+(ask Alex for his). A 2nd NO-GO STOPS automatic iteration: give Alex a run/stop recommendation for round 3.
 Then apply the fix contract (~/.claude/docs/mandatory-review-workflow.md) to real findings: failing test first,
 mutation-check, one concern per commit, green suite + tsc. Stricter verdict wins when runs disagree.
 A 2nd NO-GO stops automatic iteration; round 3 only with "Round 3 authorized by Alejandro: YES".
