@@ -44,3 +44,11 @@ Checks passed:
 
 Checked clean.
 
+
+---
+
+**Closed 2026-10-09 (Alex chose option (a); hard cap honoured, no further Codex round).** `4c4b2fa`: the backup's
+contract is stated in code (a minimum safety net behind `nonprofit_buyer`, not a complete detector) and named
+nonprofits are caught by name (YMCA, YWCA, Rotary, Kiwanis, Lions Club, Boys & Girls Club, Junior League; tested,
+with ordinary-word controls). Remaining extra holds (e.g. an employee "benefit dinner") are accepted as the cost of
+failing safe; misses with no keyword are left to the classifier (HANDOFF known gap). NP routing review CLOSED.
