@@ -6,7 +6,7 @@
 
 ## START HERE — pricing session (2026-10-05..07)
 
-**State:** branch `feat/hub-phase0`, pushed. Suite: **691 pass / 0 fail / 1 skip**.
+**State:** branch `feat/hub-phase0`, pushed. Suite: **700 pass / 0 fail / 1 skip**.
 
 **CLOSED reviews this session (all of them; none open):** R358 competition count (R3 GO, authorized); R292
 holiday/peak hold (R2 test fix, no R3 per Alex); $150 minimum profit R295/R362 (R2 GO); written-price check
@@ -47,6 +47,16 @@ series, post-check). R1/R2/R3 NO-GO (R2 and R3 each run twice: Claude + Alex); t
 chose to fix the last finding (residency series + travel, `1fba7c4`) and ship with no further Codex round. Then Alex chose travel-arranged-separately for series (`7cb816a`).
 Records `docs/reviews/2026-10-09-price-line-codex-round{1,2,3}.md` (round 2 carries a correction: Claude wrongly
 called the residency-series case unreachable). Dual-format mariachi with a fee: unreachable, left as is.
+
+**T4 (R403) — BUILT** (`32a1607`, `9d91d09`, `44e103d`; fix `e373a5e`): Alex-approved T4 rows (solo 1-4h; duo and
+flamenco duo 2-4h; every sourced format 1-3h; 1.5x T3D); T4 = direct luxury corporate only (never platform, ceremony,
+private party/non-corporate event, or nonprofit). Round 1: run A GO, run B (Alex) NO-GO; fixed the private-party P1;
+the nonprofit fail-open P2 is Alex's accepted option (a). Round 2 pending. Records `docs/reviews/2026-10-09-t4-codex-*`.
+
+**NEW planned work item (out of the fix loop, Alex to decide):** the five sourced_cultural_* formats are UNREACHABLE.
+The classifier's format list and Instrument Rule only route to mariachi or bolero_trio when Alex cannot play the gig;
+no code path ever picks a sourced_cultural_* format, so their price tables (old and new T4) are dormant. Making them
+reachable means deciding which leads become sourced bookings (traditions, ensembles): a feature, not a review fix.
 
 **Known gaps:** trio/mariachi/bolero minimum profit unchecked (no cost data); holiday hold reads the model's
 `event_date_iso`; written amounts spelled out in words are not read.
