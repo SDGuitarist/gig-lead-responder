@@ -43,3 +43,33 @@ Checked clean:
 - No files edited
 
 
+
+## Run B (Alex re-ran round 3 with the same prompt), verbatim
+
+## Verdict: NO-GO
+
+### P1 — Residency series still exposes both base and client-total prices
+
+src/prompts/generate.ts:221-223
+
+For a non-solo residency series with a travel fee, the prompt tells the model:
+
+- $1,100 per night from q.rate;
+- $1,250 in the appended travel block.
+
+clientTotal(pricing, q.rate) is $1,250, so the $1,100 line is inconsistent with the required client-facing total and can produce two prices.
+
+Root cause: the residency-series branch still interpolates q.rate directly instead of applying clientTotal().
+
+Required fix: make the residency-series client-facing price use clientTotal(pricing, q.rate) and ensure the travel block does not create a conflicting second client price. Add a residency-series-with-fee regression test and ensure the post-check accepts its total/deposit.
+
+The PRICING header, ordinary/budget modes, dual-format reachable paths, graceful decline, clarification, and post-check travel threshold are otherwise consistent. This is the third NO-GO; the review-loop hard cap now applies.
+
+Checked clean:
+
+- npm run test:match -- "port manifest R30" — passed
+- npm run test:match -- "port manifest R058" — passed
+- npm run test:match -- "residency" — passed
+- npx tsc --noEmit — passed
+- Worktree remains clean
+- No files edited

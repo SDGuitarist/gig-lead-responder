@@ -6,7 +6,7 @@
 
 ## START HERE — pricing session (2026-10-05..07)
 
-**State:** branch `feat/hub-phase0`, pushed. Suite: **669 pass / 0 fail / 1 skip**.
+**State:** branch `feat/hub-phase0`, pushed. Suite: **678 pass / 0 fail / 1 skip**.
 
 **CLOSED reviews this session (all of them; none open):** R358 competition count (R3 GO, authorized); R292
 holiday/peak hold (R2 test fix, no R3 per Alex); $150 minimum profit R295/R362 (R2 GO); written-price check
@@ -40,10 +40,19 @@ and priced as 2 hours (duo T2P $1,100 anchor; no-viable-scope minimum $1000 for 
 rounded the request up, both drafts must state the priced hours, or the lead is held (skips residency, graceful
 decline, no-viable-scope, clarification; asked hours must be > 0). Records `docs/reviews/2026-10-07-duo-2h-*`.
 
+**R300-R302 structured price line — BUILT, HARD CAP FIRED (3rd NO-GO), Alex decides what ships.** Alex 2026-10-09
+chose his own replies' format ("[Format], $[price], [hours] hours", included clause only on formats he performs,
+every tier, no extension price). `clientTotal()` (price.ts) is the one client-facing total; the PRICING header names
+"Price the client is told" and marks raw numbers internal; post-check uses clientTotal. R1, R2 (run twice) and R3
+(run twice) NO-GO, all recorded in `docs/reviews/2026-10-09-price-line-codex-round{1,2,3}.md`. **Remaining (both R3
+runs agree): a residency SERIES with a travel fee states q.rate ($1,100) beside the travel total ($1,250).** Real and
+reachable; predates this range. Claude's round 2 note calling it unreachable was WRONG (corrected in the records).
+Fix is one line (`clientTotal(pricing, q.rate)`) + a test. Waiting on Alex: ship with that fix (no more Codex), or not.
+
 **Known gaps:** trio/mariachi/bolero minimum profit unchecked (no cost data); holiday hold reads the model's
 `event_date_iso`; written amounts spelled out in words are not read.
 
-**Remaining TO PORT (22):** quote formatting by tier (R300-R302), T4/NP (R403, then F1 R020-R025). Other: R006, R081-R089 + R405 (PF-Intel
+**Remaining TO PORT (19):** T4/NP (R403, then F1 R020-R025). Other: R006, R081-R089 + R405 (PF-Intel
 production data, ask first), R329, R398 (later module).
 
 ### Three Questions (pricing session)
