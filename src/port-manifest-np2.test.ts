@@ -330,3 +330,16 @@ test("port manifest R403 NP2: only a first-person standard-rate claim counts as 
   assert.equal(v("My standard rate is $800 for most events.").length, 1, "Alex's own contradicting rate");
   assert.equal(v("my usual standard performance rate was $900.").length, 1);
 });
+
+// Codex round 2 (NP2) P2: a contradicting "in kind" figure without the hyphen was not counted.
+test("port manifest R403 NP2: an in-kind mention counts with or without the hyphen", () => {
+  const { p } = priced();
+  const expected = "My standard rate is $795, so the difference is my in-kind contribution to the Example Foundation.";
+  const draft = `Solo guitar, $695, 2 hours\n${expected}`;
+  const v = (extra: string) => postCheckDrafts(`${draft}\n${extra}`, draft, undefined, { pricing: p, askedHours: 2, inKind: expected })
+    .violations.filter((x) => x.startsWith("in_kind_line"));
+  for (const extra of ["That is a $800 in kind contribution to the foundation.", "An In Kind gift of $100.", "a $100 inkind donation"]) {
+    assert.equal(v(extra).length, 1, extra);
+  }
+  assert.deepEqual(v("Thank you for the kind words."), [], "the word kind alone");
+});
