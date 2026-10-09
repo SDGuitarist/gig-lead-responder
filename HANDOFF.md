@@ -6,7 +6,7 @@
 
 ## START HERE — pricing session (2026-10-05..07)
 
-**State:** branch `feat/hub-phase0`, pushed. Suite: **679 pass / 0 fail / 1 skip**.
+**State:** branch `feat/hub-phase0`, pushed. Suite: **680 pass / 0 fail / 1 skip**.
 
 **CLOSED reviews this session (all of them; none open):** R358 competition count (R3 GO, authorized); R292
 holiday/peak hold (R2 test fix, no R3 per Alex); $150 minimum profit R295/R362 (R2 GO); written-price check
@@ -44,7 +44,7 @@ decline, no-viable-scope, clarification; asked hours must be > 0). Records `docs
 ("[Format], $[price], [hours] hours", included clause only on formats he performs, every tier, no extension price).
 `clientTotal()` (price.ts) is the one client-facing total everywhere (header, budget modes, price line, residency
 series, post-check). R1/R2/R3 NO-GO (R2 and R3 each run twice: Claude + Alex); the HARD CAP fired after R3; Alex
-chose to fix the last finding (residency series + travel, `1fba7c4`) and ship with no further Codex round.
+chose to fix the last finding (residency series + travel, `1fba7c4`) and ship with no further Codex round. Then Alex chose travel-arranged-separately for series (`7cb816a`).
 Records `docs/reviews/2026-10-09-price-line-codex-round{1,2,3}.md` (round 2 carries a correction: Claude wrongly
 called the residency-series case unreachable). Dual-format mariachi with a fee: unreachable, left as is.
 
@@ -71,12 +71,10 @@ FIRST gate (stop and ask Alex if anything differs):
   git rev-parse HEAD; git rev-parse origin/feat/hub-phase0  # expect: identical
   git status --short                                        # expect: clean
 Read: HANDOFF.md "START HERE — pricing session", CLAUDE.md.
-No Codex review is open. Every pricing review this session is CLOSED. ONE answer from Alex is pending (Alex's catch
-2026-10-09): the residency-series fix `1fba7c4` makes a series with a travel fee "$1,250 per night" (travel EVERY
-night, ~$600/month extra for a weekly venue), decided as a consistency fix, not a pricing decision; no doc covers
-recurring travel. Options: (a) travel every night (as built), (b) none for recurring, (c) base per night and
-travel arranged separately per venue (Claude's recommendation; residency leads are always held). Build nothing on
-it until he answers.
+No Codex review is open and no answer from Alex is pending. Every pricing review this session is CLOSED.
+Recurring-series travel: Alex chose (c) 2026-10-09 (`7cb816a`): a series states its BASE per-night price and travel is
+arranged separately, venue by venue (no fee or total in the draft). Not Codex-reviewed (follows the hard-capped
+price-line review; small and test-pinned).
 Next pricing group: T4 / NP tiers (R403, then F1 R020-R025). Pull the Project's numbers from ~/Data/gig-lead-responder/
 (several are "to be set" in the source) and SHOW ALEX EVERY PRICE BEFORE WRITING CODE; no new or changed price
 without his explicit OK.
