@@ -288,6 +288,7 @@ export const FLAMENCO_TRIO_FULL_RATES: FormatRates = {
 };
 
 // --- Sourced Cultural Solo (any tradition, $200/hr musician cost) ---
+// T4 on every sourced format (Alex 2026-10-09): 1.5x T3D, only for a luxury-corporate lead.
 // Source: Rate_Card_Solo_Duo.md — Sourced Cultural Music section
 export const SOURCED_CULTURAL_SOLO_RATES: FormatRates = {
   "1": {
@@ -295,18 +296,21 @@ export const SOURCED_CULTURAL_SOLO_RATES: FormatRates = {
     T2D: { anchor: 600, floor: 550 },
     T3P: { anchor: 650, floor: 575 },
     T3D: { anchor: 700, floor: 625 },
+    T4: { anchor: 1050, floor: 935 },
   },
   "2": {
     T2P: { anchor: 595, floor: 550 },
     T2D: { anchor: 700, floor: 650 },
     T3P: { anchor: 750, floor: 695 },
     T3D: { anchor: 895, floor: 795 },
+    T4: { anchor: 1345, floor: 1195 },
   },
   "3": {
     T2P: { anchor: 850, floor: 775 },
     T2D: { anchor: 950, floor: 875 },
     T3P: { anchor: 1050, floor: 950 },
     T3D: { anchor: 1200, floor: 1100 },
+    T4: { anchor: 1800, floor: 1650 },
   },
 };
 
@@ -318,18 +322,21 @@ export const SOURCED_CULTURAL_DUO_RATES: FormatRates = {
     T2D: { anchor: 700, floor: 650 },
     T3P: { anchor: 750, floor: 700 },
     T3D: { anchor: 895, floor: 800 },
+    T4: { anchor: 1345, floor: 1200 },
   },
   "2": {
     T2P: { anchor: 1150, floor: 1050 },
     T2D: { anchor: 1300, floor: 1200 },
     T3P: { anchor: 1400, floor: 1275 },
     T3D: { anchor: 1600, floor: 1450 },
+    T4: { anchor: 2400, floor: 2175 },
   },
   "3": {
     T2P: { anchor: 1650, floor: 1500 },
     T2D: { anchor: 1850, floor: 1700 },
     T3P: { anchor: 1995, floor: 1825 },
     T3D: { anchor: 2295, floor: 2100 },
+    T4: { anchor: 3445, floor: 3150 },
   },
 };
 
@@ -341,18 +348,21 @@ export const SOURCED_CULTURAL_TRIO_RATES: FormatRates = {
     T2D: { anchor: 950, floor: 875 },
     T3P: { anchor: 1000, floor: 900 },
     T3D: { anchor: 1100, floor: 1000 },
+    T4: { anchor: 1650, floor: 1500 },
   },
   "2": {
     T2P: { anchor: 1595, floor: 1450 },
     T2D: { anchor: 1750, floor: 1600 },
     T3P: { anchor: 1800, floor: 1650 },
     T3D: { anchor: 2000, floor: 1850 },
+    T4: { anchor: 3000, floor: 2775 },
   },
   "3": {
     T2P: { anchor: 2300, floor: 2100 },
     T2D: { anchor: 2500, floor: 2300 },
     T3P: { anchor: 2600, floor: 2400 },
     T3D: { anchor: 2895, floor: 2650 },
+    T4: { anchor: 4345, floor: 3975 },
   },
 };
 
@@ -364,18 +374,21 @@ export const SOURCED_CULTURAL_QUARTET_RATES: FormatRates = {
     T2D: { anchor: 1250, floor: 1150 },
     T3P: { anchor: 1350, floor: 1250 },
     T3D: { anchor: 1500, floor: 1375 },
+    T4: { anchor: 2250, floor: 2065 },
   },
   "2": {
     T2P: { anchor: 2100, floor: 1925 },
     T2D: { anchor: 2400, floor: 2200 },
     T3P: { anchor: 2500, floor: 2300 },
     T3D: { anchor: 2895, floor: 2650 },
+    T4: { anchor: 4345, floor: 3975 },
   },
   "3": {
     T2P: { anchor: 3100, floor: 2825 },
     T2D: { anchor: 3400, floor: 3100 },
     T3P: { anchor: 3600, floor: 3300 },
     T3D: { anchor: 4100, floor: 3750 },
+    T4: { anchor: 6150, floor: 5625 },
   },
 };
 
@@ -387,18 +400,21 @@ export const SOURCED_CULTURAL_5PIECE_RATES: FormatRates = {
     T2D: { anchor: 1500, floor: 1375 },
     T3P: { anchor: 1600, floor: 1475 },
     T3D: { anchor: 1800, floor: 1650 },
+    T4: { anchor: 2700, floor: 2475 },
   },
   "2": {
     T2P: { anchor: 2695, floor: 2450 },
     T2D: { anchor: 2895, floor: 2650 },
     T3P: { anchor: 3100, floor: 2850 },
     T3D: { anchor: 3495, floor: 3200 },
+    T4: { anchor: 5245, floor: 4800 },
   },
   "3": {
     T2P: { anchor: 3895, floor: 3550 },
     T2D: { anchor: 4200, floor: 3850 },
     T3P: { anchor: 4500, floor: 4100 },
     T3D: { anchor: 4995, floor: 4550 },
+    T4: { anchor: 7495, floor: 6825 },
   },
 };
 
