@@ -4,6 +4,8 @@ import { readFileSync } from "node:fs";
 import { buildClassifyPrompt } from "./prompts/classify.js";
 import { classifyLead } from "./pipeline/classify.js";
 import { setClaudeRequesterForTests } from "./claude.js";
+import { verifyClassificationHeuristics } from "./pipeline/classify-verify.js";
+import { withoutHoldNotes, type Classification } from "./types.js";
 
 // Port manifest R403 (NP track, step 1). Alex decided Sept 15, 2026: nonprofit and fundraiser leads are
 // routed on WHO PAYS, never premium on the venue alone (the lost Sept 2026 donor-dinner precedent was
@@ -57,4 +59,28 @@ test("port manifest R403: nonprofit_buyer parses only a real true", async () => 
   for (const v of ["true", 1, null, undefined, false]) {
     assert.equal((await classifyAs({ ...valid, nonprofit_buyer: v })).nonprofit_buyer, false, String(v));
   }
+});
+
+// Step 3 (Alex 2026-10-09, #1): every nonprofit lead is held for Alex until the NP rates are set. If the
+// model misses it but the lead says nonprofit/foundation/fundraiser/charity/501(c)/donor, a backup
+// check holds it anyway. The note never reaches the drafting prompts.
+const cl = (nonprofit_buyer: boolean) =>
+  ({ ...valid, nonprofit_buyer, flagged_concerns: [] }) as unknown as Classification;
+const notes = (text: string, np: boolean) => verifyClassificationHeuristics(text, cl(np)).warnings;
+test("port manifest R403: a nonprofit buyer is held for Alex, and the note stays out of the drafts", () => {
+  const w = notes("Cocktail hour for our members", true);
+  assert.deepEqual(w.filter((x) => x.startsWith("nonprofit:")),
+    ["nonprofit: NP track (decided by who pays, not the venue); Alex prices it until the NP rates are set"]);
+  const held = verifyClassificationHeuristics("Cocktail hour", cl(true)).classification;
+  assert.ok(!withoutHoldNotes(held).flagged_concerns.some((f) => f.startsWith("nonprofit:")));
+});
+
+test("port manifest R403: a lead that says nonprofit but was not classified as one is held by the backup check", () => {
+  for (const text of ["Annual gala for the Example Foundation", "Our nonprofit's spring fundraiser", "A donor dinner, 80 guests",
+    "Charity auction at the club", "We are a 501(c)(3) arts group", "non-profit board reception"]) {
+    assert.ok(notes(text, false).some((x) => x === "classification_verify: raw lead mentions a nonprofit or fundraiser but nonprofit_buyer is false"), text);
+  }
+  assert.ok(!notes("Corporate holiday party, 120 guests", false).some((x) => /nonprofit/.test(x)), "control: corporate lead");
+  assert.ok(!notes("Annual gala for the Example Foundation", true).some((x) => x.startsWith("classification_verify: raw lead mentions a nonprofit")),
+    "classified correctly: only the nonprofit note");
 });

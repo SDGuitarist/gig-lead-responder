@@ -16,6 +16,8 @@ const CULTURAL_CONTEXT_PATTERNS = [
   /\bspanish guitar\b/i,
 ];
 
+const NONPROFIT_SIGNAL = /\b(?:non-?profit|foundation|fundrais\w*|charit(?:y|able)|donors?)\b|\b501\s?\(c\)/i;
+
 function addWarning(warnings: string[], warning: string): void {
   if (!warnings.includes(warning)) warnings.push(warning);
 }
@@ -129,6 +131,15 @@ export function verifyClassificationHeuristics(
         ? `residency: ${tier}, no price stated: ${q.reason}`
         : `residency: ${tier} ${q.cadence} ${q.hours}h at $${q.rate} per night; Alex reviews every residency`);
     }
+  }
+
+  // Nonprofit / fundraiser buyers (port manifest R403; Alex Sept 15 and 2026-10-09): routed on who pays,
+  // never premium on the venue alone, and every one is held for Alex until the NP rates are set. A lead
+  // that SAYS nonprofit but was not classified as one is held too (the model can miss who pays).
+  if (classification.nonprofit_buyer === true) {
+    addWarning(warnings, "nonprofit: NP track (decided by who pays, not the venue); Alex prices it until the NP rates are set");
+  } else if (NONPROFIT_SIGNAL.test(rawText)) {
+    addWarning(warnings, "classification_verify: raw lead mentions a nonprofit or fundraiser but nonprofit_buyer is false");
   }
 
   // Holiday/peak (port manifest R292): the Project quotes these "separately above standard
