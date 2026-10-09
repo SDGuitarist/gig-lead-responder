@@ -76,6 +76,11 @@ export function normalizeExtendedDancer(value: unknown): boolean {
   return value === true;
 }
 
+/** Parses the model's nonprofit_buyer once (port manifest R403); only a real boolean true counts. */
+export function normalizeNonprofitBuyer(value: unknown): boolean {
+  return value === true;
+}
+
 const validateClassification = (raw: unknown): Classification => {
   if (typeof raw !== "object" || raw === null || Array.isArray(raw)) throw new ClassificationError("Expected JSON object from LLM");
   const obj = raw as Record<string, unknown>;
@@ -143,6 +148,7 @@ const validateClassification = (raw: unknown): Classification => {
   }
   obj.event_arc = normalizeEventArc(obj.event_arc);
   obj.extended_dancer = normalizeExtendedDancer(obj.extended_dancer);
+  obj.nonprofit_buyer = normalizeNonprofitBuyer(obj.nonprofit_buyer);
   obj.graceful_decline = normalizeGracefulDecline(obj.graceful_decline);
   obj.delivery_mode = deliveryModeFor(obj.format_recommended);
   Object.assign(obj, normalizeEngagement(obj));

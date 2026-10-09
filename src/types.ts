@@ -112,6 +112,9 @@ export interface Classification {
   residency_tier?: ResidencyTier | null;
   residency_cadence?: ResidencyCadence | null;
   price_asked?: boolean;
+  // Port manifest R403: the organization paying is a nonprofit or the event is its fundraiser (who pays,
+  // not the venue; a planner booking for one counts). Only a real true (normalizeNonprofitBuyer).
+  nonprofit_buyer?: boolean;
 
   // Who delivers the gig (port manifest R349): derived in code from the format
   // by the Instrument Rule (classify.ts deliveryModeFor), never guessed by the model.
