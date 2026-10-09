@@ -6,10 +6,12 @@
 
 ## START HERE — pricing session (2026-10-05..09)
 
-**State:** branch `feat/hub-phase0`, pushed. Suite: **713 pass / 0 fail / 1 skip**.
+**State:** branch `feat/hub-phase0`, pushed. Suite: **716 pass / 0 fail / 1 skip**.
 
 **NP2 (R403) — BUILT 2026-10-09; Codex round 1 = NO-GO (both runs, 5 distinct real findings, all fixed);
-round 2 OPEN** (build `8008311`..`1cc4402`; fixes `9f93a75`, `e9a6696`, `ace188b`, `de074a3`, `1037ad4`; record
+round 2 OPEN; LOCAL RUNS done before round 2** (`docs/reviews/2026-10-09-np2-local-runs.md`: the drafter never
+saw the organization's name, 0/3; fixed by classifier `organization_name` + app-written name, `43ba208`, `fc35d66`,
+`6d40b8a`; re-run 2/2 priced drafts exact; NP2 at 1h flips with the T2/T3 call) (build `8008311`..`1cc4402`; fixes `9f93a75`, `e9a6696`, `ace188b`, `de074a3`, `1037ad4`; record
 `docs/reviews/2026-10-09-np2-codex-round1.md`). A 2nd NO-GO stops automatic iteration. Residual: "my usual rate is
 $800" (no "standard"/"in-kind") is not checked; placement rule may hold a good draft; 6+ word venue dropped. Alex's
 decisions this session (asked before code):
@@ -21,8 +23,9 @@ decisions this session (asked before code):
   (Alex, after seeing that most 2h nonprofit leads sit at T1/T2 = $500-$700 and a $700 standard gives a $5 line).
   In practice: only T3 leads get NP2 (1h T3P/T3D, 2h T3P/T3D at low/medium competition). Most NP leads are priced
   by Alex by hand. `NP_MIN_IN_KIND` in `src/pipeline/price.ts`.
-- In-kind line, Alex's words: the app writes the amount (clientTotal: same travel rule as the price), the model fills
-  [organization] from the lead, [venue] dropped when unknown. One-price drafts only: a scoped alternative or
+- In-kind line, Alex's words: the app writes the amount (clientTotal: same travel rule as the price) AND the
+  organization's name ("the <organization_name>", classifier field; Alex 2026-10-09 after the local runs showed the
+  drafter cannot see it). No name: [organization] stays, held with `in_kind_org_missing`. [venue] dropped when unknown. One-price drafts only: a scoped alternative or
   minimum-set redirect has no single standard, so no line and the hold note says "Alex adds it".
 - Post-check holds a draft whose line is missing, changed, or has [organization] unfilled (both drafts; both
   drafting paths incl. SMS edit).
