@@ -6,7 +6,7 @@
 
 ## START HERE — pricing session (2026-10-05..07)
 
-**State:** branch `feat/hub-phase0`, pushed. Suite: **680 pass / 0 fail / 1 skip**.
+**State:** branch `feat/hub-phase0`, pushed. Suite: **689 pass / 0 fail / 1 skip**.
 
 **CLOSED reviews this session (all of them; none open):** R358 competition count (R3 GO, authorized); R292
 holiday/peak hold (R2 test fix, no R3 per Alex); $150 minimum profit R295/R362 (R2 GO); written-price check
@@ -75,13 +75,15 @@ No Codex review is open and no answer from Alex is pending. Every pricing review
 Recurring-series travel: Alex chose (c) 2026-10-09 (`7cb816a`): a series states its BASE per-night price and travel is
 arranged separately, venue by venue (no fee or total in the draft). Not Codex-reviewed (follows the hard-capped
 price-line review; small and test-pinned).
-T4 / NP (R403) SHOWN TO ALEX 2026-10-09, waiting (no code). Project memory pricing-decisions: T4 solo 2h $1,350/$1,200,
-3h $1,800/$1,600, 4h $2,200/$2,000 (1h and duo not set); NP2 solo 1h $500, 2h $695 at the floor (no spread); NP1, NP3,
-NP2 3-4h and NP duo not set; an "in-kind contribution line" on every NP quote (wording not in the Project). LIVE
-CONFLICT: docs/QUICK_REFERENCE.md:48 and docs/PROTOCOL.md:192 (loaded every lead) still list "fundraiser at cultural
-venue" as a premium signal, and the Tier A venue hold forces T3, against Alex's Sept 15 decision (route on who pays).
-Asked: (a) T4 numbers + hold unpriced T4 (1h/duo); (b) NP2 numbers + hold unpriced NP; (c) the in-kind line's words;
-(d) do "stop fundraisers routing premium" first (Claude's recommendation). Build nothing until he answers.
+R403 NP routing BUILT 2026-10-09 (Alex: #1 first): classify nonprofit_buyer (who pays; a planner booking for a
+nonprofit counts: NP beats T4), fundraiser/donor no longer premium in the loaded docs or classify prompt, a nonprofit
+buyer beats venue premium everywhere (incl. the Tier A check), every nonprofit lead HELD (`nonprofit:`) with a
+context-aware text backup. Review STOPPED at round 2 (`docs/reviews/2026-10-09-np-routing-codex-round{1,2}.md`):
+remaining P2 is a false hold only ("PTO" = paid time off). Waiting on Alex: fix PTO (school context) with a test,
+round 3 or not. Then T4 solo rows (Alex confirmed 2h $1,350/$1,200, 3h $1,800/$1,600, 4h $2,200/$2,000; 1h and duo
+HELD, Claude's recommendation, Alex to confirm) and NP2 prices (1h $500, 2h $695 at the floor) with the in-kind line in
+Alex's own words: "My standard [venue] rate is $[X], so the difference is my in-kind contribution to [organization]"
+(his Sept 28, 2026 sent reply; one data point). NP1, NP3, NP2 3-4h, NP duo: held until he sets them.
 One concern per commit, failing test first, commit only on a green suite; npm run test:match (exit 3 = zero matches).
 Codex: `codex exec -s workspace-write "..." < /dev/null`; check git status after; record every verdict in docs/reviews/.
 HARD GATE: never start the Mac poller or server against real mail. Never open data/leads.db from a test.
