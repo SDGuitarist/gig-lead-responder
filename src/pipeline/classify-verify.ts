@@ -162,17 +162,21 @@ export function verifyClassificationHeuristics(
     addWarning(warnings, "classification_verify: raw lead mentions a nonprofit or fundraiser but nonprofit_buyer is false");
   }
 
-  // T4 is direct luxury corporate only (R403, Alex 2026-10-09): never a platform lead or a wedding
-  // ceremony. If the model still says T4, hold for Alex rather than reprice in code.
-  const platformLead = classification.lead_source_column === "P"
-    || ["gigsalad", "thebash", "yelp"].includes(String(classification.platform ?? ""));
-  if (classification.rate_card_tier === "T4" && (platformLead || /\bceremony\b/i.test(rawText))) {
-    addWarning(warnings, "t4: T4 is for direct luxury-corporate leads only (never a platform lead or a wedding ceremony); Alex prices it");
-  }
-  // T4 round 1 (run B) P1: never a private party either. T4 is luxury CORPORATE, so a T4 lead whose event
-  // is not classified corporate (private celebration, wedding, memorial, or none) is held.
-  if (classification.rate_card_tier === "T4" && classification.event_arc !== "corporate") {
-    addWarning(warnings, "t4: T4 is luxury corporate only, and this event is not corporate; Alex prices it");
+  // T4 is cleared only when EVERY condition holds (R403; Alex 2026-10-09 flipped the rule after review
+  // rounds kept finding one more way through): direct, a corporate event, a private engagement, not a
+  // nonprofit, no ceremony. Anything else is held, naming why; the price is never changed in code.
+  if (classification.rate_card_tier === "T4") {
+    const failed: string[] = [];
+    if (classification.lead_source_column === "P" || ["gigsalad", "thebash", "yelp"].includes(String(classification.platform ?? ""))) {
+      failed.push("a platform lead");
+    }
+    if (classification.event_arc !== "corporate") failed.push("not a corporate event");
+    if (classification.engagement_type !== "private") failed.push(`not a private engagement (${classification.engagement_type ?? "unknown"})`);
+    if (nonprofit) failed.push("a nonprofit buyer");
+    if (/\bceremony\b/i.test(rawText)) failed.push("mentions a ceremony");
+    if (failed.length > 0) {
+      addWarning(warnings, `t4: T4 is cleared only for a direct, private, corporate, non-nonprofit, non-ceremony lead; this one is ${failed.join(", ")}; Alex prices it`);
+    }
   }
 
   // Holiday/peak (port manifest R292): the Project quotes these "separately above standard
