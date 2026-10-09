@@ -6,7 +6,7 @@ import type { Classification, DeliveryMode, EngagementType, EventArc, Format, Re
 
 const VALID_COMPETITION = new Set(["low", "medium", "high", "extreme"]);
 const VALID_TIERS = new Set(["premium", "standard", "qualification"]);
-const VALID_RATE_TIERS = new Set(["T1", "T2", "T3"]);
+const VALID_RATE_TIERS = new Set(["T1", "T2", "T3", "T4"]);
 const VALID_ACTIONS = new Set(["quote", "assume_and_quote", "one_question"]);
 
 const VALID_ARCS = new Set<EventArc>(["wedding", "corporate", "private_celebration", "memorial"]);

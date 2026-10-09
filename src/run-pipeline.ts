@@ -1,6 +1,6 @@
 import { classifyLead } from "./pipeline/classify.js";
 import { verifyClassificationHeuristics } from "./pipeline/classify-verify.js";
-import { lookupPrice, budgetGapFor, minimumProfitHold } from "./pipeline/price.js";
+import { lookupPrice, budgetGapFor, minimumProfitHold, t4FallbackHold } from "./pipeline/price.js";
 import { enrichClassification } from "./pipeline/enrich.js";
 import { getTodayISO } from "./utils/dates.js";
 import { selectContext } from "./pipeline/context.js";
@@ -213,6 +213,9 @@ export async function runPipeline(
   // $150 minimum profit (R295/R362): on the FINAL price; a hold note, never shown to the drafter.
   const profitNote = minimumProfitHold(pricing);
   if (profitNote) enriched.flagged_concerns = [...enriched.flagged_concerns, profitNote];
+  // T4 with no T4 price for this format (R403): priced at the T3 reference, held for Alex.
+  const t4Note = t4FallbackHold(enriched, pricing);
+  if (t4Note) enriched.flagged_concerns = [...enriched.flagged_concerns, t4Note];
   timing.price = Date.now() - start;
   onStage?.({
     stage: 2, name: "price", status: "done",

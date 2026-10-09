@@ -50,7 +50,7 @@ test("hold notes: every note prefix classify-verify writes is stripped from the 
   const src = readFileSync("src/pipeline/classify-verify.ts", "utf-8");
   const calls = [...src.matchAll(/(?<!function )addWarning\(([\s\S]*?)\);\n/g)].map((m) => m[1]);
   assert.ok(calls.length >= 12, `control: found ${calls.length} addWarning calls`);
-  const perCall = calls.map((c) => [...c.matchAll(/[`"]([a-z_]+:) /g)].map((m) => m[1]));
+  const perCall = calls.map((c) => [...c.matchAll(/[`"]([a-z0-9_]+:) /g)].map((m) => m[1]));
   assert.deepEqual(calls.filter((_, i) => perCall[i].length === 0), [], "a call with no prefixed message");
   const prefixes = [...new Set(perCall.flat())];
   assert.ok(prefixes.includes("residency:") && prefixes.includes("holiday_peak:"), `control: ${prefixes.join(" ")}`);

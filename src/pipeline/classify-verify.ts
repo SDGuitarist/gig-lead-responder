@@ -128,7 +128,8 @@ export function verifyClassificationHeuristics(
   // Not for a nonprofit buyer (R403, Codex round 1): the venue alone never makes them T3; they are held
   // by the nonprofit check below instead.
   const nonprofit = classification.nonprofit_buyer === true || NONPROFIT_SIGNAL.test(rawText);
-  if (tierA && !nonprofit && (classification.rate_card_tier !== "T3" || !classification.stealth_premium)) {
+  const premiumTier = classification.rate_card_tier === "T3" || classification.rate_card_tier === "T4";
+  if (tierA && !nonprofit && (!premiumTier || !classification.stealth_premium)) {
     addWarning(warnings, `classification_verify: Tier A venue ${tierA.name} but priced at ${classification.rate_card_tier}` +
       `${classification.stealth_premium ? "" : " and stealth_premium is false"}`);
   }
@@ -159,6 +160,14 @@ export function verifyClassificationHeuristics(
     addWarning(warnings, "nonprofit: NP track (decided by who pays, not the venue); Alex prices it until the NP rates are set");
   } else if (NONPROFIT_SIGNAL.test(rawText)) {
     addWarning(warnings, "classification_verify: raw lead mentions a nonprofit or fundraiser but nonprofit_buyer is false");
+  }
+
+  // T4 is direct luxury corporate only (R403, Alex 2026-10-09): never a platform lead or a wedding
+  // ceremony. If the model still says T4, hold for Alex rather than reprice in code.
+  const platformLead = classification.lead_source_column === "P"
+    || ["gigsalad", "thebash", "yelp"].includes(String(classification.platform ?? ""));
+  if (classification.rate_card_tier === "T4" && (platformLead || /\bceremony\b/i.test(rawText))) {
+    addWarning(warnings, "t4: T4 is for direct luxury-corporate leads only (never a platform lead or a wedding ceremony); Alex prices it");
   }
 
   // Holiday/peak (port manifest R292): the Project quotes these "separately above standard

@@ -208,6 +208,18 @@ describe("runPipeline", () => {
     assert.ok(edit.gate.fail_reasons.some((r) => r.startsWith("priced_hours_full: the client asked for 1h")), edit.gate.fail_reasons.join(" | "));
   });
 
+  // R403 T4 (Alex 2026-10-09): a T4 lead whose format has no T4 price is priced at the T3 reference and held.
+  it("port manifest R403 T4 wiring: a T4 lead with no T4 price for its format is held", async () => {
+    const t4 = (format: string) => ({ ...MOCK_CLASSIFICATION, rate_card_tier: "T4", lead_source_column: "D", format_recommended: format });
+    mockClaudeForPipeline([t4("mariachi_full"), MOCK_GENERATION, MOCK_GATE_PASS]);
+    const mariachi = await runPipeline("Corporate reception");
+    assert.ok(mariachi.classification.flagged_concerns.some((f) => f.startsWith("t4: no T4 price for mariachi_full")), mariachi.classification.flagged_concerns.join(" | "));
+    mockClaudeForPipeline([t4("solo"), MOCK_GENERATION, MOCK_GATE_PASS]);
+    const solo = await runPipeline("Corporate reception");
+    assert.equal(solo.pricing.tier_key, "T4");
+    assert.ok(!solo.classification.flagged_concerns.some((f) => f.startsWith("t4: no T4 price")), "control: solo has a T4 price");
+  });
+
   it("returns verified: true when gate passes", async () => {
     mockClaudeForPipeline([MOCK_CLASSIFICATION, MOCK_GENERATION, MOCK_GATE_PASS]);
     const result = await runPipeline("I need a guitarist");

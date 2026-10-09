@@ -110,6 +110,7 @@ Rate card tier mapping:
 - T1: Relationship/investment prospects (rare, only if recurring revenue potential)
 - T2: Standard private parties, social events, one-off celebrations
 - T3: Named luxury venues, corporate at upscale properties, milestone celebrations with stealth premium signals. ANY stealth premium signal = T3 (except a nonprofit buyer: the venue alone never makes them T3, see BUYER).
+- T4: Luxury corporate: a company, DMC, events firm or meeting planner paying, at a five-star or Tier A venue. Direct leads only (never a platform lead: lead_source_column P). Never a wedding ceremony, never a private party (a home, a backyard, an estate party: T2 or T3). Never a nonprofit buyer (a planner booking for a nonprofit is the NP track, see BUYER). Sourced formats can be T4 when the lead itself is luxury corporate.
 
 ### Step 5: Timeline + Urgency
 - Comfortable: 6+ weeks out
@@ -214,7 +215,7 @@ Return ONLY this JSON object (no markdown fences, no explanation):
   "nonprofit_buyer": boolean,
   "stealth_premium_signals": string[],
   "tier": "premium" | "standard" | "qualification",
-  "rate_card_tier": "T1" | "T2" | "T3",
+  "rate_card_tier": "T1" | "T2" | "T3" | "T4",
   "lead_source_column": "P" | "D",
   "price_point": "full_premium" | "slight_premium" | "at_market" | "below_market",
   "format_requested": string,
