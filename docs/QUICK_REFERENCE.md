@@ -45,7 +45,7 @@
 | Venue | Premium per VENUE_INTEL.md |
 | Guest count | 150+ |
 | Location | La Jolla, Rancho Santa Fe, Coronado, Del Mar, Carmel Valley, Fairbanks Ranch |
-| Event type | Corporate 100+, fundraiser at cultural venue, wedding at named venue |
+| Event type | Corporate 100+, wedding at named venue (a nonprofit or fundraiser buyer is never premium on the venue alone: route on who pays) |
 | Buried details | Valet, plated dinner, "black tie," executive audience, VIP |
 | Timing | Saturday evening + named venue |
 

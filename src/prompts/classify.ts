@@ -83,7 +83,7 @@ Check for hidden wealth signals. ANY ONE present = stealth_premium: true:
 - Saturday evening at named venue
 - Tier A venues (auto-premium, whatever else the lead says): ${TIER_A_VENUES.map((v) => v.name).join(", ")}
 - Tier B venues (premium only with another signal: 100+ guests, corporate, Saturday evening): Coasterra, Tom Ham's Lighthouse, Marina Village (corporate or 75+), Brick (large corporate evening). Scripps Seaside Forum and Martin Johnson House are premium for any booking
-- Auto-premium patterns: Private estate in Rancho Santa Fe, La Jolla or Coronado; country club in Rancho Santa Fe, La Jolla or Fairbanks Ranch; winery in Temecula or Ramona; yacht or boat; museum + private event or donor
+- Auto-premium patterns: Private estate in Rancho Santa Fe, La Jolla or Coronado; country club in Rancho Santa Fe, La Jolla or Fairbanks Ranch; winery in Temecula or Ramona; yacht or boat; museum + private event (not a nonprofit or donor event: see BUYER)
 - Context-dependent: downtown rooftop (75+ guests, corporate), waterfront restaurant private buyout (50+), golf club outside a premium zip (tournament or corporate), brewery private event (corporate, 100+)
 - Also affluent: Rancho Santa Fe alternate zip 92091
 
@@ -170,6 +170,10 @@ graceful_decline = true only when the lead is a genuine fit mismatch or a sensit
 - grief or stress signals: "just need someone to", skipping straight to price under a short timeline
 Otherwise false. Never true when the request is within what Alex offers.
 
+## BUYER (WHO PAYS)
+
+nonprofit_buyer: true when the organization paying is a nonprofit, foundation, charity or school, or the event is a fundraiser, gala or donor event benefiting one. Decide on who pays, not on the venue: a luxury venue at a fundraiser is often donated or discounted, so it signals a strong development team, not an entertainment budget. A nonprofit buyer is never premium on the venue alone: do not count the venue, Tier A or Tier B, or the location as stealth premium signals for them. A planner or events company booking for a nonprofit or its fundraiser: nonprofit_buyer is true (the nonprofit pays, so the nonprofit track wins over any luxury-corporate tier). Otherwise false.
+
 ## ENGAGEMENT TYPE
 
 Check this before pricing: a private event and a residency are different products.
@@ -207,6 +211,7 @@ Return ONLY this JSON object (no markdown fences, no explanation):
   "competition_level": "low" | "medium" | "high" | "extreme",
   "competition_quote_count": number,
   "stealth_premium": boolean,
+  "nonprofit_buyer": boolean,
   "stealth_premium_signals": string[],
   "tier": "premium" | "standard" | "qualification",
   "rate_card_tier": "T1" | "T2" | "T3",

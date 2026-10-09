@@ -189,7 +189,7 @@ Sparse forms can hide wealthy clients. Check for hidden value:
 | Venue | Premium per VENUE_INTEL.md? |
 | Guest count | 150+? |
 | Location | Affluent zip? (La Jolla, Rancho Santa Fe, Coronado, Del Mar, Carmel Valley) |
-| Event type | Premium at scale? (Corporate 100+, fundraiser, wedding at named venue) |
+| Event type | Premium at scale? (Corporate 100+, wedding at named venue; a nonprofit or fundraiser buyer is never premium on the venue alone) |
 | Buried details | Valet, plated dinner, "black tie," executive audience, VIP? |
 | Timing | Saturday evening + named venue? |
 
