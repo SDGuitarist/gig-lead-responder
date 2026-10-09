@@ -185,6 +185,15 @@ test("port manifest R403 NP2: the post-check holds a draft whose in-kind line is
   assert.equal(v(good.replace(" the Example Foundation", "")).length, 1, "no organization at all");
   assert.equal(v(good.replace("the Example Foundation", "...")).length, 1, "punctuation, no name");
   assert.deepEqual(v("Solo guitar, $695, 2 hours", "x", null), [], "no line expected: not checked");
+  // Codex round 1 (NP2) P2: the right line plus a contradicting one is held (every in-kind or standard-rate
+  // statement must be the expected line).
+  assert.equal(v(good + "\nMy standard rate is $800, normally.").length, 1, "a second standard figure");
+  assert.equal(v(good + "\nThat is a $105 in-kind gift to your cause.").length, 1, "a second in-kind figure");
+  assert.equal(v(good + "\nWe have a standard sound check, and the rate includes setup.").length, 0,
+    "ordinary words far apart are not a standard-rate statement");
+  const dotted = "My standard St. Example Hotel rate is $795, so the difference is my in-kind contribution to [organization].";
+  assert.deepEqual(v(dotted.replace("[organization]", "the Example Foundation"), dotted.replace("[organization]", "the Example Foundation"), dotted), [],
+    "a venue name with a period is still the expected line");
 });
 
 // Codex round 1 (NP2) P1: a nonprofit clarification lead (format "unresolved", no rate table) crashed

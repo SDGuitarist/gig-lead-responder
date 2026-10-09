@@ -218,11 +218,18 @@ export function postCheckDrafts(
 }
 
 // The sentence word for word up to [organization], then a filled-in name (no placeholder brackets)
-// ending the sentence on the same line.
+// ending the sentence on the same line. Every in-kind or standard-rate statement in the draft must be
+// that line (Codex round 1 NP2 P2: a second, contradicting figure next to the right line).
+const IN_KIND_MENTION = /in-kind/gi;
+const STANDARD_RATE_STATEMENT = /\bstandard\b(?:\s+\S+){0,5}?\s+rate\s+(?:is|was)\s+\$/gi;
 function hasInKindLine(text: string, expected: string): boolean {
   const prefix = expected.slice(0, expected.indexOf("[organization]"));
-  const at = text.indexOf(prefix);
-  return at !== -1 && /^[^\n[\]]*\w[^\n[\]]*\./.test(text.slice(at + prefix.length));
+  let valid = 0;
+  for (let at = text.indexOf(prefix); at !== -1; at = text.indexOf(prefix, at + 1)) {
+    if (/^[^\n[\]]*\w[^\n[\]]*\./.test(text.slice(at + prefix.length))) valid++;
+  }
+  const count = (re: RegExp) => (text.match(re) ?? []).length;
+  return valid > 0 && count(IN_KIND_MENTION) === valid && count(STANDARD_RATE_STATEMENT) === valid;
 }
 
 /**
