@@ -16,16 +16,22 @@ const CULTURAL_CONTEXT_PATTERNS = [
   /\bspanish guitar\b/i,
 ];
 
+// CONTRACT (Alex 2026-10-09, after the round 3 hard cap): this is a MINIMUM safety net behind the
+// classifier's nonprofit_buyer, NOT a complete detector. A keyword list cannot be complete either way:
+// it can hold an ordinary lead (an extra review, never a wrong price) and it can miss a nonprofit that
+// uses none of these words (then only the classifier catches it; HANDOFF known gap).
 // Words that say a nonprofit or fundraiser (R403 backup; Codex round 1 widened it). "Foundation" counts
 // only as an organization, never a venue's "Foundation Room", a band called "The Foundation" or a
 // foundation stone (case-sensitive name form, or "our foundation", or foundation + an event word).
 const NONPROFIT_WORDS = /\b(?:non-?profit|fundrais\w*|charit(?:y|able)|donors?|galas?|auction|benefit(?:t)?ing|benefit\s+(?:dinner|gala|concert|event|show|night|luncheon|for)|PTA|parent[\s-]teacher|booster\s+club)\b|\b501\s?\(c\)/i;
 const FOUNDATION_NAME = /\b(?!The\b)[A-Z][\w'&.-]*\s+Foundation\b(?!\s+Room)/;
 const FOUNDATION_ORG = /\bour\s+foundation\b|\bfoundation(?:'s)?\s+(?:gala|dinner|board|donors?|fundraiser|benefit|luncheon)\b/i;
+// Named nonprofits a lead can mention with no keyword (proper nouns, case-sensitive: not "rotary phone").
+const NAMED_NONPROFIT = /\b(?:YMCA|YWCA|Rotary(?:\s+Club)?|Kiwanis|Lions\s+Club|Boys\s+(?:&|and)\s+Girls\s+Club|Junior\s+League)\b/;
 // "PTO" is also paid time off (Codex round 2): it counts only when the lead also has school context.
 const PTO_SCHOOL = (text: string) => /\bPTO\b/i.test(text) && /\b(?:school|parents?|teachers?|students?|elementary)\b/i.test(text);
 const NONPROFIT_SIGNAL = {
-  test: (text: string) => NONPROFIT_WORDS.test(text) || FOUNDATION_NAME.test(text) || FOUNDATION_ORG.test(text) || PTO_SCHOOL(text),
+  test: (text: string) => NONPROFIT_WORDS.test(text) || FOUNDATION_NAME.test(text) || FOUNDATION_ORG.test(text) || PTO_SCHOOL(text) || NAMED_NONPROFIT.test(text),
 };
 
 function addWarning(warnings: string[], warning: string): void {

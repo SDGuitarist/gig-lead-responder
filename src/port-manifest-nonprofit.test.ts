@@ -133,3 +133,16 @@ test("port manifest R403: PTO is a nonprofit signal only with school context", (
     assert.ok(!backup(text), text);
   }
 });
+
+// NP routing round 3 (hard cap; Alex chose option a): the keyword backup is a MINIMUM safety net behind
+// the classifier's nonprofit_buyer, not a complete detector. Named nonprofits a lead may mention without
+// any keyword are caught by name (proper nouns, matched case-sensitively).
+test("port manifest R403: named nonprofits are caught by name; ordinary words are not", () => {
+  for (const text of ["YMCA family night", "YWCA luncheon", "Rotary Club installation dinner", "Kiwanis breakfast",
+    "Lions Club awards night", "Boys & Girls Club celebration", "Boys and Girls Club open house", "Junior League holiday party"]) {
+    assert.ok(backup(text), text);
+  }
+  for (const text of ["A rotary phone prop for the set", "The lions at the zoo after-hours party", "A junior league soccer team party"]) {
+    assert.ok(!backup(text), text);
+  }
+});
