@@ -54,6 +54,9 @@ test("port manifest R403 T4: a lead that clears every condition is not held; eac
   const cases: [string, Record<string, unknown>, string][] = [
     ["Corporate reception", { lead_source_column: "P" }, "a platform lead"],
     ["Corporate reception", { platform: "gigsalad" }, "a platform lead"],
+    // T4 round 3 P1: "direct" is a positive requirement (lead_source_column D), not "not P".
+    ["Corporate reception", { lead_source_column: undefined }, "not a direct lead"],
+    ["Corporate reception", { lead_source_column: "X" }, "not a direct lead"],
     ["Birthday party", { event_arc: "private_celebration" }, "not a corporate event"],
     ["Reception", { event_arc: null }, "not a corporate event"],
     ["Rehearsal dinner", { engagement_type: "wedding_adjacent" }, "not a private engagement (wedding_adjacent)"],
@@ -80,5 +83,7 @@ test("port manifest R403 T4: the router holds a T4 lead that fails a condition a
       pricing: { quote_price: 1350 }, verified: true } as never);
   assert.equal(route({ engagement_type: "wedding_adjacent" }).action, "hold", "round 2 P1: wedding-adjacent corporate T4");
   assert.equal(route({ event_arc: "private_celebration" }).action, "hold");
+  assert.equal(route({ lead_source_column: undefined }).action, "hold", "round 3 P1: a missing source column");
+  assert.equal(route({ lead_source_column: "X" }).action, "hold", "round 3 P1: an unexpected source column");
   assert.equal(route({}).action, "auto-send", "control: a clean corporate T4 lead");
 });

@@ -169,6 +169,8 @@ export function verifyClassificationHeuristics(
     const failed: string[] = [];
     if (classification.lead_source_column === "P" || ["gigsalad", "thebash", "yelp"].includes(String(classification.platform ?? ""))) {
       failed.push("a platform lead");
+    } else if (classification.lead_source_column !== "D") {
+      failed.push("not a direct lead"); // round 3 P1: direct is required, not merely "not P"
     }
     if (classification.event_arc !== "corporate") failed.push("not a corporate event");
     if (classification.engagement_type !== "private") failed.push(`not a private engagement (${classification.engagement_type ?? "unknown"})`);
