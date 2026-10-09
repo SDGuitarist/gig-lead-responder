@@ -6,9 +6,10 @@ import { buildClassifyPrompt } from "./prompts/classify.js";
 import { buildGeneratePrompt } from "./prompts/generate.js";
 import { buildVerifyPrompt } from "./prompts/verify.js";
 import { lookupPrice, lookupResidencyRate } from "./pipeline/price.js";
+import { postCheckDrafts } from "./pipeline/post-check.js";
 import { verifyClassificationHeuristics } from "./pipeline/classify-verify.js";
 import { enrichClassification } from "./pipeline/enrich.js";
-import { withoutHoldNotes, type Classification, type ResidencyCadence, type ResidencyTier } from "./types.js";
+import { withoutHoldNotes, type Classification, type PricingResult, type ResidencyCadence, type ResidencyTier } from "./types.js";
 
 // Port manifest R220/R276–R280 (engagement type) and R281–R283 (residency tier):
 // is this a private event or a recurring residency? Alex 2026-10-04: residency
@@ -203,4 +204,23 @@ test("residency series: re-pricing after enrichment changes the format stays in 
   const prompt = buildGeneratePrompt(enriched, repriced, "ctx");
   assert.ok(prompt.includes("Do NOT state any price"));
   assert.ok(!prompt.includes("Price the client is told: $"));
+});
+
+// Price line review round 3 (both runs; hard cap, Alex chose to fix and ship): a residency SERIES with a
+// travel fee said "$1100 per night" while its travel block said "present ONE total, $1250". The series
+// price is now clientTotal(pricing, q.rate), the same total the travel block states; the written-price
+// check accepts it and its deposit. Custom-quote and no travel keep the base.
+test("residency series: with a travel fee, the per-night price is the one client total", () => {
+  const c = series({ price_asked: true });
+  const near = { fee: 150, band: "Near", miles: 40, zip: "92025", musician_stipend: 50, custom_quote_required: false };
+  const p = { ...lookupPrice(c), travel: near } as PricingResult;
+  const total = p.quote_price + 150;
+  const block = buildGeneratePrompt(c, p, "ctx").split("## PRICING: RESIDENCY (B2B)")[1];
+  assert.ok(block.includes(`series at $${total} per night`), block.slice(0, 400));
+  assert.ok(!block.includes(`series at $${p.quote_price} per night`));
+  assert.ok(block.includes(`Present ONE total number ($${total})`), "the travel block states the same total");
+  const draft = `Weekly duo programming, $${total} per night for 2 hours. $${Math.round(total / 2)} holds the first date.`;
+  assert.deepEqual(postCheckDrafts(draft, draft, undefined, { pricing: p }).violations.filter((v) => v.startsWith("price_")), []);
+  const custom = buildGeneratePrompt(c, { ...p, travel: { ...near, fee: 0, custom_quote_required: true } } as PricingResult, "ctx");
+  assert.ok(custom.includes(`series at $${p.quote_price} per night`), "custom-quote travel: the base");
 });

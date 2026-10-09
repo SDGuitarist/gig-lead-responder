@@ -219,7 +219,7 @@ function buildResidencyPricingBlock(classification: Classification, pricing: Pri
     ? `## PRICING: RESIDENCY (B2B)
 ${frame}
 The venue asked about price. State it once, plainly: ${q.series
-    ? `a ${cadence} ${pricing.format} series at $${q.rate} per night for ${q.hours} hours (a series of private events, no discount).${buildTravelBlock(pricing)}`
+    ? `a ${cadence} ${pricing.format} series at $${clientTotal(pricing, q.rate as number /* residencyStatesPrice: rate is set */)} per night for ${q.hours} hours (a series of private events, no discount).${buildTravelBlock(pricing)}`
     : `$${q.rate} per night for ${q.hours} hours of solo guitar, ${cadence}. Offer to revisit at 3 or 6 months based on how the program performs for them.`} Do not apologize for the number.
 `
     : `## PRICING: RESIDENCY (B2B)
