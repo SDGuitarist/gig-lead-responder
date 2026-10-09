@@ -139,7 +139,7 @@ test("residency draft: price asked and a rate exists, the draft states the per-n
   assert.ok(prompt.includes("## PRICING: RESIDENCY (B2B)"));
   assert.ok(prompt.includes("$350 per night"));
   assert.ok(prompt.includes("not a discount off private-event prices"));
-  assert.ok(!prompt.includes("Quote price: $"));
+  assert.ok(!prompt.includes("Price the client is told: $"));
   assert.ok(!prompt.includes("50% deposit holds the date"));
 });
 
@@ -148,7 +148,7 @@ test("residency draft: not asked, or no rate, means no number at all", () => {
     const prompt = buildGeneratePrompt(c, lookupPrice(c), "ctx");
     assert.ok(prompt.includes("Do NOT state any price"), c.residency_tier ?? "");
     assert.ok(!prompt.includes("per night"));
-    assert.ok(!prompt.includes("Quote price: $"));
+    assert.ok(!prompt.includes("Price the client is told: $"));
     assert.ok(!/Must retain: [^\n]*\bprice\b/.test(prompt));
   }
   const v = buildVerifyPrompt(res(), lookupPrice(res()));
@@ -157,12 +157,12 @@ test("residency draft: not asked, or no rate, means no number at all", () => {
 
 test("residency draft: a private lead keeps the private-event price block", () => {
   const prompt = buildGeneratePrompt(cls(), lookupPrice(cls()), "ctx");
-  assert.ok(prompt.includes("Quote price: $"));
+  assert.ok(prompt.includes("Price the client is told: $"));
   assert.ok(!prompt.includes("RESIDENCY (B2B)"));
 });
 
 // Codex round 1 P1: a NON-solo residency fell back to the private PRICING block
-// and showed "Quote price: $..." although the venue never asked. Every residency
+// and showed "Quote price: $..." (now "Price the client is told: $...") although the venue never asked. Every residency
 // drafts in residency mode; a series states its private price only if asked.
 const series = (over: Partial<Classification> = {}) => res({ format_recommended: "duo", ...over });
 
@@ -171,7 +171,7 @@ test("residency series: a non-solo residency that did not ask states no price", 
   const prompt = buildGeneratePrompt(c, lookupPrice(c), "ctx");
   assert.ok(prompt.includes("## PRICING: RESIDENCY (B2B)"));
   assert.ok(prompt.includes("Do NOT state any price"));
-  assert.ok(!prompt.includes("Quote price: $"));
+  assert.ok(!prompt.includes("Price the client is told: $"));
   assert.ok(!/\$\d/.test(prompt.split("## PRICING: RESIDENCY (B2B)")[1].split("##")[0]));
   assert.ok(buildVerifyPrompt(c, lookupPrice(c)).includes("Residency: no price is stated"));
 });
@@ -182,7 +182,7 @@ test("residency series: asked, it states the normal private price per night as a
   const prompt = buildGeneratePrompt(c, pricing, "ctx");
   assert.ok(prompt.includes("series of private events"));
   assert.ok(prompt.includes(`$${pricing.quote_price} per night`));
-  assert.ok(!prompt.includes("Quote price: $"));
+  assert.ok(!prompt.includes("Price the client is told: $"));
   assert.ok(!prompt.includes("50% deposit holds the date"));
   // Verify must accept that price: for a series it IS the private-event price.
   const v = buildVerifyPrompt(c, pricing);
@@ -202,5 +202,5 @@ test("residency series: re-pricing after enrichment changes the format stays in 
   assert.equal(repriced.residency?.rate, repriced.quote_price);
   const prompt = buildGeneratePrompt(enriched, repriced, "ctx");
   assert.ok(prompt.includes("Do NOT state any price"));
-  assert.ok(!prompt.includes("Quote price: $"));
+  assert.ok(!prompt.includes("Price the client is told: $"));
 });

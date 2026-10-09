@@ -63,8 +63,8 @@ ${residency
 No quote yet. The format is unresolved. Your job is to ask exactly one binary clarifying question before pricing.
 `
     : `## PRICING
-Quote price: $${pricing.quote_price}
-Anchor: $${pricing.anchor} | Floor: $${pricing.floor}
+Price the client is told: $${clientTotal(pricing, pricing.quote_price)}
+Internal only, never state these numbers: quote $${pricing.quote_price}, anchor $${pricing.anchor}, floor $${pricing.floor}
 Position: ${pricing.competition_position}
 Format: ${pricing.format} | Duration: ${pricing.duration_hours}hr | Tier: ${pricing.tier_key}${pricing.duration_hours !== classification.duration_hours ? `\nThe client asked for ${classification.duration_hours}hr; this rate is for ${pricing.duration_hours}hr (the rate card has no ${classification.duration_hours}-hour rate). State ${pricing.duration_hours} hours in the draft, plainly, never ${classification.duration_hours}.` : ""}${pricing.format === "flamenco_trio" && pricing.duration_hours === 3 && classification.extended_dancer ? "\nConfiguration: the dancer performs 2 of the 3 hours (the client asked for more dance time). Say so in the draft." : ""}
 ${buildTravelBlock(pricing)}${buildPriceLineBlock(pricing)}

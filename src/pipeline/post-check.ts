@@ -219,11 +219,14 @@ export function postCheckDrafts(
  */
 function belowFloorPrices(text: string, label: string, pricing: PricingResult): string[] {
   if (!(pricing.floor > 0) || !(pricing.quote_price > 0)) return []; // placeholder pricing: nothing to check
+  // One travel rule with the prompt (Codex round 2, price line): clientTotal() adds the fee exactly
+  // when the travel section tells the client a total.
   const totals = [pricing.quote_price];
   const supplied = new Set<number>();
-  if (pricing.travel && !pricing.travel.included_in_price && pricing.travel.fee > 0) {
-    supplied.add(pricing.travel.fee);
-    totals.push(pricing.quote_price + pricing.travel.fee);
+  const told0 = clientTotal(pricing, pricing.quote_price);
+  if (told0 !== pricing.quote_price) {
+    supplied.add(told0 - pricing.quote_price); // the travel fee
+    totals.push(told0);
   }
   for (const t of totals) { supplied.add(t); supplied.add(Math.floor(t / 2)); supplied.add(Math.ceil(t / 2)); }
   if (pricing.budget.tier === "small" || pricing.budget.tier === "large") supplied.add(pricing.budget.gap);

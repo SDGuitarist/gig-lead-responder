@@ -84,3 +84,19 @@ test("port manifest R300: a large budget gap states the scoped set then the full
   const noTravel = prompt(c, { ...p, travel: null });
   assert.match(noTravel.slice(noTravel.indexOf("## PRICE LINE")), /\$500, 1 hour[\s\S]*\$595, 2 hours/);
 });
+
+// Codex round 2 (price line, both runs) P1: the PRICING header showed raw quote/anchor/floor beside
+// the travel-inclusive total. It now names the price the client is told (clientTotal) and labels
+// the raw numbers internal.
+test("port manifest R300: the PRICING header names the client price and marks raw numbers internal", () => {
+  const c = cls("solo");
+  const withFee = prompt(c, { ...lookupPrice(c), travel: near } as PricingResult);
+  assert.match(withFee, /Price the client is told: \$745/);
+  assert.match(withFee, /Internal only, never state these numbers: quote \$595/);
+  assert.doesNotMatch(withFee, /^Quote price: \$595$/m);
+  const plain = prompt(c);
+  assert.match(plain, /Price the client is told: \$595/);
+  for (const t of [{ ...near, custom_quote_required: true, fee: 0 }, { ...near, included_in_price: true }, { ...near, band: "Local", fee: 0 }]) {
+    assert.match(prompt(c, { ...lookupPrice(c), travel: t } as PricingResult), /Price the client is told: \$595/, JSON.stringify(t));
+  }
+});

@@ -97,3 +97,16 @@ test("port manifest R058: a scoped alternative's travel-inclusive total is a sup
     budget: { tier: "large", gap: 100, scoped_alternative: { duration_hours: 1, price: 500 } } } as PricingResult;
   assert.deepEqual(check("One hour, $650 all in; $325 holds the date. The full two hours is $745.", p), []);
 });
+
+// Codex round 2 (price line, both runs) P1: post-check had its own copy of the travel rule. It now
+// uses clientTotal(), so even an (unreal) fee on a custom-quote or Local travel cannot raise the
+// threshold above what the prompt tells the client. Real data never carries such a fee (sweep of
+// every ZIP x format: 0 of 16,445), so these inputs are deliberately impossible.
+test("port manifest R058: the threshold follows clientTotal (custom-quote and Local travel add nothing)", () => {
+  const t = { fee: 150, band: "Near", miles: 40, zip: "92025", musician_stipend: 0, custom_quote_required: false };
+  for (const travel of [{ ...t, custom_quote_required: true }, { ...t, band: "Local" }]) {
+    const p = { ...base, travel } as PricingResult;
+    assert.deepEqual(check("Two hours is $595; travel is quoted separately.", p), [], JSON.stringify(travel));
+    assert.deepEqual(check("A $700 add-on.", p), [], "above the $595 told price: not checked");
+  }
+});
