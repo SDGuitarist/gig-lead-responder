@@ -444,12 +444,14 @@ export function t4FallbackHold(classification: Pick<Classification, "rate_card_t
 // Every nonprofit lead is held (R403; Alex 2026-10-09: a priced NP2 is still reviewed before sending).
 // This note says whether NP2 priced it and, if not, why; the classify-stage note does the holding.
 export function nonprofitPriceNote(classification: Pick<Classification, "nonprofit_buyer" | "np_tier" | "rate_card_tier" | "engagement_type">,
-  pricing: Pick<PricingResult, "format" | "duration_hours" | "quote_price" | "in_kind" | "rate_table">): string | null {
+  pricing: Pick<PricingResult, "format" | "duration_hours" | "quote_price" | "in_kind" | "rate_table"> & Partial<Pick<PricingResult, "budget">>): string | null {
   if (classification.nonprofit_buyer !== true) return null;
   const h = pricing.duration_hours;
   if (pricing.in_kind) {
+    const line = pricing.budget?.tier === "large" || pricing.budget?.tier === "no_viable_scope"
+      ? "two prices in the draft: no in-kind line; Alex adds it" : "in-kind line in the drafts";
     return `nonprofit: NP2 ${pricing.format} ${h}h at $${pricing.quote_price} (standard $${pricing.in_kind.standard}, ` +
-      "in-kind line in the drafts); Alex reviews before sending";
+      `${line}); Alex reviews before sending`;
   }
   const what = `${classification.np_tier ?? "NP tier unsure"} ${pricing.format} ${h}h`;
   const np2 = rateTableFor(pricing)[String(h)]?.NP2;
@@ -458,4 +460,16 @@ export function nonprofitPriceNote(classification: Pick<Classification, "nonprof
     : classification.np_tier === "NP2" && np2 ? `${what}, standard $${pricing.quote_price} is not $${NP_MIN_IN_KIND} above the NP2 $${np2.floor}`
     : `${what} has no NP rate`;
   return `nonprofit: no NP price (${why}); the draft uses the standard price; Alex prices it`;
+}
+
+// The in-kind line on every one-price NP2 draft, in Alex's own words (his Sept 28, 2026 sent reply).
+// The app writes both numbers' amount (same travel rule as every client-facing price); the model fills
+// [organization] from the lead (Alex 2026-10-09); [venue] is dropped when unknown. null = no line:
+// no NP2 price, or a scoped alternative / minimum-set redirect (two prices, no single standard).
+export function inKindSentence(classification: Pick<Classification, "venue_name">,
+  pricing: Pick<PricingResult, "in_kind" | "budget" | "travel">): string | null {
+  if (!pricing.in_kind || pricing.budget.tier === "large" || pricing.budget.tier === "no_viable_scope") return null;
+  const venue = classification.venue_name?.trim() ? `${classification.venue_name.trim()} ` : "";
+  return `My standard ${venue}rate is $${clientTotal(pricing, pricing.in_kind.standard)}, ` +
+    "so the difference is my in-kind contribution to [organization].";
 }

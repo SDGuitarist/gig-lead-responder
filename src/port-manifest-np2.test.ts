@@ -3,9 +3,10 @@ import assert from "node:assert/strict";
 import { buildClassifyPrompt } from "./prompts/classify.js";
 import { classifyLead } from "./pipeline/classify.js";
 import { setClaudeRequesterForTests } from "./claude.js";
-import { budgetGapFor, lookupPrice, nonprofitPriceNote } from "./pipeline/price.js";
+import { budgetGapFor, inKindSentence, lookupPrice, nonprofitPriceNote } from "./pipeline/price.js";
+import { buildGeneratePrompt } from "./prompts/generate.js";
 import { verifyClassificationHeuristics } from "./pipeline/classify-verify.js";
-import { withoutHoldNotes, type Classification } from "./types.js";
+import { withoutHoldNotes, type Classification, type PricingResult } from "./types.js";
 
 // Port manifest R403, NP2 (Alex 2026-10-09). NP2 = established foundation, solo only: 1h $500, 2h $695,
 // quoted AT the floor. NP1, NP3, NP2 3-4h and any NP duo: no NP price, held. Alex chose a classifier field
@@ -121,4 +122,43 @@ test("port manifest R403 NP2: every nonprofit lead stays held, and the note says
     const c = { ...priced, flagged_concerns: [n as string] } as Classification;
     assert.deepEqual(withoutHoldNotes(c).flagged_concerns, [], "never reaches the drafting prompts");
   }
+});
+
+// Step 4: the in-kind line, in Alex's own words (his Sept 28, 2026 sent reply). The app writes the
+// amount; the model fills [organization] from the lead (Alex 2026-10-09); [venue] is the venue name when
+// known, else the word is dropped. Only on a one-price draft: with a scoped alternative or the minimum-set
+// redirect there is no single standard to name, and the hold note says the line was left out.
+const priced = (over: Partial<Classification> = {}, budget = 0) => {
+  const c = lead({ rate_card_tier: "T3", lead_source_column: "P", ...(budget ? { stated_budget: budget } : {}), ...over });
+  const p = lookupPrice(c);
+  return { c, p: { ...p, budget: budgetGapFor(c, p) } };
+};
+test("port manifest R403 NP2: the in-kind sentence is Alex's own, with the venue when known and travel in both numbers", () => {
+  const { c, p } = priced({ venue_name: "Example Hotel" });
+  assert.equal(inKindSentence(c, p), "My standard Example Hotel rate is $795, so the difference is my in-kind contribution to [organization].");
+  const noVenue = priced();
+  assert.equal(inKindSentence(noVenue.c, noVenue.p), "My standard rate is $795, so the difference is my in-kind contribution to [organization].");
+  const travel = { ...noVenue.p, travel: { fee: 75, band: "Regional", miles: 40, zip: "92000", musician_stipend: 0, custom_quote_required: false } } as PricingResult;
+  assert.match(inKindSentence(noVenue.c, travel) ?? "", /rate is \$870,/, "the standard is told with the same travel fee as the NP price");
+  const unpriced = priced({ rate_card_tier: "T2" });
+  assert.equal(inKindSentence(unpriced.c, unpriced.p), null, "no NP price, no line");
+  const scoped = priced({}, 550);
+  assert.equal(scoped.p.budget.tier, "large");
+  assert.equal(inKindSentence(scoped.c, scoped.p), null, "two prices: no single standard");
+  const redirect = priced({}, 200);
+  assert.equal(redirect.p.budget.tier, "no_viable_scope");
+  assert.equal(inKindSentence(redirect.c, redirect.p), null);
+  const small = priced({}, 650);
+  assert.equal(small.p.budget.tier, "small");
+  assert.ok(inKindSentence(small.c, small.p), "a small gap still states one price: the line stays");
+  assert.match(nonprofitPriceNote(scoped.c, scoped.p) ?? "", /two prices in the draft: no in-kind line; Alex adds it/);
+});
+test("port manifest R403 NP2: the drafting prompt carries the in-kind line word for word, only when it applies", () => {
+  const { c, p } = priced({ venue_name: "Example Hotel" });
+  const prompt = buildGeneratePrompt(c, p, "ctx");
+  assert.match(prompt, /## IN-KIND LINE/);
+  assert.ok(prompt.includes("My standard Example Hotel rate is $795, so the difference is my in-kind contribution to [organization]."));
+  assert.match(prompt, /replace \[organization\] with the organization's name as the lead gives it/i);
+  const unpriced = priced({ rate_card_tier: "T2" });
+  assert.doesNotMatch(buildGeneratePrompt(unpriced.c, unpriced.p, "ctx"), /IN-KIND LINE|in-kind contribution/);
 });
