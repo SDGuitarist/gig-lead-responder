@@ -183,3 +183,12 @@ test("port manifest R403 NP2: the post-check holds a draft whose in-kind line is
   assert.equal(v(good.replace("the Example Foundation", "...")).length, 1, "punctuation, no name");
   assert.deepEqual(v("Solo guitar, $695, 2 hours", "x", null), [], "no line expected: not checked");
 });
+
+// Codex round 1 (NP2) P1: a nonprofit clarification lead (format "unresolved", no rate table) crashed
+// nonprofitPriceNote. It stays held with a note and no price.
+test("port manifest R403 NP2: a nonprofit clarification lead gets a note, not a crash", () => {
+  const c = lead({ action: "one_question", format_recommended: "unresolved" } as Partial<Classification>);
+  const p = { format: "unresolved", duration_hours: 2, tier_key: "clarify", anchor: 0, floor: 0, quote_price: 0,
+    competition_position: "clarify before quoting", budget: { tier: "none" } } as PricingResult;
+  assert.equal(nonprofitPriceNote(c, p), "nonprofit: no NP price (the format is not known yet: clarifying first); Alex prices it");
+});

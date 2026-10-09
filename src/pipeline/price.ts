@@ -446,6 +446,8 @@ export function t4FallbackHold(classification: Pick<Classification, "rate_card_t
 export function nonprofitPriceNote(classification: Pick<Classification, "nonprofit_buyer" | "np_tier" | "rate_card_tier" | "engagement_type">,
   pricing: Pick<PricingResult, "format" | "duration_hours" | "quote_price" | "in_kind" | "rate_table"> & Partial<Pick<PricingResult, "budget">>): string | null {
   if (classification.nonprofit_buyer !== true) return null;
+  // A clarification lead has no rate table (format "unresolved"; Codex round 1 NP2 P1).
+  if (pricing.format === "unresolved") return "nonprofit: no NP price (the format is not known yet: clarifying first); Alex prices it";
   const h = pricing.duration_hours;
   if (pricing.in_kind) {
     const line = pricing.budget?.tier === "large" || pricing.budget?.tier === "no_viable_scope"
