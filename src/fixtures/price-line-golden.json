@@ -44,8 +44,6 @@
       },
       "travel": null
     },
-    "promptSha256": "4d0f8bed2901bcab1d8c2ec638f0d198c8a4d8fbc2be54884f2e59ab2326232e",
-    "promptLength": 22025,
     "priceLineSection": "\n## PRICE LINE\nIn both drafts, the format in plain words. State the price ONCE, on its own line, in this shape:\n[Format name], $595, 2 hours | Professional sound, setup and breakdown, repertoire shaped to their event\nOne confident number per line: never \"around\", \"typically\", \"starting at\" or a range. No extension or add-on price.\n\n"
   },
   {
@@ -98,8 +96,6 @@
       },
       "travel": null
     },
-    "promptSha256": "c76596c2d588d1fe47ae2f115ef3e77149aff07e0c1f0990ef88ad7d7c50dab1",
-    "promptLength": 22953,
     "priceLineSection": "\n## PRICE LINE\nIn both drafts, the format in plain words. State exactly TWO prices, each once, on their own lines, in this order (the budget section above):\n1. The scoped set: [Format name], $500, 1 hour | Professional sound, setup and breakdown, repertoire shaped to their event\n2. The full set, as the upgrade: [Format name], $595, 2 hours | Professional sound, setup and breakdown, repertoire shaped to their event\nOne confident number per line: never \"around\", \"typically\", \"starting at\" or a range. No extension or add-on price.\n\n"
   },
   {
@@ -147,8 +143,6 @@
       },
       "travel": null
     },
-    "promptSha256": "dc1a04dbe9bd33db19c959527e6fe409bc6e3d346a055f1c3ee4cc88d64fe156",
-    "promptLength": 22024,
     "priceLineSection": "\n## PRICE LINE\nIn both drafts, the format in plain words. State the price ONCE, on its own line, in this shape:\n[Format name], $1100, 2 hours | Professional sound, setup and breakdown, repertoire shaped to their event\nOne confident number per line: never \"around\", \"typically\", \"starting at\" or a range. No extension or add-on price.\n\n"
   },
   {
@@ -197,8 +191,6 @@
       },
       "travel": null
     },
-    "promptSha256": "85fab90c70ed57d60d661f1607359861f6baede6253680e0fa414001c9b567d4",
-    "promptLength": 21866,
     "priceLineSection": null
   },
   {
@@ -253,8 +245,6 @@
         "custom_quote_required": false
       }
     },
-    "promptSha256": "f3fce599e91f15c623ed99ed5f8fab8e2909dc83f7f11ac6734ced6346a44094",
-    "promptLength": 22297,
     "priceLineSection": "\n## PRICE LINE\nIn both drafts, the format in plain words. State the price ONCE, on its own line, in this shape:\n[Format name], $745, 2 hours | Professional sound, setup and breakdown, repertoire shaped to their event\nOne confident number per line: never \"around\", \"typically\", \"starting at\" or a range. No extension or add-on price.\n\n"
   }
 ]
