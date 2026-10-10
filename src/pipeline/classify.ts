@@ -86,10 +86,34 @@ export function normalizeNpTier(value: unknown, nonprofitBuyer: boolean): NpTier
   return nonprofitBuyer && (value === "NP1" || value === "NP2" || value === "NP3") ? value : null;
 }
 
-/** organization_name (R403): a trimmed non-empty string, and only for a nonprofit buyer; else null. */
-export function normalizeOrganizationName(value: unknown, nonprofitBuyer: boolean): string | null {
+/**
+ * organization_name (R403): a trimmed non-empty string, and only for a nonprofit buyer; else null.
+ * Never the venue (plan 2026-10-09; the classifier returned the venue on 2 of 2 real runs when the lead named no
+ * organization): a match returns null, so the in-kind line keeps [organization] and the lead is held for Alex.
+ */
+export function normalizeOrganizationName(value: unknown, nonprofitBuyer: boolean, venueName?: unknown): string | null {
   const name = typeof value === "string" ? value.trim() : "";
-  return nonprofitBuyer && name ? name : null;
+  if (!nonprofitBuyer || !name) return null;
+  return namesMatch(name, venueName) ? null : name;
+}
+
+// Accents folded, & = and, punctuation dropped, one leading "the" removed: "The Café & Bar." -> [cafe, and, bar].
+function nameWords(raw: unknown): string[] {
+  const words = (typeof raw === "string" ? raw : "").normalize("NFD").replace(/\p{M}/gu, "").toLowerCase()
+    .replace(/&/g, " and ").replace(/[^\p{L}\p{N}]+/gu, " ").trim().split(" ").filter(Boolean);
+  return words[0] === "the" ? words.slice(1) : words;
+}
+
+// Identical word lists (any length), or the shorter (2+ words) inside the longer as whole words. An empty list
+// never matches. One-word containment is not a match: "The Rock" must not drop "Rock the Vote". Known miss
+// (pinned by a test): abbreviations such as "St." vs "Saint".
+function namesMatch(a: unknown, b: unknown): boolean {
+  const [x, y] = [nameWords(a), nameWords(b)];
+  if (!x.length || !y.length) return false;
+  const [short, long] = x.length <= y.length ? [x, y] : [y, x];
+  if (short.length === long.length) return short.every((w, i) => w === long[i]);
+  if (short.length < 2) return false;
+  return long.some((_, i) => short.every((w, j) => long[i + j] === w));
 }
 
 const validateClassification = (raw: unknown): Classification => {
@@ -161,7 +185,7 @@ const validateClassification = (raw: unknown): Classification => {
   obj.extended_dancer = normalizeExtendedDancer(obj.extended_dancer);
   obj.nonprofit_buyer = normalizeNonprofitBuyer(obj.nonprofit_buyer);
   obj.np_tier = normalizeNpTier(obj.np_tier, obj.nonprofit_buyer as boolean);
-  obj.organization_name = normalizeOrganizationName(obj.organization_name, obj.nonprofit_buyer as boolean);
+  obj.organization_name = normalizeOrganizationName(obj.organization_name, obj.nonprofit_buyer as boolean, obj.venue_name);
   obj.graceful_decline = normalizeGracefulDecline(obj.graceful_decline);
   obj.delivery_mode = deliveryModeFor(obj.format_recommended);
   Object.assign(obj, normalizeEngagement(obj));

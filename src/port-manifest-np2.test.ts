@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { buildClassifyPrompt } from "./prompts/classify.js";
-import { classifyLead } from "./pipeline/classify.js";
+import { classifyLead, normalizeOrganizationName } from "./pipeline/classify.js";
 import { setClaudeRequesterForTests } from "./claude.js";
 import { budgetGapFor, inKindSentence, lookupPrice, nonprofitPriceNote } from "./pipeline/price.js";
 import { buildGeneratePrompt } from "./prompts/generate.js";
@@ -497,4 +497,38 @@ test("price block H7 offline harness: four leads through runPipeline with a stub
         ? ["in_kind_org_missing: the lead names no organization; Alex fills [organization] before sending"] : [], name);
     } finally { setClaudeRequesterForTests(); }
   }
+});
+
+// organization_name must never be the venue (plan 2026-10-09-fix-organization-name-is-the-venue). Real runs: the
+// classifier returned the venue as the organization on 2 of 2 runs when the lead named none. A match is held as
+// [organization] for Alex. Match = identical word lists, or 2+ whole words contained (after folding).
+const org = (o: unknown, venue: unknown, np = true) => normalizeOrganizationName(o, np, venue);
+
+test("org-venue O1/O2/O3/O4b: the venue is never kept as the organization", () => {
+  assert.equal(org("Example Grand Hotel", "Example Grand Hotel"), null, "O1");
+  for (const [o, v] of [["The Example Grand Hotel", "example grand hotel."], ["Café São Paulo", "Cafe Sao Paulo"],
+    ["Arts & Culture Center", "Arts and Culture Center"]]) assert.equal(org(o, v), null, `O2 ${o} / ${v}`);
+  assert.equal(org("Example Grand Hotel", "Example Grand Hotel La Jolla"), null, "O3 org inside venue");
+  assert.equal(org("Example Grand Hotel La Jolla", "Example Grand Hotel"), null, "O3 venue inside org");
+  assert.equal(org("The Example", "Example"), null, "O4b identical one-word names");
+});
+
+test("org-venue O4/O5/O5b/O8/O10: real organizations are kept; empty names never match; known miss pinned", () => {
+  for (const [v, o] of [["the Park", "Parkview Foundation"], ["The Grand", "Grand Avenue Foundation"],
+    ["The Rock", "Rock the Vote"], ["The Center", "Center for Community Arts"]]) assert.equal(org(o, v), o, `O4 ${o} at ${v}`);
+  assert.equal(org("Example Arts Foundation", "Example Grand Hotel"), "Example Arts Foundation", "O5");
+  for (const v of [null, undefined, "", "   ", "..."]) assert.equal(org("Example Arts Foundation", v), "Example Arts Foundation", `O5b venue ${JSON.stringify(v)}`);
+  for (const o of ["...", "   "]) assert.equal(org(o, "Example Grand Hotel"), normalizeOrganizationName(o, true), `O5b organization ${JSON.stringify(o)}`);
+  assert.equal(org("Example Grand Hotel", "Example Grand Hotel", false), null, "O8 non-nonprofit stays null");
+  assert.equal(org("St. Mary's Hotel", "Saint Marys Hotel"), "St. Mary's Hotel", "O10 KNOWN MISS (pinned): St. vs Saint");
+});
+
+test("org-venue O6: through classifyLead, the venue-as-organization becomes [organization] and a hold note", async () => {
+  const c = await classifyAs({ ...valid, nonprofit_buyer: true, np_tier: "NP2", rate_card_tier: "T3", lead_source_column: "P",
+    organization_name: "Example Grand Hotel", venue_name: "Example Grand Hotel" });
+  assert.equal(c.organization_name, null);
+  const p = lookupPrice(c);
+  const priced2 = { ...p, budget: budgetGapFor(c, p) };
+  assert.match(inKindSentence(c, priced2) ?? "", /contribution to \[organization\]\.$/);
+  assert.match(nonprofitPriceNote(c, priced2) ?? "", /the lead names no organization: Alex fills \[organization\]/);
 });
