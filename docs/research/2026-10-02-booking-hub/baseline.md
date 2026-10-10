@@ -82,7 +82,7 @@ views, which are not inquiries. Window differs slightly (Nov–Oct by calendar m
 Impressions peaked in January and fell after (Alex's reading). No export of these numbers exists (Yelp's account
 data export covers personal data, not business performance).
 
-## 4. Summary for the Module 1 measure
+## Summary for the Module 1 measure
 
 ~415 inquiries in 12 months (GigSalad 247 threads, possibly double-counting cross-profile leads; Yelp 168
 messages) against 24 paid performances from ALL sources. Not a win rate: a gig is not yet traced to its lead

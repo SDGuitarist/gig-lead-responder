@@ -27,7 +27,7 @@ flowchart LR
     A03[0.3 live defects ✅ except invalid_grant ALERT]
     A04[0.4 migrations ✅]
     A05[0.5 port: 19 TO PORT]
-    A06[0.6 win-rate baseline ⛔ Alex]
+    A06[0.6 win-rate baseline ✅ approx]
     A07[0.7 spikes: S1 ✅ S1-adv ✅ C1 ✅ G1 ❌→redesign 1.2 · S3 ✅ · S2 S5 S6 open]
   end
   P0 --> M1[Module 1: 1.1 send gate · 1.2 no dup send · 1.3 statuses · 1.4 approvals · 1.5 channels · 1.6 claude -p · 1.7 ramp/clock/alerts]
@@ -51,7 +51,7 @@ then 0 off-calendar gigs / 0 missed money or COI dates; then hours back.
 | ☐ | 0.3 `invalid_grant` ALERT half | not written (`alert.ts` can't deliver until Module 1) | `spikes.md` row "0.3 `/health` fields" | Claude, inside Module 1.7 |
 | ☑ | 0.3 other live defects, 0.4 migrations | done | `spikes.md` 0.3 rows; HANDOFF header | — |
 | ☐ | **0.5 port: 19 TO PORT** | R006, R020–R025, R081–R085, R087–R089, R329, R398, R403 (NP1/NP3/NP2 3-4h/NP duo prices still open), R405 | `port-manifest.md`; count with **V1** below | Claude; **any new or changed price needs Alex's numbers** |
-| ◐ | **0.6 win-rate baseline** | **PARTIAL 10-09**: calendar 24 paid performances (4 more were unpaid); GigSalad both accounts 247 lead threads, 3 marked booked (Alex books off-platform: status is not a win count) | `docs/research/2026-10-02-booking-hub/baseline.md` | **Alex**: allow `biz.yelp.com` in the Chrome extension or read the Yelp counts. Design gap: wins need per-gig lead-source attribution |
+| ☑ | **0.6 win-rate baseline** | **DONE (approximate) 10-09**: ~415 inquiries (GigSalad 247 threads + Yelp 168 messages) vs 24 paid performances (all sources) | `docs/research/2026-10-02-booking-hub/baseline.md` | Design gap for Module 1: trace each gig to its lead source (GigSalad Booked status is not a win count: Alex books off-platform) |
 | ☑ | S1, S1-adv (locked `claude -p`, injection) | PASSED 10-03 | `spikes.md` `## Executed` | — |
 | ☑ | C1 (Railway stopped; C1b waived by Alex) | PASSED 10-03 | `spikes.md` rows C1a, C1b. ⚠ GitHub auto-deploy note there | — |
 | ☑ | G1 Gmail supplied Message-ID | **FAIL 10-03** (Gmail replaces it; search verified by controls); repeated 10-09, same result | `spikes.md` G1 result rows (NOT the UNEXECUTED table) | **Consequence: plan §1.2 duplicate-send recovery must be redesigned** (candidates: body/subject token, or the Gmail id from the send response); auto-send stays off until then |
