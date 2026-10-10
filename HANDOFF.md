@@ -4,7 +4,7 @@
 
 **Date:** 2026-10-09
 **Branch:** `feat/hub-phase0` (cut from `docs/booking-hub-brainstorm` at `c644210`; pushed; not merged)
-**Phase:** Work, Phase 0 **in progress**. 0.1, 0.2 (code), 0.3 (all but the alert half of `invalid_grant alerts`), 0.4, S1, S1-adv done. **0.5 port: 19 TO PORT remain** (was "29": stale; recounted from the manifest's status column 2026-10-09, see `docs/END-TO-END-STATUS.md` V1). 0.6 blocked. **GigSalad portal reading BUILT.** Module 1 not started.
+**Phase:** Work, Phase 0 **in progress**. 0.1, 0.2 (code), 0.3 (all but the alert half of `invalid_grant alerts`), 0.4, S1, S1-adv done. **0.5 port: 19 TO PORT remain** (was "29": stale; recounted from the manifest's status column 2026-10-09, see `docs/END-TO-END-STATUS.md` V1). 0.6 PARTIAL (calendar + both GigSalad accounts done 2026-10-09; Yelp missing: extension denies biz.yelp.com). S3 PASSED; G1 FAILED (10-03, repeated 10-09) → redesign plan 1.2. **GigSalad portal reading BUILT.** Module 1 not started.
 
 ## START HERE — price-block cycle COMPLETE (2026-10-09): plan, work, review (GO), compound all done
 
