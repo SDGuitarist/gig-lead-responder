@@ -169,6 +169,9 @@ test("price block H5: an NP2 prompt asks for one [[PRICE: ...]] marker line and 
   const section = prompt.slice(prompt.indexOf("## PRICE LINE"));
   assert.match(section, /\[\[PRICE: <the format in plain words>\]\]/);
   assert.match(section, /once, alone on its own line, in both drafts/);
+  // Real-model run c2 (2026-10-09): the model wrote [[PRICE: Solo guitar, 1 hour]]; the name rule rejected it and the
+  // draft was held. The prompt now says the marker holds the format name only.
+  assert.match(section, /format name only: no hours, no price, no commas/);
   assert.doesNotMatch(section, /\[Format name\], \$/, "no model-written price line shape");
   assert.doesNotMatch(prompt, /## IN-KIND LINE|in-kind contribution to|My standard Example Hotel rate/);
   const unpriced = priced({ rate_card_tier: "T2" });

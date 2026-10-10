@@ -375,7 +375,8 @@ function buildPriceLineBlock(classification: Classification, pricing: PricingRes
 This is a nonprofit quote at a reduced rate. Where the price belongs, write this marker line exactly
 once, alone on its own line, in both drafts:
 [[PRICE: <the format in plain words>]]
-for example [[PRICE: Solo guitar]]. The app replaces that line with the price and Alex's note about the reduced
+for example [[PRICE: Solo guitar]]. Inside the brackets write the format name only: no hours, no price, no commas.
+The app replaces that line with the price and Alex's note about the reduced
 rate. Do not write the price line yourself, and write no other sentence about an in-kind contribution, a donation
 or your standard rate. No extension or add-on price.`;
   // One builder for the tail (price-block.ts): the NP2 block the app inserts is the same text.
