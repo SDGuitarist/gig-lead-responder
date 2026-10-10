@@ -28,7 +28,7 @@ Railway; (3) the other items from the pricing session list (sourced formats; NP1
 Alex's numbers only; other TO PORT rows in `docs/research/2026-10-02-booking-hub/port-manifest.md`).
 
 **NEW items found this session (not in this work):**
-- **organization_name = the venue** (2/2 runs, lead (c)): the classifier put "Example Grand Hotel" in
+- **[FIXED 2026-10-09, `e0ab871`..`bef0bf2`; code review pending, see START HERE]** **organization_name = the venue** (2/2 runs, lead (c)): the classifier put "Example Grand Hotel" in
   `organization_name` when the lead named no organization. A priced draft would thank the hotel and no check holds
   it. Alex: SEPARATE work item (likely: hold when organization_name equals venue_name + classify prompt wording).
 - **PF-Intel unreachable locally:** `.env` has `PF_INTEL_API_URL=http://pf-intel.railway.internal:8000`, which
