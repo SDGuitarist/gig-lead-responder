@@ -77,3 +77,17 @@ is $895, so the difference is my in-kind contribution to the Example Literacy Fo
 pitch, before the deposit line and the sign-off.
 
 Pre-existing, unrelated: the em-dash fixer leaves "doing its job , present" (a space before the comma).
+
+## After the one wording fix (`38d2555`, Alex: one fix, one re-measurement, no loop)
+
+Same three lead texts (a2, b2, c2), run once each:
+
+| Run | Tier | Price | Block in full / compressed | Leftover marker | in_kind violations |
+|---|---|---|---|---|---|
+| a2 | T3D, NP2 | $500 1h (standard $650) | yes / yes | none | none |
+| b2 | T3D, NP2 | $695 2h (standard $895) | yes / yes | none | none |
+| c2 | T3D, NP2 | $500 1h (standard $650) | yes / yes | none | `in_kind_org_missing` only (correct: no organization named; Alex fills it) |
+
+**3 of 3 NP2-priced runs carry the block in both drafts.** Across both measurements: 5 of 6 NP2 runs inserted;
+the 1 miss (hours in the marker name) was held, never sent wrong, and the prompt line now addresses it. Sample: 6
+runs on 3 texts; the rate on real leads stays unmeasured. `data/leads.db` untouched (Oct 3 09:20).
