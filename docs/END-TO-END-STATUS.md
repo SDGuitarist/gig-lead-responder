@@ -28,7 +28,7 @@ flowchart LR
     A04[0.4 migrations ✅]
     A05[0.5 port: 19 TO PORT]
     A06[0.6 win-rate baseline ⛔ Alex]
-    A07[0.7 spikes: S1 ✅ S1-adv ✅ C1 ✅ G1 ❌→redesign 1.2 · S3 ◐ phone check · S2 S5 S6 open]
+    A07[0.7 spikes: S1 ✅ S1-adv ✅ C1 ✅ G1 ❌→redesign 1.2 · S3 ✅ · S2 S5 S6 open]
   end
   P0 --> M1[Module 1: 1.1 send gate · 1.2 no dup send · 1.3 statuses · 1.4 approvals · 1.5 channels · 1.6 claude -p · 1.7 ramp/clock/alerts]
   M1 --> R[20-lead review-only ramp] --> AS[auto-send for code-confident drafts] --> W[1 week live] --> M2[Module 2] --> M3[Module 3]
@@ -51,12 +51,12 @@ then 0 off-calendar gigs / 0 missed money or COI dates; then hours back.
 | ☐ | 0.3 `invalid_grant` ALERT half | not written (`alert.ts` can't deliver until Module 1) | `spikes.md` row "0.3 `/health` fields" | Claude, inside Module 1.7 |
 | ☑ | 0.3 other live defects, 0.4 migrations | done | `spikes.md` 0.3 rows; HANDOFF header | — |
 | ☐ | **0.5 port: 19 TO PORT** | R006, R020–R025, R081–R085, R087–R089, R329, R398, R403 (NP1/NP3/NP2 3-4h/NP duo prices still open), R405 | `port-manifest.md`; count with **V1** below | Claude; **any new or changed price needs Alex's numbers** |
-| ◐ | **0.6 win-rate baseline** | **PARTIAL 10-09**: calendar 24 performances (+4 ambiguous); GigSalad music account 195 lead threads, 2 marked booked (GigSalad status undercounts wins) | `docs/research/2026-10-02-booking-hub/baseline.md` | **Alex**: sign in to the business GigSalad account (`alex@alexguillenmusic.com`); allow `biz.yelp.com` in the Chrome extension or read the Yelp counts; classify 4 calendar events |
+| ◐ | **0.6 win-rate baseline** | **PARTIAL 10-09**: calendar 24 performances (+4 ambiguous); GigSalad both accounts 247 lead threads, 3 marked booked (Alex books off-platform: status is not a win count) | `docs/research/2026-10-02-booking-hub/baseline.md` | **Alex**: allow `biz.yelp.com` in the Chrome extension or read the Yelp counts; classify 4 calendar events. Design gap: wins need per-gig lead-source attribution |
 | ☑ | S1, S1-adv (locked `claude -p`, injection) | PASSED 10-03 | `spikes.md` `## Executed` | — |
 | ☑ | C1 (Railway stopped; C1b waived by Alex) | PASSED 10-03 | `spikes.md` rows C1a, C1b. ⚠ GitHub auto-deploy note there | — |
 | ☑ | G1 Gmail supplied Message-ID | **FAIL 10-03** (Gmail replaces it; search verified by controls); repeated 10-09, same result | `spikes.md` G1 result rows (NOT the UNEXECUTED table) | **Consequence: plan §1.2 duplicate-send recovery must be redesigned** (candidates: body/subject token, or the Gmail id from the send response); auto-send stays off until then |
 | ☐ | S2 GigSalad email reply lands on platform | not run | `## UNEXECUTED` row S2 | **Alex**, on the next real GigSalad lead |
-| ◐ | S3 iMessage to self + read-back | **PASSED machine side 10-09** (sent + delivered, read back from `chat.db`); phone confirmation pending | `spikes.md` row "S3: iMessage to self + read-back \| 2026-10-09" | Alex: confirm it reached the iPhone. Finding: self-messages create two rows; only `is_from_me=1` is Alex |
+| ☑ | S3 iMessage to self + read-back | **PASSED 10-09** (sent + delivered, read back from `chat.db`; Alex confirmed on iPhone) | `spikes.md` row "S3: iMessage to self + read-back \| 2026-10-09" | Finding: self-messages create two rows; only `is_from_me=1` is Alex |
 | ☐ | S5 Gmail token valid on day 8 | not run | row "S5 step 2" | **Claude, on or after 2026-10-11**: the `getProfile` call in that row |
 | ☐ | S6 overnight awake + catch-up | not run | row S6 | Alex (a night) |
 | ☐ | FileVault restart after an OS update | not run | row FileVault | Alex (next macOS update) |
@@ -91,7 +91,7 @@ Gate (port manifest header): Module 1 cannot go live while any manifest row is `
 ## Critical path (the order sessions should pull from, unless Alex picks otherwise)
 
 1. Things only Alex can unblock, raised every session until done: **0.6 baseline**, **S2** (next GigSalad lead),
-   **S3 phone confirmation**, **S6** (a night), the **PF-Intel URL** check.
+   **S6** (a night), the **PF-Intel URL** check.
 2. Claude: **S5 on/after 2026-10-11**; then the **19 TO PORT** rows (prices need Alex's numbers).
 3. Module 1 plan review → build 1.1–1.7 → redesign 1.2's send-recovery key (G1 failed) → 20-lead ramp → auto-send → 1 week live.
 4. Only then: write the Module 2 plan from the live results.

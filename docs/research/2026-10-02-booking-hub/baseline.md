@@ -2,7 +2,7 @@
 
 **Reader and trigger:** the Module 1 success measure ("win rate above the 0.6 baseline at 3 months",
 `docs/plans/2026-10-02-booking-hub-roadmap.md`), read when Module 1 has run 3 months; and
-`docs/END-TO-END-STATUS.md` (0.6 row). **Status: PARTIAL**: GigSalad account 2 and Yelp are missing (below).
+`docs/END-TO-END-STATUS.md` (0.6 row). **Status: PARTIAL**: Yelp is missing, and the 4 ambiguous calendar events await Alex's answer (below).
 Collected 2026-10-09 by Claude Code, read-only, with Alex's go-ahead. Counts only: no client names are recorded.
 
 ## 1. GIG Calendar ("Alex's GIG Calendar", Google Calendar), events starting in the window
@@ -43,11 +43,29 @@ Method (reproducible, read-only): in a signed-in tab, fetch each inbox page (`/p
 of `.inbox__table-cell--from` ("Oct 8" = 2026; "10/08/25" = MM/DD/YY) and the text of
 `.inbox__table-cell--status`. Names were never returned.
 
+## 2b. GigSalad, account `alex@alexguillenmusic.com` (business; Alex signed it in 2026-10-09)
+
+| Folder | Threads in window | Status breakdown (in window) |
+|---|---|---|
+| Inbox "All" (3 pages, 44 rows, 0 unparsed) | 44 | Event date passed 23 · No longer available 8 · Message sent 7 · Message read 4 · **Booked 1** · Declined lead 1 |
+| Archived (1 page, 8 rows) | 8 | Declined lead 8 |
+| **Total lead threads** | **52** | **Booked on GigSalad: 1** ("Booked gigs" page: 1 total, 1 in the window) |
+
+By month (inbox + archive): 2025-12: 3 · 2026-01: 3 · 02: 9 · 03: 4 · 04: 8 · 05: 5 · 06: 5 · 07: 5 · 08: 4 ·
+09: 2 · 10: 4.
+
+**Both GigSalad accounts: 247 lead threads, 3 marked booked.** Possible overlap: a client who contacted both
+profiles counts once per account; not de-duplicated (names were never read).
+
+**Why GigSalad's "Booked" is not a win count (Alex, 2026-10-09):** "I try to move everything off platform and hardly
+ever book anything on the platform." Wins must come from the calendar (or another source of truth), with each gig
+attributed to its lead source. That attribution does not exist yet: a design question for Module 1's win-rate
+measure.
+
 ## 3. Missing (owner, trigger)
 
 | Source | Why missing | Needed |
 |---|---|---|
-| GigSalad account `alex@alexguillenmusic.com` | The browser is signed in to the music account; Claude cannot type passwords | Alex signs in to the business account in the same Chrome, then the same method runs |
 | Yelp business dashboard | The Claude in Chrome extension denies `biz.yelp.com` (site permission) | Alex allows the site in the extension, or reads the 12-month lead and booking counts |
 | Calendar: 4 ambiguous events | Titles don't say | Alex: paid gigs or not? |
 | GigSalad "date = received or last activity?" | Not verified | Open question; one way to check is a known recent lead whose received date is known |
