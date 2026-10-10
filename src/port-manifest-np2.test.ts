@@ -5,6 +5,7 @@ import { classifyLead } from "./pipeline/classify.js";
 import { setClaudeRequesterForTests } from "./claude.js";
 import { budgetGapFor, inKindSentence, lookupPrice, nonprofitPriceNote } from "./pipeline/price.js";
 import { buildGeneratePrompt } from "./prompts/generate.js";
+import { insertPriceBlock, priceBlockFor, priceLineTail } from "./pipeline/price-block.js";
 import { postCheckDrafts } from "./pipeline/post-check.js";
 import { verifyClassificationHeuristics } from "./pipeline/classify-verify.js";
 import { withoutHoldNotes, type Classification, type PricingResult } from "./types.js";
@@ -342,4 +343,46 @@ test("port manifest R403 NP2: an in-kind mention counts with or without the hyph
     assert.equal(v(extra).length, 1, extra);
   }
   assert.deepEqual(v("Thank you for the kind words."), [], "the word kind alone");
+});
+
+// Plan 2026-10-09 (app-inserted price block, Alex: NP2 only, the model names the format in a [[PRICE: ...]] marker
+// line, the app writes every number and the in-kind sentence). Codex round 3 (NP2): a prose detector cannot
+// recognise "the price line"; the app now writes it, so the post-check can confirm a block it knows exactly.
+const NP2_TAIL = "$695, 2 hours | Professional sound, setup and breakdown, repertoire shaped to their event";
+const ORG = "My standard rate is $795, so the difference is my in-kind contribution to the Example Foundation.";
+const np2Block = () => priceBlockFor({ venue_name: null, organization_name: "Example Foundation" }, priced().p);
+
+test("price block H1: the block states the client total and Alex's in-kind sentence, only for a one-price NP2", () => {
+  assert.deepEqual(np2Block(), { tail: NP2_TAIL, inKind: ORG });
+  const { c, p } = priced({ organization_name: "Example Foundation" } as Partial<Classification>);
+  const travel = { ...p, travel: { fee: 75, band: "Regional", miles: 40, zip: "92000", musician_stipend: 0, custom_quote_required: false } } as PricingResult;
+  const b = priceBlockFor(c, travel);
+  assert.ok(b?.tail.startsWith("$770, 2 hours | "), b?.tail);
+  assert.equal(b?.inKind, inKindSentence(c, travel), "the same sentence the app already builds");
+  assert.match(b?.inKind ?? "", /rate is \$870,/);
+  assert.equal(priceBlockFor(priced({ rate_card_tier: "T2" }).c, priced({ rate_card_tier: "T2" }).p), null, "no NP price: no block");
+  const scoped = priced({}, 550);
+  assert.equal(priceBlockFor(scoped.c, scoped.p), null, "two prices: no block");
+  assert.equal(priceLineTail({ format: "mariachi_full", travel: null } as PricingResult, 900, 1), "$900, 1 hour", "no included clause, singular hour");
+});
+
+test("price block H2: the one marker line becomes the price line and the in-kind line; nothing else changes", () => {
+  const draft = "Hi Dana,\n\nOpening line.\n\n[[PRICE: Solo guitar]]\n\nLet me know.";
+  assert.equal(insertPriceBlock(draft, np2Block()),
+    `Hi Dana,\n\nOpening line.\n\nSolo guitar, ${NP2_TAIL}\n${ORG}\n\nLet me know.`);
+  assert.equal(insertPriceBlock("  [[PRICE:   Solo guitar  ]]  ", np2Block()), `Solo guitar, ${NP2_TAIL}\n${ORG}`, "spaces trimmed");
+  assert.equal(insertPriceBlock(draft, null), draft, "no block: the draft is untouched");
+});
+
+test("price block E4/E10/E13: zero, two, inline or badly named markers insert nothing; accented names work", () => {
+  const b = np2Block();
+  for (const draft of [
+    "No marker at all.",
+    "[[PRICE: Solo guitar]]\nmiddle\n[[PRICE: Solo guitar]]",
+    "The [[PRICE: Solo guitar]] would work well.",
+    "[[PRICE: Solo guitar 2]]", "[[PRICE: $695 guitar]]", "[[PRICE: Solo | guitar]]", "[[PRICE: ]]",
+    `[[PRICE: ${"x".repeat(41)}]]`,
+  ]) assert.equal(insertPriceBlock(draft, b), draft, draft);
+  assert.equal(insertPriceBlock("[[PRICE: Guitarra española]]", b), `Guitarra española, ${NP2_TAIL}\n${ORG}`);
+  assert.equal(insertPriceBlock("[[PRICE: Solo Spanish & flamenco guitar]]", b), `Solo Spanish & flamenco guitar, ${NP2_TAIL}\n${ORG}`);
 });

@@ -1,5 +1,6 @@
 import { RATE_TABLES, type FormatRates, type TierRates } from "../data/rates.js";
 import { clientTotal, findMinFloor, IN_KIND_ORG_PLACEHOLDER, inKindSentence, rateTableFor, residencyStatesPrice } from "../pipeline/price.js";
+import { priceLineTail } from "../pipeline/price-block.js";
 import { SETUP_SPACE } from "../data/setup-space.js";
 import { VOICE_REFERENCES } from "../data/voice-references.js";
 import { withoutHoldNotes, CONCERN_4PIECE_ALT, CONCERN_FULL_ENSEMBLE, GUT_CHECK_KEYS, GUT_CHECK_THRESHOLD, GUT_CHECK_TOTAL, type Classification, type Format, type PricingResult, type ResidencyQuote } from "../types.js";
@@ -365,11 +366,10 @@ GENERALIZATION: This rule applies to ALL cultural terms. Adjacent terms from the
 // his own sent replies (Patterson, Starikov, Miranda), not the Project's T2 "typically runs around".
 // The included clause is true only for formats Alex performs; no extension price (no rate exists).
 // No-viable-scope keeps its own minimum-set statement (residency and clarification never reach here).
-const ALEX_PERFORMS: ReadonlySet<string> = new Set(["solo", "duo", "flamenco_duo", "flamenco_trio", "flamenco_trio_full"]);
 function buildPriceLineBlock(pricing: PricingResult): string {
   if (pricing.budget.tier === "no_viable_scope") return "";
-  const included = ALEX_PERFORMS.has(pricing.format) ? " | Professional sound, setup and breakdown, repertoire shaped to their event" : "";
-  const line = (price: number, hours: number) => `[Format name], $${clientTotal(pricing, price)}, ${hours} hour${hours === 1 ? "" : "s"}${included}`;
+  // One builder for the tail (price-block.ts): the NP2 block the app inserts is the same text.
+  const line = (price: number, hours: number) => `[Format name], ${priceLineTail(pricing, price, hours)}`;
   const alt = pricing.budget.tier === "large" ? pricing.budget.scoped_alternative : null;
   const lines = alt
     ? `State exactly TWO prices, each once, on their own lines, in this order (the budget section above):
