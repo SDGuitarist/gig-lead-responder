@@ -6,6 +6,7 @@ import { setClaudeRequesterForTests } from "./claude.js";
 import { budgetGapFor, inKindSentence, lookupPrice, nonprofitPriceNote } from "./pipeline/price.js";
 import { buildGeneratePrompt } from "./prompts/generate.js";
 import { insertPriceBlock, priceBlockFor, priceLineTail } from "./pipeline/price-block.js";
+import { generateResponse } from "./pipeline/generate.js";
 import { postCheckDrafts } from "./pipeline/post-check.js";
 import { verifyClassificationHeuristics } from "./pipeline/classify-verify.js";
 import { withoutHoldNotes, type Classification, type PricingResult } from "./types.js";
@@ -393,4 +394,40 @@ test("price block E4/E10/E13: zero, two, inline or badly named markers insert no
   ]) assert.equal(insertPriceBlock(draft, b), draft, draft);
   assert.equal(insertPriceBlock("[[PRICE: Guitarra española]]", b), `Guitarra española, ${NP2_TAIL}\n${ORG}`);
   assert.equal(insertPriceBlock("[[PRICE: Solo Spanish & flamenco guitar]]", b), `Solo Spanish & flamenco guitar, ${NP2_TAIL}\n${ORG}`);
+});
+
+// Price block step 3 (plan row C): generateResponse cuts the compressed draft to 2000 chars, THEN inserts the block
+// into both drafts, THEN adds the sign-off (GigSalad: none). The model is stubbed; nothing leaves the machine.
+async function draftWith(full: string, compressed: string, platform?: string) {
+  const { c, p } = priced({ organization_name: "Example Foundation", ...(platform ? { platform } : {}) } as Partial<Classification>);
+  setClaudeRequesterForTests((async () => ({ id: "m", type: "message", role: "assistant", model: "t", stop_reason: "end_turn",
+    stop_sequence: null, usage: { input_tokens: 1, output_tokens: 1 },
+    content: [{ type: "text", text: JSON.stringify({ reasoning: { details_present: [], absences: [], emotional_core: "",
+      cinematic_opening: "", validation_line: "" }, full_draft: full, compressed_draft: compressed }) }] })) as never);
+  try { return await generateResponse(c, p, "ctx"); } finally { setClaudeRequesterForTests(); }
+}
+const BLOCK = `Solo guitar, ${NP2_TAIL}\n${ORG}`;
+const MARK = "[[PRICE: Solo guitar]]";
+
+test("price block H3: both drafts get the block; a marker near char 2000 survives the cut; the sign-off comes after", async () => {
+  // The marker ends before char 2000; inserting BEFORE the cut would push the in-kind line past it and slice it.
+  const nearCut = `${"y".repeat(1880)}\n${MARK}\n${"z".repeat(500)}`;
+  const d = await draftWith(`Hi Dana,\n\nOpening.\n\n${MARK}\n\nTalk soon.`, nearCut);
+  for (const [label, text] of [["full", d.full_draft], ["compressed", d.compressed_draft]] as const) {
+    assert.ok(text.includes(BLOCK), `${label}: block intact`);
+    assert.ok(!text.includes("[[PRICE"), `${label}: no marker left`);
+    assert.ok(text.indexOf(BLOCK) < text.lastIndexOf("\nAlex Guillen"), `${label}: the block comes before the sign-off`);
+  }
+  const g = await draftWith(`Hi Dana,\n\n${MARK}\n\nTalk soon.`, `Hi.\n${MARK}`, "gigsalad");
+  assert.ok(g.full_draft.includes(BLOCK) && g.compressed_draft.includes(BLOCK), "GigSalad: block in both");
+  assert.ok(!g.full_draft.includes("Alex Guillen") && !g.compressed_draft.includes("Alex Guillen"), "GigSalad: no sign-off added");
+});
+
+test("price block E9/E11: a marker the cut removes, or a draft with no marker, gets no block (the post-check holds it)", async () => {
+  const past = await draftWith(`Hi.\n${MARK}`, `${"y".repeat(2010)}\n${MARK}`);
+  assert.ok(past.full_draft.includes(BLOCK), "full: block");
+  assert.ok(!past.compressed_draft.includes(BLOCK) && !past.compressed_draft.includes(ORG), "compressed: the marker was cut, no block");
+  const one = await draftWith(`Hi.\n${MARK}`, "Hi. Short version, no marker.");
+  assert.ok(one.full_draft.includes(BLOCK));
+  assert.ok(!one.compressed_draft.includes(ORG), "only the full draft had a marker");
 });

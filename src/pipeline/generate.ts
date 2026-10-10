@@ -4,6 +4,7 @@ import { buildGeneratePrompt } from "../prompts/generate.js";
 import type { Classification, Drafts, GateResult, PricingResult } from "../types.js";
 import { escapeForPrompt, wrapEditInstructions } from "../utils/sanitize.js";
 import { mentionsPrice } from "../utils/price-mention.js";
+import { insertPriceBlock, priceBlockFor } from "./price-block.js";
 
 /** Positive signals from a failed gate — what worked and should be kept. */
 export interface PositiveSignals {
@@ -103,14 +104,21 @@ export async function generateResponse(
 
   // GigSalad prohibits direct contact info — suppress contact block
   const suppressContact = classification.platform === "gigsalad";
-  const fullDraft = suppressContact ? result.full_draft : ensureSignOff(result.full_draft);
 
   // Truncate compressed_draft BEFORE contact block so the block is never sliced off
   const MAX_COMPRESSED_LENGTH = 2000;
   const rawCompressed = result.compressed_draft.length > MAX_COMPRESSED_LENGTH
     ? result.compressed_draft.slice(0, MAX_COMPRESSED_LENGTH)
     : result.compressed_draft;
-  const compressedDraft = suppressContact ? rawCompressed : ensureSignOff(rawCompressed);
+
+  // NP2 (plan 2026-10-09 row C): the app's price line + in-kind line replace the model's [[PRICE: ...]] marker.
+  // Order: cut first (the cut can never slice the block), then insert, then the sign-off. A marker the cut
+  // removed, or a missing one, leaves no block: the post-check holds the draft.
+  const block = priceBlockFor(classification, pricing);
+  const full = insertPriceBlock(result.full_draft, block);
+  const compressed = insertPriceBlock(rawCompressed, block);
+  const fullDraft = suppressContact ? full : ensureSignOff(full);
+  const compressedDraft = suppressContact ? compressed : ensureSignOff(compressed);
 
   const compressedWordCount = countWords(compressedDraft);
 
