@@ -226,6 +226,10 @@ export function postCheckDrafts(
 // exactly. Every in-kind or standard-rate statement must be that line (Codex round 1 NP2 P2: a second,
 // contradicting figure), and it must sit on the price line or the next non-empty line (run B P2). The price
 // line states the NP price AND the priced hours (Codex round 2 NP2 P2: "budget is $695" is not it).
+// KNOWN GAP (Codex round 3, both runs (c); the cap fired; Alex 2026-10-09 accepted it): the price line is
+// inferred from prose, so a sentence stating the NP amount and hours ("I can make $695 work for 2 hours") passes
+// as the price line, and "in  kind" (two spaces) is not counted. Drafts are always held for Alex. Planned fix
+// (HANDOFF): the app inserts the price line and the in-kind line itself; this check then confirms the block.
 const IN_KIND_MENTION = /\bin[-\s]?kind\b/gi; // in-kind, in kind, inkind (Codex round 2 NP2 P2)
 // Alex's own rate claim ("my standard ... rate is $"), not any "standard" near "rate" (Codex round 2 NP2 P2).
 const STANDARD_RATE_STATEMENT = /\bmy\s+(?:\S+\s+){0,2}?standard\b(?:\s+\S+){0,5}?\s+rate\s+(?:is|was)\s+\$/gi;

@@ -12,7 +12,8 @@
 round 2 = NO-GO (4 P2, fixed `a14821b` `5e954d4` `083d8ca` `e33902e`); round 3 = (c) on BOTH runs, THE CAP HAS FIRED
 (`docs/reviews/2026-10-09-np2-codex-round3.md`): the post-check's prose price-line detector is the wrong shape; residue
 = a prose sentence stating the NP amount + hours passes as the price line; "in  kind" (two spaces) not counted. ALEX
-DECIDES: different approach / revert / accept. No round 4.
+DECIDED (2026-10-09): ACCEPT + PLAN THE FIX. NP2 review CLOSED; both residues are known gaps (comment at
+`hasInKindLine`).
 LOCAL RUNS done before round 2** (`docs/reviews/2026-10-09-np2-local-runs.md`: the drafter never
 saw the organization's name, 0/3; fixed by classifier `organization_name` + app-written name, `43ba208`, `fc35d66`,
 `6d40b8a`; re-run 2/2 priced drafts exact; NP2 at 1h flips with the T2/T3 call) (build `8008311`..`1cc4402`; fixes `9f93a75`, `e9a6696`, `ace188b`, `de074a3`, `1037ad4`; record
@@ -33,7 +34,12 @@ decisions this session (asked before code):
   minimum-set redirect has no single standard, so no line and the hold note says "Alex adds it".
 - Post-check holds a draft whose line is missing, changed, or has [organization] unfilled (both drafts; both
   drafting paths incl. SMS edit).
-**Known gaps (NP2):** the run-pipeline wiring of `nonprofitPriceNote` and the `inKind` post-check option is not
+**NEW planned work item (Alex 2026-10-09, after the NP2 cap fired):** the app inserts the price line and the
+in-kind line into both drafts itself (after generation), and the post-check only confirms that block is intact.
+Replaces prose inference of "the price line" (the (c) surface). Touches how every draft is assembled: needs its own
+plan (brainstorm skippable: `docs/reviews/2026-10-09-np2-codex-round3.md` is the input) and review.
+**Known gaps (NP2):** a prose sentence stating the NP amount + hours passes as the price line; "in  kind" (two
+spaces) is not counted (Codex round 3, accepted). the run-pipeline wiring of `nonprofitPriceNote` and the `inKind` post-check option is not
 tested (same as the T4 and minimum-profit notes; the lead is held by the classify note regardless). No real model
 draft has carried the in-kind line; the LLM verify gate's reaction to a second dollar figure is unmeasured. An SMS
 edit asking to drop the line would fail the post-check (held). NP1, NP3, NP2 3-4h, NP duo: no price (held).
@@ -104,6 +110,9 @@ production data, ask first), R329, R398 (later module).
 3. **Least confident going into review?** Whether the drafting model writes the in-kind sentence word for word
    (the post-check holds it if not, but a high false-hold rate would make NP2 useless), and whether the LLM verify
    gate penalises the second dollar figure.
+   **Answered by the local runs:** wording and placement were exact on every priced draft and the verify gate
+   passed them; the real gap was one nobody reviewed for (the drafter cannot see the lead text). Still unmeasured:
+   the false-hold rate across many varied real leads (sample: 4 priced drafts).
 
 ### Three Questions (pricing session)
 1. **Hardest implementation decision?** The written-price exempt list: every exemption is a hole, and the two most
@@ -123,8 +132,9 @@ FIRST gate (stop and ask Alex if anything differs):
   git status --short                                        # expect: clean
 Read: HANDOFF.md "START HERE — pricing session" (NP2 block), CLAUDE.md, src/port-manifest-np2.test.ts,
 docs/reviews/2026-10-09-np2-codex-round1.md.
-NP2 review CAP FIRED after round 3 ((c), both runs; docs/reviews/2026-10-09-np2-codex-round3.md). If Alex's decision
-is not recorded in HANDOFF, ask him: (i) different approach, (ii) revert, (iii) accept the residue. No round 4.
+No Codex review is open: NP2 is CLOSED (cap fired after round 3; Alex accepted + planned the fix).
+Ask Alex which to do next: (1) plan the "app inserts the price line + in-kind line" work item (HANDOFF), (2) the
+sourced-formats plan, (3) NP1/NP3/NP2 3-4h/NP duo prices (his numbers), (4) other TO PORT rows.
 Then apply the fix contract (~/.claude/docs/mandatory-review-workflow.md) to real findings: failing test first,
 mutation-check, one concern per commit, green suite + tsc. Stricter verdict wins when runs disagree.
 A 2nd NO-GO stops automatic iteration; round 3 only with "Round 3 authorized by Alejandro: YES".

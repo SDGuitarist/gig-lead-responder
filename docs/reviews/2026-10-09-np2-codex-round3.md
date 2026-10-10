@@ -15,6 +15,10 @@ the false pass; none can make a prose detector recognise a structured quote line
 - P3 (run A): "in  kind" (two spaces) is not counted. Same impact class.
 - Codex's full-suite failures (17) were its sandbox (`listen EPERM`); outside it the suite is 720/0/1 at `75b7744`.
 
+**Alex's decision (2026-10-09): ACCEPT + PLAN THE FIX.** NP2 ships as is; both residues are known gaps (comment at
+`hasInKindLine`, HANDOFF). Planned work item (not in this fix loop): the app inserts the price line and the in-kind
+line into the drafts itself, and the post-check only confirms that block is intact.
+
 ## Run A (Claude Code)
 
 ```
