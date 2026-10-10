@@ -7,9 +7,11 @@ import { budgetGapFor, inKindSentence, lookupPrice, nonprofitPriceNote } from ".
 import { buildGeneratePrompt } from "./prompts/generate.js";
 import { insertPriceBlock, priceBlockFor, priceLineTail } from "./pipeline/price-block.js";
 import { generateResponse } from "./pipeline/generate.js";
+import { runEditPipeline, runPipeline } from "./run-pipeline.js";
+import { enrichClassification } from "./pipeline/enrich.js";
 import { postCheckDrafts } from "./pipeline/post-check.js";
 import { verifyClassificationHeuristics } from "./pipeline/classify-verify.js";
-import { withoutHoldNotes, type Classification, type PricingResult } from "./types.js";
+import { GUT_CHECK_KEYS, withoutHoldNotes, type Classification, type PricingResult } from "./types.js";
 
 // Port manifest R403, NP2 (Alex 2026-10-09). NP2 = established foundation, solo only: 1h $500, 2h $695,
 // quoted AT the floor. NP1, NP3, NP2 3-4h and any NP duo: no NP price, held. Alex chose a classifier field
@@ -402,5 +404,94 @@ test("price block E14/E15/E15b: em dashes leave the block intact; only the sign-
   ] as const) {
     const d = insertPriceBlock(draft, np2Block());
     assert.deepEqual(pc(d, d, np2Block(), name.startsWith("GigSalad") ? "gigsalad" : undefined), [], name);
+  }
+});
+
+// Price block step 5 (plan rows C/E): the whole pipeline, model stubbed in call order (classify, generate, verify,
+// and generate + verify again on a rewrite). A call beyond the script throws, so an unexpected extra model call
+// fails loudly. Classifications carry venue_name null and the leads no ZIP: no venue lookup, no travel lookup,
+// no database write, no network.
+const GATE = (pass: boolean) => ({ scene_quote: "q", scene_type: "cinematic", competitor_test: false,
+  gut_checks: Object.fromEntries(GUT_CHECK_KEYS.map((k) => [k, pass])), gate_status: pass ? "pass" : "fail",
+  fail_reasons: pass ? [] : ["tighten the opening"], concern_traceability: [], best_line: "b", validation_line: "v" });
+const GEN = (full: string, compressed: string = full) => ({ reasoning: { details_present: [], absences: [],
+  emotional_core: "", cinematic_opening: "", validation_line: "" }, full_draft: full, compressed_draft: compressed });
+function script(replies: unknown[]) {
+  let i = 0;
+  setClaudeRequesterForTests((async () => {
+    if (i >= replies.length) throw new Error(`unexpected model call #${i + 1}`);
+    return { id: "m", type: "message", role: "assistant", model: "t", stop_reason: "end_turn", stop_sequence: null,
+      usage: { input_tokens: 1, output_tokens: 1 }, content: [{ type: "text", text: JSON.stringify(replies[i++]) }] };
+  }) as never);
+  return () => i;
+}
+const np2Lead = (over: Record<string, unknown> = {}) => ({ ...valid, nonprofit_buyer: true, np_tier: "NP2", rate_card_tier: "T3",
+  lead_source_column: "P", organization_name: "Example Foundation", ...over });
+const blockOf = (r: { classification: Classification; pricing: PricingResult }) =>
+  insertPriceBlock(MARK, priceBlockFor(r.classification, r.pricing));
+
+test("price block H3b: a failed verify regenerates, and the rewrite carries the block of the returned pricing", async () => {
+  const calls = script([np2Lead(), GEN(`Hi.\n${MARK}\nTalk soon.`), GATE(false), GEN(`Hello.\n${MARK}\nSee you.`), GATE(true)]);
+  try {
+    const r = await runPipeline("lead text");
+    assert.equal(calls(), 5, "classify, generate, verify(fail), generate, verify(pass)");
+    assert.equal(r.pricing.tier_key, "NP2");
+    assert.ok(r.drafts.full_draft.startsWith(`Hello.\n${blockOf(r)}`), r.drafts.full_draft);
+    assert.ok(r.drafts.compressed_draft.includes(blockOf(r)));
+    assert.deepEqual(r.gate.fail_reasons.filter((x) => x.startsWith("in_kind")), []);
+  } finally { setClaudeRequesterForTests(); }
+  script([np2Lead(), GEN(`Hi.\n${MARK}`), GATE(false), GEN("Hello. I dropped the marker."), GATE(true)]);
+  try {
+    const r = await runPipeline("lead text");
+    assert.deepEqual(r.gate.fail_reasons.filter((x) => x.startsWith("in_kind_line")).length, 2, "the rewrite dropped the marker: held");
+    assert.equal(r.verified, false);
+  } finally { setClaudeRequesterForTests(); }
+  // The re-price branch cannot yield NP2 (plan row C): enrichment never changes the fields the block reads.
+  const c = lead({ rate_card_tier: "T3", lead_source_column: "P", organization_name: "Example Foundation" } as Partial<Classification>);
+  const e = enrichClassification(c, lookupPrice(c), "2026-10-09");
+  assert.deepEqual([e.format_recommended, e.venue_name, e.organization_name], ["solo", null, "Example Foundation"]);
+});
+
+test("price block step 5: the SMS edit path inserts and checks the block too", async () => {
+  const { c, p } = priced({ organization_name: "Example Foundation" } as Partial<Classification>);
+  script([GEN(`Hi, shorter.\n${MARK}`), GATE(true)]);
+  try {
+    const r = await runEditPipeline(c, p, "Make it shorter");
+    assert.ok(r.drafts.full_draft.includes(BLOCK) && r.drafts.compressed_draft.includes(BLOCK));
+    assert.deepEqual(r.gate.fail_reasons.filter((x) => x.startsWith("in_kind")), []);
+  } finally { setClaudeRequesterForTests(); }
+  script([GEN("Hi, shorter, and no price this time."), GATE(true)]);
+  try {
+    const r = await runEditPipeline(c, p, "Drop the price");
+    assert.equal(r.gate.fail_reasons.filter((x) => x.startsWith("in_kind_line")).length, 2, "an edit that drops the marker is held (known gap)");
+  } finally { setClaudeRequesterForTests(); }
+});
+
+// H7, the offline harness: the four Execution Path leads (texts in the plan), each with the classification the
+// stub returns for it. Proves what the app does with the marker; only the real-model run measures the model.
+test("price block H7 offline harness: four leads through runPipeline with a stubbed model", async () => {
+  const leads: [string, Record<string, unknown>, string][] = [
+    ["a", np2Lead({ duration_hours: 1, lead_source_column: "D", organization_name: "Example Arts Foundation" }), `Hi.\n${MARK}\nTalk soon.`],
+    ["b", np2Lead({ organization_name: "Example Literacy Foundation" }), `Hi.\n${MARK}\nTalk soon.`],
+    ["c", np2Lead({ duration_hours: 1, lead_source_column: "D", organization_name: null }), `Hi.\n${MARK}\nTalk soon.`],
+    ["d", { ...valid, nonprofit_buyer: false }, "Hi.\nSolo guitar, $595, 2 hours\nTalk soon."],
+  ];
+  for (const [name, cls, draft] of leads) {
+    script([cls, GEN(draft), GATE(true)]);
+    try {
+      const r = await runPipeline(`lead ${name}`);
+      const held = r.gate.fail_reasons.filter((x) => x.startsWith("in_kind"));
+      if (name === "d") {
+        assert.notEqual(r.pricing.tier_key, "NP2", name);
+        assert.ok(r.drafts.full_draft.startsWith(draft) && r.drafts.full_draft.trimEnd().endsWith("Alex Guillen"), name);
+        assert.deepEqual(held, [], name);
+        continue;
+      }
+      assert.equal(r.pricing.tier_key, "NP2", name);
+      assert.ok(r.drafts.full_draft.includes(blockOf(r)) && r.drafts.compressed_draft.includes(blockOf(r)), name);
+      assert.match(blockOf(r), /\nMy standard rate is \$\d+, so/, `${name}: no venue (venue_name null)`);
+      assert.deepEqual(held, name === "c"
+        ? ["in_kind_org_missing: the lead names no organization; Alex fills [organization] before sending"] : [], name);
+    } finally { setClaudeRequesterForTests(); }
   }
 });
