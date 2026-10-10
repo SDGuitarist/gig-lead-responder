@@ -130,16 +130,21 @@ FIRST gate (stop and ask Alex if anything differs):
   pwd; git fetch origin; git branch --show-current          # expect: feat/hub-phase0
   git rev-parse HEAD; git rev-parse origin/feat/hub-phase0  # expect: identical
   git status --short                                        # expect: clean
-Read: HANDOFF.md "START HERE — pricing session" (NP2 block), CLAUDE.md, src/port-manifest-np2.test.ts,
-docs/reviews/2026-10-09-np2-codex-round1.md.
-No Codex review is open: NP2 is CLOSED (cap fired after round 3; Alex accepted + planned the fix).
-Ask Alex which to do next: (1) plan the "app inserts the price line + in-kind line" work item (HANDOFF), (2) the
-sourced-formats plan, (3) NP1/NP3/NP2 3-4h/NP duo prices (his numbers), (4) other TO PORT rows.
-Then apply the fix contract (~/.claude/docs/mandatory-review-workflow.md) to real findings: failing test first,
-mutation-check, one concern per commit, green suite + tsc. Stricter verdict wins when runs disagree.
-A 2nd NO-GO stops automatic iteration; round 3 only with "Round 3 authorized by Alejandro: YES".
-Open items for Alex (not this build): NP1/NP3/NP2 3-4h/NP duo prices; whether "[standard]" should be a venue-level
-(T3) rate rather than the normal lookup; plan the sourced-formats work.
+Read: HANDOFF.md "START HERE — pricing session" (NP2 block), CLAUDE.md,
+docs/reviews/2026-10-09-np2-codex-round3.md, docs/reviews/2026-10-09-np2-local-runs.md.
+No Codex review is open. NP2 (R403) is CLOSED: the cap fired after round 3 and Alex accepted the residue
+(known gaps at hasInKindLine in src/pipeline/post-check.ts) and planned the fix.
+Ask Alex which to do next, then follow the compound loop for it:
+  (1) plan the work item "the app inserts the price line + in-kind line into the drafts itself" (HANDOFF;
+      brainstorm skippable, the round-3 record is the input); plan doc in docs/plans/ with EARS tests;
+  (2) plan the sourced-formats work (no code path chooses a sourced_cultural_* format);
+  (3) NP1 / NP3 / NP2 3-4h / NP duo prices (Alex's numbers only; never invent a price);
+  (4) other TO PORT rows in docs/research/2026-10-02-booking-hub/port-manifest.md.
+Also open for Alex: whether "[standard]" should be a venue-level (T3) rate rather than the normal lookup.
+Before Codex review of anything that drafts text: run made-up leads locally first
+(DATABASE_PATH=<scratch> npx tsx src/index.ts --json < lead.txt; nothing is sent; it overwrites the clipboard).
+Work rules: failing test first, mutation-check each new test, one concern per commit, commit only on a green
+suite + tsc. Codex prompts: scratchpad + pbcopy, run both Alex's and yours, record every run in docs/reviews/.
 HARD GATE: never start the Mac poller or server against real mail. Never open data/leads.db from a test.
 STOP and ask Alex before: any real send; any GigSalad click or opening GigSalad/Yelp lead pages; Full Disk Access;
 any change to .env or production data; any new or changed price. Do not start Module 1. Update HANDOFF.md before stopping.
