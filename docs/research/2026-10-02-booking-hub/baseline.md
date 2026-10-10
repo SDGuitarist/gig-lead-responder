@@ -2,7 +2,7 @@
 
 **Reader and trigger:** the Module 1 success measure ("win rate above the 0.6 baseline at 3 months",
 `docs/plans/2026-10-02-booking-hub-roadmap.md`), read when Module 1 has run 3 months; and
-`docs/END-TO-END-STATUS.md` (0.6 row). **Status: PARTIAL**: Yelp is missing, and the 4 ambiguous calendar events await Alex's answer (below).
+`docs/END-TO-END-STATUS.md` (0.6 row). **Status: PARTIAL**: Yelp is missing (below).
 Collected 2026-10-09 by Claude Code, read-only, with Alex's go-ahead. Counts only: no client names are recorded.
 
 ## 1. GIG Calendar ("Alex's GIG Calendar", Google Calendar), events starting in the window
@@ -13,8 +13,8 @@ Collected 2026-10-09 by Claude Code, read-only, with Alex's go-ahead. Counts onl
 | Recurring teaching (lessons, ukulele/guitar clubs) | 49 (not gigs) |
 | One-off titled "GIG…" | 21 |
 | Other titles that are clearly performances (a library performance; two Oct gigs whose titles start with a ⚠️/✅ marker) | 3 |
-| **Performances (confirmed)** | **24** |
-| Ambiguous, Alex to classify ("December Nights: Spanish…", two Japanese Friendship Garden events, "Onyoku Sessions") | 4 |
+| **Paid performances (confirmed)** | **24** |
+| Unpaid performances (Alex, 2026-10-09): "December Nights: Spanish Village", "JFGM Dream of Niwa Bridal Show" (Nov 9), "Japanese Friendship Garden" (Dec 7), "Onyoku Sessions" (all Onyoku sessions are unpaid) | 4 (not wins) |
 | Calls, appointments, webinars | the rest |
 
 This counts gigs from EVERY source (GigSalad, Yelp, direct, agencies, referrals), not GigSalad wins.
@@ -67,5 +67,4 @@ measure.
 | Source | Why missing | Needed |
 |---|---|---|
 | Yelp business dashboard | The Claude in Chrome extension denies `biz.yelp.com` (site permission) | Alex allows the site in the extension, or reads the 12-month lead and booking counts |
-| Calendar: 4 ambiguous events | Titles don't say | Alex: paid gigs or not? |
 | GigSalad "date = received or last activity?" | Not verified | Open question; one way to check is a known recent lead whose received date is known |
