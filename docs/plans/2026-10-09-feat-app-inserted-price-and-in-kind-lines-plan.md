@@ -32,6 +32,15 @@ work step 0); the rewrite-loop test and a fixed reason the re-price branch canno
 harness (H7) separate from the real-model measurement, with the four lead texts verbatim (Execution Path); E9-E15;
 the `2026-10-1x` path typo.
 
+## Revision 2 (after Codex PLAN round 2 = NO-GO on both runs; automatic review iteration stopped)
+
+Record: `docs/reviews/2026-10-09-price-block-plan-codex-round2.md`. Seven findings accepted. Changes: (6) is about
+the exact sign-off LINE, not any mention of the name (E15, E15b); (3)/(4) count outside the block (E12b); (5)
+counts the structured core `$<total>, <h> hours` (E12); H7 expects no venue; H3b asserts against the returned
+pair and states its basis; golden provenance is checked from git history (step 0); STOP rule for fewer than 2
+priced leads. Known gap recorded, not changed: `ensureSignOff` skips the sign-off when the name appears anywhere
+in the body (pre-existing behaviour, outside this plan).
+
 ## Why (the round-3 finding, in one paragraph)
 
 `hasInKindLine` in `src/pipeline/post-check.ts` has to guess which line of free prose is "the price line". Three
@@ -75,7 +84,7 @@ export function insertPriceBlock(draft: string, block: PriceBlock | null): strin
 | A | `src/pipeline/price-block.ts` (new, ~60 lines) | `priceLineTail(pricing, price, hours)`: the text after the format name (`$<clientTotal>, <h> hour(s)<included clause>`), moved here from `buildPriceLineBlock` so the prompt and the block share ONE builder. `priceBlockFor(classification, pricing)`: `{ tail, inKind }` when `inKindSentence()` is non-null, else `null`. `insertPriceBlock(draft, block)`: replaces exactly one valid marker line with `<name>, <tail>\n<inKind>`; returns the draft unchanged if there are 0 markers, 2 or more markers, or an invalid name. |
 | B | `src/prompts/generate.ts` | `buildPriceLineBlock` uses `priceLineTail` (output for non-NP2 drafts byte-identical). When `priceBlockFor` is non-null, the PRICE LINE section instead tells the model to write `[[PRICE: <the format in plain words>]]` once, alone on its own line, in both drafts, and to write no price line, no in-kind sentence, and no other standard-rate or in-kind statement. `buildInKindBlock` (the "write this sentence word for word" section) is deleted. |
 | C | `src/pipeline/generate.ts` | **Exact new order** (Codex plan R1, both runs: today the FULL draft is signed off at lines 104-106, BEFORE the compressed cut at 108-113, so a naive insert lands after "Alex Guillen"). Rewrite the tail of `generateResponse` as: (1) `const block = priceBlockFor(classification, pricing)`; (2) `rawCompressed` = the model's compressed draft cut to 2000 chars (unchanged rule); (3) `full = insertPriceBlock(result.full_draft, block)` and `compressed = insertPriceBlock(rawCompressed, block)`; (4) THEN the sign-off: `suppressContact ? x : ensureSignOff(x)` for each (GigSalad: no sign-off, unchanged); (5) `countWords`, clarification enforcement, return (unchanged). A marker the cut removes leaves 0 markers: no insert, held by the post-check (fail-closed, tested E9). `classification`/`pricing` are the arguments `generateResponse` already receives, which are the final, post-enrichment pair: `runPipeline` passes `enriched, pricing` to `runWithVerification`, which passes them unchanged to every attempt (`verify.ts:89`, `:105`); `runEditPipeline` passes its stored pair. The re-price branch in `runPipeline` CANNOT produce an NP2 block: it runs only when enrichment changes `format_recommended`, and `resolveFormatRouting` (`src/pipeline/enrich.ts`) only switches between `mariachi_4piece` and `mariachi_full`, while NP2 is solo only (`lookupPrice`). Enrichment never changes `venue_name` or `organization_name`, the only classification fields `priceBlockFor` reads. Insertion sits inside `generateResponse`, so the LLM verify gate, every rewrite and the SMS edit path see the finished block. |
-| D | `src/pipeline/post-check.ts` | Option `inKind?: string \| null` becomes `priceBlock?: PriceBlock \| null`. `hasInKindLine` and its KNOWN GAP comment are deleted and replaced by `hasPriceBlock(text, block)`, which passes only when: (1) no `[[PRICE` text remains; (2) exactly one line matches `^<valid format name>, <escaped tail>$` (anchored at the start and end of the line) AND the next line is exactly `<inKind>`; (3) exactly one in-kind mention, counted with `/\bin\s*-?\s*kind\b/gi` (closes "in  kind" with two spaces); (4) exactly one first-person standard-rate statement (`STANDARD_RATE_STATEMENT`, unchanged); (5) the tail text `, <tail>` occurs exactly once in the draft (a model-written copy of the price line beside the block is held; a bare `$695` in prose is left to the written-price check, as today); (6) on a non-GigSalad draft, the block line comes before the LAST line containing `Alex Guillen` (a marker placed after the sign-off is held). Violation names stay `in_kind_line_<full\|compressed>` and `in_kind_org_missing` (the hold note readers already know them); the message becomes "the NP2 draft must carry the app's price block unchanged". |
+| D | `src/pipeline/post-check.ts` | Option `inKind?: string \| null` becomes `priceBlock?: PriceBlock \| null`. `hasInKindLine` and its KNOWN GAP comment are deleted and replaced by `hasPriceBlock(text, block)`, which passes only when: (1) no `[[PRICE` text remains; (2) exactly one line matches `^<valid format name>, <escaped tail>$` (anchored at the start and end of the line) AND the next line is exactly `<inKind>`; (3) with the app's two block lines REMOVED from the text, ZERO in-kind mentions remain, counted with `/\bin\s*-?\s*kind\b/gi` (closes "in  kind" with two spaces; counting outside the block means an organization named "In Kind Foundation" cannot fail a correct draft, plan R2); (4) with the block removed, ZERO first-person standard-rate statements remain (`STANDARD_RATE_STATEMENT`, unchanged); (5) the structured price core `$<client total>, <h> hour(s)` (e.g. `$695, 2 hours`, built by the same code as the tail) occurs exactly once in the whole draft, so a full or shortened model-written copy of the price line is held, while prose (`$695 for two hours`, `I can do $695`) is not that shape and is left to the written-price check, as today (plan R2 run B); (6) the SIGN-OFF LINE is the last line whose trimmed text is exactly `Alex Guillen`; when one exists, the block must come before it; when none exists (GigSalad, or the model wrote the name only mid-body), (6) does not apply. A mid-body mention of the name never counts as a sign-off (plan R2, both runs). Violation names stay `in_kind_line_<full\|compressed>` and `in_kind_org_missing` (the hold note readers already know them); the message becomes "the NP2 draft must carry the app's price block unchanged". |
 | E | `src/run-pipeline.ts` | Both `postCheckDrafts` calls pass `priceBlock: priceBlockFor(<classification>, pricing)` instead of `inKind: inKindSentence(...)`. Computed from the final `pricing` (after the enrichment re-price; lesson: `reprice-after-enrichment-override`). |
 | F | `src/port-manifest-np2.test.ts` | Tests at lines 160, 172, 230, 278, 304, 322 and 335 are rewritten to build drafts with `insertPriceBlock`. Two tests are deleted because the behavior they pinned no longer exists: 230 ("must follow the price line", which inferred placement from prose) and 304 ("only a line with the NP price and hours is the price line", which inferred the price line from prose). Each deletion is named in its commit message. New tests are listed under the acceptance tests below. |
 | G | Docs | HANDOFF: delete the two NP2 known gaps (prose price line, "in  kind") and the open "[standard]" question; record this cycle. `docs/reviews/<date of the run>-price-block-local-runs.md`: the step-6 record. |
@@ -154,12 +163,14 @@ the result is recorded in the commit message.
   gains a sign-off. *Mutation:* insert the block before truncation; the over-2000 case fails. *Mutation 2:* insert
   after `ensureSignOff` on a model draft with no sign-off; the "block before Alex Guillen" assertion fails.
 - **H3b** WHEN `runPipeline` runs (stubbed model) on an NP2 lead whose FIRST generate attempt fails the verify gate
-  THE SYSTEM SHALL regenerate, insert the block into the rewrite, and post-check it against `priceBlockFor` of the
-  same final `enriched`/`pricing`, with no `in_kind_line_*` violation. And WHEN the rewrite drops the marker THE
-  SYSTEM SHALL report `in_kind_line_<label>`. (Covers the rewrite loop. The re-price branch cannot yield NP2, see
-  row C; a pure test pins that: `enrichClassification` on an NP2 solo classification returns the same
-  `format_recommended`, `venue_name` and `organization_name`.) *Mutation:* make the rewrite path skip
-  `insertPriceBlock` (insert only when `rewriteInstructions` is empty); the first case fails.
+  THE SYSTEM SHALL regenerate and return drafts that each contain exactly
+  `insertPriceBlock` output of `priceBlockFor(result.classification, result.pricing)` (the RETURNED pair, which is
+  the pair `runPipeline` post-checked), with no `in_kind_line_*` violation. And WHEN the rewrite drops the marker
+  THE SYSTEM SHALL report `in_kind_line_<label>`. The complete basis for "no re-price mismatch" is row C's proof
+  (the re-price branch cannot yield NP2) plus a pure pin test: `enrichClassification` on an NP2 solo
+  classification returns the same `format_recommended`, `venue_name` and `organization_name`. No separate
+  re-price test is needed (plan R2 run B). *Mutation:* make the rewrite path skip `insertPriceBlock` (insert only
+  when `rewriteInstructions` is empty); the first case fails.
 - **H4** WHEN `postCheckDrafts` receives both drafts as `insertPriceBlock` produced them THE SYSTEM SHALL report no
   `in_kind_line_*` violation.
 - **H5** WHEN the generate prompt is built for an NP2 lead THE SYSTEM SHALL contain the marker instruction and SHALL
@@ -174,7 +185,8 @@ the result is recorded in the commit message.
 - **H7 (offline harness)** WHEN `runPipeline` runs on each of the four Execution Path lead texts with the model
   stubbed (classify, generate and verify responses fixed; `venue_name` null so no venue lookup and no database
   write) THE SYSTEM SHALL return: (a) and (b) `pricing.tier_key === "NP2"`, both drafts containing the exact app
-  block, no `in_kind_line_*` in `gate.fail_reasons`; (c) the block with `[organization]` and
+  block, whose in-kind sentence has NO venue (`My standard rate is $...`), because the fixtures carry
+  `venue_name: null` (the venue form is covered by H1 and the existing venue test; plan R2 run B), no `in_kind_line_*` in `gate.fail_reasons`; (c) the block with `[organization]` and
   `in_kind_org_missing`; (d) `pricing.tier_key !== "NP2"` and both drafts equal to the stubbed model output plus
   the sign-off. *Mutation:* drop `insertPriceBlock` from the full-draft path; (a) and (b) fail.
 
@@ -210,16 +222,25 @@ the result is recorded in the commit message.
   insert nothing and report `in_kind_line_<label>`. *Mutation:* match the marker anywhere in a line; the test fails.
 - **E11** WHEN only the full draft carries the marker THE SYSTEM SHALL insert in the full draft only and report
   `in_kind_line_compressed` only.
-- **E12** WHEN the draft carries the block AND a model-written copy `Solo guitar, $695, 2 hours | Professional
-  sound, ...` THE SYSTEM SHALL report `in_kind_line_<label>`; a prose `$695` alone SHALL NOT. *Mutation:* drop
-  condition (5); the copy case fails.
+- **E12** WHEN the draft carries the block AND a model-written copy of the price line, full
+  (`Solo guitar, $695, 2 hours | Professional sound, setup and breakdown, repertoire shaped to their event`) or
+  shortened (`Solo guitar, $695, 2 hours`) THE SYSTEM SHALL report `in_kind_line_<label>`; prose (`$695 for two
+  hours`, `I can do $695`) SHALL NOT. *Mutation:* change (5) to count the full tail instead of the core; the
+  shortened case fails.
+- **E12b** WHEN the organization is `In Kind Foundation` and the draft is exactly the app's output THE SYSTEM SHALL
+  report no violation; adding `That is a $100 in kind gift.` SHALL be reported. *Mutation:* count in-kind
+  mentions over the whole draft; the first case fails.
 - **E13** WHEN the marker name is `Guitarra española` THE SYSTEM SHALL insert `Guitarra española, <tail>` and the
   post-check SHALL pass it. *Mutation:* revert to the ASCII class; the test fails.
 - **E14** WHEN the model text around the marker contains em dashes (`Here's the plan — simple.` before it,
   `Ready when you are — talk soon.` after) THE SYSTEM SHALL keep the block byte-exact after the em-dash fixer, and
   the post-check SHALL pass. (The block has no em dash; this pins that the fixer cannot reach it.)
-- **E15** WHEN a non-GigSalad draft has the model's own "Alex Guillen" sign-off and the marker after it THE SYSTEM
+- **E15** WHEN a non-GigSalad draft has a sign-off line exactly `Alex Guillen` and the block after it THE SYSTEM
   SHALL report `in_kind_line_<label>` (condition 6). *Mutation:* drop condition (6); the test fails.
+- **E15b (positive)** WHEN a draft mentions `Alex Guillen handles setup personally.` mid-body BEFORE the block, or
+  AFTER the block, with or without a final `Alex Guillen` sign-off line below the block, and WHEN a GigSalad draft
+  has no sign-off at all, THE SYSTEM SHALL report no `in_kind_line_*`. *Mutation:* use "last line CONTAINING the
+  name" (the revision-1 rule); the "mention after the block" case fails.
 
 ### Verification commands
 
@@ -233,14 +254,18 @@ git diff --stat <base>..HEAD -- src/pipeline/price.ts src/prompts/classify.ts sr
 
 ## Work steps (one concern per commit; failing test first; mutation-check each new test)
 
-0. **Golden capture** (H6): from the UNCHANGED code, write `src/fixtures/price-line-golden.json` (5 non-NP2
-   prompts) and the H6 test. Green on the old code by construction. Commit before any `src/` edit. ~60 lines.
+0. **Golden capture** (H6): with NO existing file modified, write `src/fixtures/price-line-golden.json` (5
+   non-NP2 prompts, generated by a one-off script calling the CURRENT `buildGeneratePrompt`) and the H6 test. The
+   commit ADDS exactly those two files (`git show --stat` lists only them). Provenance check at the end of the work
+   (plan R2 run A): `git log --format=%h --reverse -- src/fixtures/price-line-golden.json` prints exactly one commit
+   (never regenerated), and that commit appears before every commit in
+   `git log --format=%h --reverse -- src/prompts/generate.ts` since the plan. ~60 lines.
 1. **`price-block.ts` + `priceLineTail` extraction** (A, plus `buildPriceLineBlock` calling the shared tail).
    Tests H1, H2, E4, E10, E13; H6 stays green. ~90 lines incl. tests.
 2. **Prompt: marker instruction for NP2; delete `buildInKindBlock`** (B). Tests H5, H6. ~40 lines.
 3. **Insert in `generateResponse`, exact order** (C). Tests H3, E9, E11. ~70 lines.
 4. **Post-check: `hasPriceBlock` replaces `hasInKindLine`** (D) and rewrite/delete NP2 tests (F). Tests H4,
-   E1-E8, E12, E14, E15. ~120 lines (mostly test rewrites; split into 4a check + new tests, 4b port old tests, if over 100).
+   E1-E8, E12, E12b, E14, E15, E15b. ~120 lines (mostly test rewrites; split into 4a check + new tests, 4b port old tests, if over 100).
 5. **Wire `run-pipeline.ts`** (E). Tests: H3b (rewrite loop + the enrichment pin), one `runEditPipeline` test
    with a stubbed model asserting the block is in the returned drafts, and H7 (offline harness, 4 fixtures). These
    close the known gap "the run-pipeline wiring of the inKind option is not tested". ~100 lines; split into 5a
@@ -295,9 +320,13 @@ a separate, network-dependent measurement).
   `in_kind_org_missing` held; (d) not nonprofit, no marker, today's model-written price line. NP2 at 1h flips with
   the classifier's T2/T3 call (local runs, 2026-10-09). If (a) or (c) comes back T2 and unpriced, that is not this
   plan's failure: re-run that lead once, unchanged, and record both runs.
-- **STOP rule:** count the NP2-priced runs among (a), (b), (c). If the marker is missing from either draft in 2 or
-  more of them (or in every one when fewer than 2 were priced), STOP and bring the outputs to Alex. Do not tune the
-  prompt in a loop.
+- **STOP rule (plan R2, stricter run B):** count the NP2-priced runs among (a), (b), (c) (`pricing.tier_key ===
+  "NP2"`), after the one allowed unchanged re-run of an unpriced (a) or (c).
+  - **Fewer than 2 NP2-priced:** STOP, "insufficient sample", regardless of marker success. Record every output.
+    Alex decides: re-word leads, run more, or proceed.
+  - **2 or 3 NP2-priced:** if the marker is missing from either draft in 2 or more of them, STOP and bring the
+    outputs to Alex; otherwise proceed to the code review.
+  - Never tune the prompt in a loop. The record states the count of priced runs and markers found as `n of m`.
 - **Prerequisites:** ALREADY HAVE: Node + `npx tsx`, the app's Anthropic key in `.env` (read only, never edited),
   network access, the scratchpad. Nothing to obtain. The CLI overwrites the clipboard.
 - **Who:** Claude Code runs the four leads; Alex reads the draft pairs in the record.
