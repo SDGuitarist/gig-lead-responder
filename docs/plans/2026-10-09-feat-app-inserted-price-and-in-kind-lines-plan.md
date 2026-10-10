@@ -271,7 +271,10 @@ git diff --stat <base>..HEAD -- src/pipeline/price.ts src/prompts/classify.ts sr
    close the known gap "the run-pipeline wiring of the inKind option is not tested". ~100 lines; split into 5a
    (wiring + H3b + edit test) and 5b (H7) if over 100.
 6. **Real-model measurement** (Execution Path part 2). Record in `docs/reviews/`. Doc-only commit.
-7. **Un-flag trackers**: grep the repo for `in  kind`, `prose sentence stating the NP amount`, `[standard]`,
+7. **Expire the full-prompt golden checks** (Alex 2026-10-09, after step 0): first run the step-0 provenance check,
+   then delete the length and SHA-256 assertions (and fields) from `src/price-line-golden.test.ts` and the
+   fixture, keeping only the PRICE LINE section check, so later unrelated prompt edits do not fail it. Own commit.
+   **Un-flag trackers**: grep the repo for `in  kind`, `prose sentence stating the NP amount`, `[standard]`,
    `hasInKindLine`, and update HANDOFF + the NP2 note in `docs/reviews/2026-10-09-np2-codex-round3.md` (append
    "fixed by <sha>"; do not rewrite the record). Doc-only commit.
 
