@@ -6,7 +6,16 @@
 
 ## START HERE — price-block plan session (2026-10-09, plan phase)
 
-**State:** branch `feat/hub-phase0`. Plan committed `7a35753`:
+**UPDATE (later the same session): PLAN REVIEW ROUNDS 1 AND 2 BOTH NO-GO ON BOTH RUNS; AUTOMATIC ITERATION
+STOPPED.** Records: `docs/reviews/2026-10-09-price-block-plan-codex-round1.md`, `...-round2.md`. Every finding of
+both rounds was accepted and fixed in the plan (Revision 1, Revision 2). The plan is at its latest commit on this
+branch. **OPEN DECISION FOR ALEX:** (A, Claude Code's recommendation) close plan review and start WORK at plan
+step 0; or (B) authorize a plan round 3 (`Round 3 authorized by Alex: YES`). Reason for A: the round-2 residue is
+plan wording, and every fix is now a failing-first EARS test (E12, E12b, E15, E15b, H3b, H7, step-0 provenance),
+which checks real code; a round-3 NO-GO would hit the hard cap with nothing built. Do not start work or write a
+round-3 prompt until Alex answers.
+
+**State (plan first written):** branch `feat/hub-phase0`. Plan committed `7a35753`:
 `docs/plans/2026-10-09-feat-app-inserted-price-and-in-kind-lines-plan.md`. No code changed. Suite unchanged
 (720 pass / 0 fail / 1 skip at `2820b71`). **Next phase: Plan Review (Codex round 1 of the PLAN)**, then Work.
 
@@ -36,12 +45,12 @@ FIRST gate (stop and ask Alex if anything differs):
   pwd; git fetch origin; git branch --show-current          # expect: feat/hub-phase0
   git rev-parse HEAD; git rev-parse origin/feat/hub-phase0  # expect: identical
   git status --short                                        # expect: clean
-Read: HANDOFF.md "START HERE — price-block plan session", CLAUDE.md,
-docs/plans/2026-10-09-feat-app-inserted-price-and-in-kind-lines-plan.md, and
-docs/reviews/2026-10-09-price-block-plan-codex-round1.md if it exists.
-Phase: PLAN REVIEW. If the review record does not exist, the Codex plan-review round-1 prompt is not yet run:
-ask Alex for his Codex run's output, run the same prompt yourself, record BOTH in that file (stricter verdict wins),
-update the plan for every real finding, commit. Then, with Alex's go, start WORK at plan step 1.
+Read: HANDOFF.md "START HERE — price-block plan session" (the UPDATE paragraph first), CLAUDE.md,
+docs/plans/2026-10-09-feat-app-inserted-price-and-in-kind-lines-plan.md (Revision 1 + 2),
+docs/reviews/2026-10-09-price-block-plan-codex-round1.md and ...-round2.md.
+Plan review rounds 1 and 2 were NO-GO on both runs; all findings are fixed in the plan; automatic iteration has
+STOPPED. First ask Alex: (A) close plan review and start WORK at plan step 0 (golden capture), or (B) a plan
+round 3 (only with "Round 3 authorized by Alex: YES"). Then follow that path.
 Work rules: failing test first, mutation-check each new test, one concern per commit, commit only on a green
 suite + tsc, git fetch before every commit (peer sessions use this branch).
 HARD GATE: never start the Mac poller or server against real mail. Never open data/leads.db from a test.
