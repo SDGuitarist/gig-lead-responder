@@ -181,7 +181,7 @@ np_tier (a nonprofit buyer only, else null):
 - "NP3": institutional fundraiser: a large institution's event (hospital, university, museum, national charity gala).
 - unsure, or anything else: null.
 
-organization_name (a nonprofit buyer only, else null): the paying organization's name as the lead writes it, without a leading "the" (e.g. "Example Arts Foundation"). null when the lead does not name it; never guess one.
+organization_name (a nonprofit buyer only, else null): the paying organization's name as the lead writes it, without a leading "the" (e.g. "Example Arts Foundation"). null when the lead does not name it; never guess one. Never the venue or the place the event is held.
 
 ## ENGAGEMENT TYPE
 

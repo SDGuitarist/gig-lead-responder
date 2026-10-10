@@ -544,3 +544,7 @@ test("org-venue O9: an SMS edit of a stored classification with organization = v
     assert.ok(r.gate.fail_reasons.some((x) => x.startsWith("in_kind_org_missing")), r.gate.fail_reasons.join("; "));
   } finally { setClaudeRequesterForTests(); }
 });
+
+test("org-venue O7: the classify prompt says the organization is never the venue", () => {
+  assert.match(buildClassifyPrompt("2026-10-09"), /organization_name[^\n]*Never the venue or the place the event is held\./);
+});
