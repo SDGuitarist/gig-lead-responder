@@ -8,8 +8,8 @@ work, never later. **Owner:** whichever session changes the row.
 > **Trust rule.** This file is a map, not evidence. Every status row names its SOURCE and a VERIFY command or
 > location. Before acting on a row, or quoting it to Alex as fact, re-check it at the source. If the source
 > disagrees, fix THIS file and say so. On 2026-10-09 three trackers were stale at once: HANDOFF said "29 TO PORT"
-> (source: 19); the `## UNEXECUTED` table in `spikes.md` still listed C1a (PASSED 10-03) and said the manifest
-> "does not exist yet"; project memory said "LIVE on Railway" (stopped 10-03). A summary table is never the
+> (source: 19); the `## UNEXECUTED` table in `spikes.md` still listed C1a (PASSED 10-03) and G1 (FAILED 10-03) and
+> said the manifest "does not exist yet" (this file's first version trusted it for G1, and G1 was needlessly re-run); project memory said "LIVE on Railway" (stopped 10-03). A summary table is never the
 > source.
 
 ## The plan (source: `docs/plans/2026-10-02-booking-hub-roadmap.md`, Alex 2026-10-02)
@@ -28,7 +28,7 @@ flowchart LR
     A04[0.4 migrations ✅]
     A05[0.5 port: 19 TO PORT]
     A06[0.6 win-rate baseline ⛔ Alex]
-    A07[0.7 spikes: S1 ✅ S1-adv ✅ C1 ✅ · G1 S2 S3 S5 S6 open]
+    A07[0.7 spikes: S1 ✅ S1-adv ✅ C1 ✅ G1 ❌→redesign 1.2 · S3 ◐ phone check · S2 S5 S6 open]
   end
   P0 --> M1[Module 1: 1.1 send gate · 1.2 no dup send · 1.3 statuses · 1.4 approvals · 1.5 channels · 1.6 claude -p · 1.7 ramp/clock/alerts]
   M1 --> R[20-lead review-only ramp] --> AS[auto-send for code-confident drafts] --> W[1 week live] --> M2[Module 2] --> M3[Module 3]
@@ -54,9 +54,9 @@ then 0 off-calendar gigs / 0 missed money or COI dates; then hours back.
 | ☐ | **0.6 win-rate baseline** | BLOCKED | HANDOFF ("0.6 baseline is blocked"): GigSalad not signed in; Yelp dashboard refused (client data) | **Alex**: sign in + allow, or read the numbers himself |
 | ☑ | S1, S1-adv (locked `claude -p`, injection) | PASSED 10-03 | `spikes.md` `## Executed` | — |
 | ☑ | C1 (Railway stopped; C1b waived by Alex) | PASSED 10-03 | `spikes.md` rows C1a, C1b. ⚠ GitHub auto-deploy note there | — |
-| ☐ | G1 Gmail `rfc822msgid:` control | not run | `spikes.md` `## UNEXECUTED` row G1 | Claude with Alex's ok (a real self-send); **before any auto-send** |
+| ☑ | G1 Gmail supplied Message-ID | **FAIL 10-03** (Gmail replaces it; search verified by controls); repeated 10-09, same result | `spikes.md` G1 result rows (NOT the UNEXECUTED table) | **Consequence: plan §1.2 duplicate-send recovery must be redesigned** (candidates: body/subject token, or the Gmail id from the send response); auto-send stays off until then |
 | ☐ | S2 GigSalad email reply lands on platform | not run | `## UNEXECUTED` row S2 | **Alex**, on the next real GigSalad lead |
-| ☐ | S3 iMessage to self + read-back | not run | row S3 | Alex + Claude; **needs Full Disk Access (ask Alex)** |
+| ◐ | S3 iMessage to self + read-back | **PASSED machine side 10-09** (sent + delivered, read back from `chat.db`); phone confirmation pending | `spikes.md` row "S3: iMessage to self + read-back \| 2026-10-09" | Alex: confirm it reached the iPhone. Finding: self-messages create two rows; only `is_from_me=1` is Alex |
 | ☐ | S5 Gmail token valid on day 8 | not run | row "S5 step 2" | **Claude, on or after 2026-10-11**: the `getProfile` call in that row |
 | ☐ | S6 overnight awake + catch-up | not run | row S6 | Alex (a night) |
 | ☐ | FileVault restart after an OS update | not run | row FileVault | Alex (next macOS update) |
@@ -71,7 +71,7 @@ awk -F'|' '/^\| R[0-9]+ \|/{s=$5; gsub(/^ +| +$/,"",s); c[s]++} END{for(k in c) 
 ## Checklist: Module 1 (plan §1.1–1.7). Not started.
 
 ☐ 1.1 send gate (structured quote, one final check) · ☐ 1.2 no automatic duplicate send (`outbound_messages`;
-needs G1) · ☐ 1.3 statuses + single completion path · ☐ 1.4 approvals · ☐ 1.5 channels · ☐ 1.6 `claude -p`
+**REDESIGN: G1 failed**) · ☐ 1.3 statuses + single completion path · ☐ 1.4 approvals · ☐ 1.5 channels · ☐ 1.6 `claude -p`
 provider (`src/claude-cli.ts`; S1 proved the lockdown) · ☐ 1.7 ramp, clock, alerts (needs S3 or S4) ·
 ☐ 20-lead review-only ramp · ☐ auto-send on · ☐ 1 week live, 0 unresolved ALERT FAILED.
 Gate (port manifest header): Module 1 cannot go live while any manifest row is `UNREVIEWED` or `BLOCKED`
@@ -91,9 +91,9 @@ Gate (port manifest header): Module 1 cannot go live while any manifest row is `
 ## Critical path (the order sessions should pull from, unless Alex picks otherwise)
 
 1. Things only Alex can unblock, raised every session until done: **0.6 baseline**, **S2** (next GigSalad lead),
-   **S3** (Full Disk Access yes/no), **S6** (a night), the **PF-Intel URL** check.
+   **S3 phone confirmation**, **S6** (a night), the **PF-Intel URL** check.
 2. Claude: **S5 on/after 2026-10-11**; then the **19 TO PORT** rows (prices need Alex's numbers).
-3. Module 1 plan review → build 1.1–1.7 → G1 before 1.2 goes live → 20-lead ramp → auto-send → 1 week live.
+3. Module 1 plan review → build 1.1–1.7 → redesign 1.2's send-recovery key (G1 failed) → 20-lead ramp → auto-send → 1 week live.
 4. Only then: write the Module 2 plan from the live results.
 
 ## How to update this file
