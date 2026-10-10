@@ -29,7 +29,7 @@ export function priceBlockFor(classification: Pick<Classification, "venue_name" 
 const MARKER_LINE = /^\s*\[\[PRICE:([^\]\n]*)\]\]\s*$/;
 // Any letter (Codex plan round 1: "Guitarra española"), no digits, $, | or brackets: no number reaches the price
 // line through the name.
-const FORMAT_NAME = /^\p{L}[\p{L} '&-]{0,39}$/u;
+export const FORMAT_NAME = /^\p{L}[\p{L} '&-]{0,39}$/u;
 
 // Replace exactly one valid marker line with "<name>, <tail>" + the in-kind line. Anything else (no marker, two,
 // a bad name) leaves the draft unchanged, so the post-check holds it for Alex: never a guessed price line.

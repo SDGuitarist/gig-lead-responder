@@ -4,6 +4,7 @@
  * Auto-fixes what it can (em dashes), flags what it can't (banned phrases).
  */
 import { clientTotal, findMinFloor, IN_KIND_ORG_PLACEHOLDER, rateTableFor } from "./price.js";
+import { FORMAT_NAME, type PriceBlock } from "./price-block.js";
 import type { PricingResult } from "../types.js";
 
 export interface PostCheckResult {
@@ -104,7 +105,7 @@ export function postCheckDrafts(
   fullDraft: string,
   compressedDraft: string,
   platform?: string,
-  options: { gracefulDecline?: boolean; pricing?: PricingResult; askedHours?: number; inKind?: string | null } = {},
+  options: { gracefulDecline?: boolean; pricing?: PricingResult; askedHours?: number; priceBlock?: PriceBlock | null } = {},
 ): PostCheckResult {
   const violations: string[] = [];
 
@@ -201,16 +202,16 @@ export function postCheckDrafts(
     violations.push(...pricedHoursMissing(cleanedCompressed, "compressed", pr, asked));
   }
 
-  // --- Check: Alex's in-kind line on a one-price NP2 draft (port manifest R403; inKindSentence) ---
-  if (options.inKind && options.pricing) {
-    const price = clientTotal(options.pricing, options.pricing.quote_price);
+  // --- Check: the app's NP2 price block is intact (plan 2026-10-09; price-block.ts inserts it) ---
+  const block = options.priceBlock;
+  if (block) {
     for (const [label, text] of [["full", cleanedFull], ["compressed", cleanedCompressed]] as const) {
-      if (!hasInKindLine(text, options.inKind, price, options.pricing.duration_hours)) {
-        violations.push(`in_kind_line_${label}: the NP2 draft must carry Alex's in-kind line word for word`);
+      if (!hasPriceBlock(text, block)) {
+        violations.push(`in_kind_line_${label}: the NP2 draft must carry the app's price block unchanged`);
       }
     }
     // No usable organization name (inKindSentence kept the placeholder): Alex fills it.
-    if (options.inKind.includes(IN_KIND_ORG_PLACEHOLDER)) {
+    if (block.inKind.includes(IN_KIND_ORG_PLACEHOLDER)) {
       violations.push(`in_kind_org_missing: the lead names no organization; Alex fills ${IN_KIND_ORG_PLACEHOLDER} before sending`);
     }
   }
@@ -222,32 +223,30 @@ export function postCheckDrafts(
   };
 }
 
-// The app writes the whole sentence (amount, venue, organization: inKindSentence), so the draft must carry it
-// exactly. Every in-kind or standard-rate statement must be that line (Codex round 1 NP2 P2: a second,
-// contradicting figure), and it must sit on the price line or the next non-empty line (run B P2). The price
-// line states the NP price AND the priced hours (Codex round 2 NP2 P2: "budget is $695" is not it).
-// KNOWN GAP (Codex round 3, both runs (c); the cap fired; Alex 2026-10-09 accepted it): the price line is
-// inferred from prose, so a sentence stating the NP amount and hours ("I can make $695 work for 2 hours") passes
-// as the price line, and "in  kind" (two spaces) is not counted. Drafts are always held for Alex. Planned fix
-// (HANDOFF): the app inserts the price line and the in-kind line itself; this check then confirms the block.
-const IN_KIND_MENTION = /\bin[-\s]?kind\b/gi; // in-kind, in kind, inkind (Codex round 2 NP2 P2)
+// The app wrote the block (insertPriceBlock), so this confirms text it knows exactly; it never infers a price line
+// from prose (Codex round 3, NP2: that detector was the wrong shape). Plan 2026-10-09 row D, conditions:
+// (1) no marker text is left; (2) exactly one "<format name>, <tail>" line, the next line exactly the in-kind
+// sentence; (3)+(4) outside the block, no in-kind mention and no "my standard ... rate is $" (counted outside, so an
+// organization named "In Kind Foundation" cannot fail a correct draft); (5) the structured core "$695, 2 hours"
+// occurs once (a model-written copy of the price line, full or shortened, is held; prose is not that shape);
+// (6) the block comes before the sign-off LINE (a line that is exactly "Alex Guillen"), not any mention of the name.
+const IN_KIND_MENTION = /\bin\s*-?\s*kind\b/gi; // in-kind, in kind, in  kind, inkind, In - Kind
 // Alex's own rate claim ("my standard ... rate is $"), not any "standard" near "rate" (Codex round 2 NP2 P2).
 const STANDARD_RATE_STATEMENT = /\bmy\s+(?:\S+\s+){0,2}?standard\b(?:\s+\S+){0,5}?\s+rate\s+(?:is|was)\s+\$/gi;
-function hasInKindLine(text: string, expected: string, price: number, hours: number): boolean {
+function hasPriceBlock(text: string, block: PriceBlock): boolean {
+  if (text.includes("[[PRICE")) return false;
   const lines = text.split("\n");
-  const hoursStated = statesHours(hours);
-  const priceLines = lines.flatMap((l, i) => (dollarAmounts(l).some((d) => d.amount === price) && hoursStated.test(l) ? [i] : []));
-  const nextNonEmpty = (i: number) => lines.findIndex((l, j) => j > i && l.trim() !== "");
-  const placed = (i: number) => priceLines.some((pl) => i === pl || i === nextNonEmpty(pl));
-  let valid = 0;
-  for (const [i, line] of lines.entries()) {
-    for (let at = line.indexOf(expected); at !== -1; at = line.indexOf(expected, at + 1)) {
-      if (!placed(i)) return false;
-      valid++;
-    }
-  }
-  const count = (re: RegExp) => (text.match(re) ?? []).length;
-  return valid > 0 && count(IN_KIND_MENTION) === valid && count(STANDARD_RATE_STATEMENT) === valid;
+  const suffix = `, ${block.tail}`;
+  const at = lines.flatMap((l, i) => (lines[i + 1] === block.inKind && l.endsWith(suffix)
+    && FORMAT_NAME.test(l.slice(0, -suffix.length)) ? [i] : []));
+  if (at.length !== 1) return false;
+  const outside = [...lines.slice(0, at[0]), ...lines.slice(at[0] + 2)].join("\n");
+  const count = (re: RegExp) => (outside.match(re) ?? []).length;
+  if (count(IN_KIND_MENTION) !== 0 || count(STANDARD_RATE_STATEMENT) !== 0) return false;
+  const core = block.tail.split(" | ")[0]; // "$695, 2 hours": priceLineTail puts the included clause after " | "
+  if (text.split(core).length - 1 !== 1) return false;
+  const signOff = lines.map((l) => l.trim()).lastIndexOf("Alex Guillen");
+  return signOff === -1 || signOff > at[0];
 }
 
 /**
