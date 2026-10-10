@@ -81,7 +81,7 @@ Gate (port manifest header): Module 1 cannot go live while any manifest row is `
 
 | Risk | Where recorded | Status |
 |---|---|---|
-| Classifier puts the VENUE in `organization_name` (2/2 runs) → an NP2 in-kind line thanks the hotel | fix: `docs/plans/2026-10-09-fix-organization-name-is-the-venue-plan.md`; runs `docs/reviews/2026-10-09-org-venue-local-runs.md` | **FIXED (built `e0ab871`..`bef0bf2`, 3/3 real runs null; code review pending).** Still open: a wrong NON-venue name, "St." vs "Saint" (pinned miss) |
+| Classifier puts the VENUE in `organization_name` (2/2 runs) → an NP2 in-kind line thanks the hotel | fix: `docs/plans/2026-10-09-fix-organization-name-is-the-venue-plan.md`; runs `docs/reviews/2026-10-09-org-venue-local-runs.md` | **FIXED and reviewed (built `e0ab871`..`bef0bf2`, 3/3 real runs null; Codex code review R1 GO both runs, `docs/reviews/2026-10-09-org-venue-codex-round1.md`; solution `docs/solutions/logic-errors/2026-10-10-organization-name-is-never-the-venue.md`).** Still open: a wrong NON-venue name, "St." vs "Saint" (pinned miss) |
 | `PF_INTEL_API_URL` in local `.env` is Railway-internal → venue lookups fail silently; production unknown (and production is moving to the Mac anyway) | HANDOFF "NEW items" | Alex to check; never edit `.env` without asking |
 | Classifier's T2/T3 call decides whether NP2 fires (first real texts: 0/3 priced) | local-runs record | watch in the ramp |
 | Real-lead false-hold rate of the price block unmeasured (6 runs, 3 texts) | solution doc `architecture/2026-10-09-app-writes-fixed-lines-model-writes-a-marker.md` | measure in the 20-lead ramp |

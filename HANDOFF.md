@@ -2,11 +2,59 @@
 
 > **READ FIRST: `docs/END-TO-END-STATUS.md`** — the end-to-end plan, checklist and critical path, each row with its source. Update it in the same commit as any work that changes a row.
 
-**Date:** 2026-10-09
+**Date:** 2026-10-10
 **Branch:** `feat/hub-phase0` (cut from `docs/booking-hub-brainstorm` at `c644210`; pushed; not merged)
-**Phase:** Work, Phase 0 **in progress**. 0.1, 0.2 (code), 0.3 (all but the alert half of `invalid_grant alerts`), 0.4, S1, S1-adv done. **0.5 port: 19 TO PORT remain** (was "29": stale; recounted from the manifest's status column 2026-10-09, see `docs/END-TO-END-STATUS.md` V1). 0.6 PARTIAL (calendar + both GigSalad accounts done 2026-10-09; Yelp missing: extension denies biz.yelp.com). S3 PASSED; G1 FAILED (10-03, repeated 10-09) → redesign plan 1.2. **GigSalad portal reading BUILT.** Module 1 not started.
+**Phase:** Work, Phase 0 **in progress**. 0.1, 0.2 (code), 0.3 (all but the alert half of `invalid_grant alerts`), 0.4, S1, S1-adv done. **0.5 port: 19 TO PORT remain** (was "29": stale; recounted from the manifest's status column 2026-10-09, see `docs/END-TO-END-STATUS.md` V1). 0.6 DONE, approximate (calendar, both GigSalad accounts, Yelp numbers from Alex; `docs/research/2026-10-02-booking-hub/baseline.md`). S3 PASSED; G1 FAILED (10-03, repeated 10-09) → redesign plan 1.2. **GigSalad portal reading BUILT.** Module 1 not started.
 
-## START HERE — price-block cycle COMPLETE (2026-10-09): plan, work, review (GO), compound all done
+## START HERE — org-venue cycle COMPLETE (2026-10-10): plan, work, review (GO), compound all done
+
+**State:** branch `feat/hub-phase0`. Suite **733 pass / 0 fail / 1 skip**, tsc clean (at `bfafbc0`; later commits
+are docs only). Plan `docs/plans/2026-10-09-fix-organization-name-is-the-venue-plan.md` (plan R1 NO-GO, 7 findings
+accepted; R2 GO). Built: `e0ab871` guard + tests (O1-O8, O10); `eb56333` `runEditPipeline` re-applies the guard
+(O9); `bef0bf2` classify prompt line (O7). Real-model runs 3/3 null, control kept
+(`docs/reviews/2026-10-09-org-venue-local-runs.md`). **REVIEW:** Codex code R1 = GO on both runs, no findings
+(`docs/reviews/2026-10-09-org-venue-codex-round1.md`, `e724fc3`). **COMPOUND:** solution doc
+`docs/solutions/logic-errors/2026-10-10-organization-name-is-never-the-venue.md` (`0a36879`); learnings propagated
+(compound-engineering.local.md, auto-memory `project_drafter-never-sees-lead-text` updated, journal 2026-10-10,
+agent-pitfalls). Not merged; merging is Alex's step.
+
+**Also this session (2026-10-09/10):** 0.6 baseline done (approximate: ~415 inquiries vs 24 paid gigs, no source
+attribution yet); S3 iMessage-to-self PASSED; G1 FAILED twice (Gmail replaces a supplied Message-ID) → plan §1.2
+must redesign its recovery key (a body token is searchable); `docs/END-TO-END-STATUS.md` created as the living
+checklist.
+
+**Next (agreed: "B"):** port the remaining **19 TO PORT** rows (`docs/END-TO-END-STATUS.md` 0.5 row; recount with
+V1 first). Fresh session recommended. **Any new or changed price needs Alex's numbers.** Other open items: S5 Gmail
+token check on/after 2026-10-11 (Claude); S6 overnight (Alex picks a night); PF-Intel production URL (Alex, in
+Railway).
+
+### Three Questions (org-venue cycle; from the solution doc's Feed-Forward)
+1. **Hardest decision?** How wide "match" is: equality misses the longer hotel name, substring drops real
+   organizations; whole-word containment with 2+ words sits between them.
+2. **What was rejected?** A verifier model call; matching against the lead text; always using `[organization]`.
+3. **Least confident about?** The venue in `organization_name` while `venue_name` is empty or worded differently.
+   Not observed in 3 runs; nothing measures it.
+
+### Prompt for Next Session
+
+```
+Work in /Users/alejandroguillen/Projects/gig-lead-responder.
+FIRST gate (stop and ask Alex if anything differs):
+  pwd; git fetch origin; git branch --show-current          # expect: feat/hub-phase0
+  git rev-parse HEAD; git rev-parse origin/feat/hub-phase0  # expect: identical
+  git status --short                                        # expect: clean
+Read: docs/END-TO-END-STATUS.md (re-check any row you act on at its source), HANDOFF.md "START HERE — org-venue
+cycle COMPLETE", CLAUDE.md, docs/research/2026-10-02-booking-hub/port-manifest.md.
+Task: port the remaining TO PORT rows (recount with the V1 command in END-TO-END-STATUS first; expect 19). Group
+them into one plan (compound loop: plan, Codex plan review x2 runs, work, code review, compound). Rows that need a
+price (NP1/NP3/NP2 3-4h/NP duo): STOP and ask Alex for his numbers; never invent one.
+If today is on/after 2026-10-11, also run S5 (the getProfile call in spikes.md row "S5 step 2") and record it.
+HARD GATE: never start the Mac poller or server against real mail. Never open data/leads.db from a test.
+STOP and ask Alex before: any real send; any GigSalad click or opening GigSalad/Yelp lead pages; Full Disk Access;
+any change to .env or production data; any new or changed price. Do not start Module 1. Update HANDOFF.md before stopping.
+```
+
+## Earlier: price-block cycle COMPLETE (2026-10-09): plan, work, review (GO), compound all done
 
 **State:** branch `feat/hub-phase0`, pushed. Suite **728 pass / 0 fail / 1 skip**, tsc clean. Plan
 `docs/plans/2026-10-09-feat-app-inserted-price-and-in-kind-lines-plan.md` (plan review closed by Alex after 2
@@ -28,7 +76,7 @@ Railway; (3) the other items from the pricing session list (sourced formats; NP1
 Alex's numbers only; other TO PORT rows in `docs/research/2026-10-02-booking-hub/port-manifest.md`).
 
 **NEW items found this session (not in this work):**
-- **[FIXED 2026-10-09, `e0ab871`..`bef0bf2`; code review pending, see START HERE]** **organization_name = the venue** (2/2 runs, lead (c)): the classifier put "Example Grand Hotel" in
+- **[FIXED + REVIEWED: org-venue cycle complete 2026-10-10, see START HERE]** **organization_name = the venue** (2/2 runs, lead (c)): the classifier put "Example Grand Hotel" in
   `organization_name` when the lead named no organization. A priced draft would thank the hotel and no check holds
   it. Alex: SEPARATE work item (likely: hold when organization_name equals venue_name + classify prompt wording).
 - **PF-Intel unreachable locally:** `.env` has `PF_INTEL_API_URL=http://pf-intel.railway.internal:8000`, which
