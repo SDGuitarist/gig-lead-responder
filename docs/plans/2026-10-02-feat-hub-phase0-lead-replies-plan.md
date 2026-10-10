@@ -446,6 +446,13 @@ that counts as a failure just like a bypass.
 
 ### 1.2 No automatic duplicate send (`outbound_messages`)
 
+> **OPEN, MUST REDESIGN BEFORE BUILD (spike G1 FAILED, 2026-10-03; repeated 2026-10-09):** Gmail replaces a
+> `Message-ID` supplied through `users.messages.send` with its own, so recovery by searching `rfc822msgid:` for the
+> app's ID can never find the sent copy. Search itself works (controls in `spikes.md`). Candidates, not yet chosen:
+> (a) a unique token in the subject or body, found by full-text search (proven findable 2026-10-09); (b) the Gmail
+> message id from the send response (lost if the crash happens before it is stored). Auto-send stays off until this
+> section is redesigned. Status: `docs/END-TO-END-STATUS.md`.
+
 **Guarantee, stated honestly** (Codex P0): *the system never sends the same draft twice on its
 own. When it can't tell whether a send was delivered, it stops and asks Alex.* This is **not**
 exactly-once delivery. Gmail offers no idempotent send, and Sent search can lag.
