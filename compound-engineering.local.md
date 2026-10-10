@@ -2,28 +2,43 @@
 
 ## Risk Chain
 
-**Brainstorm risk:** "The business impact is not measured. Unknown: how many Yelp leads were dropped over what period, and whether any converted anyway because Alex answers Yelp on the app regardless of the system." (`docs/brainstorms/2026-08-07-reply-detection-samples.md`)
+**Brainstorm risk:** None — **no brainstorm this cycle** (skip gate: the input was the NP2 Codex round-3 record,
+`docs/reviews/2026-10-09-np2-codex-round3.md`, which named the surface, the failing inputs and the fix).
 
-**Plan mitigation:** None — **there was no plan phase this cycle.** The brainstorm went straight to work. The finding (every Yelp lead silently rejected) was discovered while surveying the mailbox for a different purpose, and the fix was small and provable enough to go direct. Recorded as a deviation, not a template.
+**Plan mitigation:** `docs/plans/2026-10-09-feat-app-inserted-price-and-in-kind-lines-plan.md`. The model writes one
+`[[PRICE: <format name>]]` marker on NP2 drafts; the app writes the price line + in-kind sentence inside
+`generateResponse` (cut -> insert -> sign-off); the post-check confirms exact text. Plan review: 2 Codex rounds,
+NO-GO on both runs each; all 13 findings fixed; Alex closed plan review.
 
-**Work risk (from Feed-Forward):** Fixing the allowlist arms `parseYelpEmail`, which had never executed in production. Its defects were unreachable only because the allowlist bug shielded them. The parser was audited against a real email *before* the allowlist fix merged — that audit found the credential leak.
+**Work risk (from Feed-Forward):** "The marker on real, varied leads: 6 runs on 3 texts, and the classifier's T2/T3
+call decides whether NP2 fires at all; plus organization_name filled with the venue, which no check sees."
 
-**Review resolution:** **No formal `/workflows:review` phase ran this cycle.** Verification was: 342/342 tests (11 new), typecheck error set proven byte-identical to `main`, new tests proven to FAIL against the pre-fix parser (6 of 9 containment assertions), and CI green on PR #33. There are no review-agent finding counts to report — do not read the absence as "review found nothing."
+**Review resolution:** Codex CODE review round 1 = **GO on both runs, 0 findings**
+(`docs/reviews/2026-10-09-price-block-codex-round1.md`). Real-model runs: first texts 0/3 NP2-priced (STOP fired);
+re-worded 3/3 priced, block 2/3; after one prompt line 3/3 (`docs/reviews/2026-10-09-price-block-local-runs.md`).
 
 ## Files to Scrutinize
 
 | File | What changed | Risk area |
 |------|-------------|-----------|
-| `src/automation/source-validator.ts` | Added anchored `reply+<32hex>@messaging.yelp.com` alternative; new `kind: "lead" \| "reply"` return | Anchoring is the anti-spoofing control — any loosening to substring matching silently disarms SPF/DKIM gating. New senders must be added as separate anchored alternatives, never by widening an existing one. |
-| `src/automation/orchestrator.ts` | Skips `kind === "reply"` before the pipeline; does NOT count replies as rejections | If a reply is ever marked `valid: false`, genuine client mail becomes indistinguishable from a spoof in both logs and the counter — the exact conflation that hid this outage |
-| `src/automation/parsers/yelp.ts` | `portalUrl` rebuilt from `return_url` path with token discarded; normalized stop-word guard; `stripCredentialUrls()` | Yelp's "Respond Now" URL is a bearer credential. Any new extractor reading hrefs can re-introduce the leak. `rawText` is sent to the Claude API. |
-| `src/yelp-parser.test.ts` | New — first coverage this parser has ever had | Fixtures use same-shape placeholder tokens. Never paste a real Yelp email in as a fixture. |
+| `src/pipeline/price-block.ts` | New: `priceLineTail` (the ONE price-line tail builder), `priceBlockFor`, `insertPriceBlock`, `FORMAT_NAME` | Any non-match must leave the draft unchanged (fail closed). Loosening the marker or name rule lets a guessed or number-bearing price line through. |
+| `src/pipeline/generate.ts` | Cut compressed to 2000 -> insert block -> sign-off | Moving insertion before the cut can slice the block; moving it out of `generateResponse` hides the real price from the verify gate and rewrites. |
+| `src/pipeline/post-check.ts` | `hasPriceBlock` replaced the prose detector `hasInKindLine` | Counts run OUTSIDE the block; sign-off is a LINE match. Re-widening either reintroduces false holds (In Kind Foundation, mid-body name). Never re-add prose inference of "the price line". |
+| `src/prompts/generate.ts` | NP2 PRICE LINE = marker instruction; `buildInKindBlock` deleted; uses `priceLineTail` | Non-NP2 PRICE LINE sections are pinned by `src/price-line-golden.test.ts`; change them only deliberately. |
+| `src/run-pipeline.ts` | Both post-check calls pass `priceBlock: priceBlockFor(...)` | Must use the same final classification/pricing as generation. |
 
-## Standing Warning for This Repo
+## Standing Warnings for This Repo
 
-`parseYelpEmail` accumulated two defects, including a credential leak, precisely because it could never run. **The same mechanism still applies to `YelpPortalClient.fetchLeadDetails()`** — it is next in the chain and equally unexercised. Treat any newly-reachable Yelp code as unreviewed regardless of its age.
+- **organization_name can be the VENUE** (2/2 real runs, lead with no organization named). The block is "intact"
+  and still thanks the hotel; no check holds it. Separate planned item (HANDOFF). Until fixed, an NP2 draft's
+  organization must be read by Alex.
+- **Local PF-Intel lookups fail** (`.env` has a Railway-internal URL). Production unverified. A failed lookup
+  reads like "no venue notes".
+- `parseYelpEmail` accumulated two defects, including a credential leak, because it could never run. **The same
+  mechanism still applies to `YelpPortalClient.fetchLeadDetails()`**. Treat any newly-reachable Yelp code as
+  unreviewed regardless of its age.
 
 ## Plan Reference
 
-No plan doc this cycle. Brainstorm: `docs/brainstorms/2026-08-07-reply-detection-samples.md`
-Solution: `docs/solutions/logic-errors/2026-08-09-yelp-allowlist-never-matched-production.md`
+Plan: `docs/plans/2026-10-09-feat-app-inserted-price-and-in-kind-lines-plan.md`
+Solution: `docs/solutions/architecture/2026-10-09-app-writes-fixed-lines-model-writes-a-marker.md`

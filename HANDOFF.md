@@ -4,7 +4,7 @@
 **Branch:** `feat/hub-phase0` (cut from `docs/booking-hub-brainstorm` at `c644210`; pushed; not merged)
 **Phase:** Work, Phase 0 **in progress**. 0.1, 0.2 (code), 0.3 (all but the alert half of `invalid_grant alerts`), 0.4, S1, S1-adv done. **0.5 port: 29 TO PORT remain.** 0.6 blocked. **GigSalad portal reading BUILT.** Module 1 not started.
 
-## START HERE — price-block WORK session (2026-10-09): built, CODE REVIEW CLOSED (GO); next = COMPOUND
+## START HERE — price-block cycle COMPLETE (2026-10-09): plan, work, review (GO), compound all done
 
 **State:** branch `feat/hub-phase0`, pushed. Suite **728 pass / 0 fail / 1 skip**, tsc clean. Plan
 `docs/plans/2026-10-09-feat-app-inserted-price-and-in-kind-lines-plan.md` (plan review closed by Alex after 2
@@ -17,9 +17,13 @@ before its tests; all 5 tests were then shown to FAIL on the old code.
 STOP fired); re-worded texts 3/3 priced, block in both drafts 2/3 (c2 put hours in the marker name: held); after the
 one wording fix (Alex) 3/3. Sample 6 runs; real-lead false-hold rate unmeasured.
 **REVIEW DONE:** Codex CODE review round 1 = **GO on both runs, no findings**
-(`docs/reviews/2026-10-09-price-block-codex-round1.md`). **Next phase: COMPOUND** (`/workflows:compound`): solution
-doc in `docs/solutions/` (read the Feed-Forward below and the plan/review records), then `/update-learnings`.
-Not merged: the branch is still `feat/hub-phase0`; merging is a separate step for Alex.
+(`docs/reviews/2026-10-09-price-block-codex-round1.md`). **COMPOUND DONE:** solution doc
+`docs/solutions/architecture/2026-10-09-app-writes-fixed-lines-model-writes-a-marker.md`; learnings propagated
+(compound-engineering.local.md, auto-memory `project_app-writes-fixed-lines-marker`, journal 2026-10-09,
+agent-pitfalls). Not merged: the branch is still `feat/hub-phase0`; merging is a separate step for Alex.
+**Next: Alex chooses** — (1) plan the "organization_name = venue" item; (2) check PF-Intel's production URL in
+Railway; (3) the other items from the pricing session list (sourced formats; NP1/NP3/NP2 3-4h/NP duo prices,
+Alex's numbers only; other TO PORT rows in `docs/research/2026-10-02-booking-hub/port-manifest.md`).
 
 **NEW items found this session (not in this work):**
 - **organization_name = the venue** (2/2 runs, lead (c)): the classifier put "Example Grand Hotel" in
@@ -49,13 +53,15 @@ FIRST gate (stop and ask Alex if anything differs):
   pwd; git fetch origin; git branch --show-current          # expect: feat/hub-phase0
   git rev-parse HEAD; git rev-parse origin/feat/hub-phase0  # expect: identical
   git status --short                                        # expect: clean
-Read: HANDOFF.md "START HERE — price-block WORK session", CLAUDE.md,
+Read: HANDOFF.md "START HERE — price-block cycle COMPLETE", CLAUDE.md,
 docs/plans/2026-10-09-feat-app-inserted-price-and-in-kind-lines-plan.md,
 docs/reviews/2026-10-09-price-block-local-runs.md, and docs/reviews/*price-block-codex-round1.md if it exists.
-Phase: COMPOUND. Code review is closed (GO, both runs: docs/reviews/2026-10-09-price-block-codex-round1.md).
-Run /workflows:compound for the price-block work (problem: a prose detector could not recognise "the price line";
-fix: the app writes the block, the model writes a marker, the post-check confirms exact text), then
-/update-learnings. Ask Alex before starting the "organization_name = venue" item or touching PF-Intel settings.
+The price-block cycle is complete (plan, work, review GO, compound). Ask Alex which to do next, then follow the
+compound loop: (1) plan the "organization_name = venue" item (the classifier returns the venue as the
+organization when the lead names none; see docs/reviews/2026-10-09-price-block-local-runs.md); (2) check the
+PF-Intel production URL (Alex, in Railway; never change .env or production settings without asking); (3) sourced
+formats, NP1/NP3/NP2 3-4h/NP duo prices (Alex's numbers only), or other TO PORT rows in
+docs/research/2026-10-02-booking-hub/port-manifest.md.
 HARD GATE: never start the Mac poller or server against real mail. Never open data/leads.db from a test.
 STOP and ask Alex before: any real send; any GigSalad click or opening GigSalad/Yelp lead pages; Full Disk Access;
 any change to .env or production data; any new or changed price. Do not start Module 1. Update HANDOFF.md before stopping.
