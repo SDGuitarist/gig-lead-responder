@@ -5,7 +5,7 @@
 **Reader and trigger:** the next session (HANDOFF) and the CODE review round 1 prompt, which cites this file.
 
 **Verdict: NO-GO on BOTH runs. This is the 2nd NO-GO on this plan: automatic review iteration STOPS.** Round 3 of
-plan review only with `Round 3 authorized by Alex: YES`. Fixes are applied to the plan under the fix contract
+plan review only with `Round 3 authorized by Alex: YES`. Fixes are applied to the plan under the fix contrac
 (plan "Revision 2"); applying them is not a review round.
 
 ## Claude Code check (every finding against the code and the plan)
@@ -44,49 +44,49 @@ Round-1 dispositions:
 
 Findings
 
-P1 — False hold from condition (6)  
+P1 — False hold from condition (6)
 Plan §1C/§1D, lines 77–78; E15, lines 221–222.
 
 The rule “the block line comes before the LAST line containing `Alex Guillen`” rejects a potentially correct draft:
 
-```text
+```tex
 I’m Alex Guillen, and I’d shape the music around the room.
 [[PRICE: Solo guitar]]
 ```
 
 Because `ensureSignOff` sees `Alex Guillen`, it does not append the normal sign-off. The block is after the only `Alex Guillen` mention, so condition (6) holds the draft even though the block was inserted in the specified order. This applies to ordinary non-GigSalad drafts. E15 currently treats this as an error rather than distinguishing a real trailing sign-off from a mid-body identity mention.
 
-P2 — Correct organization name can create a second “in-kind” match  
+P2 — Correct organization name can create a second “in-kind” match
 Plan §1D, line 78; condition (3).
 
 The proposed count scans the entire draft with:
 
-```text
+```tex
 /\bin\s*-?\s*kind\b/gi
 ```
 
 But organization names allow ordinary words and spaces. For example:
 
-```text
+```tex
 organization_name = "In Kind Foundation"
 ```
 
 produces an app-written sentence containing both:
 
-```text
+```tex
 in-kind contribution to the In Kind Foundation
 ```
 
 The regex counts two mentions, so the correct app-generated block fails the post-check. The check should validate the fixed sentence/block structure without counting arbitrary text inside the organization name as an extra in-kind mention.
 
-P2 — H6 provenance is asserted but not enforceable  
+P2 — H6 provenance is asserted but not enforceable
 Plan H6, lines 168–173; work step 0, line 236.
 
 The listed five variants are appropriate, but “captured from the pre-change code” is only a procedural claim. The instruction “commit before any `src/` edit” is also literally impossible because the fixture and test are new files under `src/`. A future implementation could regenerate the golden strings after changing `buildPriceLineBlock`, and the test would still pass.
 
 Clarify that step 0 must capture from the unchanged implementation before modifying existing source, and add a mechanically independent baseline or recorded command/output proving the capture occurred first.
 
-P2 — STOP rule is ambiguous with fewer than two NP2-priced leads  
+P2 — STOP rule is ambiguous with fewer than two NP2-priced leads
 Execution Path, lines 298–300.
 
 The rule says to stop if markers are missing in every NP2-priced run when fewer than two are priced. It does not clearly define:
@@ -150,12 +150,12 @@ Alejandro's explicit authorization. Round-0 remains NO: no execution performed.
   "Solo guitar, $695, 2 hours | Professional sound, ..."; a model copy omitting the included clause is not caught.
   Specify exact-duplicate-only or any second structured price line with the same amount/hours; make fixture and
   predicate agree.
-- H3b lines 156-162 — the rewrite test verifies marker behavior but not the claimed final pricing identity; it
+- H3b lines 156-162 — the rewrite test verifies marker behavior but not the claimed final pricing identity; i
   does not state how it observes the arguments passed to generation and post-check. Add an explicit assertion on
   the final pricing object or document that the unreachable-branch proof is the complete basis.
 
 ### Plan Quality Gate
-The five questions are now answered. H7's venue contradiction and the ambiguous STOP rule still prevent
+The five questions are now answered. H7's venue contradiction and the ambiguous STOP rule still preven
 implementation. The Unicode rule and whole-line marker rule are sound. The enrichment re-price claim is sound.
 (Codex could not inspect running processes: the OS denied ps; the repository gate itself passed exactly.)
 ```
