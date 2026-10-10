@@ -66,5 +66,5 @@ measure.
 
 | Source | Why missing | Needed |
 |---|---|---|
-| Yelp business dashboard | The Claude in Chrome extension denies `biz.yelp.com` (site permission) | Alex allows the site in the extension, or reads the 12-month lead and booking counts |
+| Yelp business dashboard | **Tried 2026-10-09 (Alex: approximate via the inbox).** Page text is readable now (only screenshots were denied earlier). The inbox (`/leads_center/<biz>/leads`) shows filter totals **Active 22, Archived ~1.5k (all time)** but renders only 10 rows (ages "1 day ago" .. "3 years ago"), with no load-more, paging or scroll loading; the Overview's "Performance Summary" is not readable as text and shows no date-range control; the list data comes from a `gql/batch` POST (not replayed: private API). No 12-month count obtained | Alex reads the 12-month lead count from Yelp's own reports (app or site), or the Yelp row stays empty |
 | GigSalad "date = received or last activity?" | Not verified | Open question; one way to check is a known recent lead whose received date is known |
