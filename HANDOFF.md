@@ -4,7 +4,63 @@
 **Branch:** `feat/hub-phase0` (cut from `docs/booking-hub-brainstorm` at `c644210`; pushed; not merged)
 **Phase:** Work, Phase 0 **in progress**. 0.1, 0.2 (code), 0.3 (all but the alert half of `invalid_grant alerts`), 0.4, S1, S1-adv done. **0.5 port: 29 TO PORT remain.** 0.6 blocked. **GigSalad portal reading BUILT.** Module 1 not started.
 
-## START HERE — price-block plan session (2026-10-09, plan phase)
+## START HERE — price-block WORK session (2026-10-09): built; next = Codex CODE review round 1
+
+**State:** branch `feat/hub-phase0`, pushed. Suite **728 pass / 0 fail / 1 skip**, tsc clean. Plan
+`docs/plans/2026-10-09-feat-app-inserted-price-and-in-kind-lines-plan.md` (plan review closed by Alex after 2
+NO-GOs, all findings fixed). Built, steps 0-7: `9c78924` golden capture; `45dea5a` price-block module; `f4be3a1` NP2
+prompt marker; `679062f` insertion order; `57c58eb` post-check `hasPriceBlock` (prose detector deleted; both
+round-3 NP2 gaps closed); `45f2ed6` wiring tests; `38d2555` prompt line "format name only"; `a5ab8fc` golden
+full-prompt checks expired (Alex). Every new test mutation-checked (in commit messages). Step 4's code was written
+before its tests; all 5 tests were then shown to FAIL on the old code.
+**Real-model runs** (`docs/reviews/2026-10-09-price-block-local-runs.md`): first texts 0/3 NP2-priced (all T2;
+STOP fired); re-worded texts 3/3 priced, block in both drafts 2/3 (c2 put hours in the marker name: held); after the
+one wording fix (Alex) 3/3. Sample 6 runs; real-lead false-hold rate unmeasured.
+**Next phase: REVIEW.** Codex CODE review round 1 (no prior code-review verdict exists): prompt in scratchpad +
+pbcopy, run by Alex AND Claude Code, record in `docs/reviews/<date>-price-block-codex-round1.md`. Cite the
+local-runs record. Stops pre-registered: 2nd NO-GO stops automatic iteration; round 3 needs Alex's YES.
+
+**NEW items found this session (not in this work):**
+- **organization_name = the venue** (2/2 runs, lead (c)): the classifier put "Example Grand Hotel" in
+  `organization_name` when the lead named no organization. A priced draft would thank the hotel and no check holds
+  it. Alex: SEPARATE work item (likely: hold when organization_name equals venue_name + classify prompt wording).
+- **PF-Intel unreachable locally:** `.env` has `PF_INTEL_API_URL=http://pf-intel.railway.internal:8000`, which
+  only resolves inside Railway (curl exit 6). Every local run had no venue facts. UNKNOWN whether PRODUCTION uses
+  the internal URL too (different Railway projects cannot use private networking; audit `batch3-deployment.md:25`
+  says use the public URL). Alex to check Railway → industrious-elegance → Variables. A failed lookup is silent: it
+  reads the same as "no venue notes" (a hold note on lookup error would make it visible). No .env change made.
+- `ensureSignOff` skips the sign-off when "Alex Guillen" appears anywhere in the body (pre-existing).
+- The em-dash fixer leaves "its job , present" (space before the comma; pre-existing).
+
+### Three Questions (price-block work session)
+1. **Hardest implementation decision?** Splitting step 4: the option rename forced the run-pipeline call sites into
+   it, so the wiring tests (step 5) passed on first run and had to be proven by mutation instead.
+2. **Considered changing but left alone?** Letting the app strip a trailing ", 1 hour" from the marker name (Alex
+   chose a prompt line instead), and fixing `ensureSignOff`'s mid-body match (pre-existing, outside the plan).
+3. **Least confident going into review?** The marker on real, varied leads: 6 runs on 3 texts, and the classifier's
+   T2/T3 call decides whether NP2 fires at all; plus organization_name filled with the venue, which no check sees.
+
+### Prompt for Next Session
+
+```
+Work in /Users/alejandroguillen/Projects/gig-lead-responder.
+FIRST gate (stop and ask Alex if anything differs):
+  pwd; git fetch origin; git branch --show-current          # expect: feat/hub-phase0
+  git rev-parse HEAD; git rev-parse origin/feat/hub-phase0  # expect: identical
+  git status --short                                        # expect: clean
+Read: HANDOFF.md "START HERE — price-block WORK session", CLAUDE.md,
+docs/plans/2026-10-09-feat-app-inserted-price-and-in-kind-lines-plan.md,
+docs/reviews/2026-10-09-price-block-local-runs.md, and docs/reviews/*price-block-codex-round1.md if it exists.
+Phase: REVIEW. If no code-review round-1 record exists: write the Codex CODE review round-1 prompt (range
+7a35753..HEAD), validate it with ~/.claude/tools/check_handoff_prompt.py round1, pbcopy it, run it yourself
+(codex exec -s read-only ... < /dev/null), get Alex's run, record both (stricter wins), apply fixes under the fix
+contract. Ask Alex before starting the "organization_name = venue" item or touching PF-Intel settings.
+HARD GATE: never start the Mac poller or server against real mail. Never open data/leads.db from a test.
+STOP and ask Alex before: any real send; any GigSalad click or opening GigSalad/Yelp lead pages; Full Disk Access;
+any change to .env or production data; any new or changed price. Do not start Module 1. Update HANDOFF.md before stopping.
+```
+
+## Earlier: price-block plan session (2026-10-09, plan phase)
 
 **UPDATE (later the same session): PLAN REVIEW ROUNDS 1 AND 2 BOTH NO-GO ON BOTH RUNS; AUTOMATIC ITERATION
 STOPPED.** Records: `docs/reviews/2026-10-09-price-block-plan-codex-round1.md`, `...-round2.md`. Every finding of
@@ -26,8 +82,7 @@ round-3 prompt until Alex answers.
 - Format name: **the model names it** in a `[[PRICE: <name>]]` marker line; the app writes the numbers, the
   included clause and the in-kind sentence.
 Plan gate READY (4 gaps fixed in the plan before commit); EARS 14/14 well-formed.
-The NP2 known gaps below (prose price line, "in  kind") stay OPEN until the work phase lands; un-flag them then
-(plan step 7).
+The NP2 known gaps below (prose price line, "in  kind") were un-flagged in plan step 7 (FIXED by `57c58eb`).
 
 ### Three Questions (price-block plan session)
 1. **Hardest decision?** Where to insert: inside `generateResponse` (after the 2000-char cut, before the sign-off) so
@@ -65,7 +120,8 @@ any change to .env or production data; any new or changed price. Do not start Mo
 **NP2 (R403) — BUILT 2026-10-09; Codex round 1 = NO-GO (both runs, 5 distinct real findings, all fixed);
 round 2 = NO-GO (4 P2, fixed `a14821b` `5e954d4` `083d8ca` `e33902e`); round 3 = (c) on BOTH runs, THE CAP HAS FIRED
 (`docs/reviews/2026-10-09-np2-codex-round3.md`): the post-check's prose price-line detector is the wrong shape; residue
-= a prose sentence stating the NP amount + hours passes as the price line; "in  kind" (two spaces) not counted. ALEX
+= a prose sentence stating the NP amount + hours passes as the price line; "in  kind" (two spaces) not counted
+[BOTH FIXED by the price-block work, `57c58eb`]. ALEX
 DECIDED (2026-10-09): ACCEPT + PLAN THE FIX. NP2 review CLOSED; both residues are known gaps (comment at
 `hasInKindLine`).
 LOCAL RUNS done before round 2** (`docs/reviews/2026-10-09-np2-local-runs.md`: the drafter never
@@ -92,11 +148,13 @@ decisions this session (asked before code):
 in-kind line into both drafts itself (after generation), and the post-check only confirms that block is intact.
 Replaces prose inference of "the price line" (the (c) surface). Touches how every draft is assembled: needs its own
 plan (brainstorm skippable: `docs/reviews/2026-10-09-np2-codex-round3.md` is the input) and review.
-**Known gaps (NP2):** a prose sentence stating the NP amount + hours passes as the price line; "in  kind" (two
-spaces) is not counted (Codex round 3, accepted). the run-pipeline wiring of `nonprofitPriceNote` and the `inKind` post-check option is not
-tested (same as the T4 and minimum-profit notes; the lead is held by the classify note regardless). No real model
-draft has carried the in-kind line; the LLM verify gate's reaction to a second dollar figure is unmeasured. An SMS
-edit asking to drop the line would fail the post-check (held). NP1, NP3, NP2 3-4h, NP duo: no price (held).
+**Known gaps (NP2), updated by the price-block work (`57c58eb`..`a5ab8fc`):** FIXED: a prose sentence stating the
+NP amount + hours no longer passes (the app writes the block; E1), and "in  kind" with two spaces is counted (E3).
+FIXED: the post-check wiring is tested (H3b, SMS edit, H7). MEASURED: real model drafts carried the app's block
+in 5 of 6 NP2 runs and the verify gate passed them (`docs/reviews/2026-10-09-price-block-local-runs.md`).
+STILL OPEN: `nonprofitPriceNote`'s wiring is not tested; an SMS edit asking to drop the price is held; NP1, NP3,
+NP2 3-4h, NP duo: no price (held). [was: prose price line passes; "in  kind" not counted; wiring untested; no real
+draft has carried the line]
 
 **CLOSED reviews this session (all of them; none open):** R358 competition count (R3 GO, authorized); R292
 holiday/peak hold (R2 test fix, no R3 per Alex); $150 minimum profit R295/R362 (R2 GO); written-price check

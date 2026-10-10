@@ -1,5 +1,10 @@
 # Codex round 3 — NP2 round-2 fixes (`3072e6d`..`75b7744`)
 
+> **FIXED (2026-10-09, later):** both residues below are closed by the planned work item. The app now inserts the
+> price line and the in-kind line (`src/pipeline/price-block.ts`), and the post-check confirms that block
+> (`hasPriceBlock`, `57c58eb`); `hasInKindLine` is deleted. Plan:
+> `docs/plans/2026-10-09-feat-app-inserted-price-and-in-kind-lines-plan.md`. This record is unchanged below.
+
 **Verdict: (c) NARROWING same-class residue on ONE surface — THE CAP HAS FIRED.** Both runs agree (run A, Claude
 Code: (c), 1 P2 + 1 P3; run B, Alex inside Codex: (c), 1 P2). Authorized by Alex (option B, 2026-10-09); both runs
 at Alex's request after round 1 showed the two runs finding disjoint defects. No round 4. No automatic fixes.
