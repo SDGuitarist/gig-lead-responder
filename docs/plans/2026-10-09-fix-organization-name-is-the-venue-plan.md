@@ -31,22 +31,36 @@ runs. On a priced NP2 lead, the app would write "...my in-kind contribution to t
 only that the block is the app's, not that the name is right. Every nonprofit lead is held for Alex, so nothing
 sends unreviewed. But a wrong name is easy to miss when the rest of the block is exact.
 
+## Revision 1 (after Codex PLAN round 1 = NO-GO on both runs)
+
+Record: `docs/reviews/2026-10-09-org-venue-plan-codex-round1.md`. Seven findings accepted: empty venues never match;
+accents and `&`/`and` are folded; one-word containment no longer drops ("The Rock" vs "Rock the Vote"); `St.` vs
+`Saint` is a documented, pinned miss; O6 goes through `classifyLead`; the SMS edit path applies the same guard; the
+Execution Path is concrete with a three-way reading.
+
 ## Decision (Claude Code proposal; Alex chose "fix org = venue" next, 2026-10-09)
 
-1. **Deterministic guard (the fix).** In `normalizeOrganizationName` (`src/pipeline/classify.ts`), return `null`
-   when the organization name and the classifier's `venue_name` **match**: after lower-casing, dropping a leading
-   "the", replacing every non-letter/non-digit with a space and collapsing spaces, one name's word sequence appears
-   inside the other's as whole words. With `null`, the existing path holds the draft: `inKindSentence` writes
-   `[organization]` and the post-check adds `in_kind_org_missing` (unchanged code).
-2. **Prompt line (secondary).** The `organization_name` definition in `src/prompts/classify.ts` gains: "Never the
-   venue or the place the event is held." This lowers how often the guard has to fire; the guard is what is relied
-   on.
+1. **Deterministic guard (the fix).** `normalizeOrganizationName(value, nonprofitBuyer, venueName)` in
+   `src/pipeline/classify.ts` returns `null` when the organization and the venue **match**:
+   - **Normalise** each name: Unicode NFD and remove combining marks (é → e, ã → a); lower-case; `&` → ` and `;
+     every non-letter/non-digit → space; collapse spaces; drop ONE leading word `the`. Result: a word list.
+   - **Never comparable:** an empty word list on either side (`""`, `"   "`, `null`, `undefined`, punctuation only)
+     → no match, the organization is kept.
+   - **Match** = the two word lists are identical (any length), OR the shorter list appears as a contiguous run of
+     whole words inside the longer one AND the shorter list has **at least 2 words**.
+   With `null`, the existing path holds the draft (`[organization]`, `in_kind_org_missing`; unchanged code).
+2. **The SMS edit path.** `runEditPipeline` (`src/run-pipeline.ts`) reuses a stored classification and never
+   re-runs `validateClassification`. At its entry, next to the existing `venue_name` backfill, it sets
+   `classification.organization_name = normalizeOrganizationName(classification.organization_name,
+   classification.nonprofit_buyer === true, classification.venue_name)`.
+3. **Prompt line (secondary).** The `organization_name` definition in `src/prompts/classify.ts` gains: "Never the
+   venue or the place the event is held."
 
-**Why whole-word containment, not equality:** the classifier may return "Example Grand Hotel" for a venue
-"Example Grand Hotel La Jolla" (or the reverse). **Why not plain substring:** "the Park" must not drop
-"Parkview Foundation". **Accepted cost:** a real foundation named after its venue ("Hotel del Coronado Foundation"
-at "Hotel del Coronado") is dropped, so that lead is held for Alex to type the name (`[organization]`). That is a
-hold, never a wrong name.
+**Accepted false drops (bounded):** a real organization whose name contains the venue's name of 2+ words, or equals
+it ("Hotel del Coronado Foundation" at "Hotel del Coronado"). Cost: one hold for Alex to type the name.
+**Accepted misses (pinned by tests, so a change is deliberate):** `St.` vs `Saint`, and other abbreviations or
+synonyms ("Hotel" vs "Resort"); a venue the classifier left empty or worded differently. In those cases the wrong
+name still reaches the draft, and Alex's review is the only check.
 
 ## Plan Quality Gate
 
@@ -54,9 +68,10 @@ hold, never a wrong name.
 
 | # | File | Change |
 |---|---|---|
-| A | `src/pipeline/classify.ts` | `normalizeOrganizationName(value, nonprofitBuyer, venueName?)` gains a third argument; returns `null` on a venue match (rule above). The call in `validateClassification` passes `obj.venue_name`. A small helper `nameWords(s)` (normalise → word array) and `containsWords(a, b)` (contiguous whole-word match either way). |
-| B | `src/prompts/classify.ts` | One sentence added to the `organization_name` definition (above). |
-| C | `src/port-manifest-np2.test.ts` | New tests (below); the existing organization-name tests stay green unchanged. |
+| A | `src/pipeline/classify.ts` | `normalizeOrganizationName` gains the `venueName` argument and the guard (rule above), via two small helpers: `nameWords(s): string[]` and `namesMatch(a, b): boolean`. The call in `validateClassification` passes `obj.venue_name`. |
+| B | `src/run-pipeline.ts` | `runEditPipeline` applies the same normalization at entry (decision 2). One line plus the import. |
+| C | `src/prompts/classify.ts` | One sentence added to the `organization_name` definition. |
+| D | `src/port-manifest-np2.test.ts` | New tests (below); the existing organization-name tests stay green unchanged. |
 
 ### 2. What must not change?
 
@@ -88,42 +103,68 @@ See **Execution Path**.
 
 All in `src/port-manifest-np2.test.ts`; run with `npm test` and `npm run test:match -- "<name>"`.
 
-- **O1** WHEN a nonprofit classification has `organization_name: "Example Grand Hotel"` and `venue_name: "Example
-  Grand Hotel"` THE SYSTEM SHALL return `organization_name: null`. *Mutation:* drop the venue check; O1 fails.
-- **O2** WHEN the names differ only by case, a leading "the", or punctuation ("The Example Grand Hotel" vs "example
-  grand hotel.") THE SYSTEM SHALL return null.
-- **O3** WHEN one name contains the other as whole words ("Example Grand Hotel" vs "Example Grand Hotel La
-  Jolla", both directions) THE SYSTEM SHALL return null.
-- **O4 (positive)** WHEN the venue is "the Park" and the organization "Parkview Foundation" THE SYSTEM SHALL keep
-  "Parkview Foundation". *Mutation:* plain substring match; O4 fails.
-- **O5 (positive)** WHEN the organization differs from the venue ("Example Arts Foundation" at "Example Grand
-  Hotel"), or `venue_name` is null, THE SYSTEM SHALL keep the organization name unchanged.
-- **O6 (end to end, pure)** WHEN a priced NP2 classification has the organization equal to the venue THE SYSTEM
-  SHALL produce an in-kind sentence ending "to [organization]." and `nonprofitPriceNote` SHALL say the lead names
-  no organization. *Mutation:* pass `undefined` for venueName at the call site; O6 fails.
+- **O1** WHEN a nonprofit classification has organization "Example Grand Hotel" and venue "Example Grand Hotel" THE
+  SYSTEM SHALL return `organization_name: null`. *Mutation:* drop the venue check; O1 fails.
+- **O2** WHEN the names differ only by case, a leading "the", punctuation, accents or `&`/`and` ("The Example Grand
+  Hotel" vs "example grand hotel."; "Café São Paulo" vs "Cafe Sao Paulo"; "Arts & Culture Center" vs "Arts and
+  Culture Center") THE SYSTEM SHALL return null. *Mutation:* remove the accent fold; the Café case fails.
+- **O3** WHEN one name contains the other as 2+ whole words ("Example Grand Hotel" vs "Example Grand Hotel La Jolla",
+  both directions) THE SYSTEM SHALL return null.
+- **O4 (overshoot controls)** WHEN venue/organization are "the Park"/"Parkview Foundation", "The Grand"/"Grand Avenue
+  Foundation", "The Rock"/"Rock the Vote", "The Center"/"Center for Community Arts" THE SYSTEM SHALL keep the
+  organization. *Mutation:* allow 1-word containment; three cases fail. *Mutation 2:* plain substring; "Parkview"
+  fails.
+- **O4b** WHEN both names are the same single word ("Example" / "The Example") THE SYSTEM SHALL return null
+  (identical lists match at any length).
+- **O5** WHEN the organization differs from the venue ("Example Arts Foundation" at "Example Grand Hotel") THE SYSTEM
+  SHALL keep it unchanged.
+- **O5b** WHEN `venue_name` is null, undefined, `""`, `"   "` or `"..."` THE SYSTEM SHALL keep the organization.
+  *Mutation:* let an empty list match; O5b fails.
+- **O6 (through the real call site)** WHEN `classifyLead` runs with a stubbed model returning a nonprofit NP2
+  classification whose organization equals its venue THE SYSTEM SHALL return `organization_name === null`, and the
+  priced in-kind sentence built from that result SHALL end "to [organization]." and `nonprofitPriceNote` SHALL say
+  the lead names no organization. *Mutation:* pass `undefined` as venueName in `validateClassification`; O6 fails.
 - **O7** WHEN the classify prompt is built THE SYSTEM SHALL say the organization is never the venue.
+- **O8** WHEN a NON-nonprofit classification has organization = venue THE SYSTEM SHALL return null (existing rule,
+  unchanged).
+- **O9 (edit path)** WHEN `runEditPipeline` (stubbed model) receives a stored nonprofit classification with
+  organization = venue THE SYSTEM SHALL draft with `[organization]` and report `in_kind_org_missing`. *Mutation:*
+  remove the entry normalization; O9 fails.
+- **O10 (known miss, pinned)** WHEN the names are "St. Mary's Hotel" and "Saint Marys Hotel" THE SYSTEM SHALL KEEP the
+  organization (documented miss). A future change that closes it updates this test on purpose.
 
 Verification: `npm test` (0 fail), `npx tsc --noEmit`,
-`git diff <base>..HEAD --stat -- src/pipeline/price.ts src/pipeline/post-check.ts src/pipeline/price-block.ts src/prompts/generate.ts public/` (empty).
+`git diff 8e4fcdf..HEAD --stat -- src/pipeline/price.ts src/pipeline/post-check.ts src/pipeline/price-block.ts src/prompts/generate.ts public/` (empty).
 
 ## Work steps (one concern per commit; failing test first; mutation-check each test)
 
-1. Guard + O1–O6 (A, C). ~60 lines.
-2. Prompt line + O7 (B). ~15 lines.
-3. Real-model run (Execution Path), recorded in `docs/reviews/<date>-org-venue-local-runs.md`.
-4. Update `docs/END-TO-END-STATUS.md` (risk row) and HANDOFF in the same commit as step 3.
+1. Guard + helpers + O1–O6, O8, O10 (A, D). ~90 lines.
+2. Edit-path normalization + O9 (B). ~40 lines.
+3. Prompt line + O7 (C). ~15 lines.
+4. Real-model run (Execution Path), recorded in `docs/reviews/2026-10-09-org-venue-local-runs.md` (or the run's date).
+5. Update `docs/END-TO-END-STATUS.md` (risk row) and HANDOFF in the same commit as step 4.
 
 ## Execution Path
 
 - **Target:** this Mac, the local CLI. Nothing sent; no server or poller; `data/leads.db` never opened.
-- **Mechanism:** `DATABASE_PATH=<scratchpad>/runs.db npx tsx src/index.ts --json < lead-c.txt`, 3 times, with the
-  verbatim lead (c) text from `docs/plans/2026-10-09-feat-app-inserted-price-and-in-kind-lines-plan.md`. Read
-  `classification.organization_name` and `classification.venue_name`. Expected: `organization_name: null` on 3 of 3
-  (the guard fires whenever venue_name is the hotel; with the prompt line the model may return null itself).
-  Also re-run lead (a) once: `organization_name` stays "Example Arts Foundation" (positive control).
-- **Prerequisites:** ALREADY HAVE: Node, `npx tsx`, the Anthropic key in `.env` (read only), network. Nothing to
-  obtain. The CLI overwrites the clipboard.
-- **Who / Trigger:** Claude Code, after steps 1–2 are committed and green, before the Codex code review.
+- **Lead (c), verbatim** (same text as the price-block runs; save as `$T/lead-c.txt`): "Our foundation is hosting a
+  donor reception at the Example Grand Hotel in La Jolla and we'd like a solo guitarist for one hour. We've been
+  supporting the arts for over 15 years. About 100 guests. Event date: 2026-12-03."
+- **Lead (a), positive control** (save as `$T/lead-a.txt`): "Hi! I'm planning a donor appreciation reception for
+  the Example Arts Foundation, a 20-year-old arts foundation that funds youth music programs. It's on a Thursday
+  evening in the ballroom at the Example Grand Hotel in La Jolla, about 120 guests. We'd love one hour of solo
+  guitar during cocktails. Event date: 2026-12-10."
+- **Mechanism:** `T="$(mktemp -d)"`, write both files, then for lead (c) three times and lead (a) once:
+  `DATABASE_PATH="$T/runs.db" npx tsx src/index.ts --json < "$T/lead-c.txt" | sed -n '/^{/,$p' | jq '.classification | {organization_name, venue_name}'`
+  (the CLI prints one log line before the JSON; `sed` drops it).
+- **Reading each lead (c) run (three-way):** (i) `organization_name` null from the model itself (the prompt line
+  worked); (ii) the model returned the venue AND `venue_name` matches: the guard fired, result null; (iii) result is
+  the venue while `venue_name` is null or different: the KNOWN LIMITATION occurred, record it. Pass = 3 of 3 runs
+  end null (i or ii). Any (iii) is recorded and shown to Alex, not tuned around.
+- **Lead (a) expected:** `organization_name` "Example Arts Foundation", `venue_name` "Example Grand Hotel".
+- **Prerequisites:** ALREADY HAVE: Node, `npx tsx`, `jq`, the Anthropic key in `.env` (read only), network. Nothing
+  to obtain. The CLI overwrites the clipboard.
+- **Who / Trigger:** Claude Code, after steps 1–3 are committed and green, before the Codex code review.
 
 ## Codex review
 
