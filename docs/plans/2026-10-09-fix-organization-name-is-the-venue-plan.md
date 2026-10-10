@@ -119,7 +119,9 @@ All in `src/port-manifest-np2.test.ts`; run with `npm test` and `npm run test:ma
 - **O5** WHEN the organization differs from the venue ("Example Arts Foundation" at "Example Grand Hotel") THE SYSTEM
   SHALL keep it unchanged.
 - **O5b** WHEN `venue_name` is null, undefined, `""`, `"   "` or `"..."` THE SYSTEM SHALL keep the organization.
-  *Mutation:* let an empty list match; O5b fails.
+  AND WHEN the ORGANIZATION is `"..."` or `"   "` with venue "Example Grand Hotel" THE SYSTEM SHALL not drop it by
+  the guard (the result equals what the existing rule returns without a venue). (Codex plan round 2, run A P2.)
+  *Mutation:* let an empty list match; O5b fails on both sides.
 - **O6 (through the real call site)** WHEN `classifyLead` runs with a stubbed model returning a nonprofit NP2
   classification whose organization equals its venue THE SYSTEM SHALL return `organization_name === null`, and the
   priced in-kind sentence built from that result SHALL end "to [organization]." and `nonprofitPriceNote` SHALL say
