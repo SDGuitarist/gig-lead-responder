@@ -158,14 +158,20 @@ test("port manifest R403 NP2: the in-kind sentence is Alex's own, with the venue
   assert.match(nonprofitPriceNote(redirect.c, redirect.p) ?? "", /minimum-set redirect: no in-kind line; Alex adds it/);
   assert.doesNotMatch(nonprofitPriceNote(redirect.c, redirect.p) ?? "", /two prices/);
 });
-test("port manifest R403 NP2: the drafting prompt carries the in-kind line word for word, only when it applies", () => {
+// Price block H5 (plan 2026-10-09): the NP2 prompt asks for the marker line; the app writes the price line and
+// the in-kind sentence, so the prompt no longer carries the sentence (replaces the R403 "word for word" test).
+test("price block H5: an NP2 prompt asks for one [[PRICE: ...]] marker line and never carries the in-kind sentence", () => {
   const { c, p } = priced({ venue_name: "Example Hotel" });
   const prompt = buildGeneratePrompt(c, p, "ctx");
-  assert.match(prompt, /## IN-KIND LINE/);
-  assert.ok(prompt.includes("My standard Example Hotel rate is $795, so the difference is my in-kind contribution to [organization]."));
-  assert.match(prompt, /keep \[organization\] exactly as written: Alex fills it/i, "no organization name: Alex fills it");
+  const section = prompt.slice(prompt.indexOf("## PRICE LINE"));
+  assert.match(section, /\[\[PRICE: <the format in plain words>\]\]/);
+  assert.match(section, /once, alone on its own line, in both drafts/);
+  assert.doesNotMatch(section, /\[Format name\], \$/, "no model-written price line shape");
+  assert.doesNotMatch(prompt, /## IN-KIND LINE|in-kind contribution to|My standard Example Hotel rate/);
   const unpriced = priced({ rate_card_tier: "T2" });
-  assert.doesNotMatch(buildGeneratePrompt(unpriced.c, unpriced.p, "ctx"), /IN-KIND LINE|in-kind contribution/);
+  const plain = buildGeneratePrompt(unpriced.c, unpriced.p, "ctx");
+  assert.doesNotMatch(plain, /\[\[PRICE|in-kind contribution/, "no NP price: today's price line, no marker");
+  assert.match(plain, /\[Format name\], \$595, 2 hours/);
 });
 
 // Step 5: a one-price NP2 draft without the line, with a changed amount or wording, or with
@@ -268,10 +274,12 @@ test("port manifest R403 NP2: the app writes the organization's name into the in
     assert.equal(s(bad), "My standard rate is $795, so the difference is my in-kind contribution to [organization].", JSON.stringify(bad));
   }
   const prompt = (org: string | null) => buildGeneratePrompt({ ...priced().c, organization_name: org }, p, "ctx");
-  assert.ok(prompt("Example Arts Foundation").includes("contribution to the Example Arts Foundation."));
-  assert.match(prompt("Example Arts Foundation"), /word for word[^\n]*change nothing/i);
-  assert.doesNotMatch(prompt("Example Arts Foundation"), /\[organization\]/);
-  assert.match(prompt(null), /keep \[organization\] exactly as written: Alex fills it/i);
+  // Price block (plan 2026-10-09): the app inserts the sentence, so the prompt carries neither the sentence nor
+  // the placeholder (the name still appears in the lead's classification data); the model writes only the marker.
+  for (const org of ["Example Arts Foundation", null]) {
+    assert.doesNotMatch(prompt(org), /\[organization\]|in-kind contribution to|contribution to the Example/, String(org));
+    assert.match(prompt(org), /\[\[PRICE: <the format in plain words>\]\]/, String(org));
+  }
   const note = (org: string | null) => nonprofitPriceNote({ ...priced().c, organization_name: org }, p) ?? "";
   assert.match(note(null), /the lead names no organization: Alex fills \[organization\]/);
   assert.doesNotMatch(note("Example Arts Foundation"), /names no organization/);

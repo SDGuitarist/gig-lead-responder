@@ -1,6 +1,6 @@
 import { RATE_TABLES, type FormatRates, type TierRates } from "../data/rates.js";
-import { clientTotal, findMinFloor, IN_KIND_ORG_PLACEHOLDER, inKindSentence, rateTableFor, residencyStatesPrice } from "../pipeline/price.js";
-import { priceLineTail } from "../pipeline/price-block.js";
+import { clientTotal, findMinFloor, rateTableFor, residencyStatesPrice } from "../pipeline/price.js";
+import { priceBlockFor, priceLineTail } from "../pipeline/price-block.js";
 import { SETUP_SPACE } from "../data/setup-space.js";
 import { VOICE_REFERENCES } from "../data/voice-references.js";
 import { withoutHoldNotes, CONCERN_4PIECE_ALT, CONCERN_FULL_ENSEMBLE, GUT_CHECK_KEYS, GUT_CHECK_THRESHOLD, GUT_CHECK_TOTAL, type Classification, type Format, type PricingResult, type ResidencyQuote } from "../types.js";
@@ -68,7 +68,7 @@ Price the client is told: $${clientTotal(pricing, pricing.quote_price)}
 Internal only, never state these numbers: quote $${pricing.quote_price}, anchor $${pricing.anchor}, floor $${pricing.floor}
 Position: ${pricing.competition_position}
 Format: ${pricing.format} | Duration: ${pricing.duration_hours}hr | Tier: ${pricing.tier_key}${pricing.duration_hours !== classification.duration_hours ? `\nThe client asked for ${classification.duration_hours}hr; this rate is for ${pricing.duration_hours}hr (the rate card has no ${classification.duration_hours}-hour rate). State ${pricing.duration_hours} hours in the draft, plainly, never ${classification.duration_hours}.` : ""}${pricing.format === "flamenco_trio" && pricing.duration_hours === 3 && classification.extended_dancer ? "\nConfiguration: the dancer performs 2 of the 3 hours (the client asked for more dance time). Say so in the draft." : ""}
-${buildTravelBlock(pricing)}${buildPriceLineBlock(pricing)}${buildInKindBlock(classification, pricing)}
+${buildTravelBlock(pricing)}${buildPriceLineBlock(classification, pricing)}
 `}
 
 ## INJECTED CONTEXT (business logic docs)
@@ -366,8 +366,18 @@ GENERALIZATION: This rule applies to ALL cultural terms. Adjacent terms from the
 // his own sent replies (Patterson, Starikov, Miranda), not the Project's T2 "typically runs around".
 // The included clause is true only for formats Alex performs; no extension price (no rate exists).
 // No-viable-scope keeps its own minimum-set statement (residency and clarification never reach here).
-function buildPriceLineBlock(pricing: PricingResult): string {
+function buildPriceLineBlock(classification: Classification, pricing: PricingResult): string {
   if (pricing.budget.tier === "no_viable_scope") return "";
+  // NP2 (plan 2026-10-09, Alex): the app writes the price line and the in-kind sentence (insertPriceBlock), so
+  // the model writes only a marker line naming the format.
+  if (priceBlockFor(classification, pricing)) return `
+## PRICE LINE
+This is a nonprofit quote at a reduced rate. Where the price belongs, write this marker line exactly
+once, alone on its own line, in both drafts:
+[[PRICE: <the format in plain words>]]
+for example [[PRICE: Solo guitar]]. The app replaces that line with the price and Alex's note about the reduced
+rate. Do not write the price line yourself, and write no other sentence about an in-kind contribution, a donation
+or your standard rate. No extension or add-on price.`;
   // One builder for the tail (price-block.ts): the NP2 block the app inserts is the same text.
   const line = (price: number, hours: number) => `[Format name], ${priceLineTail(pricing, price, hours)}`;
   const alt = pricing.budget.tier === "large" ? pricing.budget.scoped_alternative : null;
@@ -381,15 +391,6 @@ ${line(pricing.quote_price, pricing.duration_hours)}`;
 ## PRICE LINE
 In both drafts, the format in plain words. ${lines}
 One confident number per line: never "around", "typically", "starting at" or a range. No extension or add-on price.`;
-}
-
-// NP2 (port manifest R403): Alex's in-kind line, word for word, right after the price (inKindSentence).
-function buildInKindBlock(classification: Classification, pricing: PricingResult): string {
-  const sentence = inKindSentence(classification, pricing);
-  return sentence ? `
-## IN-KIND LINE
-This is a nonprofit quote at a reduced rate. In both drafts, right after the price line, write this sentence word for word and change nothing${sentence.includes(IN_KIND_ORG_PLACEHOLDER) ? ` (keep ${IN_KIND_ORG_PLACEHOLDER} exactly as written: Alex fills it)` : ""}:
-${sentence}` : "";
 }
 
 // A recurring series states its BASE per-night price; travel is arranged separately, venue by venue
