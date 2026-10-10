@@ -2,7 +2,7 @@
 
 **Reader and trigger:** the Module 1 success measure ("win rate above the 0.6 baseline at 3 months",
 `docs/plans/2026-10-02-booking-hub-roadmap.md`), read when Module 1 has run 3 months; and
-`docs/END-TO-END-STATUS.md` (0.6 row). **Status: PARTIAL**: Yelp is missing (below).
+`docs/END-TO-END-STATUS.md` (0.6 row). **Status: COMPLETE (approximate)** 2026-10-09: calendar, both GigSalad accounts, Yelp (from Alex).
 Collected 2026-10-09 by Claude Code, read-only, with Alex's go-ahead. Counts only: no client names are recorded.
 
 ## 1. GIG Calendar ("Alex's GIG Calendar", Google Calendar), events starting in the window
@@ -62,9 +62,35 @@ ever book anything on the platform." Wins must come from the calendar (or anothe
 attributed to its lead source. That attribution does not exist yet: a design question for Module 1's win-rate
 measure.
 
-## 3. Missing (owner, trigger)
+## 2c. Yelp (Alex Guillen Music), "Yelp performance" page, Last 12 months (Nov 2025 – Oct 2026)
+
+Source: Alex, 2026-10-09, read from Yelp for Business → Home → "See detailed breakdown" (default range Last 12 months)
+in another Claude session, pasted into this one. Not read by this session (the inbox/overview attempts are in §3).
+
+| Metric | Total |
+|---|---|
+| Impressions | 12,029 |
+| Page visits | 279 |
+| Yelp "Leads" (all kinds) | 240 |
+| · Messages | 168 (70%) |
+| · Website visits | 66 (28%) |
+| · Calls | 4 (2%) |
+| · Directions/map views | 2 (1%) |
+
+**Comparable to GigSalad lead threads: Messages = 168.** Yelp's "Leads" also counts website visits, calls and map
+views, which are not inquiries. Window differs slightly (Nov–Oct by calendar month vs 2025-10-10 .. 2026-10-09).
+Impressions peaked in January and fell after (Alex's reading). No export of these numbers exists (Yelp's account
+data export covers personal data, not business performance).
+
+## 4. Summary for the Module 1 measure
+
+~415 inquiries in 12 months (GigSalad 247 threads, possibly double-counting cross-profile leads; Yelp 168
+messages) against 24 paid performances from ALL sources. Not a win rate: a gig is not yet traced to its lead
+source (design gap for Module 1).
+
+## 3. Attempts and open questions (owner, trigger)
 
 | Source | Why missing | Needed |
 |---|---|---|
-| Yelp business dashboard | **Tried 2026-10-09 (Alex: approximate via the inbox).** Page text is readable now (only screenshots were denied earlier). The inbox (`/leads_center/<biz>/leads`) shows filter totals **Active 22, Archived ~1.5k (all time)** but renders only 10 rows (ages "1 day ago" .. "3 years ago"), with no load-more, paging or scroll loading; the Overview's "Performance Summary" is not readable as text and shows no date-range control; the list data comes from a `gql/batch` POST (not replayed: private API). No 12-month count obtained | Alex reads the 12-month lead count from Yelp's own reports (app or site), or the Yelp row stays empty |
+| Yelp (this session's own reading) | Inbox/overview unreadable as counts (Active 22, Archived ~1.5k, 10 rows shown); the 12-month numbers came from Alex instead (§2c) | — |
 | GigSalad "date = received or last activity?" | Not verified | Open question; one way to check is a known recent lead whose received date is known |
