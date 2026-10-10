@@ -55,6 +55,8 @@ plus pasted output). Anything else is **UNEXECUTED**, with an owner, a reason an
 
 ## UNEXECUTED (owner · reason · trigger)
 
+> **STALE TABLE (noted 2026-10-09):** C1a PASSED and C1b was waived on 2026-10-03 (rows above), and `port-manifest.md` exists. Read each item's result row in `## Executed`, not this table; the live checklist is `docs/END-TO-END-STATUS.md`.
+
 | Row | Owner | Why not yet | Trigger |
 |---|---|---|---|
 | C1a: Railway stopped | Alex (⚠) | Destructive; needs his yes | Phase 0.2 step 2 |

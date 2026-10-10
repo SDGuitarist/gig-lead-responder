@@ -1,8 +1,10 @@
 # HANDOFF -- Gig Lead Responder
 
+> **READ FIRST: `docs/END-TO-END-STATUS.md`** — the end-to-end plan, checklist and critical path, each row with its source. Update it in the same commit as any work that changes a row.
+
 **Date:** 2026-10-09
 **Branch:** `feat/hub-phase0` (cut from `docs/booking-hub-brainstorm` at `c644210`; pushed; not merged)
-**Phase:** Work, Phase 0 **in progress**. 0.1, 0.2 (code), 0.3 (all but the alert half of `invalid_grant alerts`), 0.4, S1, S1-adv done. **0.5 port: 29 TO PORT remain.** 0.6 blocked. **GigSalad portal reading BUILT.** Module 1 not started.
+**Phase:** Work, Phase 0 **in progress**. 0.1, 0.2 (code), 0.3 (all but the alert half of `invalid_grant alerts`), 0.4, S1, S1-adv done. **0.5 port: 19 TO PORT remain** (was "29": stale; recounted from the manifest's status column 2026-10-09, see `docs/END-TO-END-STATUS.md` V1). 0.6 blocked. **GigSalad portal reading BUILT.** Module 1 not started.
 
 ## START HERE — price-block cycle COMPLETE (2026-10-09): plan, work, review (GO), compound all done
 
@@ -53,7 +55,7 @@ FIRST gate (stop and ask Alex if anything differs):
   pwd; git fetch origin; git branch --show-current          # expect: feat/hub-phase0
   git rev-parse HEAD; git rev-parse origin/feat/hub-phase0  # expect: identical
   git status --short                                        # expect: clean
-Read: HANDOFF.md "START HERE — price-block cycle COMPLETE", CLAUDE.md,
+Read: docs/END-TO-END-STATUS.md (re-check any row you act on at its source), HANDOFF.md "START HERE — price-block cycle COMPLETE", CLAUDE.md,
 docs/plans/2026-10-09-feat-app-inserted-price-and-in-kind-lines-plan.md,
 docs/reviews/2026-10-09-price-block-local-runs.md, and docs/reviews/*price-block-codex-round1.md if it exists.
 The price-block cycle is complete (plan, work, review GO, compound). Ask Alex which to do next, then follow the
