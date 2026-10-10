@@ -532,3 +532,15 @@ test("org-venue O6: through classifyLead, the venue-as-organization becomes [org
   assert.match(inKindSentence(c, priced2) ?? "", /contribution to \[organization\]\.$/);
   assert.match(nonprofitPriceNote(c, priced2) ?? "", /the lead names no organization: Alex fills \[organization\]/);
 });
+
+// O9: the SMS edit path reuses a STORED classification and never re-runs validateClassification, so the guard is
+// applied again at runEditPipeline entry. (PF_INTEL_API_URL is unset under the test runner: no venue network call.)
+test("org-venue O9: an SMS edit of a stored classification with organization = venue holds for [organization]", async () => {
+  const { c, p } = priced({ organization_name: "Example Grand Hotel", venue_name: "Example Grand Hotel" } as Partial<Classification>);
+  script([GEN(`Hi, shorter.\n${MARK}`), GATE(true)]);
+  try {
+    const r = await runEditPipeline(c, p, "Make it shorter");
+    assert.match(r.drafts.full_draft, /contribution to \[organization\]\./);
+    assert.ok(r.gate.fail_reasons.some((x) => x.startsWith("in_kind_org_missing")), r.gate.fail_reasons.join("; "));
+  } finally { setClaudeRequesterForTests(); }
+});

@@ -1,4 +1,4 @@
-import { classifyLead } from "./pipeline/classify.js";
+import { classifyLead, normalizeOrganizationName } from "./pipeline/classify.js";
 import { verifyClassificationHeuristics } from "./pipeline/classify-verify.js";
 import { lookupPrice, budgetGapFor, minimumProfitHold, nonprofitPriceNote, t4FallbackHold } from "./pipeline/price.js";
 import { priceBlockFor } from "./pipeline/price-block.js";
@@ -317,6 +317,9 @@ export async function runEditPipeline(
 ): Promise<EditPipelineResult> {
   // Backward compat: old classification records stored before C1 lack venue_name
   classification.venue_name = classification.venue_name ?? null;
+  // A stored classification skips validateClassification: re-apply "never the venue" (plan 2026-10-09, O9).
+  classification.organization_name = normalizeOrganizationName(classification.organization_name,
+    classification.nonprofit_buyer === true, classification.venue_name);
 
   let venueContext: VenueContext | null = null;
   if (classification.venue_name) {
