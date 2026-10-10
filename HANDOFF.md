@@ -4,6 +4,51 @@
 **Branch:** `feat/hub-phase0` (cut from `docs/booking-hub-brainstorm` at `c644210`; pushed; not merged)
 **Phase:** Work, Phase 0 **in progress**. 0.1, 0.2 (code), 0.3 (all but the alert half of `invalid_grant alerts`), 0.4, S1, S1-adv done. **0.5 port: 29 TO PORT remain.** 0.6 blocked. **GigSalad portal reading BUILT.** Module 1 not started.
 
+## START HERE — price-block plan session (2026-10-09, plan phase)
+
+**State:** branch `feat/hub-phase0`. Plan committed `7a35753`:
+`docs/plans/2026-10-09-feat-app-inserted-price-and-in-kind-lines-plan.md`. No code changed. Suite unchanged
+(720 pass / 0 fail / 1 skip at `2820b71`). **Next phase: Plan Review (Codex round 1 of the PLAN)**, then Work.
+
+**Alex's decisions this session (asked before writing the plan):**
+- Next item = (1), the app inserts the price line + in-kind line (brainstorm skipped; input = NP2 round-3 record).
+- **"[standard]" is DECIDED: keep the normal price lookup** (no venue-level T3 rate). No longer open.
+- Scope: **NP2 drafts only** (every other draft keeps today's model-written price line).
+- Format name: **the model names it** in a `[[PRICE: <name>]]` marker line; the app writes the numbers, the
+  included clause and the in-kind sentence.
+Plan gate READY (4 gaps fixed in the plan before commit); EARS 14/14 well-formed.
+The NP2 known gaps below (prose price line, "in  kind") stay OPEN until the work phase lands; un-flag them then
+(plan step 7).
+
+### Three Questions (price-block plan session)
+1. **Hardest decision?** Where to insert: inside `generateResponse` (after the 2000-char cut, before the sign-off) so
+   the LLM verify gate, rewrites and SMS edits all see the real block, not at post-check time.
+2. **Rejected?** Another narrowing of `hasInKindLine`; an app-owned format-name table (new client wording); every
+   draft in scope; throwing on a missing marker (crash instead of hold).
+3. **Least confident going into plan review?** Whether the model writes the marker exactly once in BOTH drafts
+   (the compressed draft especially); the plan's step 6 measures it on 3 made-up NP2 leads with a STOP rule.
+
+### Prompt for Next Session
+
+```
+Work in /Users/alejandroguillen/Projects/gig-lead-responder.
+FIRST gate (stop and ask Alex if anything differs):
+  pwd; git fetch origin; git branch --show-current          # expect: feat/hub-phase0
+  git rev-parse HEAD; git rev-parse origin/feat/hub-phase0  # expect: identical
+  git status --short                                        # expect: clean
+Read: HANDOFF.md "START HERE — price-block plan session", CLAUDE.md,
+docs/plans/2026-10-09-feat-app-inserted-price-and-in-kind-lines-plan.md, and
+docs/reviews/2026-10-09-price-block-plan-codex-round1.md if it exists.
+Phase: PLAN REVIEW. If the review record does not exist, the Codex plan-review round-1 prompt is not yet run:
+ask Alex for his Codex run's output, run the same prompt yourself, record BOTH in that file (stricter verdict wins),
+update the plan for every real finding, commit. Then, with Alex's go, start WORK at plan step 1.
+Work rules: failing test first, mutation-check each new test, one concern per commit, commit only on a green
+suite + tsc, git fetch before every commit (peer sessions use this branch).
+HARD GATE: never start the Mac poller or server against real mail. Never open data/leads.db from a test.
+STOP and ask Alex before: any real send; any GigSalad click or opening GigSalad/Yelp lead pages; Full Disk Access;
+any change to .env or production data; any new or changed price. Do not start Module 1. Update HANDOFF.md before stopping.
+```
+
 ## START HERE — pricing session (2026-10-05..09)
 
 **State:** branch `feat/hub-phase0`, pushed. Suite: **720 pass / 0 fail / 1 skip**.
@@ -104,7 +149,7 @@ production data, ask first), R329, R398 (later module).
 ### Three Questions (NP2 work session, 2026-10-09)
 1. **Hardest implementation decision?** What "[standard]" means. The app's normal price for a nonprofit is
    T1/T2 (the who-pays rule removed venue premium), but Alex's line says "my standard [venue] rate": the two
-   decisions conflict. Alex chose the $100 minimum, so NP2 rarely fires; the conflict itself is still open.
+   decisions conflict. Alex chose the $100 minimum, so NP2 rarely fires; the conflict itself is still open. **DECIDED 2026-10-09 (price-block plan session): keep the normal lookup.**
 2. **Considered changing but left alone?** Computing a standard for the scoped 1h alternative so the two-price
    budget draft could carry the line too: more plumbing for a rare case that is held anyway.
 3. **Least confident going into review?** Whether the drafting model writes the in-kind sentence word for word
@@ -140,7 +185,7 @@ Ask Alex which to do next, then follow the compound loop for it:
   (2) plan the sourced-formats work (no code path chooses a sourced_cultural_* format);
   (3) NP1 / NP3 / NP2 3-4h / NP duo prices (Alex's numbers only; never invent a price);
   (4) other TO PORT rows in docs/research/2026-10-02-booking-hub/port-manifest.md.
-Also open for Alex: whether "[standard]" should be a venue-level (T3) rate rather than the normal lookup.
+[DECIDED 2026-10-09: keep the normal lookup] Also open for Alex: whether "[standard]" should be a venue-level (T3) rate rather than the normal lookup.
 Before Codex review of anything that drafts text: run made-up leads locally first
 (DATABASE_PATH=<scratch> npx tsx src/index.ts --json < lead.txt; nothing is sent; it overwrites the clipboard).
 Work rules: failing test first, mutation-check each new test, one concern per commit, commit only on a green
