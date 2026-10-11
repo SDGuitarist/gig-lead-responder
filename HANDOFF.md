@@ -27,6 +27,10 @@ the staged diff yourself (the check misses paraphrases and copies under 30 chara
 **Open questions for Alex:** Q1 the Grand Del Mar entry's blanks; Q2 has he played La Valencia (R085) or Scripps
 (R089)? (both BLOCKED); Q3 OK to push ~/Data to its encrypted remote?
 
+**Idea filed (Alex, 2026-10-11):** a definitive venue database (he has played ~80% of San Diego venues) from his
+memory, Google Calendar, Gmail and venue websites: `docs/brainstorms/2026-10-11-venue-database-seed.md`. A future
+brainstorm, after the port rows.
+
 **Next:** the **10 TO PORT** rows (`docs/END-TO-END-STATUS.md` 0.5 row; recount with V1 first). Prices (NP1/NP3/NP2
 3-4h/NP duo) need Alex's numbers. Other open items: S6 overnight (Alex picks a night); PF-Intel production URL
 (Alex, in Railway); the pre-existing " , " em-dash spacing defect seen in every draft.
