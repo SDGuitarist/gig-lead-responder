@@ -28,7 +28,7 @@ flowchart LR
     A04[0.4 migrations ✅]
     A05[0.5 port: 19 TO PORT]
     A06[0.6 win-rate baseline ✅ approx]
-    A07[0.7 spikes: S1 ✅ S1-adv ✅ C1 ✅ G1 ❌→redesign 1.2 · S3 ✅ · S2 S5 S6 open]
+    A07[0.7 spikes: S1 ✅ S1-adv ✅ C1 ✅ G1 ❌→redesign 1.2 · S3 ✅ · S5 ✅ · S2 S6 open]
   end
   P0 --> M1[Module 1: 1.1 send gate · 1.2 no dup send · 1.3 statuses · 1.4 approvals · 1.5 channels · 1.6 claude -p · 1.7 ramp/clock/alerts]
   M1 --> R[20-lead review-only ramp] --> AS[auto-send for code-confident drafts] --> W[1 week live] --> M2[Module 2] --> M3[Module 3]
@@ -57,7 +57,7 @@ then 0 off-calendar gigs / 0 missed money or COI dates; then hours back.
 | ☑ | G1 Gmail supplied Message-ID | **FAIL 10-03** (Gmail replaces it; search verified by controls); repeated 10-09, same result | `spikes.md` G1 result rows (NOT the UNEXECUTED table) | **Consequence: plan §1.2 duplicate-send recovery must be redesigned** (candidates: body/subject token, or the Gmail id from the send response); auto-send stays off until then |
 | ☐ | S2 GigSalad email reply lands on platform | not run | `## UNEXECUTED` row S2 | **Alex**, on the next real GigSalad lead |
 | ☑ | S3 iMessage to self + read-back | **PASSED 10-09** (sent + delivered, read back from `chat.db`; Alex confirmed on iPhone) | `spikes.md` row "S3: iMessage to self + read-back \| 2026-10-09" | Finding: self-messages create two rows; only `is_from_me=1` is Alex |
-| ☐ | S5 Gmail token valid on day 8 | not run | row "S5 step 2" | **Claude, on or after 2026-10-11**: the `getProfile` call in that row |
+| ☑ | S5 Gmail token valid on day 8 | **PASSED 10-11** 00:00 PDT (7 d 16 h after the production sign-in; refresh token used: loader refreshed and rewrote the token file) | `spikes.md` row "S5: token valid on day 8 \| 2026-10-11"; probe `evidence/s5-probe.ts` | No weekly re-auth needed. Revocation (password change, 6 months unused) still ends it: that is the `invalid_grant` alert in 0.3 |
 | ☐ | S6 overnight awake + catch-up | not run | row S6 | Alex (a night) |
 | ☐ | FileVault restart after an OS update | not run | row FileVault | Alex (next macOS update) |
 
@@ -86,13 +86,13 @@ Gate (port manifest header): Module 1 cannot go live while any manifest row is `
 | Classifier's T2/T3 call decides whether NP2 fires (first real texts: 0/3 priced) | local-runs record | watch in the ramp |
 | Real-lead false-hold rate of the price block unmeasured (6 runs, 3 texts) | solution doc `architecture/2026-10-09-app-writes-fixed-lines-model-writes-a-marker.md` | measure in the 20-lead ramp |
 | S1-adv: the model appended a meta note under the draft on an injection lead | `spikes.md` row S1-adv | Module 1 post-check must hold text outside the reply |
-| Gmail token: if S5 fails, a weekly re-auth reminder is needed | `spikes.md` S5 rows | check on/after 2026-10-11 |
+| Gmail token: if S5 fails, a weekly re-auth reminder is needed | `spikes.md` S5 rows | **CLOSED 10-11: S5 passed** (the `invalid_grant` alert in 0.3 still matters for revocation) |
 
 ## Critical path (the order sessions should pull from, unless Alex picks otherwise)
 
 1. Things only Alex can unblock, raised every session until done: **0.6 baseline**, **S2** (next GigSalad lead),
    **S6** (a night), the **PF-Intel URL** check.
-2. Claude: **S5 on/after 2026-10-11**; then the **19 TO PORT** rows (prices need Alex's numbers).
+2. Claude: ~~S5~~ (passed 10-11); the **19 TO PORT** rows (prices need Alex's numbers).
 3. Module 1 plan review → build 1.1–1.7 → redesign 1.2's send-recovery key (G1 failed) → 20-lead ramp → auto-send → 1 week live.
 4. Only then: write the Module 2 plan from the live results.
 
