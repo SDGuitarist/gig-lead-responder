@@ -1,7 +1,7 @@
 ---
 title: "Venues Alex has played: a private file the app reads (port manifest R081-R089, R405)"
 date: 2026-10-11
-status: plan, Revision 2 (after Codex plan review round 2 = NO-GO on both runs, the 2nd NO-GO); round 3 is Alex's call
+status: plan, Revision 2 (after Codex plan review round 2 = NO-GO on both runs, the 2nd NO-GO); Round 3 authorized by Alejandro: YES (2026-10-11)
 branch: feat/hub-phase0
 rows: R081 R082 R083 R084 R085 R087 R088 R089 R405
 ---
