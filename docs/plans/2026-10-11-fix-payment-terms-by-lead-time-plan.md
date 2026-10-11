@@ -173,7 +173,7 @@ All date tests inject `todayIso`; none reads the clock.
 - **P7** WHEN `buildGeneratePrompt` gets `sentence`, the prompt SHALL contain that sentence in exactly one payment line
   and SHALL NOT contain "A 50% deposit holds the date. Say it plainly"; WHEN `platform`, the platform line and no
   sentence; WHEN `none`, no "Payment:" line.
-- **P8 Baseline.** Step 0 commits `src/fixtures/prompt-baseline-<lead>.txt` for three fixed classifications (direct T3
+- **P8 Baseline.** Step 0 commits `src/fixtures/prompt-baseline/<lead>.txt` (inputs: `src/fixtures/prompt-baseline-inputs.json`) for three fixed classifications (direct T3
   wedding, GigSalad T2 party, NP2 nonprofit; no model call), built by the code at `38acd73` with
   `today = "2026-10-11"`. The test builds the new prompt (same inputs, `sentence` = the no-date sentence for the two
   non-platform leads, `platform` for GigSalad) and asserts: the fixture contains the old line exactly once; the new
