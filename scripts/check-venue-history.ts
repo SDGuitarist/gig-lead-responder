@@ -7,24 +7,45 @@
 // (iii) a BOUNDED leakage sentinel: any 30-character window of a sentence (whitespace collapsed) found in a file
 //      tracked by git under CHECK_REPO_ROOT (default: this repo). It misses paraphrases and shorter copies.
 import { execFileSync } from "node:child_process";
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
+import { readFileSync, realpathSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { findVenueHistory, loadVenueHistory, venueHistoryPath } from "../src/venue-history.js";
-import { claimWindows, collapse, scanText } from "./venue-leak-scan.js";
+import { claimWindows, collapse, scanText, windowKey } from "./venue-leak-scan.js";
 
 const MUST_MISS = ["Del Coronado Yacht Club", "Del Coronado Beach Club", "Torrey Pines Lodge at UCSD",
   "Torrey Pines Golf Course", "Rancho Santa Fe", "Old Rancho Santa Fe", "Hotel Del", "Coasterra San Diego"];
 const MUST_HIT: Array<[string, string]> = [["Hotel del Coronado", "Hotel del Coronado"],
   ["The Lodge at Torrey Pines", "Lodge at Torrey Pines"], ["Fairmont Grand Del Mar", "The Grand Del Mar"],
   ["Coasterra", "Coasterra"]];
-// Public BEFORE this work: Alex's voice examples have carried the opening clause of the Lodge sentence, first in
-// these commits. Never quote a sentence here: this file is public. A window counts as known only if the file AT THAT
-// COMMIT already held the exact same window; any later words, any other file, any other sentence still fail.
-// CHECK_KNOWN_PUBLIC (JSON, file -> commit) replaces this list for the throwaway-repo controls.
-const KNOWN_PUBLIC: Record<string, string> = process.env.CHECK_KNOWN_PUBLIC
-  ? JSON.parse(process.env.CHECK_KNOWN_PUBLIC)
-  : { "docs/RESPONSE_CRAFT.md": "7d69d9c", "src/data/voice-references.ts": "04ff0dd",
-      "docs/DRAFT_METHOD.md": "1c461cf", "docs/SOURCED_DRAFTING.md": "0e6b7b9" };
+// Public BEFORE this work: parts of two sentences (Lodge, Del) sit in Alex's voice examples in these files, first
+// public at the commit named on each line. Never quote a sentence here: this file is public. Each entry is the
+// windowKey() fingerprint of one exact 30-character window that the file held at that commit; only those windows
+// count as known. Any other window, file or sentence fails. Fixed in code on purpose: nothing in the environment
+// can widen it (code review round 2). To change it, recompute from the commit and show the change in review.
+const APPROVED: Record<string, Set<string>> = {
+  "docs/RESPONSE_CRAFT.md": new Set(( // 7d69d9c, 40 windows
+    "68a88125c5ed195b f104085422d7dbbb fe85e6d5f7a77deb 6a208d1d7ba344c8 d9988e84d8ed2ef1 8f4d217330c796f7 " +
+    "f0afa82e93cd7a50 2a39f7e45df44508 e736766590e5940c 022cb7cde0addd91 5e79ad0bd07aa96d b42ee28be054dac7 " +
+    "45a0218cca8db4fb c2cfa8e872d93499 30cc65c5ccaaadfc 55bb31dc488e7305 83f6406b5b03261c 0ab1dca0bd8c886e " +
+    "600a27fe58584593 c20ee49da1ea5ae3 0e314359ec15b108 ecc39577e32c864d 805137250b1b4e8c 91a4f28f3424359a " +
+    "0849b703af7a7cc2 f2c5436f9cf7aeb0 42cc4098324919c0 3a93069e4e92ca6b 3213ffb3bad55cd3 65b6b69bab538563 " +
+    "467c09ad2cf01a57 22250e6edd5e2124 beca539f4b093b04 7655475b713b16a6 070caff24311eeb6 f8354718ae365030 " +
+    "2cf08057118e546b 71de6405ed1bc3fc e038cb69c132af04 6cb285237375b6d4"
+  ).split(" ")),
+  "src/data/voice-references.ts": new Set(( // 04ff0dd, 9 windows
+    "f364fc252d94acb0 c2ab003389c3b472 37f5cad2f153c972 737017e90828061f abef587d7eb3042d f52e87126f0c4dbe " +
+    "13c5d852c3ac51d3 255b5eaf09a6eba0 981c169debaa855b"
+  ).split(" ")),
+  "docs/DRAFT_METHOD.md": new Set(( // 1c461cf, 9 windows
+    "ce4838d3ad2a9f97 fccf983838bb9ad4 fc0bf24d109f018a 81cba441aabd10d0 734464143ee3d7a1 6c74d510d0852ec0 " +
+    "e1a3b342d80e7ac0 f6a20b2b2c490a24 ba604084bcb628a9"
+  ).split(" ")),
+  "docs/SOURCED_DRAFTING.md": new Set(( // 0e6b7b9, 9 windows
+    "eabff29950c3338a a97035fe10c91bb3 a0e4924b78a7e39d 937adba509c3b74b 37802c5fbe6cb3e9 a05b29921b841d4e " +
+    "a3613e2ae242d8ed 0f8191d32d898ae7 3a519863f6eac4b8"
+  ).split(" ")),
+};
 const known: string[] = [];
 
 const path = venueHistoryPath();
@@ -61,27 +82,19 @@ for (const [lead, expected] of MUST_HIT) {
 }
 
 console.log("(iii) leakage sentinel (bounded: exact copies of 30+ characters only)");
-if (process.env.CHECK_KNOWN_PUBLIC) console.log("  known-public commits replaced by CHECK_KNOWN_PUBLIC");
 const windows = claimWindows(venues.filter((v) => v.claim).map((v) => ({ name: v.name, claim: v.claim as string })));
-const root = process.env.CHECK_REPO_ROOT || execFileSync("git", ["rev-parse", "--show-toplevel"], { encoding: "utf-8" }).trim();
+const thisRepo = join(dirname(fileURLToPath(import.meta.url)), ".."); // this script's repo, whatever the cwd
+const root = process.env.CHECK_REPO_ROOT || thisRepo;
+const control = realpathSync(root) !== realpathSync(thisRepo);
 const tracked = execFileSync("git", ["-C", root, "ls-files", "-z"], { encoding: "utf-8", maxBuffer: 64 * 1024 * 1024 })
   .split("\0").filter(Boolean);
-function publicVersion(file: string): string | undefined {
-  const commit = KNOWN_PUBLIC[file];
-  if (!commit) return undefined;
-  try {
-    return collapse(execFileSync("git", ["-C", root, "show", `${commit}:${file}`], { encoding: "utf-8", stdio: ["ignore", "pipe", "ignore"] }));
-  } catch {
-    failures.push(`cannot read ${file} at ${commit}: nothing in it counts as known`);
-    return undefined;
-  }
-}
 for (const file of tracked) {
   let text: string;
   try { text = collapse(readFileSync(join(root, file), "utf-8")); } catch { continue; }
-  const { leaks, known: old } = scanText(text, windows, publicVersion(file));
+  const approved = control ? undefined : APPROVED[file];
+  const { leaks, known: old } = scanText(text, windows, (w) => approved?.has(windowKey(file, w)) ?? false);
   for (const name of leaks) failures.push(`${file}: contains 30+ characters (or all) of the sentence of "${name}"`);
-  for (const name of old) known.push(`${file} (${name}): same words as at ${KNOWN_PUBLIC[file]}, public before this work`);
+  for (const name of old) known.push(`${file} (${name}): only windows already public before this work`);
 }
 console.log(`  searched ${tracked.length} tracked files under ${root}`);
 for (const k of known) console.log(`  known, not a new leak: ${k}`);
@@ -90,4 +103,4 @@ if (failures.length) {
   for (const f of failures) console.log(`FAIL: ${f}`);
   process.exit(1);
 }
-console.log("PASS");
+console.log(control ? `PASS for the CONTROL repo ${root} only (no exemptions applied); this repo was not checked` : "PASS");

@@ -1,8 +1,8 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { claimWindows, collapse, scanText } from "./venue-leak-scan.js";
+import { WINDOW, claimWindows, collapse, scanText, windowKey } from "./venue-leak-scan.js";
 
-// Made-up venues and sentences only: tests never read ~/Data (venues code review round 1, finding 1).
+// Made-up venues and sentences only: tests never read ~/Data (venues code review rounds 1-2).
 const OPENING = "Fixture opening clause was public long ago";
 const LATER = "and fixture later words were never published anywhere.";
 const windows = claimWindows([
@@ -10,23 +10,28 @@ const windows = claimWindows([
   { name: "Example Harbor Hall", claim: "Example harbor sentence that is private and must never appear in a tracked file." },
   { name: "Example Garden", claim: "Short one." },
 ]);
-const publicVersion = collapse(`Voice example:\n${OPENING}.`);
+// The approved list: fingerprints of the opening's windows in one file, as check-venue-history.ts lists them.
+const GUIDE = "docs/GUIDE.md";
+const approved = new Set<string>();
+for (let i = 0; i + WINDOW <= OPENING.length; i++) approved.add(windowKey(GUIDE, OPENING.slice(i, i + WINDOW)));
+const knownIn = (file: string) => (w: string) => approved.has(windowKey(file, w));
 
 describe("venue leak scan", () => {
-  it("known-public positive: the opening already in the public version is known, not a leak", () => {
-    assert.deepEqual(scanText(collapse(`Voice example: ${OPENING}.`), windows, publicVersion), { leaks: [], known: ["Example Lodge"] });
+  it("known-public positive: the approved opening is known, not a leak", () => {
+    assert.deepEqual(scanText(collapse(`Voice example: ${OPENING}.`), windows, knownIn(GUIDE)), { leaks: [], known: ["Example Lodge"] });
   });
 
-  it("later window of the same sentence in the same file is a leak (exemption is per window, not per venue)", () => {
-    assert.deepEqual(scanText(collapse(`Voice example: ${LATER}`), windows, publicVersion).leaks, ["Example Lodge"]);
+  it("later window of the same sentence in the same file is a leak (approval is per window, not per venue)", () => {
+    assert.deepEqual(scanText(collapse(`Voice example: ${LATER}`), windows, knownIn(GUIDE)).leaks, ["Example Lodge"]);
   });
 
   it("mixed file: a known match first never hides a new leak after it", () => {
-    const r = scanText(collapse(`${OPENING}. Then: Example harbor sentence that is private`), windows, publicVersion);
+    const r = scanText(collapse(`${OPENING}. Then: Example harbor sentence that is private`), windows, knownIn(GUIDE));
     assert.deepEqual(r, { leaks: ["Example Harbor Hall"], known: ["Example Lodge"] });
   });
 
-  it("overshoot: the public opening in a file with no public version is a leak", () => {
+  it("overshoot: the approved opening in another file is a leak (approval is bound to its file)", () => {
+    assert.deepEqual(scanText(collapse(`${OPENING}.`), windows, knownIn("docs/OTHER.md")).leaks, ["Example Lodge"]);
     assert.deepEqual(scanText(collapse(`${OPENING}.`), windows).leaks, ["Example Lodge"]);
   });
 
@@ -36,6 +41,14 @@ describe("venue leak scan", () => {
   });
 
   it("text with none of the sentences reports nothing", () => {
-    assert.deepEqual(scanText(collapse("Nothing private here at all, just ordinary words in a file."), windows, publicVersion), { leaks: [], known: [] });
+    assert.deepEqual(scanText(collapse("Nothing private here at all, just ordinary words in a file."), windows, knownIn(GUIDE)), { leaks: [], known: [] });
+  });
+
+  it("windowKey is 16 hex characters and changes with the file or the window", () => {
+    const w = OPENING.slice(0, WINDOW);
+    assert.match(windowKey(GUIDE, w), /^[0-9a-f]{16}$/);
+    assert.equal(windowKey(GUIDE, w), windowKey(GUIDE, w));
+    assert.notEqual(windowKey(GUIDE, w), windowKey("docs/OTHER.md", w));
+    assert.notEqual(windowKey(GUIDE, w), windowKey(GUIDE, OPENING.slice(1, WINDOW + 1)));
   });
 });

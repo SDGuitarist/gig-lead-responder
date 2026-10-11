@@ -1,5 +1,6 @@
 // The leakage-sentinel scan behind scripts/check-venue-history.ts, kept pure so tests run it on made-up text.
 // Bounded: exact copies of 30+ characters only (whitespace collapsed); paraphrases and shorter copies pass.
+import { createHash } from "node:crypto";
 
 export const WINDOW = 30;
 
@@ -16,15 +17,20 @@ export function claimWindows(claims: Array<{ name: string; claim: string }>): Ma
   return windows;
 }
 
+/** Fingerprint of one window in one file: lets the public checker list approved windows without quoting them. */
+export function windowKey(file: string, window: string): string {
+  return createHash("sha256").update(`${file}\n${window}`).digest("hex").slice(0, 16);
+}
+
 /**
- * Venues whose sentence appears in `text`. A match is known (already public) only when `publicText`, the file as it
- * was when that text first became public, already held the exact same window; anything else is a leak. Every window
- * is checked, so a known match never hides a new one. Both texts must already be collapsed.
+ * Venues whose sentence appears in `text` (already collapsed). A match is known (already public) only when
+ * `isKnown` approves that exact window; anything else is a leak. Every window is checked, so a known match never
+ * hides a new one.
  */
-export function scanText(text: string, windows: Map<string, string>, publicText?: string): { leaks: string[]; known: string[] } {
+export function scanText(text: string, windows: Map<string, string>, isKnown: (w: string) => boolean = () => false): { leaks: string[]; known: string[] } {
   const leaks = new Set<string>();
   const known = new Set<string>();
-  const note = (w: string, name: string) => (publicText?.includes(w) ? known : leaks).add(name);
+  const note = (w: string, name: string) => (isKnown(w) ? known : leaks).add(name);
   for (const [w, name] of windows) if (w.length < WINDOW && text.includes(w)) note(w, name);
   for (let i = 0; i + WINDOW <= text.length; i++) {
     const w = text.slice(i, i + WINDOW);
