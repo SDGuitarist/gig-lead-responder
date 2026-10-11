@@ -44,6 +44,10 @@ env.ANTHROPIC_BASE_URL = "http://127.0.0.1:9";
 delete env.ANTHROPIC_AUTH_TOKEN;
 delete env.CLAUDE_CODE_OAUTH_TOKEN;
 
+// No test may read Alex's private venue file (~/Data/gig-lead-responder/venue-history.json). A path under
+// /dev/null can never exist, so the app sees "missing"; tests that need venues use made-up fixtures.
+env.VENUE_HISTORY_PATH = "/dev/null/venue-history-under-test.json";
+
 const child = spawn(process.execPath, nodeArgs, { env, stdio: ["ignore", "pipe", "inherit"] });
 let out = "";
 child.stdout.on("data", (chunk) => {

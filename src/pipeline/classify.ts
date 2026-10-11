@@ -98,7 +98,7 @@ export function normalizeOrganizationName(value: unknown, nonprofitBuyer: boolea
 }
 
 // Accents folded, & = and, punctuation dropped, one leading "the" removed: "The Café & Bar." -> [cafe, and, bar].
-function nameWords(raw: unknown): string[] {
+export function nameWords(raw: unknown): string[] {
   const words = (typeof raw === "string" ? raw : "").normalize("NFD").replace(/\p{M}/gu, "").toLowerCase()
     .replace(/&/g, " and ").replace(/[^\p{L}\p{N}]+/gu, " ").trim().split(" ").filter(Boolean);
   return words[0] === "the" ? words.slice(1) : words;
