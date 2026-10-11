@@ -84,6 +84,11 @@ parts that need macOS: reading iMessages and working the EventHelper site.
    one week before a music performance (day-of for corporate/one-off); card adds 3.75%; inside 7
    days the full total is owed; W-9 for corporate; checks to Alejandro Guillen; never a booking
    without a deposit (`~/.claude/docs/contract-and-payment-process.md`).
+   *Correction 2026-10-11 (Alex): the balance terms above are superseded. Balance due depends on
+   lead time (event date minus the date the quote/contract is sent), for all clients: more than
+   2 months out, due 2 months before the event; more than 2 weeks up to and including 2 months,
+   due 2 weeks before; 2 weeks or less, full amount upfront (no split). Exact edges fall in the
+   shorter band.*
 6. **A deposit triggers the calendar.** One event drives the calendar entry, the reminders and
    the status change, so the Dannecker gap cannot recur.
 7. **Spending money always needs a human.** COI purchases, refunds, and anything that charges a
