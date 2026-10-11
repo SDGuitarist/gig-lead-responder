@@ -98,6 +98,18 @@ So the port is: **which venues Alex has played, plus his own sentence where a co
    exist (same place it neutralises the API key), and tests that need data point it at a fixture of MADE-UP
    venues via a test setter (`setVenueHistoryForTests(result | null)`), never Alex's text.
 
+## Alex confirmed the sentences (2026-10-11, before any code)
+
+The three complete sentences (R082 Hotel del Coronado, R084 Lodge at Torrey Pines, R088 Coasterra) came from a
+template whose other fields were all blank, so they were shown to Alex verbatim and he confirmed each: **"True, use
+as written."** The four R405 facts: **"All true."** (Prompted by a reviewer note: a wrong room or "many times" in
+a client reply is hard to take back.)
+
+**Rule this adds (mechanical, not a promise):** every `claim` in the file carries `"confirmed": "YYYY-MM-DD"`; the
+loader drops a claim without a valid `confirmed` date (venue fact kept, warning printed). A sentence Alex or a later
+session adds to the file cannot reach a client until someone records his confirmation. Test V7b; mutation: ignore
+`confirmed` → fails.
+
 ## Plan Quality Gate
 
 ### 1. What exactly is changing?
