@@ -19,8 +19,8 @@
 | 9 | B P2 | Commands not copy-pasteable; no Verification Commands list | ACCEPTED. Concrete lead files and commands for (d)(k)(u); Verification Commands section |
 | 10 | A note | V8 must compare the full string; PF-Intel + history coexistence | ACCEPTED. V8 compares the whole `selectContext` string; V14 coexistence |
 
-Also found while fixing (Claude Code): a new test file must be listed in `scripts/test-files.mjs`, or `npm test`
-silently never runs it. Added to the work steps with a control.
+~~Also found while fixing (Claude Code): a new test file must be listed in `scripts/test-files.mjs`.~~ **WRONG
+(corrected in round 2):** that file already globs `src/**/*.test.ts`; the note was written without opening it.
 
 ## Run A (Claude Code, `codex exec -s read-only`, 2026-10-11; HEAD `a795a95`)
 
