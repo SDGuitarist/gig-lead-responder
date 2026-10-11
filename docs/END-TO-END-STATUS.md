@@ -76,6 +76,10 @@ provider (`src/claude-cli.ts`; S1 proved the lockdown) · ☐ 1.7 ramp, clock, a
 ☐ 20-lead review-only ramp · ☐ auto-send on · ☐ 1 week live, 0 unresolved ALERT FAILED.
 Gate (port manifest header): Module 1 cannot go live while any manifest row is `UNREVIEWED` or `BLOCKED`
 (today: 0 and 0).
+**Payment terms (2026-10-11):** every path that sends a STORED draft (1.1 send gate, 1.4 approvals) must call
+`refreshPaymentSentence` (`src/pipeline/payment-terms.ts`) with today's `paymentTermsFor(...)` first and refuse on its
+error, as `POST /api/leads/:id/approve` does; otherwise a draft approved days later carries the wrong payment band
+(plan `docs/plans/2026-10-11-fix-payment-terms-by-lead-time-plan.md`, Revision 4).
 
 ## Known risks on the path (found by sessions; each recorded at its source)
 
