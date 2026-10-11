@@ -8,6 +8,8 @@ import { sessionAuth, csrfGuard } from "./auth.js";
 import { analyzeLimiter, approveLimiter } from "./rate-limit.js";
 import { alertAlex as sendSms } from "./alert.js";
 import { runPipeline } from "./run-pipeline.js";
+import { paymentTermsFor, refreshPaymentSentence, type PaymentTerms } from "./pipeline/payment-terms.js";
+import { getTodayISO } from "./utils/dates.js";
 import { shapeLead } from "./utils/shape-lead.js";
 import { asyncHandler } from "./utils/async-handler.js";
 
@@ -97,6 +99,29 @@ router.post("/api/leads/:id/approve", approveLimiter, csrfGuard, asyncHandler(as
   if (!lead.compressed_draft) {
     sendError(res, 400, "missing_compressed_draft", "Lead has no draft to send");
     return;
+  }
+
+  // Payment terms follow the lead time on the day it goes out, not the day it was drafted (payment-terms plan
+  // Revision 4, Alex 2026-10-11): swap the exact sentence, or refuse when it cannot be found exactly once.
+  let terms: PaymentTerms;
+  try {
+    const c = JSON.parse(lead.classification_json ?? "null");
+    const pr = JSON.parse(lead.pricing_json ?? "null");
+    if (!c || !pr?.budget) throw new Error("missing");
+    terms = paymentTermsFor(c, pr, getTodayISO());
+  } catch {
+    sendError(res, 409, "payment_terms_unverifiable", "Stored classification or pricing is unreadable; re-run the lead");
+    return;
+  }
+  const refreshed = refreshPaymentSentence(lead.compressed_draft, terms);
+  if ("error" in refreshed) {
+    sendError(res, 409, "payment_terms_unverifiable", refreshed.error);
+    return;
+  }
+  if (refreshed.text !== lead.compressed_draft) {
+    const full = lead.full_draft ? refreshPaymentSentence(lead.full_draft, terms) : null;
+    updateLead(id, { compressed_draft: refreshed.text, ...(full && "text" in full ? { full_draft: full.text } : {}) });
+    lead.compressed_draft = refreshed.text;
   }
 
   // SMS concatenation limit is ~1600 chars; warn but don't block

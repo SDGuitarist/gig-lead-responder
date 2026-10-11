@@ -116,3 +116,22 @@ export function paymentViolations(text: string, label: "full" | "compressed", te
 }
 
 export const PLATFORM_UNKNOWN_FLAG = "payment_terms_platform_unknown: add payment terms if this client pays Alex directly (Thumbtack, The Knot, WeddingWire); none for GigSalad or The Bash";
+
+// The four sentences as whitespace-tolerant patterns. None is part of another ("holds the date." vs "holds the date,
+// and"), so a draft holds a countable number of them.
+const KNOWN_SENTENCES = [PAYMENT_SENTENCES.twoMonths, PAYMENT_SENTENCES.twoWeeks, PAYMENT_SENTENCES.full, PAYMENT_SENTENCES.noDate];
+const KNOWN_RE = new RegExp(KNOWN_SENTENCES.map((s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&").replace(/ /g, "\\s+")).join("|"), "g");
+
+/**
+ * At send time (Alex 2026-10-11, plan Revision 4): a draft written days earlier may carry the wrong band. Kinds
+ * none / platform / unknown_platform: unchanged. Kind sentence: exactly one known sentence must be present; it is
+ * replaced with today's (unchanged when equal). Zero or several known sentences: an error, never a guess.
+ */
+export function refreshPaymentSentence(draft: string, terms: PaymentTerms): { text: string } | { error: string } {
+  if (terms.kind !== "sentence") return { text: draft };
+  const found = draft.match(KNOWN_RE) ?? [];
+  if (found.length !== 1) {
+    return { error: `payment terms changed since this draft was written and ${found.length === 0 ? "no" : "more than one"} known payment sentence was found; fix it or re-run` };
+  }
+  return { text: draft.replace(KNOWN_RE, () => terms.sentence) };
+}
