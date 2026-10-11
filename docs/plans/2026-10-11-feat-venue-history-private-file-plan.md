@@ -1,7 +1,7 @@
 ---
 title: "Venues Alex has played: a private file the app reads (port manifest R081-R089, R405)"
 date: 2026-10-11
-status: plan, Revision 1 (after Codex plan review round 1 = NO-GO on both runs); awaiting round 2
+status: plan, Revision 2 (after Codex plan review round 2 = NO-GO on both runs, the 2nd NO-GO); round 3 is Alex's call
 branch: feat/hub-phase0
 rows: R081 R082 R083 R084 R085 R087 R088 R089 R405
 ---
@@ -20,6 +20,13 @@ lesson in a different form: the match keys on `venue_name`, so a venue the class
 
 No brainstorm (skip gate: the inputs are 9 manifest rows with named destinations). Alex chose this group and the
 destination on 2026-10-11: "Venues (9 rows)", "Private file in ~/Data".
+
+## Revision 2 (after Codex PLAN round 2 = NO-GO on both runs; the 2nd NO-GO)
+
+Record: `docs/reviews/2026-10-11-venues-plan-codex-round2.md`. Accepted, all five: V15 asserts the exact status of
+all 9 rows; check (iii) searches every 30-character window of each claim and is called a bounded local sentinel;
+an exit-1 known-answer control; `confirmed` must be a real calendar date; the `scripts/test-files.mjs` step is
+removed (it already globs `src/**/*.test.ts`; Claude Code's round-1 note claiming otherwise was wrong).
 
 ## Revision 1 (after Codex PLAN round 1 = NO-GO on both runs)
 
@@ -88,7 +95,8 @@ So the port is: **which venues Alex has played, plus his own sentence where a co
      - `name` not a non-empty string → the whole entry is dropped; the rest still load.
      - `aliases` not an array → all aliases dropped; a non-string or empty alias → that alias dropped.
      - `claim` not a string, or containing `[` or `TBD` (case-insensitive) → the claim is dropped, the venue kept.
-     - `claim` without `confirmed` matching `^\d{4}-\d{2}-\d{2}$` → the claim is dropped, the venue kept.
+     - `claim` without `confirmed` that is a real calendar date (`^\d{4}-\d{2}-\d{2}$` AND a `Date.UTC` round-trip
+       gives back the same year, month and day, so `2026-99-99` and `2026-02-30` fail) → the claim is dropped, the venue kept.
      - Top level not `{ "venues": [...] }`, or not JSON → `invalid`.
    - `findVenueHistory(venueName, venues)`: normalise with the SAME word normaliser as the org-venue guard
      (`nameWords` in `src/pipeline/classify.ts`, exported; no behaviour change). **Match, one direction only:**
@@ -125,8 +133,9 @@ So the port is: **which venues Alex has played, plus his own sentence where a co
    strings and fails if any matches ("Del Coronado Yacht Club", "Del Coronado Beach Club", "Torrey Pines Lodge at
    UCSD", "Torrey Pines Golf Course", "Rancho Santa Fe", "Old Rancho Santa Fe", "Hotel Del", "Coasterra San Diego"
    are all MISSES; "Hotel del Coronado", "The Lodge at Torrey Pines", "Fairmont Grand Del Mar", "Coasterra" are
-   HITS); (iii) fails if the first 30 characters of any claim appear in any file tracked by git
-   (`git ls-files -z | xargs -0 grep -lF`). Exit 0 = PASS; exit 1 = a check failed; **exit 2 = "cannot check: no
+   HITS); (iii) a **bounded local leakage sentinel**, not proof: fails if ANY 30-character window of any claim
+   (sliding, step 1, whitespace collapsed) appears in any file tracked by git under `CHECK_REPO_ROOT` (default:
+   this repo). It cannot see a paraphrase, a split across lines, or a copy shorter than 30 characters. Exit 0 = PASS; exit 1 = a check failed; **exit 2 = "cannot check: no
    venue-history file at <path>"**, never a pass. **CI cannot enforce (iii)**, because CI never has the private
    file; the script is the gate, run by Claude before every commit of this work and in the Execution Path.
 
@@ -157,7 +166,6 @@ session adds to the file cannot reach a client until someone records his confirm
 | C | `src/pipeline/classify.ts` | `nameWords` gets `export` (no other change) |
 | D | `src/pipeline/context.ts` | One block after the PF-Intel block appends the section when a match exists |
 | E | `scripts/run-tests.mjs` | `env.VENUE_HISTORY_PATH = <nonexistent path>` |
-| E2 | `scripts/test-files.mjs` | Lists the new test file (otherwise `npm test` never runs it) |
 | E3 | `scripts/check-venue-history.ts` (new) | The local real-file check (decision 5) |
 | F | `src/port-manifest-venues.test.ts` (new) | EARS tests V1-V14 |
 | G | `docs/research/2026-10-02-booking-hub/port-manifest.md` | Row statuses (below) |
@@ -226,8 +234,9 @@ All in `src/port-manifest-venues.test.ts`, titles starting `port manifest venues
   print the "own words" line.
 - **V7** WHEN a claim contains `[` or `TBD`, THE SYSTEM SHALL drop the claim, keep the venue, and warn.
   *Mutation:* remove the placeholder check.
-- **V7b** WHEN a claim has no `confirmed`, or `confirmed` is not `YYYY-MM-DD`, THE SYSTEM SHALL drop the claim,
-  keep the venue, and warn. *Mutation:* ignore `confirmed`.
+- **V7b** WHEN a claim has no `confirmed`, or `confirmed` is not a real `YYYY-MM-DD` date (`"2026-99-99"`,
+  `"2026-02-30"`, `"Oct 11"`), THE SYSTEM SHALL drop the claim, keep the venue, and warn; `"2026-10-11"` keeps it.
+  *Mutation:* ignore `confirmed`; second mutation: shape regex only (the two impossible dates then pass).
 - **V8** WHEN `venue_name` is null, or matches nothing, `selectContext` SHALL return a string `===` the string it
   returns with history disabled (`setVenueHistoryForTests(null)`), compared whole (the manifest's absence
   assertion). *Mutation:* append an empty heading on no match.
@@ -252,31 +261,42 @@ All in `src/port-manifest-venues.test.ts`, titles starting `port manifest venues
 - **V14** WHEN PF-Intel returns a hit AND the venue matches history, `selectContext` SHALL contain both
   `VENUE INTELLIGENCE` and the marker. *Mutation:* `else` between the two blocks.
 
+- **V15** In `port-manifest.md`, R081, R082, R083, R084, R087, R088 and R405 SHALL be `PORTED` and R085 and R089
+  SHALL be `BLOCKED`, asserted row by row by id (`tableRows`). *Mutation:* leave R085 `TO PORT` and mark R086
+  `PORTED` (the counts can still add up; this test fails).
+
 **Real-file check (not a unit test, decision 5):** `npx tsx scripts/check-venue-history.ts` → exit 0. Its own
-known-answer control: run once with `VENUE_HISTORY_PATH=/nonexistent` → exit 2 and the "cannot check" text.
+known-answer controls: `VENUE_HISTORY_PATH=/nonexistent` → exit 2 ("cannot check"); a planted mid-sentence window
+→ exit 1 (Verification Commands).
 
 ## Work steps (one concern per commit; failing test first; mutation-check each test)
 
 0. Write `~/Data/gig-lead-responder/venue-history.json` (first `git -C ~/Data status --short`; commit only that
    file there; no push without Alex). Validate with `jq`.
-1. `src/venue-history.ts` loader + matcher; V1-V7b, V9, V9b, V10, V10b; the runner env (E), `test-files.mjs`
-   (E2) and V12. Control for E2: `npm test` output names the new file's tests.
+1. `src/venue-history.ts` loader + matcher; V1-V7b, V9, V9b, V10, V10b; the runner env (E) and V12. Inclusion
+   control: `npm run test:match -- "port manifest venues"` lists and passes the new tests (the existing glob in
+   `scripts/test-files.mjs` already covers the file; no edit there).
 2. `nameWords` export (C), in step 1's commit if it is the only reason for the export.
 3. `selectContext` block (D) + V8, V11, V13, V14. **Before this step lands: baseline run (u) on the current code.**
-4. `scripts/check-venue-history.ts` (E3) + its exit-2 control; manifest rows (G); V1 count in
+4. `scripts/check-venue-history.ts` (E3) + its exit-2 and exit-1 controls; manifest rows (G) + V15; V1 count in
    `docs/END-TO-END-STATUS.md`.
 5. Execution Path runs; record `docs/reviews/2026-10-11-venue-history-local-runs.md`.
 
 ## Verification Commands (expected results)
 
 ```
-npm test                                                     # 0 fail; the new file's tests are listed
+npm test                                                     # 0 fail
+npm run test:match -- "port manifest venues"                 # the new tests run and pass (inclusion control)
 npx tsc --noEmit                                             # no output, exit 0
 npm run test:match -- "port manifest"                        # 0 fail (structure, PORTED marker/test/absence)
 awk -F'|' '/^\| R[0-9]+ \|/{s=$5; gsub(/^ +| +$/,"",s); c[s]++} END{for(k in c) print c[k], k}' docs/research/2026-10-02-booking-hub/port-manifest.md
                                                              # 197 ALREADY PRESENT, 163 PORTED, 34 NOT PORTED, 10 TO PORT, 2 BLOCKED
 npx tsx scripts/check-venue-history.ts                       # exit 0, "PASS"
 VENUE_HISTORY_PATH=/nonexistent npx tsx scripts/check-venue-history.ts   # exit 2, "cannot check"
+# exit-1 control: a made-up claim whose MIDDLE 30+ characters sit in a file tracked by a throwaway repo
+R=$(mktemp -d); git -C "$R" init -q; printf 'xx the zebra quartet tunes every harp twice yy\n' > "$R/leak.txt"; git -C "$R" add leak.txt
+printf '{"venues":[{"name":"Example Harbor Hall","claim":"Opening words, then the zebra quartet tunes every harp twice, and an ending.","confirmed":"2026-01-01"}]}' > "$R/v.json"
+VENUE_HISTORY_PATH="$R/v.json" CHECK_REPO_ROOT="$R" npx tsx scripts/check-venue-history.ts; echo "exit=$?"   # exit=1, names leak.txt
 ```
 
 ## Execution Path
