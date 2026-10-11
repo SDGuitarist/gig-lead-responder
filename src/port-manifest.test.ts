@@ -100,9 +100,8 @@ test("port manifest PORTED rows: the named test asserts the marker, and conditio
 });
 
 // Venue history plan (2026-10-11), V15: the exact status of each of the nine venue rows, by id, so a different row
-// cannot be ported in another row's place while the counts still add up. R085 (La Valencia) PORTED 2026-10-11 (Alex).
-test("port manifest venues rows: R081-R085, R087, R088, R405 are PORTED and R089 is BLOCKED", () => {
+// cannot be ported in another row's place while the counts still add up. R085 (La Valencia) and R089 (Scripps) PORTED 2026-10-11 (Alex).
+test("port manifest venues rows: R081-R085, R087-R089, R405 are PORTED", () => {
   const status = new Map(tableRows(`${DIR}/port-manifest.md`).map((r) => [r[0], r[3]]));
-  for (const id of ["R081", "R082", "R083", "R084", "R085", "R087", "R088", "R405"]) assert.equal(status.get(id), "PORTED", id);
-  assert.equal(status.get("R089"), "BLOCKED", "R089");
+  for (const id of ["R081", "R082", "R083", "R084", "R085", "R087", "R088", "R089", "R405"]) assert.equal(status.get(id), "PORTED", id);
 });

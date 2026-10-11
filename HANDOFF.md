@@ -19,13 +19,14 @@ claims 0/8, "add nothing" slipped twice (recorded) (`docs/reviews/2026-10-11-ven
 `docs/solutions/architecture/2026-10-11-private-venue-claims-and-an-exact-leak-sentinel.md`; learnings propagated
 (compound-engineering.local.md, memory `project_venue-history-leak-check`, journal 2026-10-11, agent-pitfalls FC98).
 
-**Private data (never in this repo):** `~/Data/gig-lead-responder/venue-history.json`, 10 venues, 4 with sentences
-(Del, Lodge, Coasterra, La Valencia; La Valencia's is template praise marked to replace with Alex's real description), committed in ~/Data and **pushed to the encrypted backup** 2026-10-11 (Alex said push; `bd8b037`).
+**Private data (never in this repo):** `~/Data/gig-lead-responder/venue-history.json`, 11 venues, 4 with sentences
+(Del, Lodge, Coasterra, La Valencia). **Every sentence is a placeholder until Alex rewrites them all from the
+venue-database pull (his call, 2026-10-11); do not polish them before that.**, committed in ~/Data and **pushed to the encrypted backup** 2026-10-11 (Alex said push; `bd8b037`).
 Before any commit touching venue work: `npx tsx scripts/check-venue-history.ts` must print PASS (exit 0), and read
 the staged diff yourself (the check misses paraphrases and copies under 30 characters).
 
 **Open questions for Alex:** Q1 ANSWERED 2026-10-11 (Grand Del Mar stays fact only: Alex's details were about the Del, whose sentence now carries them); Q2 La
-Valencia ANSWERED (yes, R085 PORTED, template praise for now), Scripps (R089) still BLOCKED; Q3 ANSWERED (pushed 2026-10-11).
+Valencia ANSWERED (yes, R085 PORTED, template praise for now), Scripps ANSWERED (yes, R089 PORTED, fact only, alias "Scripps Forum"); Q3 ANSWERED (pushed 2026-10-11).
 
 **Idea filed (Alex, 2026-10-11):** a definitive venue database (he has played ~80% of San Diego venues) from his
 memory, Google Calendar, Gmail and venue websites: `docs/brainstorms/2026-10-11-venue-database-seed.md`. A future

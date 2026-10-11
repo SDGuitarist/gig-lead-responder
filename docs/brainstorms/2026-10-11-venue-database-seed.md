@@ -9,6 +9,13 @@
 venues with all my details from memory and anything you can pull from Google Calendar, Gmail accounts, and venue
 websites, etc."
 
+## Alex's decision on descriptions (2026-10-11)
+
+Every venue sentence in the private file is provisional, including the ones he approved today. Once the data is
+pulled (websites, both Gmail accounts, calendars, booking history), Alex will write a real description for each
+venue. Until then: keep the current sentences, do not rewrite them, and do not draft new ones for him; the pull
+should end with a per-venue sheet of what was found (rooms, event types, dates) for him to write from.
+
 ## Why it matters
 
 Today's venue file (`~/Data/gig-lead-responder/venue-history.json`) has 10 venues. If Alex has played most San Diego
