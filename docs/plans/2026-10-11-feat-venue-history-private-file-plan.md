@@ -1,7 +1,7 @@
 ---
 title: "Venues Alex has played: a private file the app reads (port manifest R081-R089, R405)"
 date: 2026-10-11
-status: plan (awaiting Codex plan review round 1)
+status: plan, Revision 1 (after Codex plan review round 1 = NO-GO on both runs); awaiting round 2
 branch: feat/hub-phase0
 rows: R081 R082 R083 R084 R085 R087 R088 R089 R405
 ---
@@ -20,6 +20,16 @@ lesson in a different form: the match keys on `venue_name`, so a venue the class
 
 No brainstorm (skip gate: the inputs are 9 manifest rows with named destinations). Alex chose this group and the
 destination on 2026-10-11: "Venues (9 rows)", "Private file in ~/Data".
+
+## Revision 1 (after Codex PLAN round 1 = NO-GO on both runs)
+
+Record: `docs/reviews/2026-10-11-venues-plan-codex-round1.md`. Accepted: aliases match by identical word list only
+(containment is for the canonical name), with negative tests for the exact failing inputs; the "no claim in the repo"
+check is a local script that fails loudly without the private file (CI cannot enforce it, said plainly); the
+`confirmed` date is in the shape and the EARS (V7b); malformed `claim`/`aliases` defined (V10b); follow-up drafts
+explicitly excluded (V13); a named mutation for every test; cache keyed by absolute path with a reset (V9b);
+concrete lead files and a Verification Commands list; V8 compares the full string; PF-Intel coexistence (V14).
+Rejected with arithmetic: run A's "TO PORT 19 → 12" (9 rows leave TO PORT: 19 − 9 = 10).
 
 ## What the source actually holds (read 2026-10-11, text NOT copied here: the repo is public)
 
@@ -47,39 +57,48 @@ So the port is: **which venues Alex has played, plus his own sentence where a co
    repo whose only remote is encrypted (README), so the file gets history and never reaches GitHub readable.
    Shape:
    ```json
-   { "venues": [ { "name": "Hotel del Coronado", "aliases": ["Del Coronado"], "claim": "<Alex's sentence>",
-                   "source": "R082" } ] }
+   { "venues": [ { "name": "Hotel del Coronado", "aliases": [], "claim": "<Alex's sentence>",
+                   "confirmed": "2026-10-11", "source": "R082" } ] }
    ```
-   `claim` is optional. Entries written in step 1 (Claude, verbatim from the source, no edits):
+   `aliases`, `claim` and `confirmed` are optional; a `claim` reaches a draft only with a valid `confirmed` date.
+   Entries written in step 0 (Claude, claims verbatim from the source, no edits; confirmed by Alex 2026-10-11):
    | name | aliases | claim | source |
    |---|---|---|---|
-   | Hotel del Coronado | Del Coronado | yes | R082 |
-   | The Grand Del Mar | Fairmont Grand Del Mar | **no** (blanks; Alex question Q1) | R083 |
-   | Lodge at Torrey Pines | Torrey Pines Lodge | yes | R084 |
-   | Coasterra | — | yes | R088 |
+   | Hotel del Coronado | — | yes, confirmed 2026-10-11 | R082 |
+   | The Grand Del Mar | — | **no** (blanks; Alex question Q1) | R083 |
+   | Lodge at Torrey Pines | Torrey Pines Lodge (exact only) | yes, confirmed 2026-10-11 | R084 |
+   | Coasterra | — | yes, confirmed 2026-10-11 | R088 |
    | The Old Rancho Wedding Estate | — | no (fact only) | R405 |
    | Mille Fleurs | — | no | R405 |
    | Japanese Friendship Garden | — | no | R405 |
    | Rancho Santa Fe Inn | — | no | R405 |
    La Valencia and Scripps Seaside Forum get **no entry** (no evidence Alex played there; Q2).
-   Aliases are chosen so no alias is a prefix-place of a different venue: NOT "Torrey Pines" (golf course, state
-   reserve), NOT "Old Rancho" (inside "Old Rancho Santa Fe"), NOT "the Del" (one word after "the" is dropped).
+   "Del Coronado" is removed (round 1: "Del Coronado Yacht Club" / "Beach Club" are other places). "Fairmont Grand
+   Del Mar" is unnecessary (the canonical name sits inside it). Never "Torrey Pines" (golf course, state reserve),
+   "Old Rancho" (inside "Old Rancho Santa Fe"), or "the Del".
 
 2. **Loader + matcher** in a new `src/venue-history.ts`:
    - `venueHistoryPath()`: `process.env.VENUE_HISTORY_PATH` if set, else `${os.homedir()}/Data/gig-lead-responder/venue-history.json`.
    - `loadVenueHistory(path)` returns a discriminated result, so "no file" never reads like "no match":
-     `{ type: "ok", venues }` · `{ type: "missing", path }` · `{ type: "invalid", reason }`. Read once per process
-     and cached (the file is tiny; restart to pick up edits). `missing`/`invalid` print ONE warning naming the
-     path, in words different from a no-match.
-   - Validation per entry: `name` a non-empty string; `aliases` strings; a `claim` containing `[` or `TBD`
-     (case-insensitive) is DROPPED with a warning (the venue fact is kept). An entry without a valid `name` is
-     dropped with a warning; the rest still load.
+     `{ type: "ok", venues }` · `{ type: "missing", path }` · `{ type: "invalid", reason }`. **Cached per absolute
+     path** (a `Map`; the file is tiny; restart to pick up edits); `resetVenueHistoryForTests()` clears it.
+     `missing` and `invalid` each print ONE warning per path naming it ("venue history file not found at <path>:
+     no venue-history lines" / "venue history file at <path> is invalid: <reason>"), never the words of a no-match.
+   - Validation per entry (each failure prints a warning naming the entry and what was dropped):
+     - `name` not a non-empty string → the whole entry is dropped; the rest still load.
+     - `aliases` not an array → all aliases dropped; a non-string or empty alias → that alias dropped.
+     - `claim` not a string, or containing `[` or `TBD` (case-insensitive) → the claim is dropped, the venue kept.
+     - `claim` without `confirmed` matching `^\d{4}-\d{2}-\d{2}$` → the claim is dropped, the venue kept.
+     - Top level not `{ "venues": [...] }`, or not JSON → `invalid`.
    - `findVenueHistory(venueName, venues)`: normalise with the SAME word normaliser as the org-venue guard
      (`nameWords` in `src/pipeline/classify.ts`, exported; no behaviour change). **Match, one direction only:**
-     the lead's words are identical to an entry name/alias, OR the entry name/alias (at least 2 words) appears as a
-     contiguous whole-word run INSIDE the lead's words. Never the reverse: the lead "Rancho Santa Fe" (a different
-     place) must not match the entry "Rancho Santa Fe Inn". An empty word list never matches. First match wins
-     (file order).
+     (a) the lead's words are identical to the entry's name OR any alias; or (b) the entry's **canonical name**
+     (at least 2 words) appears as a contiguous whole-word run INSIDE the lead's words. **Aliases never use (b).**
+     Never the reverse: the lead "Rancho Santa Fe" must not match the entry "Rancho Santa Fe Inn". An empty word
+     list never matches. First match wins (file order).
+   **Residual, stated:** a same-name venue in another city ("Japanese Friendship Garden" also exists in Phoenix and
+   San Jose) can match by (b). Alex's leads are San Diego area; no city check is added (no reliable city field for
+   every lead). Recorded in the Feed-Forward.
    **Why one direction:** a false match makes the draft claim Alex played somewhere he did not, a false statement
    to a client. A miss only loses a credibility line. The rule is biased to misses on purpose.
 
@@ -95,8 +114,25 @@ So the port is: **which venues Alex has played, plus his own sentence where a co
    No section when there is no match, no file, or no `venue_name` (the prompt is byte-identical to today's then).
 
 4. **Tests never read the real file.** `scripts/run-tests.mjs` sets `VENUE_HISTORY_PATH` to a path that does not
-   exist (same place it neutralises the API key), and tests that need data point it at a fixture of MADE-UP
-   venues via a test setter (`setVenueHistoryForTests(result | null)`), never Alex's text.
+   exist (same place it neutralises the API key; it covers `npm test` and `npm run test:match`, which share that
+   script; CI runs `npm test`). Tests that need data use `setVenueHistoryForTests(result | null)` with MADE-UP
+   venues only. **Isolation:** `node --test` runs each test file in its own process and a file's tests one at a
+   time, so the setter and cache are per file; every test that sets either resets both in a `finally`
+   (`resetVenueHistoryForTests()`).
+
+5. **The real file's safety check: a local script, not CI.** `scripts/check-venue-history.ts` reads the REAL file
+   and (i) prints each entry and which claims survive validation; (ii) runs a fixed list of dangerous lead venue
+   strings and fails if any matches ("Del Coronado Yacht Club", "Del Coronado Beach Club", "Torrey Pines Lodge at
+   UCSD", "Torrey Pines Golf Course", "Rancho Santa Fe", "Old Rancho Santa Fe", "Hotel Del", "Coasterra San Diego"
+   are all MISSES; "Hotel del Coronado", "The Lodge at Torrey Pines", "Fairmont Grand Del Mar", "Coasterra" are
+   HITS); (iii) fails if the first 30 characters of any claim appear in any file tracked by git
+   (`git ls-files -z | xargs -0 grep -lF`). Exit 0 = PASS; exit 1 = a check failed; **exit 2 = "cannot check: no
+   venue-history file at <path>"**, never a pass. **CI cannot enforce (iii)**, because CI never has the private
+   file; the script is the gate, run by Claude before every commit of this work and in the Execution Path.
+
+6. **Follow-up drafts are excluded.** `src/pipeline/follow-up-generate.ts` builds its prompt with
+   `buildFollowUpPrompt` and never calls `selectContext`. Venue credibility belongs in the first quote and its
+   edits; follow-ups are short check-ins. Pinned by V13 so adding it later is a stated decision.
 
 ## Alex confirmed the sentences (2026-10-11, before any code)
 
@@ -117,11 +153,13 @@ session adds to the file cannot reach a client until someone records his confirm
 | # | File | Change |
 |---|---|---|
 | A | `~/Data/gig-lead-responder/venue-history.json` (NOT in the repo) | New data file, 8 entries above; committed in `~/Data` locally (no push without Alex) |
-| B | `src/venue-history.ts` (new) | `venueHistoryPath`, `loadVenueHistory`, `findVenueHistory`, `formatVenueHistory`, test setter |
+| B | `src/venue-history.ts` (new) | `venueHistoryPath`, `loadVenueHistory`, `findVenueHistory`, `formatVenueHistory`, `setVenueHistoryForTests`, `resetVenueHistoryForTests` |
 | C | `src/pipeline/classify.ts` | `nameWords` gets `export` (no other change) |
 | D | `src/pipeline/context.ts` | One block after the PF-Intel block appends the section when a match exists |
 | E | `scripts/run-tests.mjs` | `env.VENUE_HISTORY_PATH = <nonexistent path>` |
-| F | `src/port-manifest-venues.test.ts` (new) | EARS tests V1-V12 |
+| E2 | `scripts/test-files.mjs` | Lists the new test file (otherwise `npm test` never runs it) |
+| E3 | `scripts/check-venue-history.ts` (new) | The local real-file check (decision 5) |
+| F | `src/port-manifest-venues.test.ts` (new) | EARS tests V1-V14 |
 | G | `docs/research/2026-10-02-booking-hub/port-manifest.md` | Row statuses (below) |
 
 Manifest outcome: R082, R084, R088, R405 → **PORTED** (marker `ALEX HAS PERFORMED HERE`, test
@@ -137,9 +175,9 @@ PORTED 156 → 163, BLOCKED 0 → 2**; ALREADY PRESENT 197 and NOT PORTED 34 unc
 - A lead with no `venue_name`, or a venue with no match: the assembled context is byte-identical to today
   (test V8).
 - `nameWords` behaviour (org-venue tests O1-O10 stay green unchanged).
-- No source text in the repo: no claim sentence appears in any committed file (test V12 greps the repo for
-  each claim's first 30 characters, read from the real file only when it exists, skipped with a printed reason
-  when it does not, so CI cannot fake a pass silently: it says "skipped").
+- No source text in the repo: no claim sentence appears in any committed file. Enforced by
+  `scripts/check-venue-history.ts` (iii), locally only (decision 5); CI cannot see the private file.
+- Follow-up prompts: unchanged (V13).
 - `.env`, `data/leads.db`, `public/`: untouched.
 
 ### 3. How will we know it worked?
@@ -163,56 +201,104 @@ merge, it runs on every real lead the Mac poller handles (poller start is still 
 
 ## Acceptance Tests (EARS)
 
-All in `src/port-manifest-venues.test.ts`, titles starting `port manifest venues`, made-up venues only
-("Example Harbor Hall", alias "Harbor Hall Pavilion", claim "Example claim sentence."; "Example Garden Estate" no
-claim).
+All in `src/port-manifest-venues.test.ts`, titles starting `port manifest venues`, made-up venues only:
+"Example Harbor Hall" (alias "Harbor Hall Pavilion", claim "Example claim sentence.", confirmed "2026-01-01"),
+"Example Garden Estate" (no claim), "Examplia" (one word). Each line names its mutation; the test must FAIL under it.
 
-- **V1** WHEN the lead's `venue_name` is identical (after normalising) to an entry name, THE SYSTEM SHALL add the
-  section with the marker `ALEX HAS PERFORMED HERE` and the entry's name. *Mutation:* return null from
-  `findVenueHistory` → fails.
-- **V2** WHEN the entry name (2+ words) appears as whole words inside a longer lead venue ("The Example Harbor Hall
-  Ballroom"), THE SYSTEM SHALL match. *Mutation:* identity only → fails.
-- **V3** WHEN the lead venue is SHORTER than the entry and contained in it ("Example Harbor" vs "Example Harbor
-  Hall"), THE SYSTEM SHALL NOT match. *Mutation:* make containment two-way → fails.
-- **V4** WHEN a one-word entry ("Examplia") is contained in a longer lead venue ("Examplia Rooftop"), THE SYSTEM
-  SHALL NOT match; identical one word SHALL match.
+- **V1** WHEN the lead's `venue_name` normalises identical to an entry name, THE SYSTEM SHALL add the section with
+  the marker `ALEX HAS PERFORMED HERE` and the entry's name. *Mutation:* `findVenueHistory` returns null.
+- **V2** WHEN the canonical name (2+ words) appears as whole words inside a longer lead venue ("The Example Harbor
+  Hall Ballroom"), THE SYSTEM SHALL match. *Mutation:* identity only.
+- **V3** WHEN the lead venue is shorter than the entry and inside it ("Example Harbor" vs "Example Harbor Hall"),
+  THE SYSTEM SHALL NOT match. *Mutation:* containment both ways.
+- **V3b** WHEN an alias appears inside a longer lead venue ("Harbor Hall Pavilion Yacht Club"), THE SYSTEM SHALL
+  NOT match; WHEN the lead is exactly the alias ("harbor hall pavilion"), it SHALL match. *Mutation:* apply
+  containment (b) to aliases.
+- **V3c** The canonical name still matches when an alias-shaped lead does not: "Example Harbor Hall" hits while
+  "Harbor Hall Pavilion Yacht Club" misses (the exact shape of round 1's "Del Coronado Yacht Club").
+  *Mutation:* same as V3b.
+- **V4** WHEN a one-word entry ("Examplia") is inside a longer lead venue ("Examplia Rooftop"), THE SYSTEM SHALL
+  NOT match; identical one word SHALL match. *Mutation:* drop the 2-word minimum.
 - **V5** Accents, `&`/`and`, case and a leading "the" SHALL NOT prevent a match ("THE Éxample Harbor Hall").
-- **V6** WHEN the entry has a claim, THE SYSTEM SHALL include it verbatim in quotes; WHEN it has none, THE SYSTEM
-  SHALL include the "performed at" line and SHALL NOT include the "own words" line.
+  *Mutation:* compare raw lower-cased strings instead of `nameWords`.
+- **V6** WHEN the entry has a confirmed claim, THE SYSTEM SHALL include it verbatim in quotes; WHEN it has none,
+  THE SYSTEM SHALL include the "performed at" line and SHALL NOT include the "own words" line. *Mutation:* always
+  print the "own words" line.
 - **V7** WHEN a claim contains `[` or `TBD`, THE SYSTEM SHALL drop the claim, keep the venue, and warn.
-- **V8** WHEN `venue_name` is null, or matches nothing, THE SYSTEM SHALL produce context byte-identical to
-  `selectContext` with history disabled (absence assertion for the manifest).
-- **V9** WHEN the file is missing, `loadVenueHistory` SHALL return `missing` with the path, and WHEN it is not valid
-  JSON or not `{venues: [...]}`, SHALL return `invalid`; neither SHALL throw, and `selectContext` SHALL add no
-  section. The two warnings SHALL differ in wording from each other.
-- **V10** WHEN an entry lacks a valid `name`, THE SYSTEM SHALL drop that entry and load the rest.
+  *Mutation:* remove the placeholder check.
+- **V7b** WHEN a claim has no `confirmed`, or `confirmed` is not `YYYY-MM-DD`, THE SYSTEM SHALL drop the claim,
+  keep the venue, and warn. *Mutation:* ignore `confirmed`.
+- **V8** WHEN `venue_name` is null, or matches nothing, `selectContext` SHALL return a string `===` the string it
+  returns with history disabled (`setVenueHistoryForTests(null)`), compared whole (the manifest's absence
+  assertion). *Mutation:* append an empty heading on no match.
+- **V9** WHEN the file is missing, `loadVenueHistory` SHALL return `missing` with the path; WHEN it is not JSON or
+  not `{venues: [...]}`, `invalid`; neither SHALL throw; `selectContext` SHALL add no section; the two warnings
+  SHALL differ. *Mutation:* return `ok` with `[]` on a missing file (fail-silent).
+- **V9b** WHEN `loadVenueHistory` is called with path A then path B (two temp files in `os.tmpdir()`), THE SYSTEM
+  SHALL return B's data the second time; after `resetVenueHistoryForTests()`, an edited A is re-read.
+  *Mutation:* one global cache.
+- **V10** WHEN an entry lacks a valid `name`, THE SYSTEM SHALL drop it and load the rest. *Mutation:* reject the
+  whole file on one bad entry.
+- **V10b** WHEN `claim` is an object, THE SYSTEM SHALL drop the claim (no `[object Object]` or JSON in the
+  prompt); WHEN `aliases` is a string, or holds a number, THE SYSTEM SHALL drop those aliases and keep the venue.
+  *Mutation:* `String(claim)`.
 - **V11** `runEditPipeline` reaches the section (stored classification with a matching venue, model stubbed via
-  `setClaudeRequesterForTests`; assert the captured generate prompt contains the marker). *Mutation:* move the
-  block out of `selectContext` into `runPipeline` only → fails.
-- **V12** No committed file contains any real claim (see "must not change"); prints "skipped: no venue-history
-  file" when the real file is absent.
-- Plus: the test runner guard: under `npm test`, `venueHistoryPath()` is NOT under `~/Data` (asserts the env set
-  in E took effect).
+  `setClaudeRequesterForTests`; the captured generate prompt contains the marker). *Mutation:* move the block out
+  of `selectContext` into `runPipeline` only.
+- **V12** The test runner isolates the real file: under `npm test`, `venueHistoryPath()` is not under `~/Data`.
+  *Mutation:* delete the env line in `scripts/run-tests.mjs`.
+- **V13** `buildFollowUpPrompt` for a lead at a matching fixture venue SHALL NOT contain the marker (exclusion,
+  decision 6). *Mutation:* append the section in `buildFollowUpPrompt`.
+- **V14** WHEN PF-Intel returns a hit AND the venue matches history, `selectContext` SHALL contain both
+  `VENUE INTELLIGENCE` and the marker. *Mutation:* `else` between the two blocks.
+
+**Real-file check (not a unit test, decision 5):** `npx tsx scripts/check-venue-history.ts` → exit 0. Its own
+known-answer control: run once with `VENUE_HISTORY_PATH=/nonexistent` → exit 2 and the "cannot check" text.
 
 ## Work steps (one concern per commit; failing test first; mutation-check each test)
 
-0. Write `~/Data/gig-lead-responder/venue-history.json` (check `git -C ~/Data status` first; commit only that
-   file there; no push). Validate it with `jq`.
-1. `src/venue-history.ts` loader + matcher + V1-V7, V9, V10 (unit) and the runner env (E) + its guard test.
-2. `nameWords` export (C) folded into step 1 if it is the only reason for the export.
-3. `selectContext` block (D) + V8, V11.
-4. V12 + manifest rows (G) + V1 count in `docs/END-TO-END-STATUS.md`.
+0. Write `~/Data/gig-lead-responder/venue-history.json` (first `git -C ~/Data status --short`; commit only that
+   file there; no push without Alex). Validate with `jq`.
+1. `src/venue-history.ts` loader + matcher; V1-V7b, V9, V9b, V10, V10b; the runner env (E), `test-files.mjs`
+   (E2) and V12. Control for E2: `npm test` output names the new file's tests.
+2. `nameWords` export (C), in step 1's commit if it is the only reason for the export.
+3. `selectContext` block (D) + V8, V11, V13, V14. **Before this step lands: baseline run (u) on the current code.**
+4. `scripts/check-venue-history.ts` (E3) + its exit-2 control; manifest rows (G); V1 count in
+   `docs/END-TO-END-STATUS.md`.
 5. Execution Path runs; record `docs/reviews/2026-10-11-venue-history-local-runs.md`.
+
+## Verification Commands (expected results)
+
+```
+npm test                                                     # 0 fail; the new file's tests are listed
+npx tsc --noEmit                                             # no output, exit 0
+npm run test:match -- "port manifest"                        # 0 fail (structure, PORTED marker/test/absence)
+awk -F'|' '/^\| R[0-9]+ \|/{s=$5; gsub(/^ +| +$/,"",s); c[s]++} END{for(k in c) print c[k], k}' docs/research/2026-10-02-booking-hub/port-manifest.md
+                                                             # 197 ALREADY PRESENT, 163 PORTED, 34 NOT PORTED, 10 TO PORT, 2 BLOCKED
+npx tsx scripts/check-venue-history.ts                       # exit 0, "PASS"
+VENUE_HISTORY_PATH=/nonexistent npx tsx scripts/check-venue-history.ts   # exit 2, "cannot check"
+```
 
 ## Execution Path
 
 - **Target:** Alex's MacBook (the only host with `~/Data/gig-lead-responder/venue-history.json`), the CLI pipeline
   `src/index.ts`, real model.
-- **Mechanism:** per run, scratch DB, nothing sent (`src/index.ts` copies the draft to the clipboard):
+- **Mechanism:** write the three lead files once, then one command per run (scratch DB, nothing sent;
+  `src/index.ts` copies the draft to the clipboard):
   ```
-  T=$(mktemp -d); printf '%s' "<lead text>" > "$T/lead.txt"
-  DATABASE_PATH="$T/runs.db" npx tsx src/index.ts --json < "$T/lead.txt" | sed -n '/^{/,$p' > "$T/out.json"
-  jq -r '.classification.venue_name, .drafts.full_draft' "$T/out.json"
+  T=$(mktemp -d)
+  cat > "$T/d.txt" <<'LEAD'
+  Hi! We're getting married at the Hotel del Coronado on June 12, 2027, ceremony on the Windsor Lawn around 5pm, about 120 guests. Looking for a solo guitarist for the ceremony and cocktail hour. What would that cost?
+  LEAD
+  cat > "$T/k.txt" <<'LEAD'
+  Corporate dinner at Coasterra, March 4 2027, 6-9pm, 80 guests, looking for background acoustic music.
+  LEAD
+  cat > "$T/u.txt" <<'LEAD'
+  Hi! We're getting married at the Example Grand Hotel on June 12, 2027, ceremony on the lawn around 5pm, about 120 guests. Looking for a solo guitarist for the ceremony and cocktail hour. What would that cost?
+  LEAD
+  run() { DATABASE_PATH="$T/runs.db" npx tsx src/index.ts --json < "$T/$1.txt" | sed -n '/^{/,$p' > "$T/$2.json"; jq -r '.classification.venue_name, .drafts.full_draft' "$T/$2.json"; }
+  run u u0     # baseline, CURRENT code, before step 3
+  run d d1; run d d2; run k k1; run u u1; run u u2   # after step 4
   ```
 - **Prerequisites:** the venue file written in step 0 (MUST CREATE, step 0); Claude Code model access for the CLI
   (ALREADY HAVE: the 2026-10-09 runs used it); `jq` (ALREADY HAVE); no PF-Intel (unreachable locally; not needed,
@@ -221,16 +307,9 @@ claim).
 - **Trigger:** baseline run (u) BEFORE step 3 lands; all runs after step 4 and before the Codex CODE review round 1.
   After merge, the same path runs on every real lead the Mac poller handles (poller start stays Alex's gate).
 
-Leads (made up; real venue names are fine, they are public places):
-- **(d) Del:** "Hi! We're getting married at the Hotel del Coronado on June 12, 2027, ceremony on the Windsor
-  Lawn around 5pm, about 120 guests. Looking for a solo guitarist for the ceremony and cocktail hour. What would
-  that cost?" Expected: `venue_name` mentions the Del; the draft says Alex has performed there, with no detail
-  beyond his sentence.
-- **(k) Coasterra (one-word entry):** "Corporate dinner at Coasterra, March 4 2027, 6-9pm, 80 guests, looking for
-  background acoustic music." Expected: matched when `venue_name` is exactly "Coasterra"; if the classifier writes
-  "Coasterra San Diego", recorded as a miss (by design).
-- **(u) control, unknown venue:** the (d) text with "Example Grand Hotel" instead. Expected: no claim of having
-  performed there. **Run (u) on the CURRENT code first** (before step 3) and record the result as the baseline.
+Expected: (d) the draft says Alex has performed at the Del, and adds nothing beyond his sentence; (k) a hit
+when `venue_name` is exactly "Coasterra", a recorded miss (by design) if the classifier writes more; (u) no claim
+of having performed there, in u0 (baseline) and u1/u2.
 Two runs each of (d) and (u), one of (k). Reading per run: venue_name; claim present/absent; any invented detail
 (room counts, dates) not in his sentence.
 
@@ -256,7 +335,8 @@ stops automatic iteration; round 3 only with Alex's explicit YES.
   porting the empty operational-intel tables (placeholders only); a deterministic check that drafts never claim
   unlisted venues (a new subsystem: detecting a claim in prose is the problem the price-block work just retired).
 - **Least confident:** whether the model already invents venue experience for unknown venues. The baseline control
-  run measures it before the change.
+  run measures it before the change. Second: a same-name venue in another city matches by canonical containment
+  (accepted; Alex's leads are San Diego area).
 
 ## Three Questions
 
