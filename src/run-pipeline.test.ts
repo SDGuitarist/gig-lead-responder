@@ -5,6 +5,9 @@ import { setClaudeRequesterForTests } from "./claude.js";
 import { runPipeline, runEditPipeline } from "./run-pipeline.js";
 import type { Classification, PricingResult } from "./types.js";
 
+// Payment terms plan (2026-10-11): the mock lead is a platform lead ("P"); runs that expect a clean gate say where it
+// came from, as the intake does. With no platform it is flagged payment_terms_platform_unknown (tested in
+// payment-terms-check.test.ts).
 // Mock Claude to return valid classification + generation + verification
 const MOCK_CLASSIFICATION = {
   mode: "evaluation",
@@ -151,7 +154,7 @@ describe("runPipeline", () => {
     assert.equal(out.verified, false);
     assert.ok(out.gate.fail_reasons.some((r) => r.startsWith("price_below_quote_full: $100")), out.gate.fail_reasons.join(" | "));
     mockClaudeForPipeline([MOCK_CLASSIFICATION, MOCK_GENERATION, MOCK_GATE_PASS]);
-    assert.equal((await runPipeline("I need a guitarist for two hours")).verified, true, "control: the same run without the bad price");
+    assert.equal((await runPipeline("I need a guitarist for two hours", undefined, "gigsalad")).verified, true, "control: the same run without the bad price");
 
     mockClaudeForPipeline([cheap, MOCK_GATE_PASS]);
     const edit = await runEditPipeline(MOCK_CLASSIFICATION as unknown as Classification, out.pricing, "Make it shorter");
@@ -222,7 +225,7 @@ describe("runPipeline", () => {
 
   it("returns verified: true when gate passes", async () => {
     mockClaudeForPipeline([MOCK_CLASSIFICATION, MOCK_GENERATION, MOCK_GATE_PASS]);
-    const result = await runPipeline("I need a guitarist");
+    const result = await runPipeline("I need a guitarist", undefined, "gigsalad");
     assert.equal(result.verified, true);
   });
 

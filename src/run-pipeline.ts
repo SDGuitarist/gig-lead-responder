@@ -4,7 +4,7 @@ import { lookupPrice, budgetGapFor, minimumProfitHold, nonprofitPriceNote, t4Fal
 import { priceBlockFor } from "./pipeline/price-block.js";
 import { enrichClassification } from "./pipeline/enrich.js";
 import { getTodayISO } from "./utils/dates.js";
-import { paymentTermsFor } from "./pipeline/payment-terms.js";
+import { isPastDate, paymentTermsFor } from "./pipeline/payment-terms.js";
 import { selectContext } from "./pipeline/context.js";
 import { generateResponse } from "./pipeline/generate.js";
 import { verifyGate, runWithVerification } from "./pipeline/verify.js";
@@ -264,7 +264,7 @@ export async function runPipeline(
     drafts.compressed_draft,
     enriched.platform,
     { gracefulDecline: enriched.graceful_decline === true, pricing, askedHours: enriched.duration_hours,
-      priceBlock: priceBlockFor(enriched, pricing) },
+      priceBlock: priceBlockFor(enriched, pricing), paymentTerms },
   );
 
   // Apply auto-fixes (em dashes replaced with commas)
@@ -332,6 +332,8 @@ export async function runEditPipeline(
   }
 
   const context = await selectContext(classification, venueContext);
+  // A stored classification skips enrichment: re-apply the past-date check for the edit's date (plan D2, Codex R2).
+  if (isPastDate(classification.event_date_iso ?? null, today)) classification.past_date_detected = true;
   const paymentTerms = paymentTermsFor(classification, pricing, today);
   const drafts = await generateResponse(classification, pricing, context, paymentTerms, [instructions]);
   const gate = await verifyGate(drafts, classification, pricing);
@@ -339,7 +341,7 @@ export async function runEditPipeline(
   // Post-check: auto-fix em dashes, flag banned phrases
   const postCheck = postCheckDrafts(drafts.full_draft, drafts.compressed_draft, classification.platform,
     { gracefulDecline: classification.graceful_decline === true, pricing, askedHours: classification.duration_hours,
-      priceBlock: priceBlockFor(classification, pricing) });
+      priceBlock: priceBlockFor(classification, pricing), paymentTerms });
   const cleanedDrafts: Drafts = {
     full_draft: postCheck.full_draft,
     compressed_draft: postCheck.compressed_draft,

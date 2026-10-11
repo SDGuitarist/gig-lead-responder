@@ -6,6 +6,7 @@
 import { clientTotal, findMinFloor, IN_KIND_ORG_PLACEHOLDER, rateTableFor } from "./price.js";
 import { FORMAT_NAME, type PriceBlock } from "./price-block.js";
 import type { PricingResult } from "../types.js";
+import { PLATFORM_UNKNOWN_FLAG, paymentViolations, type PaymentTerms } from "./payment-terms.js";
 
 export interface PostCheckResult {
   full_draft: string;         // cleaned draft (auto-fixes applied)
@@ -105,7 +106,8 @@ export function postCheckDrafts(
   fullDraft: string,
   compressedDraft: string,
   platform?: string,
-  options: { gracefulDecline?: boolean; pricing?: PricingResult; askedHours?: number; priceBlock?: PriceBlock | null } = {},
+  options: { gracefulDecline?: boolean; pricing?: PricingResult; askedHours?: number; priceBlock?: PriceBlock | null;
+    paymentTerms?: PaymentTerms } = {},
 ): PostCheckResult {
   const violations: string[] = [];
 
@@ -214,6 +216,13 @@ export function postCheckDrafts(
     if (block.inKind.includes(IN_KIND_ORG_PLACEHOLDER)) {
       violations.push(`in_kind_org_missing: the lead names no organization; Alex fills ${IN_KIND_ORG_PLACEHOLDER} before sending`);
     }
+  }
+
+  // --- Check: the run's payment terms (payment-terms plan D4; exact sentence the app chose) ---
+  const terms = options.paymentTerms;
+  if (terms) {
+    violations.push(...paymentViolations(cleanedFull, "full", terms), ...paymentViolations(cleanedCompressed, "compressed", terms));
+    if (terms.kind === "unknown_platform") violations.push(PLATFORM_UNKNOWN_FLAG);
   }
 
   return {

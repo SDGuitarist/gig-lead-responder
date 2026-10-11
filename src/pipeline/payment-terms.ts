@@ -80,3 +80,39 @@ export function paymentLine(terms: PaymentTerms): string {
 
 /** Tests that build prompts for other reasons: the no-date sentence, the closest to the old deposit line. */
 export const NO_DATE_TERMS: PaymentTerms = { kind: "sentence", sentence: PAYMENT_SENTENCES.noDate };
+
+/** True only for a strict, valid event date before today (calendar days). Shared by enrichment and the edit path. */
+export function isPastDate(eventIso: string | null, todayIso: string): boolean {
+  const event = eventIso === null ? null : civilDay(eventIso);
+  const today = civilDay(todayIso);
+  return event !== null && today !== null && event < today;
+}
+
+// Payment wording a draft must not add (plan D4): a bounded list, case-insensitive. Plain "balance", "pay" and "rest"
+// stay allowed: "I balance the sound", "pay attention", "the rest of the night" are musician prose, not terms.
+const PAYMENT_WORDS = [
+  /\bdeposit\b/i, /\bretainer\b/i, /\bpayments?\b/i, /\bfull payment\b/i, /\b(?:pay|paid|payment)\s+in\s+full\b/i,
+  /\bdue\s+in\s+full\b/i, /\bpayable\b/i, /\bremaining\s+(?:amount|balance)\b/i, /\b(?:entire|full|whole|total)\s+amount\b/i,
+  /\b\d{1,3}\s?%\s*(?:up\s?front|down|now)\b/i, /\b(?:payment|amount|balance|rest|remainder)\s+(?:is\s+|will\s+be\s+)?due\b/i,
+];
+const hasPaymentWord = (text: string) => PAYMENT_WORDS.some((re) => re.test(text));
+const collapseSpace = (s: string) => s.replace(/\s+/g, " ");
+
+/** Post-check for one draft (exact text the app knows; never inferred from prose). */
+export function paymentViolations(text: string, label: "full" | "compressed", terms: PaymentTerms): string[] {
+  const t = collapseSpace(text);
+  switch (terms.kind) {
+    case "none":
+      return [];
+    case "platform":
+    case "unknown_platform":
+      return hasPaymentWord(t) ? [`payment_terms_${label}: a platform draft must say nothing about payment`] : [];
+    case "sentence": {
+      const parts = t.split(terms.sentence);
+      if (parts.length - 1 !== 1) return [`payment_terms_${label}: must contain exactly once: "${terms.sentence}"`];
+      return hasPaymentWord(parts.join(" ")) ? [`payment_terms_${label}: other payment wording besides "${terms.sentence}"`] : [];
+    }
+  }
+}
+
+export const PLATFORM_UNKNOWN_FLAG = "payment_terms_platform_unknown: add payment terms if this client pays Alex directly (Thumbtack, The Knot, WeddingWire); none for GigSalad or The Bash";

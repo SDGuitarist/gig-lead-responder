@@ -1,6 +1,7 @@
 import { CONCERN_4PIECE_ALT, CONCERN_FULL_ENSEMBLE, type Classification, type Format, type PricingResult } from "../types.js";
 import { parseLocalDate } from "../utils/dates.js";
 import { deliveryModeFor } from "./classify.js";
+import { isPastDate } from "./payment-terms.js";
 
 /** Result of format routing override — null means no override needed. */
 interface FormatRoutingResult {
@@ -24,12 +25,9 @@ export function enrichClassification(
   // so format routing (middle) must run first while tier still reflects the LLM's value.
 
   // Past-date detection (deterministic — never ask the LLM)
-  if (classification.event_date_iso) {
-    const eventDate = parseLocalDate(classification.event_date_iso);
-    const todayDate = parseLocalDate(today);
-    if (eventDate < todayDate) {
-      enriched = { ...enriched, past_date_detected: true };
-    }
+  // Shared with runEditPipeline (payment-terms plan D2): strict calendar dates, so an impossible date is never "past".
+  if (isPastDate(classification.event_date_iso ?? null, today)) {
+    enriched = { ...enriched, past_date_detected: true };
   }
 
   // Format routing override (mariachi weekday/weekend rules)

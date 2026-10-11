@@ -5,6 +5,9 @@ import { setClaudeRequesterForTests } from "./claude.js";
 import { runPipeline, runEditPipeline } from "./run-pipeline.js";
 import type { Classification, PricingResult, GateResult } from "./types.js";
 
+// Payment terms plan (2026-10-11): the mock lead is a platform lead ("P"); runs that expect a clean gate say where it
+// came from, as the intake does. With no platform it is flagged payment_terms_platform_unknown (tested in
+// payment-terms-check.test.ts).
 const MOCK_CLASSIFICATION = {
   mode: "evaluation",
   action: "quote",
@@ -90,13 +93,13 @@ describe("Confidence scoring", () => {
 
   it("gate pass adds 40 points", async () => {
     mockClaude([MOCK_CLASSIFICATION, MOCK_GENERATION, MOCK_GATE_PASS]);
-    const result = await runPipeline("test lead");
+    const result = await runPipeline("test lead", undefined, "gigsalad");
     assert.ok(result.confidence_score >= 40);
   });
 
   it("verified adds 20 points on top of gate pass", async () => {
     mockClaude([MOCK_CLASSIFICATION, MOCK_GENERATION, MOCK_GATE_PASS]);
-    const result = await runPipeline("test lead");
+    const result = await runPipeline("test lead", undefined, "gigsalad");
     // gate pass (40) + verified (20) + all traced (10) = at least 70
     assert.ok(result.confidence_score >= 60);
   });
@@ -104,21 +107,21 @@ describe("Confidence scoring", () => {
   it("stealth premium adds 10 points", async () => {
     const classWithStealth = { ...MOCK_CLASSIFICATION, stealth_premium: true };
     mockClaude([classWithStealth, MOCK_GENERATION, MOCK_GATE_PASS]);
-    const result = await runPipeline("luxury event");
+    const result = await runPipeline("luxury event", undefined, "gigsalad");
     assert.ok(result.confidence_score >= 70);
   });
 
   it("cultural context adds 10 points", async () => {
     const classWithCultural = { ...MOCK_CLASSIFICATION, cultural_context_active: true };
     mockClaude([classWithCultural, MOCK_GENERATION, MOCK_GATE_PASS]);
-    const result = await runPipeline("quinceanera");
+    const result = await runPipeline("quinceanera", undefined, "gigsalad");
     assert.ok(result.confidence_score >= 70);
   });
 
   it("competition adds 10 points when count > 0", async () => {
     const classWithComp = { ...MOCK_CLASSIFICATION, competition_quote_count: 5 };
     mockClaude([classWithComp, MOCK_GENERATION, MOCK_GATE_PASS]);
-    const result = await runPipeline("got other quotes");
+    const result = await runPipeline("got other quotes", undefined, "gigsalad");
     assert.ok(result.confidence_score >= 70);
   });
 
