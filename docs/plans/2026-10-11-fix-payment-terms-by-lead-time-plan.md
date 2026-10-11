@@ -16,6 +16,21 @@ That plan is paused behind this one (Alex: "payment terms first"). Its example s
 for an event 6 days out, which this plan makes wrong; the T4 plan's revision changes that sentence to match before it
 ships. No brainstorm (skip gate: Alex gave the rule and the exact words in chat).
 
+## Revision 4 (Alex, 2026-10-11, during work; no plan-review round: the cap fired, the code review covers it)
+
+A heads-up: drafts wait for Alex's review, so a draft written 16 days out and approved 3 days later still says
+"balance due two weeks before" although the event is now 13 days away. Edits re-check the date; approve did not.
+**Alex: swap automatically at send.** Step 5 below; EARS P15-P16.
+- `refreshPaymentSentence(draft, classification, pricing, todayIso)` in `payment-terms.ts`: computes
+  `paymentTermsFor(...)` for today. Kind `none`, `platform` or `unknown_platform` → the draft unchanged. Kind
+  `sentence` → the draft must contain exactly one of the four `PAYMENT_SENTENCES` (whitespace collapsed); it is
+  replaced by today's sentence (unchanged when equal). Zero or more than one known sentence → `{ error }`.
+- `POST /api/leads/:id/approve` (`src/api.ts`, the only path that sends a stored draft later; auto-send sends in the
+  same run) parses `classification_json` / `pricing_json`, refreshes `compressed_draft` (and `full_draft` when
+  present) BEFORE `claimLeadForSending`, stores the refreshed text with `updateLead`, and sends it. On `{ error }` it
+  returns 409 `payment_terms_unverifiable` ("payment terms changed since this draft was written and the sentence was
+  edited; fix it or re-run") and sends nothing. Unparsable stored JSON → the same 409.
+
 ## Revision 3 (after Codex PLAN round 3 = NO-GO on both runs; HARD CAP, no round 4)
 
 Record: `docs/reviews/2026-10-11-payment-terms-plan-codex-round3.md`. Changes: `unknown_platform` gets a line that
@@ -203,6 +218,11 @@ All date tests inject `todayIso`; none reads the clock.
 - **P13** WHEN `runPipeline` runs with no platform and the model returns `lead_source_column` "P", THE SYSTEM SHALL
   send the platform line and add `payment_terms_platform_unknown` to `.gate.fail_reasons`, even when the drafts carry
   no payment word.
+- **P15** WHEN a stored draft (event 2026-10-25) says the two-weeks sentence and approve runs on 2026-10-12, THE SYSTEM
+  SHALL send and store the draft with the full-payment sentence instead and nothing else changed; WHEN it already
+  says the right sentence, unchanged; WHEN the lead is GigSalad, unchanged.
+- **P16** WHEN the stored draft has no known sentence, or two, and the terms kind is `sentence`, THE SYSTEM SHALL
+  return 409 `payment_terms_unverifiable` and send nothing (the SMS stub is never called).
 - **P14** `src/index.ts` parses and validates its arguments FIRST, before `dotenv`'s key check (moved below it):
   `--platform <value>` must be a `Platform` value. WHEN it gets `--platform gigsalad` (or any `Platform` value), THE
   SYSTEM SHALL pass it to `runPipeline`; WHEN `--platform thumbtack` or `--platform` with no value, THE SYSTEM SHALL
@@ -225,6 +245,7 @@ added to the list.
    past-date check (P10-P13).
 3b. CLI `--platform` (P14).
 4. Real-model runs, recorded in `docs/reviews/2026-10-11-payment-terms-local-runs.md`.
+5. Send-time refresh (Revision 4; P15, P16), before the code review.
 
 ## Verification Commands (expected results)
 
