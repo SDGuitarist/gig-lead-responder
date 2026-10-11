@@ -3,6 +3,15 @@ import { execSync } from "node:child_process";
 import { runPipeline } from "./run-pipeline.js";
 import type { PipelineOutput } from "./types.js";
 import { logCliPipelineError } from "./utils/cli-error.js";
+import { CLI_USAGE, parseCliArgs } from "./cli-args.js";
+
+// Arguments first (payment-terms plan P14): a bad value gets the usage and exit 2 even with no API key.
+const args = parseCliArgs(process.argv.slice(2));
+if (!args.ok) {
+  console.error(`Error: ${args.error}`);
+  console.error(CLI_USAGE);
+  process.exit(2);
+}
 
 // Validate API key on startup
 if (!process.env.ANTHROPIC_API_KEY) {
@@ -10,8 +19,7 @@ if (!process.env.ANTHROPIC_API_KEY) {
   process.exit(1);
 }
 
-const verbose = process.argv.includes("--verbose");
-const jsonMode = process.argv.includes("--json");
+const { verbose, json: jsonMode, platform } = args;
 
 async function main() {
   // Read lead from stdin
@@ -36,7 +44,7 @@ async function main() {
     if (event.status === "done" && verbose && event.result) {
       console.log(JSON.stringify(event.result, null, 2));
     }
-  });
+  }, platform);
 
   // --- Output ---
   // Copy full draft to clipboard (macOS) regardless of output mode
