@@ -45,6 +45,20 @@ const APPROVED: Record<string, Set<string>> = {
     "eabff29950c3338a a97035fe10c91bb3 a0e4924b78a7e39d 937adba509c3b74b 37802c5fbe6cb3e9 a05b29921b841d4e " +
     "a3613e2ae242d8ed 0f8191d32d898ae7 3a519863f6eac4b8"
   ).split(" ")),
+  // The P8 prompt baselines (payment-terms plan) copy the generate prompt, so they hold the SAME 9 public windows as
+  // src/data/voice-references.ts (checked window by window against its approved keys, 2026-10-11). Nothing new.
+  "src/fixtures/prompt-baseline/direct-t3-wedding.txt": new Set(( // 38acd73 prompt, 9 windows
+    "da00a99ca1e3824e 70c9b196fdf548a7 3d00275c93ad3fc7 e8a15ad245280bb7 5c893a5857eed3ec ee81b2992e5548b3 " +
+    "c8398c620436ee0e a46297322461256c 56802fd6a7c647eb"
+  ).split(" ")),
+  "src/fixtures/prompt-baseline/gigsalad-t2-party.txt": new Set(( // 38acd73 prompt, 9 windows
+    "7b507adb1833279c 36c78cbe8233a3d9 08c2b9675274a82f c922a527dc679eed ee2559eac54ca1ce 7c1687cba85d893c " +
+    "59bc992f5cb41edd a0890bf83151d0bb c1d42e19b02c34ee"
+  ).split(" ")),
+  "src/fixtures/prompt-baseline/np2-nonprofit.txt": new Set(( // 38acd73 prompt, 9 windows
+    "1741190581bfb9b0 74e97011bdb13992 a8c2ff269e8aa3a9 39327f7281bec57b 48d2b4b3c223427c 9f17f5ebd29af728 " +
+    "c9a44a38a1e40fe6 d6c4a3ff29633e3b 72769550ec0c62b0"
+  ).split(" ")),
 };
 const known: string[] = [];
 
