@@ -1,4 +1,5 @@
 import { test } from "node:test";
+import { NO_DATE_TERMS } from "./pipeline/payment-terms.js";
 import assert from "node:assert/strict";
 import { existsSync, mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -34,7 +35,7 @@ const cl = { mode: "evaluation", action: "quote", vagueness: "clear", competitio
 test("port manifest R018: generate asks for a strategic reserve of unused insights", async () => {
   const { buildGeneratePrompt } = await import("./prompts/generate.js");
   const { lookupPrice } = await import("./pipeline/price.js");
-  const p = buildGeneratePrompt(cl, lookupPrice(cl), "ctx");
+  const p = buildGeneratePrompt(cl, lookupPrice(cl), "ctx", NO_DATE_TERMS);
   for (const m of ['"strategic_reserve"', "you did NOT use in the drafts", "never a price"]) assert.ok(p.includes(m), m);
 });
 
@@ -53,7 +54,7 @@ test("port manifest R018: generate returns the reserve", async () => {
       compressed_draft: "Hi Ana.", strategic_reserve: ["Her dad played requinto at their own wedding"] }) }] })) as never);
   try {
     const drafts = await generateResponse(cl, { format: "solo", duration_hours: 2, tier_key: "T2P", anchor: 595, floor: 550,
-      quote_price: 595, competition_position: "at anchor", budget: { tier: "none" } } as never, "ctx");
+      quote_price: 595, competition_position: "at anchor", budget: { tier: "none" } } as never, "ctx", NO_DATE_TERMS);
     assert.deepEqual(drafts.strategic_reserve, ["Her dad played requinto at their own wedding"]);
   } finally {
     setClaudeRequesterForTests();

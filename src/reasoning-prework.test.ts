@@ -1,4 +1,5 @@
 import { test } from "node:test";
+import { NO_DATE_TERMS } from "./pipeline/payment-terms.js";
 import assert from "node:assert/strict";
 import { buildGeneratePrompt } from "./prompts/generate.js";
 import type { Classification, PricingResult } from "./types.js";
@@ -15,7 +16,7 @@ const p = { format: "solo", duration_hours: 2, tier_key: "T2D", anchor: 700, flo
   competition_position: "at anchor", budget: { tier: "none" } } as PricingResult;
 
 test("reasoning pre-work asks for request type and fears with their answers", () => {
-  const prompt = buildGeneratePrompt(c, p, "ctx");
+  const prompt = buildGeneratePrompt(c, p, "ctx", NO_DATE_TERMS);
   assert.ok(prompt.includes("- **request_type**"));
   assert.ok(prompt.includes("- **fears_to_address**"));
   assert.ok(prompt.includes('"request_type": "format" | "category"'));

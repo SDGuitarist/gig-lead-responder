@@ -1,4 +1,5 @@
 import { test } from "node:test";
+import { NO_DATE_TERMS } from "./pipeline/payment-terms.js";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { buildGeneratePrompt } from "./prompts/generate.js";
@@ -26,7 +27,7 @@ test("price block H6: non-NP2 PRICE LINE sections are unchanged from the pre-cha
   assert.deepEqual(golden.map((g) => g.name), ["one-price T2 solo", "two-price large-gap scoped alternative", "duo",
     "no-viable-scope", "one-price with a travel fee"]);
   for (const g of golden) {
-    const prompt = buildGeneratePrompt(g.classification, g.pricing, "ctx");
+    const prompt = buildGeneratePrompt(g.classification, g.pricing, "ctx", NO_DATE_TERMS);
     assert.equal(section(prompt), g.priceLineSection, `${g.name}: PRICE LINE section`);
   }
 });

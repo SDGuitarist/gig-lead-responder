@@ -63,3 +63,20 @@ export function paymentTermsFor(classification: Classification, pricing: Pricing
   if (classification.platform == null && classification.lead_source_column === "P") return { kind: "unknown_platform" };
   return { kind: "sentence", sentence: paymentSentence(classification.event_date_iso ?? null, todayIso) };
 }
+
+/** The Quote Terms line for the generate prompt (plan D3). Kind none has no line: its replies carry no quote terms. */
+export function paymentLine(terms: PaymentTerms): string {
+  switch (terms.kind) {
+    case "sentence":
+      return `- Payment: write this sentence exactly, once, in both drafts, after the price: "${terms.sentence}". Write no other sentence about a deposit, a balance, a due date or paying in full.`;
+    case "platform":
+      return "- Payment: the platform handles payment. Say nothing about a deposit, a balance, a due date or payment.";
+    case "unknown_platform": // no claim about who collects it: a Thumbtack client pays Alex
+      return "- Payment: say nothing about payment, a deposit, a balance or a due date.";
+    case "none":
+      return "";
+  }
+}
+
+/** Tests that build prompts for other reasons: the no-date sentence, the closest to the old deposit line. */
+export const NO_DATE_TERMS: PaymentTerms = { kind: "sentence", sentence: PAYMENT_SENTENCES.noDate };

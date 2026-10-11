@@ -5,6 +5,7 @@ import type { Classification, Drafts, GateResult, PricingResult } from "../types
 import { escapeForPrompt, wrapEditInstructions } from "../utils/sanitize.js";
 import { mentionsPrice } from "../utils/price-mention.js";
 import { insertPriceBlock, priceBlockFor } from "./price-block.js";
+import type { PaymentTerms } from "./payment-terms.js";
 
 /** Positive signals from a failed gate — what worked and should be kept. */
 export interface PositiveSignals {
@@ -70,10 +71,11 @@ export async function generateResponse(
   classification: Classification,
   pricing: PricingResult,
   context: string,
+  paymentTerms: PaymentTerms, // one value per run: every attempt and the post-check use it (payment-terms plan D2)
   rewriteInstructions?: string[],
   positiveSignals?: PositiveSignals,
 ): Promise<Drafts> {
-  const systemPrompt = buildGeneratePrompt(classification, pricing, context);
+  const systemPrompt = buildGeneratePrompt(classification, pricing, context, paymentTerms);
 
   let userMessage = "Reason about this lead, then write the two response drafts based on the classification, pricing, and context provided in the system prompt.";
 

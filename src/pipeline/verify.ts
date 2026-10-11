@@ -4,6 +4,7 @@ import { buildVerifyPrompt } from "../prompts/verify.js";
 import { wrapModelText } from "../utils/sanitize.js";
 import { generateResponse, type PositiveSignals } from "./generate.js";
 import { GUT_CHECK_KEYS, type Classification, type Drafts, type GateResult, type PricingResult } from "../types.js";
+import type { PaymentTerms } from "./payment-terms.js";
 
 // Parses the model's gate result field by field into a trusted GateResult, or
 // throws (callClaude retries once, then the lead fails safe). Before, two fields
@@ -84,9 +85,10 @@ export async function runWithVerification(
   classification: Classification,
   pricing: PricingResult,
   context: string,
+  paymentTerms: PaymentTerms,
   maxRetries: number = 2
 ): Promise<{ drafts: Drafts; gate: GateResult; verified: boolean }> {
-  let drafts = await generateResponse(classification, pricing, context);
+  let drafts = await generateResponse(classification, pricing, context, paymentTerms);
   let gate = await verifyGate(drafts, classification, pricing);
 
   if (gate.gate_status === "pass") {
@@ -102,7 +104,7 @@ export async function runWithVerification(
       best_line: gate.best_line,
       validation_line: gate.validation_line,
     };
-    drafts = await generateResponse(classification, pricing, context, gate.fail_reasons, keepSignals);
+    drafts = await generateResponse(classification, pricing, context, paymentTerms, gate.fail_reasons, keepSignals);
     gate = await verifyGate(drafts, classification, pricing);
 
     if (gate.gate_status === "pass") {

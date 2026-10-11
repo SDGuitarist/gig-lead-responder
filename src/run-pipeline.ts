@@ -4,6 +4,7 @@ import { lookupPrice, budgetGapFor, minimumProfitHold, nonprofitPriceNote, t4Fal
 import { priceBlockFor } from "./pipeline/price-block.js";
 import { enrichClassification } from "./pipeline/enrich.js";
 import { getTodayISO } from "./utils/dates.js";
+import { paymentTermsFor } from "./pipeline/payment-terms.js";
 import { selectContext } from "./pipeline/context.js";
 import { generateResponse } from "./pipeline/generate.js";
 import { verifyGate, runWithVerification } from "./pipeline/verify.js";
@@ -90,6 +91,7 @@ export async function runPipeline(
   onStage?: OnStage,
   platform?: Classification["platform"],
   gigsaladPage?: boolean, // rawText is parseGigSaladLeadPage output (only the orchestrator's enriched branch)
+  today: string = getTodayISO(), // one date for the whole run (payment-terms plan D2); tests inject it
 ): Promise<PipelineOutput> {
   const MAX_RAW_TEXT_LENGTH = 50_000;
   if (rawText.length > MAX_RAW_TEXT_LENGTH) {
@@ -100,7 +102,6 @@ export async function runPipeline(
 
   const timing: Record<string, number> = {};
   const totalStart = Date.now();
-  const today = getTodayISO();
 
   // --- Stage 1: Classification ---
   onStage?.({ stage: 1, name: "classify", status: "running" });
@@ -249,8 +250,9 @@ export async function runPipeline(
   onStage?.({ stage: 4, name: "generate", status: "running" });
   onStage?.({ stage: 5, name: "verify", status: "running" });
   start = Date.now();
+  const paymentTerms = paymentTermsFor(enriched, pricing, today);
   const { drafts, gate, verified } = await runWithVerification(
-    enriched, pricing, context,
+    enriched, pricing, context, paymentTerms,
   );
   timing.generateAndVerify = Date.now() - start;
   onStage?.({ stage: 4, name: "generate", status: "done", ms: timing.generateAndVerify });
@@ -314,6 +316,7 @@ export async function runEditPipeline(
   classification: Classification,
   pricing: PricingResult,
   instructions: string,
+  today: string = getTodayISO(), // the edit's date: payment terms follow the CURRENT lead time (plan D2)
 ): Promise<EditPipelineResult> {
   // Backward compat: old classification records stored before C1 lack venue_name
   classification.venue_name = classification.venue_name ?? null;
@@ -329,7 +332,8 @@ export async function runEditPipeline(
   }
 
   const context = await selectContext(classification, venueContext);
-  const drafts = await generateResponse(classification, pricing, context, [instructions]);
+  const paymentTerms = paymentTermsFor(classification, pricing, today);
+  const drafts = await generateResponse(classification, pricing, context, paymentTerms, [instructions]);
   const gate = await verifyGate(drafts, classification, pricing);
 
   // Post-check: auto-fix em dashes, flag banned phrases

@@ -1,4 +1,5 @@
 import { test } from "node:test";
+import { NO_DATE_TERMS } from "./pipeline/payment-terms.js";
 import assert from "node:assert/strict";
 import { buildClassifyPrompt } from "./prompts/classify.js";
 import { normalizeGracefulDecline } from "./pipeline/classify.js";
@@ -38,7 +39,7 @@ test("port manifest R320: generate and verify carry the decline pattern only for
   const { buildGeneratePrompt } = await import("./prompts/generate.js");
   const { buildVerifyPrompt } = await import("./prompts/verify.js");
   const { lookupPrice } = await import("./pipeline/price.js");
-  const gen = (d: boolean) => buildGeneratePrompt(full(d), lookupPrice(full(d)), "ctx");
+  const gen = (d: boolean) => buildGeneratePrompt(full(d), lookupPrice(full(d)), "ctx", NO_DATE_TERMS);
   const ver = (d: boolean) => buildVerifyPrompt(full(d), { budget: { tier: "none" } });
   for (const m of ["GRACEFUL DECLINE MODE", "Format honesty BEFORE the price", "names the specific alternative"]) {
     assert.ok(gen(true).includes(m), m);

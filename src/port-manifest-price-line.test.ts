@@ -1,4 +1,5 @@
 import { test } from "node:test";
+import { NO_DATE_TERMS } from "./pipeline/payment-terms.js";
 import assert from "node:assert/strict";
 import { buildGeneratePrompt } from "./prompts/generate.js";
 import { lookupPrice } from "./pipeline/price.js";
@@ -17,7 +18,7 @@ const cls = (format: string, extra: Record<string, unknown> = {}) =>
      cultural_tradition: null, planner_effort_active: false, social_proof_active: false, context_modifiers: [],
      event_date_iso: null, event_energy: null, flagged_concerns: [], venue_name: null, client_first_name: null,
      platform: "yelp", ...extra }) as unknown as Classification;
-const prompt = (c: Classification, p: PricingResult = lookupPrice(c)) => buildGeneratePrompt(c, p, "ctx");
+const prompt = (c: Classification, p: PricingResult = lookupPrice(c)) => buildGeneratePrompt(c, p, "ctx", NO_DATE_TERMS);
 
 test("port manifest R300: an ordinary quote gets one structured price line, for every tier", () => {
   for (const tier of ["T1", "T2", "T3"]) {

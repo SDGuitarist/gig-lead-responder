@@ -1,4 +1,5 @@
 import { test } from "node:test";
+import { NO_DATE_TERMS } from "./pipeline/payment-terms.js";
 import assert from "node:assert/strict";
 import { buildGeneratePrompt } from "./prompts/generate.js";
 import type { Classification, PricingResult } from "./types.js";
@@ -15,8 +16,8 @@ const p = { format: "solo", duration_hours: 2, tier_key: "T2D", anchor: 700, flo
   competition_position: "at anchor", budget: { tier: "none" } } as PricingResult;
 
 test("qualification tier gets the reframe-not-cheaper shape", () => {
-  const q = buildGeneratePrompt(c("qualification"), p, "ctx");
+  const q = buildGeneratePrompt(c("qualification"), p, "ctx", NO_DATE_TERMS);
   for (const m of ["QUALIFICATION RESPONSE", "BETTER, not cheaper", "ONE strategic binary question"]) assert.ok(q.includes(m), m);
-  assert.ok(!buildGeneratePrompt(c("qualification", "high"), p, "ctx").includes("ONE strategic binary question"), "no question at high competition");
-  assert.ok(!buildGeneratePrompt(c("standard"), p, "ctx").includes("QUALIFICATION RESPONSE"));
+  assert.ok(!buildGeneratePrompt(c("qualification", "high"), p, "ctx", NO_DATE_TERMS).includes("ONE strategic binary question"), "no question at high competition");
+  assert.ok(!buildGeneratePrompt(c("standard"), p, "ctx", NO_DATE_TERMS).includes("QUALIFICATION RESPONSE"));
 });

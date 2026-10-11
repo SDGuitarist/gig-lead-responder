@@ -1,4 +1,5 @@
 import { afterEach, describe, it } from "node:test";
+import { NO_DATE_TERMS } from "./pipeline/payment-terms.js";
 import assert from "node:assert/strict";
 import { enrichClassification } from "./pipeline/enrich.js";
 import { setClaudeRequesterForTests } from "./claude.js";
@@ -118,7 +119,7 @@ describe("buildGeneratePrompt — budget mode", () => {
   it("no budget block when tier is none", () => {
     const c = makeClassification();
     const p = makePricing();
-    const prompt = buildGeneratePrompt(c, p, "some context");
+    const prompt = buildGeneratePrompt(c, p, "some context", NO_DATE_TERMS);
     assert.ok(!prompt.includes("BUDGET MODE"));
   });
 
@@ -128,7 +129,7 @@ describe("buildGeneratePrompt — budget mode", () => {
       quote_price: 500,
       budget: { tier: "small", gap: 25 },
     });
-    const prompt = buildGeneratePrompt(c, p, "some context");
+    const prompt = buildGeneratePrompt(c, p, "some context", NO_DATE_TERMS);
     assert.ok(prompt.includes("BUDGET MODE: SMALL GAP"));
     assert.ok(prompt.includes("$475"));
     assert.ok(prompt.includes("$500"));
@@ -147,7 +148,7 @@ describe("buildGeneratePrompt — budget mode", () => {
         scoped_alternative: { duration_hours: 1, price: 400 },
       },
     });
-    const prompt = buildGeneratePrompt(c, p, "some context");
+    const prompt = buildGeneratePrompt(c, p, "some context", NO_DATE_TERMS);
     assert.ok(prompt.includes("BUDGET MODE: LARGE GAP"));
     assert.ok(prompt.includes("1hr set starts at $400"));
     assert.ok(prompt.includes("full 2hr set"));
@@ -160,7 +161,7 @@ describe("buildGeneratePrompt — budget mode", () => {
       tier_key: "T2P",
       budget: { tier: "no_viable_scope", gap: 350 },
     });
-    const prompt = buildGeneratePrompt(c, p, "some context");
+    const prompt = buildGeneratePrompt(c, p, "some context", NO_DATE_TERMS);
     assert.ok(prompt.includes("BUDGET MODE: NO VIABLE SCOPE"));
     assert.ok(prompt.includes("warm redirect"));
     assert.ok(prompt.includes("50-75 words"));
@@ -180,14 +181,14 @@ describe("buildGeneratePrompt — budget mode", () => {
       tier_key: "T2P",
       budget: { tier: "no_viable_scope", gap: 350 },
     });
-    const prompt = buildGeneratePrompt(c, p, "some context");
+    const prompt = buildGeneratePrompt(c, p, "some context", NO_DATE_TERMS);
     assert.ok(prompt.includes("find me here on GigSalad"));
   });
 
   it("budget mode overrides stealth premium (block appears at top)", () => {
     const c = makeClassification({ stated_budget: 400, stealth_premium: true });
     const p = makePricing({ budget: { tier: "small", gap: 50 } });
-    const prompt = buildGeneratePrompt(c, p, "some context");
+    const prompt = buildGeneratePrompt(c, p, "some context", NO_DATE_TERMS);
     assert.ok(prompt.includes("OVERRIDES STEALTH PREMIUM"));
     // Budget block appears before the classification section
     const budgetIdx = prompt.indexOf("BUDGET MODE");
@@ -209,7 +210,7 @@ describe("buildGeneratePrompt — budget mode", () => {
       competition_position: "clarify before quoting",
       tier_key: "clarify",
     });
-    const prompt = buildGeneratePrompt(c, p, "some context");
+    const prompt = buildGeneratePrompt(c, p, "some context", NO_DATE_TERMS);
     assert.ok(prompt.includes("No quote yet. The format is unresolved."));
     assert.ok(prompt.includes("Ask exactly ONE binary clarifying question."));
     assert.ok(prompt.includes("Do NOT state a price, rate, anchor, floor, or package."));
@@ -269,8 +270,7 @@ describe("generateResponse — clarification mode", () => {
     const drafts = await generateResponse(
       makeClarificationClassification(),
       makeClarificationPricing(),
-      "some context",
-    );
+      "some context", NO_DATE_TERMS,);
     assert.equal((drafts.full_draft.match(/\?/g) ?? []).length, 1);
     assert.equal((drafts.compressed_draft.match(/\?/g) ?? []).length, 1);
     assert.ok(!/\$\s?\d|\brate\b/i.test(drafts.full_draft));
@@ -306,8 +306,7 @@ describe("generateResponse — clarification mode", () => {
       () => generateResponse(
         makeClarificationClassification(),
         makeClarificationPricing(),
-        "some context",
-      ),
+        "some context", NO_DATE_TERMS,),
       /must not include pricing language/,
     );
   });
@@ -341,8 +340,7 @@ describe("generateResponse — clarification mode", () => {
       () => generateResponse(
         makeClarificationClassification(),
         makeClarificationPricing(),
-        "some context",
-      ),
+        "some context", NO_DATE_TERMS,),
       /must contain exactly one question/,
     );
   });

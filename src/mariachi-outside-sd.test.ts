@@ -1,4 +1,5 @@
 import { test } from "node:test";
+import { NO_DATE_TERMS } from "./pipeline/payment-terms.js";
 import assert from "node:assert/strict";
 import { lookupPrice } from "./pipeline/price.js";
 import { buildGeneratePrompt } from "./prompts/generate.js";
@@ -35,8 +36,8 @@ test("mariachi outside SD: the draft is told travel is included", () => {
   const cl = { ...c(3), action: "quote", flagged_concerns: [], cultural_context_active: false, tier: "standard",
     competition_level: "low", platform: "yelp", format_requested: "mariachi", venue_name: null, client_first_name: null,
     stealth_premium_signals: [], context_modifiers: [], close_type: "soft_hold", timeline_band: "comfortable" } as unknown as Classification;
-  const prompt = buildGeneratePrompt(cl, lookupPrice(c(3), at("Regional", 60)), "ctx");
+  const prompt = buildGeneratePrompt(cl, lookupPrice(c(3), at("Regional", 60)), "ctx", NO_DATE_TERMS);
   assert.ok(prompt.includes("Travel is built into this price"));
-  const local = buildGeneratePrompt(cl, lookupPrice(c(3), at("Local", 10)), "ctx");
+  const local = buildGeneratePrompt(cl, lookupPrice(c(3), at("Local", 10)), "ctx", NO_DATE_TERMS);
   assert.ok(!local.includes("Travel is built into this price"), "control: in-county quote does not say travel is built in");
 });

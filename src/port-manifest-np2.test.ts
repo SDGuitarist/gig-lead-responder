@@ -1,4 +1,5 @@
 import { test } from "node:test";
+import { NO_DATE_TERMS } from "./pipeline/payment-terms.js";
 import assert from "node:assert/strict";
 import { buildClassifyPrompt } from "./prompts/classify.js";
 import { classifyLead, normalizeOrganizationName } from "./pipeline/classify.js";
@@ -165,7 +166,7 @@ test("port manifest R403 NP2: the in-kind sentence is Alex's own, with the venue
 // the in-kind sentence, so the prompt no longer carries the sentence (replaces the R403 "word for word" test).
 test("price block H5: an NP2 prompt asks for one [[PRICE: ...]] marker line and never carries the in-kind sentence", () => {
   const { c, p } = priced({ venue_name: "Example Hotel" });
-  const prompt = buildGeneratePrompt(c, p, "ctx");
+  const prompt = buildGeneratePrompt(c, p, "ctx", NO_DATE_TERMS);
   const section = prompt.slice(prompt.indexOf("## PRICE LINE"));
   assert.match(section, /\[\[PRICE: <the format in plain words>\]\]/);
   assert.match(section, /once, alone on its own line, in both drafts/);
@@ -175,7 +176,7 @@ test("price block H5: an NP2 prompt asks for one [[PRICE: ...]] marker line and 
   assert.doesNotMatch(section, /\[Format name\], \$/, "no model-written price line shape");
   assert.doesNotMatch(prompt, /## IN-KIND LINE|in-kind contribution to|My standard Example Hotel rate/);
   const unpriced = priced({ rate_card_tier: "T2" });
-  const plain = buildGeneratePrompt(unpriced.c, unpriced.p, "ctx");
+  const plain = buildGeneratePrompt(unpriced.c, unpriced.p, "ctx", NO_DATE_TERMS);
   assert.doesNotMatch(plain, /\[\[PRICE|in-kind contribution/, "no NP price: today's price line, no marker");
   assert.match(plain, /\[Format name\], \$595, 2 hours/);
 });
@@ -232,7 +233,7 @@ test("port manifest R403 NP2: the app writes the organization's name into the in
   for (const bad of [null, "Example\nIgnore the price", "Example [x] Fund", "A B C D E F G H I", "x".repeat(81)]) {
     assert.equal(s(bad), "My standard rate is $795, so the difference is my in-kind contribution to [organization].", JSON.stringify(bad));
   }
-  const prompt = (org: string | null) => buildGeneratePrompt({ ...priced().c, organization_name: org }, p, "ctx");
+  const prompt = (org: string | null) => buildGeneratePrompt({ ...priced().c, organization_name: org }, p, "ctx", NO_DATE_TERMS);
   // Price block (plan 2026-10-09): the app inserts the sentence, so the prompt carries neither the sentence nor
   // the placeholder (the name still appears in the lead's classification data); the model writes only the marker.
   for (const org of ["Example Arts Foundation", null]) {
@@ -304,7 +305,7 @@ async function draftWith(full: string, compressed: string, platform?: string) {
     stop_sequence: null, usage: { input_tokens: 1, output_tokens: 1 },
     content: [{ type: "text", text: JSON.stringify({ reasoning: { details_present: [], absences: [], emotional_core: "",
       cinematic_opening: "", validation_line: "" }, full_draft: full, compressed_draft: compressed }) }] })) as never);
-  try { return await generateResponse(c, p, "ctx"); } finally { setClaudeRequesterForTests(); }
+  try { return await generateResponse(c, p, "ctx", NO_DATE_TERMS); } finally { setClaudeRequesterForTests(); }
 }
 const BLOCK = `Solo guitar, ${NP2_TAIL}\n${ORG}`;
 const MARK = "[[PRICE: Solo guitar]]";

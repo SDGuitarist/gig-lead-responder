@@ -1,4 +1,5 @@
 import { test } from "node:test";
+import { NO_DATE_TERMS } from "./pipeline/payment-terms.js";
 import assert from "node:assert/strict";
 import { buildGeneratePrompt } from "./prompts/generate.js";
 import type { Classification, PricingResult } from "./types.js";
@@ -21,14 +22,14 @@ const p = { format: "solo", duration_hours: 2, tier_key: "T2D", anchor: 700, flo
   competition_position: "at anchor", budget: { tier: "none" } } as PricingResult;
 
 test("port manifest M5 M9: a quote states the deposit and setup needs", () => {
-  const prompt = buildGeneratePrompt(c(), p, "ctx");
+  const prompt = buildGeneratePrompt(c(), p, "ctx", NO_DATE_TERMS);
   assert.ok(prompt.includes("50% deposit holds the date"));
   assert.ok(prompt.includes("one standard 110V outlet"));
   assert.ok(prompt.includes("one armless chair"));
 });
 
 test("port manifest M5 M9: a clarifying-question reply does not", () => {
-  const prompt = buildGeneratePrompt(c({ action: "one_question", format_recommended: "unresolved" }), p, "ctx");
+  const prompt = buildGeneratePrompt(c({ action: "one_question", format_recommended: "unresolved" }), p, "ctx", NO_DATE_TERMS);
   assert.ok(!prompt.includes("50% deposit holds the date"));
   assert.ok(!prompt.includes("one armless chair"));
 });
@@ -37,17 +38,17 @@ test("port manifest M5 M9: a clarifying-question reply does not", () => {
 // for each configuration Alex plays. Formats the table does not cover get no
 // line rather than a guess.
 test("port manifest R099: a quote gives the space and setup time for its format", () => {
-  const solo = buildGeneratePrompt(c(), p, "ctx");
+  const solo = buildGeneratePrompt(c(), p, "ctx", NO_DATE_TERMS);
   assert.ok(solo.includes("Space and setup time"));
   assert.ok(solo.includes("6 x 6 ft") && solo.includes("20-30 minutes"));
-  const duo = buildGeneratePrompt(c({ format_recommended: "flamenco_duo" }), p, "ctx");
+  const duo = buildGeneratePrompt(c({ format_recommended: "flamenco_duo" }), p, "ctx", NO_DATE_TERMS);
   assert.ok(duo.includes("8 x 8 ft") && duo.includes("30 minutes"));
-  const trio = buildGeneratePrompt(c({ format_recommended: "flamenco_trio_full" }), p, "ctx");
+  const trio = buildGeneratePrompt(c({ format_recommended: "flamenco_trio_full" }), p, "ctx", NO_DATE_TERMS);
   assert.ok(trio.includes("15 x 6 ft") && trio.includes("15 x 10 ft") && trio.includes("45 minutes"));
 });
 
 test("port manifest R099: no space line for a format the table does not cover, or without a quote", () => {
-  assert.ok(!buildGeneratePrompt(c({ format_recommended: "mariachi_full" }), p, "ctx").includes("Space and setup time"));
-  const q = buildGeneratePrompt(c({ action: "one_question", format_recommended: "unresolved" }), p, "ctx");
+  assert.ok(!buildGeneratePrompt(c({ format_recommended: "mariachi_full" }), p, "ctx", NO_DATE_TERMS).includes("Space and setup time"));
+  const q = buildGeneratePrompt(c({ action: "one_question", format_recommended: "unresolved" }), p, "ctx", NO_DATE_TERMS);
   assert.ok(!q.includes("Space and setup time"));
 });

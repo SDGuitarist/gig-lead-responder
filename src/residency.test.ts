@@ -1,4 +1,5 @@
 import { test } from "node:test";
+import { NO_DATE_TERMS } from "./pipeline/payment-terms.js";
 import assert from "node:assert/strict";
 import { setClaudeRequesterForTests } from "./claude.js";
 import { classifyLead, normalizeEngagement } from "./pipeline/classify.js";
@@ -136,7 +137,7 @@ const res = (over: Partial<Classification> = {}) =>
 
 test("residency draft: price asked and a rate exists, the draft states the per-night rate only", () => {
   const c = res({ price_asked: true });
-  const prompt = buildGeneratePrompt(c, lookupPrice(c), "ctx");
+  const prompt = buildGeneratePrompt(c, lookupPrice(c), "ctx", NO_DATE_TERMS);
   assert.ok(prompt.includes("## PRICING: RESIDENCY (B2B)"));
   assert.ok(prompt.includes("$350 per night"));
   assert.ok(prompt.includes("not a discount off private-event prices"));
@@ -146,7 +147,7 @@ test("residency draft: price asked and a rate exists, the draft states the per-n
 
 test("residency draft: not asked, or no rate, means no number at all", () => {
   for (const c of [res(), res({ price_asked: true, residency_tier: "R1" }), res({ price_asked: true, residency_cadence: null })]) {
-    const prompt = buildGeneratePrompt(c, lookupPrice(c), "ctx");
+    const prompt = buildGeneratePrompt(c, lookupPrice(c), "ctx", NO_DATE_TERMS);
     assert.ok(prompt.includes("Do NOT state any price"), c.residency_tier ?? "");
     assert.ok(!prompt.includes("per night"));
     assert.ok(!prompt.includes("Price the client is told: $"));
@@ -157,7 +158,7 @@ test("residency draft: not asked, or no rate, means no number at all", () => {
 });
 
 test("residency draft: a private lead keeps the private-event price block", () => {
-  const prompt = buildGeneratePrompt(cls(), lookupPrice(cls()), "ctx");
+  const prompt = buildGeneratePrompt(cls(), lookupPrice(cls()), "ctx", NO_DATE_TERMS);
   assert.ok(prompt.includes("Price the client is told: $"));
   assert.ok(!prompt.includes("RESIDENCY (B2B)"));
 });
@@ -169,7 +170,7 @@ const series = (over: Partial<Classification> = {}) => res({ format_recommended:
 
 test("residency series: a non-solo residency that did not ask states no price", () => {
   const c = series();
-  const prompt = buildGeneratePrompt(c, lookupPrice(c), "ctx");
+  const prompt = buildGeneratePrompt(c, lookupPrice(c), "ctx", NO_DATE_TERMS);
   assert.ok(prompt.includes("## PRICING: RESIDENCY (B2B)"));
   assert.ok(prompt.includes("Do NOT state any price"));
   assert.ok(!prompt.includes("Price the client is told: $"));
@@ -180,7 +181,7 @@ test("residency series: a non-solo residency that did not ask states no price", 
 test("residency series: asked, it states the normal private price per night as a series, no discount", () => {
   const c = series({ price_asked: true });
   const pricing = lookupPrice(c);
-  const prompt = buildGeneratePrompt(c, pricing, "ctx");
+  const prompt = buildGeneratePrompt(c, pricing, "ctx", NO_DATE_TERMS);
   assert.ok(prompt.includes("series of private events"));
   assert.ok(prompt.includes(`$${pricing.quote_price} per night`));
   assert.ok(!prompt.includes("Price the client is told: $"));
@@ -201,7 +202,7 @@ test("residency series: re-pricing after enrichment changes the format stays in 
   assert.notEqual(repriced.quote_price, first.quote_price);
   assert.equal(repriced.residency?.series, true);
   assert.equal(repriced.residency?.rate, repriced.quote_price);
-  const prompt = buildGeneratePrompt(enriched, repriced, "ctx");
+  const prompt = buildGeneratePrompt(enriched, repriced, "ctx", NO_DATE_TERMS);
   assert.ok(prompt.includes("Do NOT state any price"));
   assert.ok(!prompt.includes("Price the client is told: $"));
 });
@@ -215,7 +216,7 @@ const seriesBlock = (travel: unknown) => {
   const c = series({ price_asked: true });
   const p = { ...lookupPrice(c), travel } as PricingResult;
   // The WHOLE residency part of the prompt (an appended travel block starts with "## ", so do not cut there).
-  return { p, block: buildGeneratePrompt(c, p, "ctx").split("## PRICING: RESIDENCY (B2B)")[1] };
+  return { p, block: buildGeneratePrompt(c, p, "ctx", NO_DATE_TERMS).split("## PRICING: RESIDENCY (B2B)")[1] };
 };
 test("residency series: with a travel fee, the base per night and travel arranged separately", () => {
   const { p, block } = seriesBlock(near);

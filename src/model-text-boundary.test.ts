@@ -1,4 +1,5 @@
 import { test } from "node:test";
+import { NO_DATE_TERMS } from "./pipeline/payment-terms.js";
 import assert from "node:assert/strict";
 import { setClaudeRequesterForTests } from "./claude.js";
 import { GUT_CHECK_KEYS, type Classification } from "./types.js";
@@ -43,7 +44,7 @@ test("model text boundary: drafts sent to the verifier cannot break out of their
 test("model text boundary: positive signals and rewrite instructions cannot break out of their block", async () => {
   const { generateResponse } = await import("./pipeline/generate.js");
   const msg = await userMessageOf({ reasoning: {}, full_draft: "Hi there.", compressed_draft: "Hi." },
-    () => generateResponse(cl, pricing, "ctx", [ATTACK, "Make the opening warmer, más cálida."],
+    () => generateResponse(cl, pricing, "ctx", NO_DATE_TERMS, [ATTACK, "Make the opening warmer, más cálida."],
       { best_line: ATTACK, validation_line: "Your abuela's 90th deserves this." }));
   assert.ok(!injected(msg), "no raw closing tag from model or instruction text");
   assert.ok(msg.includes("Make the opening warmer, más cálida."), "control: instructions stay readable and actionable");

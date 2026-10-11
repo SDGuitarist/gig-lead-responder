@@ -1,6 +1,7 @@
 import { RATE_TABLES, type FormatRates, type TierRates } from "../data/rates.js";
 import { clientTotal, findMinFloor, rateTableFor, residencyStatesPrice } from "../pipeline/price.js";
 import { priceBlockFor, priceLineTail } from "../pipeline/price-block.js";
+import { paymentLine, quoteTermsOff, type PaymentTerms } from "../pipeline/payment-terms.js";
 import { SETUP_SPACE } from "../data/setup-space.js";
 import { VOICE_REFERENCES } from "../data/voice-references.js";
 import { withoutHoldNotes, CONCERN_4PIECE_ALT, CONCERN_FULL_ENSEMBLE, GUT_CHECK_KEYS, GUT_CHECK_THRESHOLD, GUT_CHECK_TOTAL, type Classification, type Format, type PricingResult, type ResidencyQuote } from "../types.js";
@@ -29,7 +30,8 @@ Both outcomes must be clean: if they book, they chose knowingly; if they pass, t
 export function buildGeneratePrompt(
   classificationIn: Classification,
   pricing: PricingResult,
-  context: string
+  context: string,
+  paymentTerms: PaymentTerms,
 ): string {
   const classification = withoutHoldNotes(classificationIn);
   const clarificationMode = classification.action === "one_question" && classification.format_recommended === "unresolved";
@@ -112,7 +114,7 @@ ${classification.tier === "qualification" ? `## QUALIFICATION RESPONSE (budget m
 2. Reframe: position the right option as BETTER, not cheaper (see PRINCIPLES.md "Reframe, Don't Downgrade"). Never say "cheaper" or "budget option".
 ${classification.competition_level === "low" ? "3. Ask ONE strategic binary question that shows expertise (not budget, not songs).\n4." : "3."} Warm indication: you'll recommend the right fit once you understand what they need.
 
-` : ""}${buildStyleRulesBlock(classification, pricing)}
+` : ""}${buildStyleRulesBlock(classification, pricing, paymentTerms)}
 
 ## EVALUATOR CHECKLIST (what you will be graded on)
 
@@ -234,7 +236,7 @@ Do NOT state any price, rate or number in either draft. ${classification.price_a
  * Contains: em dash prohibition, validation compression, dual format,
  * word counts, compressed targets, contact/sign-off, output JSON schema.
  */
-function buildStyleRulesBlock(classification: Classification, pricing: PricingResult): string {
+function buildStyleRulesBlock(classification: Classification, pricing: PricingResult, paymentTerms: PaymentTerms): string {
   const clarificationMode = classification.action === "one_question" && classification.format_recommended === "unresolved";
   const compressedTarget = getCompressedTarget(classification.competition_level);
   const setupSpace = classification.format_recommended === "unresolved" ? undefined : SETUP_SPACE[classification.format_recommended];
@@ -263,11 +265,11 @@ ${classification.platform === "gigsalad"
     ? `**Contact Block: OMIT** — GigSalad prohibits direct contact info in platform messages. Do NOT include phone number, email, or website URL anywhere in the response.`
     : `**Sign-Off (ALWAYS append to both drafts):**
 End with "Alex Guillen" on its own line. No business name, no phone number — just the name.`}
-${clarificationMode || pricing.budget.tier === "no_viable_scope" || pricing.residency
+${quoteTermsOff(classification, pricing)
     ? ""
     : `
 **Quote Terms (every quote, both drafts):**
-- A 50% deposit holds the date. Say it plainly, once, near the price.
+${paymentLine(paymentTerms)}
 - Setup needs: one standard 110V outlet within about 25 ft of where I play (the only electrical need) and one armless chair. Keep it to one short clause in the compressed draft.
 ${setupSpace ? `- Space and setup time for this format: ${setupSpace}. Use it only when the lead raises space, the layout, load-in or start time; otherwise leave it out.
 ` : ""}`}

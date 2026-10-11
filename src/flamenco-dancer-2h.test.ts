@@ -1,4 +1,5 @@
 import { test } from "node:test";
+import { NO_DATE_TERMS } from "./pipeline/payment-terms.js";
 import assert from "node:assert/strict";
 import { lookupPrice } from "./pipeline/price.js";
 import { buildClassifyPrompt } from "./prompts/classify.js";
@@ -33,7 +34,7 @@ test("flamenco dancer 2h: the draft is told the dancer performs 2 of the 3 hours
   const cl = { ...c(3, true), action: "quote", flagged_concerns: [], cultural_context_active: false, tier: "standard",
     platform: "yelp", format_requested: "flamenco", venue_name: null, client_first_name: null, stealth_premium_signals: [],
     context_modifiers: [], close_type: "soft_hold", timeline_band: "comfortable" } as unknown as Classification;
-  assert.ok(buildGeneratePrompt(cl, lookupPrice(cl), "ctx").includes("the dancer performs 2 of the 3 hours"));
+  assert.ok(buildGeneratePrompt(cl, lookupPrice(cl), "ctx", NO_DATE_TERMS).includes("the dancer performs 2 of the 3 hours"));
   const plain = { ...cl, extended_dancer: false } as Classification;
-  assert.ok(!buildGeneratePrompt(plain, lookupPrice(plain), "ctx").includes("the dancer performs 2 of the 3 hours"));
+  assert.ok(!buildGeneratePrompt(plain, lookupPrice(plain), "ctx", NO_DATE_TERMS).includes("the dancer performs 2 of the 3 hours"));
 });

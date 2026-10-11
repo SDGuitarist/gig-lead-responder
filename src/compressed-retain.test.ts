@@ -1,4 +1,5 @@
 import { test } from "node:test";
+import { NO_DATE_TERMS } from "./pipeline/payment-terms.js";
 import assert from "node:assert/strict";
 import { buildGeneratePrompt } from "./prompts/generate.js";
 import type { Classification, PricingResult } from "./types.js";
@@ -18,8 +19,8 @@ const p = { format: "mariachi_full", duration_hours: 2, tier_key: "T2D", anchor:
 const retain = (prompt: string) => prompt.split("\n").find((l) => l.startsWith("- Must retain:")) ?? "";
 
 test("compressed draft retains a fear resolution, plus curation credibility when sourced", () => {
-  assert.match(retain(buildGeneratePrompt(c("alex_sources"), p, "ctx")), /fear resolution.*curation credibility/);
-  const performs = retain(buildGeneratePrompt(c("alex_performs"), p, "ctx"));
+  assert.match(retain(buildGeneratePrompt(c("alex_sources"), p, "ctx", NO_DATE_TERMS)), /fear resolution.*curation credibility/);
+  const performs = retain(buildGeneratePrompt(c("alex_performs"), p, "ctx", NO_DATE_TERMS));
   assert.match(performs, /fear resolution/);
   assert.doesNotMatch(performs, /curation credibility/);
 });

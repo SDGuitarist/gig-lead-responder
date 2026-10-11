@@ -1,4 +1,5 @@
 import { test } from "node:test";
+import { NO_DATE_TERMS } from "./pipeline/payment-terms.js";
 import assert from "node:assert/strict";
 import { buildGeneratePrompt } from "./prompts/generate.js";
 import { buildVerifyPrompt } from "./prompts/verify.js";
@@ -20,7 +21,7 @@ const cl = { mode: "evaluation", action: "quote", vagueness: "clear", competitio
 
 test("internal hold notes never reach the draft or the gate", () => {
   const pricing = lookupPrice(cl);
-  for (const [name, prompt] of [["generate", buildGeneratePrompt(cl, pricing, "ctx")], ["verify", buildVerifyPrompt(cl, pricing)]]) {
+  for (const [name, prompt] of [["generate", buildGeneratePrompt(cl, pricing, "ctx", NO_DATE_TERMS)], ["verify", buildVerifyPrompt(cl, pricing)]]) {
     assert.ok(prompt.includes("Outdoor venue, no power listed"), `${name}: control, a real concern still reaches it`);
     for (const note of INTERNAL) assert.ok(!prompt.includes(note), `${name}: ${note.slice(0, 30)}`);
   }

@@ -1,4 +1,5 @@
 import { test } from "node:test";
+import { NO_DATE_TERMS } from "./pipeline/payment-terms.js";
 import assert from "node:assert/strict";
 import { lookupPrice, budgetGapFor } from "./pipeline/price.js";
 import { buildGeneratePrompt } from "./prompts/generate.js";
@@ -29,7 +30,7 @@ test("outside-SD budget: the warm-redirect minimum is the outside table's", () =
   const c = cl(900);
   const pricing = lookupPrice(c, at("Near", 40));
   pricing.budget = budgetGapFor(c, pricing);
-  const prompt = buildGeneratePrompt(c, pricing, "ctx");
+  const prompt = buildGeneratePrompt(c, pricing, "ctx", NO_DATE_TERMS);
   assert.ok(prompt.includes("is $2700 for 3hr"), "outside-SD minimum");
   assert.ok(!prompt.includes("$1650"), "not the in-county 2-hour floor");
 });

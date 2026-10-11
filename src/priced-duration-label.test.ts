@@ -1,4 +1,5 @@
 import { test } from "node:test";
+import { NO_DATE_TERMS } from "./pipeline/payment-terms.js";
 import assert from "node:assert/strict";
 import { lookupPrice, rateTableFor } from "./pipeline/price.js";
 import { RATE_TABLES } from "./data/rates.js";
@@ -36,16 +37,16 @@ test("quoted hours are the hours priced: the draft is told when they differ from
     cultural_tradition: null, planner_effort_active: false, social_proof_active: false, context_modifiers: [],
     event_date_iso: null, event_energy: null, flagged_concerns: [], venue_name: null, client_first_name: null,
     platform: "yelp" }) as unknown as Classification;
-  const asked1 = buildGeneratePrompt(full(1), lookupPrice(full(1)), "ctx");
+  const asked1 = buildGeneratePrompt(full(1), lookupPrice(full(1)), "ctx", NO_DATE_TERMS);
   assert.ok(asked1.includes("The client asked for 1hr; this rate is for 2hr"), "1h mariachi → 2h minimum, said plainly");
   // Codex round 1 (no 1-hour duo) P2: the duos follow the same rule since Alex 2026-10-07.
   for (const format of ["duo", "flamenco_duo"]) {
     const duo = { ...full(1), format_recommended: format, format_requested: format } as Classification;
-    assert.ok(buildGeneratePrompt(duo, lookupPrice(duo), "ctx").includes("The client asked for 1hr; this rate is for 2hr"), format);
+    assert.ok(buildGeneratePrompt(duo, lookupPrice(duo), "ctx", NO_DATE_TERMS).includes("The client asked for 1hr; this rate is for 2hr"), format);
   }
   for (const format of ["solo", "sourced_cultural_duo"]) {
     const one = { ...full(1), format_recommended: format, format_requested: format } as Classification;
-    assert.ok(!buildGeneratePrompt(one, lookupPrice(one), "ctx").includes("this rate is for 2hr"), `${format} keeps 1 hour`);
+    assert.ok(!buildGeneratePrompt(one, lookupPrice(one), "ctx", NO_DATE_TERMS).includes("this rate is for 2hr"), `${format} keeps 1 hour`);
   }
-  assert.ok(!buildGeneratePrompt(full(2), lookupPrice(full(2)), "ctx").includes("The client asked for"), "control: exact match says nothing");
+  assert.ok(!buildGeneratePrompt(full(2), lookupPrice(full(2)), "ctx", NO_DATE_TERMS).includes("The client asked for"), "control: exact match says nothing");
 });
