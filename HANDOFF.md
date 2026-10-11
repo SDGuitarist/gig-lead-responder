@@ -2,11 +2,64 @@
 
 > **READ FIRST: `docs/END-TO-END-STATUS.md`** — the end-to-end plan, checklist and critical path, each row with its source. Update it in the same commit as any work that changes a row.
 
-**Date:** 2026-10-10
+**Date:** 2026-10-11
 **Branch:** `feat/hub-phase0` (cut from `docs/booking-hub-brainstorm` at `c644210`; pushed; not merged)
-**Phase:** Work, Phase 0 **in progress**. 0.1, 0.2 (code), 0.3 (all but the alert half of `invalid_grant alerts`), 0.4, S1, S1-adv done. **0.5 port: 19 TO PORT remain** (was "29": stale; recounted from the manifest's status column 2026-10-09, see `docs/END-TO-END-STATUS.md` V1). 0.6 DONE, approximate (calendar, both GigSalad accounts, Yelp numbers from Alex; `docs/research/2026-10-02-booking-hub/baseline.md`). S3 PASSED; G1 FAILED (10-03, repeated 10-09) → redesign plan 1.2. **GigSalad portal reading BUILT.** Module 1 not started.
+**Phase:** Work, Phase 0 **in progress**. 0.1, 0.2 (code), 0.3 (all but the alert half of `invalid_grant alerts`), 0.4, S1, S1-adv done. **0.5 port: 10 TO PORT, 2 BLOCKED** (venues PORTED 2026-10-11; recount with `docs/END-TO-END-STATUS.md` V1). 0.6 DONE, approximate (calendar, both GigSalad accounts, Yelp numbers from Alex; `docs/research/2026-10-02-booking-hub/baseline.md`). S3 PASSED; G1 FAILED (10-03, repeated 10-09) → redesign plan 1.2. **GigSalad portal reading BUILT.** Module 1 not started.
 
-## START HERE — org-venue cycle COMPLETE (2026-10-10): plan, work, review (GO), compound all done
+## START HERE — venue-history cycle COMPLETE (2026-10-11): plan, work, review (R3 GO), compound all done
+
+**State:** branch `feat/hub-phase0`, **8 commits ahead of origin (not pushed: pushing needs Alex's yes)**. Suite
+**760 pass / 0 fail / 1 skip**, tsc clean (at `dca2aab`; later commits are docs). S5 PASSED 2026-10-11 (`2cf4f4c`).
+Plan `docs/plans/2026-10-11-feat-venue-history-private-file-plan.md` (Revision 3; plan R1-R3 NO-GO, all fixed).
+Built: `111f47b` loader + one-direction matcher; `ae1a30f` `selectContext` adds "ALEX HAS PERFORMED HERE"; `bc267e0`
+`scripts/check-venue-history.ts` + manifest rows + V15. Real-model runs + borrowed-claim runs: true claims 3/3, false
+claims 0/8, "add nothing" slipped twice (recorded) (`docs/reviews/2026-10-11-venue-history-local-runs.md`).
+**REVIEW:** code R1 NO-GO (P1) → `233eb1e`; R2 NO-GO (2 P2) → `dca2aab`; R3 (authorized by Alex) **GO both runs**
+(`docs/reviews/2026-10-11-venues-codex-round{1,2,3}.md`). **COMPOUND:** solution doc
+`docs/solutions/architecture/2026-10-11-private-venue-claims-and-an-exact-leak-sentinel.md`; learnings propagated
+(compound-engineering.local.md, memory `project_venue-history-leak-check`, journal 2026-10-11, agent-pitfalls FC98).
+
+**Private data (never in this repo):** `~/Data/gig-lead-responder/venue-history.json`, 9 venues (Lomas Santa Fe
+Country Club added 2026-10-11, fact only, Alex confirmed), committed in ~/Data (`4317501`), **not pushed** (Q3).
+Before any commit touching venue work: `npx tsx scripts/check-venue-history.ts` must print PASS (exit 0), and read
+the staged diff yourself (the check misses paraphrases and copies under 30 characters).
+
+**Open questions for Alex:** Q1 the Grand Del Mar entry's blanks; Q2 has he played La Valencia (R085) or Scripps
+(R089)? (both BLOCKED); Q3 OK to push ~/Data to its encrypted remote? Also: push `feat/hub-phase0`?
+
+**Next:** the **10 TO PORT** rows (`docs/END-TO-END-STATUS.md` 0.5 row; recount with V1 first). Prices (NP1/NP3/NP2
+3-4h/NP duo) need Alex's numbers. Other open items: S6 overnight (Alex picks a night); PF-Intel production URL
+(Alex, in Railway); the pre-existing " , " em-dash spacing defect seen in every draft.
+
+### Three Questions (venue-history cycle; from the solution doc's Feed-Forward)
+1. **Hardest decision?** Fingerprints versus deleting the exemption: deleting it fails on text public since
+   February, and editing Alex's voice examples to remove it is his call, not a check's.
+2. **What was rejected?** A guard on the env override (removed instead); quoting public windows in the script (it
+   would flag itself); a prose claim detector for added detail.
+3. **Least confident about?** The fingerprint list going stale: if a voice example is edited to carry more of a
+   sentence, the check fails and someone must decide whether those words are public. Only the solution doc owns that.
+
+### Prompt for Next Session
+
+```
+Work in /Users/alejandroguillen/Projects/gig-lead-responder.
+FIRST gate (stop and ask Alex if anything differs):
+  pwd; git fetch origin; git branch --show-current          # expect: feat/hub-phase0
+  git rev-parse HEAD; git status --short                    # expect: HANDOFF's last commit; clean
+  git log --oneline origin/feat/hub-phase0..HEAD | wc -l    # expect: 8+ unless Alex pushed (then 0)
+Read: docs/END-TO-END-STATUS.md (re-check any row you act on at its source), HANDOFF.md "START HERE — venue-history
+cycle COMPLETE", CLAUDE.md, docs/research/2026-10-02-booking-hub/port-manifest.md.
+Task: port the remaining TO PORT rows (recount with the V1 command in END-TO-END-STATUS first; expect 10). Group
+them into one plan (compound loop: plan, Codex plan review x2 runs, work, code review, compound). Rows that need a
+price (NP1/NP3/NP2 3-4h/NP duo): STOP and ask Alex for his numbers; never invent one.
+Venue work: run `npx tsx scripts/check-venue-history.ts` (must PASS) and read the staged diff before each commit;
+never commit Alex's venue sentences; never add a fingerprint or override to widen that check.
+HARD GATE: never start the Mac poller or server against real mail. Never open data/leads.db from a test.
+STOP and ask Alex before: any real send; any GigSalad click or opening GigSalad/Yelp lead pages; Full Disk Access;
+any change to .env or production data; any new or changed price; any push. Do not start Module 1. Update HANDOFF.md before stopping.
+```
+
+## Earlier: org-venue cycle COMPLETE (2026-10-10): plan, work, review (GO), compound all done
 
 **State:** branch `feat/hub-phase0`. Suite **733 pass / 0 fail / 1 skip**, tsc clean (at `bfafbc0`; later commits
 are docs only). Plan `docs/plans/2026-10-09-fix-organization-name-is-the-venue-plan.md` (plan R1 NO-GO, 7 findings
@@ -35,7 +88,7 @@ Railway).
 3. **Least confident about?** The venue in `organization_name` while `venue_name` is empty or worded differently.
    Not observed in 3 runs; nothing measures it.
 
-### Prompt for Next Session
+### Prompt for Next Session — SUPERSEDED 2026-10-11, DO NOT RUN
 
 ```
 Work in /Users/alejandroguillen/Projects/gig-lead-responder.
