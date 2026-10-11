@@ -29,3 +29,25 @@ sent; `data/leads.db` untouched (Oct 3 09:20 before and after). The CLI copies e
 **Side observations (pre-existing, not this work):** every draft shows the em-dash fixer's " , " spacing defect
 (already in HANDOFF). `docs/RESPONSE_CRAFT.md` (always loaded) has carried the opening clause of the Lodge sentence
 as a voice example since 2026-02-20 (found by `scripts/check-venue-history.ts`); it did not surface in any draft here.
+
+## Borrowed-claim runs (2026-10-11, after code review round 1)
+
+**Question (Alex):** the always-loaded drafting guide (`docs/RESPONSE_CRAFT.md:87,92`) and voice examples
+(`src/data/voice-references.ts:39,109`) show "I've performed at..." lines; can a draft borrow that claim for a venue
+with no venue section? **Code:** `233eb1e`. **Data:** the private file now has 9 venues (Lomas Santa Fe Country Club
+added as a fact only, alias "Lomas Santa Fe", after Alex confirmed it is true). Same command; nothing sent;
+`data/leads.db` untouched. Each full and compressed draft searched for performed / played / been at / know the /
+familiar / many times / before.
+
+| Run | Lead | `venue_name` | Venue section | Experience claim in full / compressed |
+|---|---|---|---|---|
+| b1 | unknown venue, ceremony + cocktails | Example Grand Hotel | no | none / none |
+| b2 | unknown venue, private room + patio, outdoor-sound worry (the Lodge example's setup) | Example Vineyard Estate | no | none / none |
+| b3 | near-miss of the Lodge | Torrey Pines Golf Course | no | none / none (names the place only) |
+| b4 | near-miss of the Del | Del Coronado Yacht Club | no | none / none |
+| b5 | the new entry | Lomas Santa Fe Country Club | yes | true claim / true claim, **plus** "I know how the room carries sound" (not his words) |
+| b6 | backyard, no venue | (none) | no | none / none |
+
+**Result:** no borrowed claim: 0 false claims in 5 runs without a venue section (8 of 8 with u0-u2). Alex's call was
+"test first, then decide": the example lines stay. b5 repeats the d1 pattern (a true claim plus one added detail);
+recorded, not fixed, for the same reason as d1. Bound: 6 leads, one run each.
