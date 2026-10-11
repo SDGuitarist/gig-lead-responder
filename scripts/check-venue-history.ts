@@ -10,18 +10,21 @@ import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { findVenueHistory, loadVenueHistory, venueHistoryPath } from "../src/venue-history.js";
+import { claimWindows, collapse, scanText } from "./venue-leak-scan.js";
 
 const MUST_MISS = ["Del Coronado Yacht Club", "Del Coronado Beach Club", "Torrey Pines Lodge at UCSD",
   "Torrey Pines Golf Course", "Rancho Santa Fe", "Old Rancho Santa Fe", "Hotel Del", "Coasterra San Diego"];
 const MUST_HIT: Array<[string, string]> = [["Hotel del Coronado", "Hotel del Coronado"],
   ["The Lodge at Torrey Pines", "Lodge at Torrey Pines"], ["Fairmont Grand Del Mar", "The Grand Del Mar"],
   ["Coasterra", "Coasterra"]];
-const WINDOW = 30;
-// Public BEFORE this work: Alex's voice examples have carried the opening clause of the Lodge sentence since
-// 2026-02-20 (first commit 7d69d9c; also 04ff0dd, 1c461cf, 0e6b7b9). Never quote a sentence here: this file is public. Exactly these file + venue pairs are reported, not failed;
-// any other file, or another venue's sentence, still fails.
-const KNOWN_PUBLIC = new Set(["docs/DRAFT_METHOD.md|Lodge at Torrey Pines", "docs/RESPONSE_CRAFT.md|Lodge at Torrey Pines",
-  "docs/SOURCED_DRAFTING.md|Lodge at Torrey Pines", "src/data/voice-references.ts|Lodge at Torrey Pines"]);
+// Public BEFORE this work: Alex's voice examples have carried the opening clause of the Lodge sentence, first in
+// these commits. Never quote a sentence here: this file is public. A window counts as known only if the file AT THAT
+// COMMIT already held the exact same window; any later words, any other file, any other sentence still fail.
+// CHECK_KNOWN_PUBLIC (JSON, file -> commit) replaces this list for the throwaway-repo controls.
+const KNOWN_PUBLIC: Record<string, string> = process.env.CHECK_KNOWN_PUBLIC
+  ? JSON.parse(process.env.CHECK_KNOWN_PUBLIC)
+  : { "docs/RESPONSE_CRAFT.md": "7d69d9c", "src/data/voice-references.ts": "04ff0dd",
+      "docs/DRAFT_METHOD.md": "1c461cf", "docs/SOURCED_DRAFTING.md": "0e6b7b9" };
 const known: string[] = [];
 
 const path = venueHistoryPath();
@@ -58,31 +61,27 @@ for (const [lead, expected] of MUST_HIT) {
 }
 
 console.log("(iii) leakage sentinel (bounded: exact copies of 30+ characters only)");
-const collapse = (s: string) => s.replace(/\s+/g, " ");
-const windows = new Map<string, string>();
-for (const v of venues) {
-  if (!v.claim) continue;
-  const c = collapse(v.claim);
-  if (c.length < WINDOW) windows.set(c, v.name);
-  for (let i = 0; i + WINDOW <= c.length; i++) windows.set(c.slice(i, i + WINDOW), v.name);
-}
-function report(file: string, name: string, what: string): void {
-  if (KNOWN_PUBLIC.has(`${file}|${name}`)) known.push(`${file} (${name}): public since 2026-02-20, Alex's voice examples`);
-  else failures.push(`${file}: contains ${what} of "${name}"`);
-}
+if (process.env.CHECK_KNOWN_PUBLIC) console.log("  known-public commits replaced by CHECK_KNOWN_PUBLIC");
+const windows = claimWindows(venues.filter((v) => v.claim).map((v) => ({ name: v.name, claim: v.claim as string })));
 const root = process.env.CHECK_REPO_ROOT || execFileSync("git", ["rev-parse", "--show-toplevel"], { encoding: "utf-8" }).trim();
 const tracked = execFileSync("git", ["-C", root, "ls-files", "-z"], { encoding: "utf-8", maxBuffer: 64 * 1024 * 1024 })
   .split("\0").filter(Boolean);
+function publicVersion(file: string): string | undefined {
+  const commit = KNOWN_PUBLIC[file];
+  if (!commit) return undefined;
+  try {
+    return collapse(execFileSync("git", ["-C", root, "show", `${commit}:${file}`], { encoding: "utf-8", stdio: ["ignore", "pipe", "ignore"] }));
+  } catch {
+    failures.push(`cannot read ${file} at ${commit}: nothing in it counts as known`);
+    return undefined;
+  }
+}
 for (const file of tracked) {
   let text: string;
   try { text = collapse(readFileSync(join(root, file), "utf-8")); } catch { continue; }
-  for (const [w, name] of windows) {
-    if (w.length < WINDOW && text.includes(w)) { report(file, name, "the whole sentence"); break; }
-  }
-  for (let i = 0; i + WINDOW <= text.length; i++) {
-    const name = windows.get(text.slice(i, i + WINDOW));
-    if (name) { report(file, name, "30+ characters of the sentence"); break; }
-  }
+  const { leaks, known: old } = scanText(text, windows, publicVersion(file));
+  for (const name of leaks) failures.push(`${file}: contains 30+ characters (or all) of the sentence of "${name}"`);
+  for (const name of old) known.push(`${file} (${name}): same words as at ${KNOWN_PUBLIC[file]}, public before this work`);
 }
 console.log(`  searched ${tracked.length} tracked files under ${root}`);
 for (const k of known) console.log(`  known, not a new leak: ${k}`);
