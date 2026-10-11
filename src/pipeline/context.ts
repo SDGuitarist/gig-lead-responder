@@ -3,6 +3,7 @@ import { join } from "node:path";
 import { ContextError } from "../errors.js";
 import type { Classification, VenueContext } from "../types.js";
 import { formatVenueContext } from "./format-venue-context.js";
+import { venueHistorySection } from "../venue-history.js";
 
 const DOCS_DIR = join(process.cwd(), "docs");
 
@@ -45,6 +46,11 @@ export async function selectContext(
     sections.push(formattedVenue
       + "\n\n**How to use this:** Venue intel is your insider edge. If there are past events, reference the venue's track record in your cinematic opening or differentiator (e.g., \"I've played this room before\" or \"events at [venue] tend to...\"). If there are vendor policies (curfew, dB limits, setup rules), preempt logistics concerns by naming them before the client asks. If there are contacts, mention coordination will be smooth.");
   }
+
+  // Venues Alex has played (private ~/Data file; port manifest R081-R089, R405). runPipeline and runEditPipeline
+  // both call selectContext, so this one place covers the first draft and every edit. Follow-ups are excluded.
+  const venueHistory = venueHistorySection(classification.venue_name);
+  if (venueHistory) sections.push(venueHistory);
 
   // Always include — optional
   const principles = await readDoc("PRINCIPLES.md", false);

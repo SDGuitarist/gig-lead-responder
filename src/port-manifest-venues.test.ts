@@ -4,9 +4,15 @@ import { mkdtempSync, writeFileSync } from "node:fs";
 import { homedir, tmpdir } from "node:os";
 import { join } from "node:path";
 import {
-  findVenueHistory, formatVenueHistory, loadVenueHistory, resetVenueHistoryForTests, venueHistoryPath,
-  type VenueHistoryEntry,
+  findVenueHistory, formatVenueHistory, loadVenueHistory, resetVenueHistoryForTests, setVenueHistoryForTests,
+  venueHistoryPath, type VenueHistoryEntry,
 } from "./venue-history.js";
+import { selectContext } from "./pipeline/context.js";
+import { buildFollowUpPrompt } from "./prompts/follow-up.js";
+import { runEditPipeline } from "./run-pipeline.js";
+import { lookupPrice } from "./pipeline/price.js";
+import { setClaudeRequesterForTests } from "./claude.js";
+import { GUT_CHECK_KEYS, type Classification, type LeadRecord, type VenueContext } from "./types.js";
 
 // Port manifest R081-R089, R405 (plan docs/plans/2026-10-11-feat-venue-history-private-file-plan.md).
 // Venues Alex has played live in a PRIVATE file under ~/Data; no test reads it. Made-up venues only.
@@ -164,4 +170,77 @@ test("port manifest venues V12: under the test runner the real ~/Data file is ne
   assert.ok(process.env.VENUE_HISTORY_PATH, "scripts/run-tests.mjs must set VENUE_HISTORY_PATH");
   assert.equal(venueHistoryPath(), process.env.VENUE_HISTORY_PATH);
   assert.ok(!venueHistoryPath().startsWith(join(homedir(), "Data")));
+});
+
+// --- Step 3: the section reaches the drafter through selectContext (both paths), never follow-ups. ---
+
+const classification = (venue_name: string | null) => ({
+  mode: "evaluation", action: "quote", vagueness: "clear", competition_level: "low", competition_quote_count: 0,
+  stealth_premium: false, stealth_premium_signals: [], tier: "standard", rate_card_tier: "T2", lead_source_column: "D",
+  price_point: "full_premium", format_requested: "guitarist", format_recommended: "solo", duration_hours: 2,
+  stated_budget: null, event_date_iso: null, timeline_band: "comfortable", close_type: "soft_hold", event_energy: null,
+  cultural_context_active: false, cultural_tradition: null, planner_effort_active: false, social_proof_active: false,
+  context_modifiers: [], flagged_concerns: [], venue_name, client_first_name: null, event_arc: null,
+  delivery_mode: "alex_performs", nonprofit_buyer: false, np_tier: null, organization_name: null,
+}) as unknown as Classification;
+const FIXTURE = { type: "ok" as const, venues: VENUES };
+
+test("port manifest venues V8: no venue or no match leaves selectContext byte-identical to history disabled", async () => {
+  try {
+    for (const venue of [null, "Somewhere Else Entirely"]) {
+      setVenueHistoryForTests(null);
+      const disabled = await selectContext(classification(venue));
+      setVenueHistoryForTests(FIXTURE);
+      const enabled = await selectContext(classification(venue));
+      assert.equal(enabled, disabled, String(venue));
+      assert.doesNotMatch(enabled, new RegExp(MARKER));
+    }
+    setVenueHistoryForTests(FIXTURE);
+    assert.match(await selectContext(classification("Example Harbor Hall")), new RegExp(`## ${MARKER}: Example Harbor Hall`));
+  } finally { resetVenueHistoryForTests(); }
+});
+
+test("port manifest venues V11: an SMS edit of a stored classification reaches the section", async () => {
+  const c = classification("Example Harbor Hall");
+  const p = lookupPrice(c);
+  const GEN = { reasoning: { details_present: [], absences: [], emotional_core: "", cinematic_opening: "", validation_line: "" },
+    full_draft: "Hi, shorter.", compressed_draft: "Hi, shorter." };
+  const GATE = { scene_quote: "q", scene_type: "cinematic", competitor_test: false,
+    gut_checks: Object.fromEntries(GUT_CHECK_KEYS.map((k) => [k, true])), gate_status: "pass", fail_reasons: [],
+    concern_traceability: [], best_line: "b", validation_line: "v" };
+  const sent: string[] = [];
+  let i = 0;
+  setClaudeRequesterForTests((async (params: unknown) => {
+    sent.push(JSON.stringify(params));
+    const reply = i++ % 2 === 0 ? GEN : GATE;
+    return { id: "m", type: "message", role: "assistant", model: "t", stop_reason: "end_turn", stop_sequence: null,
+      usage: { input_tokens: 1, output_tokens: 1 }, content: [{ type: "text", text: JSON.stringify(reply) }] };
+  }) as never);
+  setVenueHistoryForTests(FIXTURE);
+  try {
+    await runEditPipeline(c, p, "Make it shorter");
+    assert.ok(sent.some((x) => x.includes(`${MARKER}: Example Harbor Hall`)), "the generate request carries the section");
+  } finally { setClaudeRequesterForTests(); resetVenueHistoryForTests(); }
+});
+
+test("port manifest venues V13: follow-up prompts never carry the section (excluded by the plan)", () => {
+  setVenueHistoryForTests(FIXTURE);
+  try {
+    const lead = { venue: "Example Harbor Hall", event_type: "wedding", event_date: "2027-06-12", client_name: "Dana",
+      compressed_draft: "Hi Dana.", full_draft: "Hi Dana.", strategic_reserve_json: null } as unknown as LeadRecord;
+    const prompt = buildFollowUpPrompt(lead, 1);
+    assert.ok(prompt.includes("Example Harbor Hall"), "control: the follow-up prompt does name the venue");
+    assert.doesNotMatch(prompt, new RegExp(MARKER));
+  } finally { resetVenueHistoryForTests(); }
+});
+
+test("port manifest venues V14: PF-Intel venue intel and Alex's history appear together", async () => {
+  const pf = { found: true, venue_name: "Example Harbor Hall", venue_id: "v1", vendor_policies: null, contacts: [],
+    event_count: 3, recent_events: [] } as unknown as VenueContext;
+  setVenueHistoryForTests(FIXTURE);
+  try {
+    const ctx = await selectContext(classification("Example Harbor Hall"), pf);
+    assert.match(ctx, /VENUE INTELLIGENCE/);
+    assert.match(ctx, new RegExp(`${MARKER}: Example Harbor Hall`));
+  } finally { resetVenueHistoryForTests(); }
 });
