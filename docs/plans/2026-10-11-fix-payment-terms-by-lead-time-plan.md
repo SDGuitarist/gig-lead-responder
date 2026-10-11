@@ -1,7 +1,7 @@
 ---
 title: "Payment terms by lead time: the right deposit or full-payment sentence in every quote"
 date: 2026-10-11
-status: plan, Revision 1 (after Codex plan review round 1 = NO-GO on both runs; all findings fixed)
+status: plan, Revision 2 (after Codex plan review round 2 = NO-GO on both runs, the 2nd NO-GO; all findings fixed; round 3 needs Alex's yes)
 branch: feat/hub-phase0
 ---
 
@@ -15,6 +15,14 @@ branch: feat/hub-phase0
 That plan is paused behind this one (Alex: "payment terms first"). Its example says "A 50% deposit holds the date."
 for an event 6 days out, which this plan makes wrong; the T4 plan's revision changes that sentence to match before it
 ships. No brainstorm (skip gate: Alex gave the rule and the exact words in chat).
+
+## Revision 2 (after Codex PLAN round 2 = NO-GO on both runs; the 2nd NO-GO)
+
+Record: `docs/reviews/2026-10-11-payment-terms-plan-codex-round2.md`. Changes: P10 asserts the final gate, not only the
+prompts; `runEditPipeline` re-applies the past-date check (P12); the execution script proves each lead was a quote
+(kind ≠ `none`); fixtures are generated from a clean worktree of `38acd73` and verified by regenerating them. Also
+(Alex, outside the runs): `unknown_platform` for hand-run leads the model marks "P" (D2, D3, D4, P6, P13) and a
+CLI `--platform` option (P14).
 
 ## Revision 1 (after Codex PLAN round 1 = NO-GO on both runs)
 
@@ -59,32 +67,41 @@ pay him directly). Order: this plan first, then the T4 plan.
     makes the draft ask to confirm the year); `days <= 14` → full payment; `civilDay(event) <=
     civilDay(addMonthsClamped(today, 2))` → two weeks; else two months.
 - **D2 One value per run, computed once.**
-  `type PaymentTerms = { kind: "none" } | { kind: "platform" } | { kind: "sentence"; sentence: string }`.
+  `type PaymentTerms = { kind: "none" } | { kind: "platform" } | { kind: "unknown_platform" } | { kind: "sentence";
+  sentence: string }`.
   `paymentTermsFor(classification, pricing, todayIso): PaymentTerms`. Precedence:
   1. `quoteTermsOff(classification, pricing)` → `none` (clarification mode, `no_viable_scope`, or residency: the same
      three conditions as today's Quote Terms block, moved into one exported predicate that the Quote Terms block also
      uses, so the prompt and the check cannot drift);
   2. `classification.platform === "gigsalad" || classification.platform === "thebash"` → `platform` (`platform` is set
      by the intake caller, `src/run-pipeline.ts:109`, never by the model);
-  3. else `sentence` with `paymentSentence(classification.event_date_iso, todayIso)`.
+  3. `classification.platform` undefined AND `classification.lead_source_column === "P"` → `unknown_platform` (a
+     hand-run lead, CLI or dashboard box, that looks like a platform lead: the app cannot tell GigSalad, whose client
+     pays the platform, from Thumbtack, whose client pays Alex; Alex 2026-10-11: no terms, and flag it);
+  4. else `sentence` with `paymentSentence(classification.event_date_iso, todayIso)`.
   **Flow:** `runPipeline` gains a last optional `today = getTodayISO()` (replacing its line-103 call; one value for the
   run), computes `paymentTerms` once after enrichment and pricing, and passes it to `runWithVerification` (new required
   parameter), which passes it to EVERY `generateResponse` call (first and retries), and to `postCheckDrafts`.
   `runEditPipeline` gains a last optional `today = getTodayISO()`, computes `paymentTerms` once from the stored
-  classification and the CURRENT date, and passes it to `generateResponse` and `postCheckDrafts`.
+  classification and the CURRENT date, and passes it to `generateResponse` and `postCheckDrafts`. It also re-applies
+  the deterministic past-date check with that `today` (the same comparison `enrichClassification` uses, extracted as
+  `isPastDate(eventIso, todayIso)` and called by both), so an edit after the event both gets the no-date sentence AND
+  the `FLAGGED: EVENT DATE APPEARS TO BE IN THE PAST` block (Codex R2 run B).
   `generateResponse` and `buildGeneratePrompt` gain a REQUIRED `paymentTerms` parameter (no default: a caller that
   forgets fails `tsc`, it cannot silently compute its own). Existing tests that call them pass a fixed value
   (`{ kind: "sentence", sentence: <no-date sentence> }` reproduces today's deposit wording most closely).
 - **D3 Prompt (inside the Quote Terms block, which is absent when `kind` is `none`).** Line 270 becomes:
   - `sentence`: `- Payment: write this sentence exactly, once, in both drafts, after the price: "<sentence>". Write no
     other sentence about a deposit, a balance, a due date or paying in full.`
-  - `platform`: `- Payment: the platform handles payment. Say nothing about a deposit, a balance, a due date or
-    payment.`
+  - `platform` and `unknown_platform`: `- Payment: the platform handles payment. Say nothing about a deposit, a
+    balance, a due date or payment.`
   "After the price" is guidance only and is NOT checked (Codex R1 run A #8); the check is presence and absence.
 - **D4 Check (`postCheckDrafts` option `paymentTerms?: PaymentTerms`; absent = no check, e.g. old callers in tests).**
   For each draft (whitespace collapsed):
   - `sentence`: the exact sentence occurs exactly once; with that one occurrence removed, no payment word (below).
   - `platform`: no payment word anywhere.
+  - `unknown_platform`: no payment word anywhere, AND always `payment_terms_platform_unknown: add payment terms if
+    this client pays Alex directly (Thumbtack, The Knot, WeddingWire); none for GigSalad or The Bash` (once per run).
   - `none`: nothing checked.
   Failure adds `payment_terms_<full|compressed>: ...` to `violations` (`src/run-pipeline.ts:276-285`: it joins
   `gate.fail_reasons` and sets `verified` false, so the draft reaches Alex flagged, never auto-sent).
@@ -107,7 +124,8 @@ pay him directly). Order: this plan first, then the T4 plan.
 ## Plan Quality Gate
 
 ### 1. What exactly is changing?
-New `src/pipeline/payment-terms.ts` (+ tests); `buildGeneratePrompt` (required parameter, Quote Terms line, shared
+New `src/pipeline/payment-terms.ts` (+ tests), `scripts/capture-prompt-baseline.ts` and its fixtures; `src/index.ts`
+(`--platform`); `buildGeneratePrompt` (required parameter, Quote Terms line, shared
 predicate); `generateResponse`, `runWithVerification`, `runPipeline`, `runEditPipeline` (pass one value); `postCheckDrafts`
 (one option, one check); existing tests that call the changed signatures (one fixed argument each).
 
@@ -141,8 +159,8 @@ All date tests inject `todayIso`; none reads the clock.
   the no-date sentence without throwing.
 - **P6** `paymentTermsFor`: WHEN clarification mode, `no_viable_scope` or residency → `none` (each, for both a direct
   and a GigSalad lead: exclusions win); ELSE WHEN `platform` is "gigsalad" or "thebash" → `platform`; ELSE WHEN
-  `platform` is "yelp", "squarespace", "direct" or undefined, or `lead_source_column` is "P" with no platform →
-  `sentence`.
+  `platform` is "yelp", "squarespace" or "direct" (with `lead_source_column` "P" or "D"), or undefined with "D" →
+  `sentence`; WHEN `platform` is undefined and `lead_source_column` is "P" → `unknown_platform`.
 - **P7** WHEN `buildGeneratePrompt` gets `sentence`, the prompt SHALL contain that sentence in exactly one payment line
   and SHALL NOT contain "A 50% deposit holds the date. Say it plainly"; WHEN `platform`, the platform line and no
   sentence; WHEN `none`, no "Payment:" line.
@@ -150,19 +168,33 @@ All date tests inject `todayIso`; none reads the clock.
   wedding, GigSalad T2 party, NP2 nonprofit; no model call), built by the code at `38acd73` with
   `today = "2026-10-11"`. The test builds the new prompt (same inputs, `sentence` = the no-date sentence for the two
   non-platform leads, `platform` for GigSalad) and asserts: the fixture contains the old line exactly once; the new
-  prompt equals the fixture with that one line replaced by the new payment line; nothing else differs. **Provenance
-  (verification command):** `git log --diff-filter=A --format=%H -- src/fixtures/prompt-baseline-*.txt` names one commit
-  C, and `git diff 38acd73 C -- src ':!src/fixtures'` is empty (the fixtures were captured before any code change).
-  Mutation: change the setup-needs line → the test fails.
+  prompt equals the fixture with that one line replaced by the new payment line; nothing else differs. **Provenance:**
+  the fixtures come from a committed script, `scripts/capture-prompt-baseline.ts --rev 38acd73 --out <dir>`, which
+  creates a temporary `git worktree add --detach <tmp> 38acd73`, runs the builder from THAT tree (never the working
+  copy) and removes the worktree. Verification regenerates them and compares:
+  `npx tsx scripts/capture-prompt-baseline.ts --rev 38acd73 --out "$T" && diff -r "$T" src/fixtures/prompt-baseline`
+  → no output. A fixture captured from edited-then-reverted source differs from the regenerated one and fails the
+  `diff` (Codex R2 run A). Mutation: change the setup-needs line → the test fails.
 - **P9** WHEN a draft holds the sentence once and nothing from the payment list, no violation; WHEN the sentence is
   missing, one word changed, doubled, or joined by any "Must flag" example, `payment_terms_<draft>`; every "Must NOT
   flag" example alone (plus the sentence) → no violation; WHEN `platform` and any "Must flag" example →
   `payment_terms_<draft>`; WHEN `none` → no payment check at all.
-- **P10** WHEN `runPipeline` runs with `today` injected and the stubbed model fails the gate twice (3 generate calls),
-  THE SYSTEM SHALL send the same payment line in all 3 system prompts and pass the same terms to the post-check
-  (captured via `setClaudeRequesterForTests`).
+- **P10** WHEN `runPipeline` runs with `today` 2026-10-11 on a direct lead dated 2026-10-25 and the stubbed model fails
+  the gate twice (3 generate calls), THE SYSTEM SHALL send the full-payment line in all 3 system prompts (captured via
+  `setClaudeRequesterForTests`); AND WHEN the stubbed final drafts carry exactly that sentence, `.gate.fail_reasons`
+  SHALL hold no `payment_terms_`; AND WHEN they carry the old deposit sentence instead, it SHALL hold
+  `payment_terms_full` and `payment_terms_compressed`. Mutation: the post-check gets terms computed for another date
+  → the first assertion on `fail_reasons` fails (Codex R2 run B).
 - **P11** WHEN `runEditPipeline` runs on one stored classification (event 2026-10-25) with `today` 2026-10-01 and then
   2026-10-12, THE SYSTEM SHALL send the two-weeks sentence, then the full-payment sentence.
+- **P12** WHEN `runEditPipeline` runs on a stored classification (event 2026-10-25, `past_date_detected` false) with
+  `today` 2026-10-26, THE SYSTEM SHALL send the no-date sentence AND the `FLAGGED: EVENT DATE APPEARS TO BE IN THE
+  PAST` block.
+- **P13** WHEN `runPipeline` runs with no platform and the model returns `lead_source_column` "P", THE SYSTEM SHALL
+  send the platform line and add `payment_terms_platform_unknown` to `.gate.fail_reasons`, even when the drafts carry
+  no payment word.
+- **P14** WHEN `src/index.ts` gets `--platform gigsalad` (or any `Platform` value), THE SYSTEM SHALL pass it to
+  `runPipeline`; WHEN it gets an unknown value, THE SYSTEM SHALL print the usage and exit 2 without calling the model.
 
 Mutations (each must turn a test red): `<=` → `<` at 14 days; millisecond day count; no round-trip check; clamp removed;
 past date banded; exclusions after platform; `lead_source_column` used for platform; retry calls `generateResponse`
@@ -171,10 +203,12 @@ added to the list.
 
 ## Work steps (one concern per commit; failing test first; mutation-check each test)
 
-0. Capture the P8 fixtures with a scratch script against the code at `38acd73`; commit them alone.
+0. Commit `scripts/capture-prompt-baseline.ts` and the fixtures it writes from a clean worktree of `38acd73`.
 1. `payment-terms.ts` + tests (P1-P6).
 2. Signatures + prompt line + shared predicate (P7, P8); update existing callers in tests.
-3. Post-check option + callers (P9); `runPipeline` / `runWithVerification` / `runEditPipeline` flow (P10, P11).
+3. Post-check option + callers (P9); `runPipeline` / `runWithVerification` / `runEditPipeline` flow and the edit
+   past-date check (P10-P13).
+3b. CLI `--platform` (P14).
 4. Real-model runs, recorded in `docs/reviews/2026-10-11-payment-terms-local-runs.md`.
 
 ## Verification Commands (expected results)
@@ -190,7 +224,8 @@ Network-dependent (real model); the deterministic tests above run offline.
 
 - **Target:** Alex's MacBook, real model, scratch `DATABASE_PATH` (nothing sent; `data/leads.db` untouched).
 - **Mechanism:** a scratch script calls `runPipeline(text, undefined, platform, undefined, "2026-10-12")` and prints
-  `.classification.platform`, `.classification.event_date_iso`, `.drafts.full_draft`, `.drafts.compressed_draft`,
+  `.classification.action`, `.classification.lead_source_column`, `paymentTermsFor(output.classification,
+  output.pricing, "2026-10-12").kind`, `.classification.platform`, `.classification.event_date_iso`, `.drafts.full_draft`, `.drafts.compressed_draft`,
   `.gate.fail_reasons`, `.verified` as JSON. Leads (exact text):
   - **a** (direct, no platform): "Hi, we're hosting a client appreciation dinner on October 18, 2026, 6-9pm at our
     office in Sorrento Valley, about 60 guests. Looking for solo guitar for background music. What would it cost?"
@@ -204,8 +239,12 @@ Network-dependent (real model); the deterministic tests above run offline.
   - **e** (`platform = "yelp"`): lead a's text with "November 10, 2026" → expect two weeks (Yelp gets dated terms).
 - **Deterministic per-draft assertions (a script, not eyeballing):** the expected sentence occurs exactly once (or, for
   b, no payment word); `.gate.fail_reasons` contains no `payment_terms_`; the event date parsed as written.
-- **Fail-closed sample rule:** all 5 leads must produce quote drafts (no clarification) = 10 drafts checked; a lead
-  that does not is re-run once; still not → record "insufficient" and the step FAILS.
+- **Fail-closed sample rule:** a lead counts only when its printed kind is the expected one (`sentence` for a, c, d,
+  e; `platform` for b), which a clarification, no-viable-scope or residency reply cannot produce (kind `none`, Codex R2
+  run A). All 5 must count = 10 drafts checked; a lead that does not is re-run once; still not → record
+  "insufficient" and the step FAILS. **f** (extra, no platform): lead b's text run without `platform` → expect kind
+  `unknown_platform` and the flag (if the model marks it "D" instead, record it: a hand-run GigSalad lead the model
+  reads as direct gets dated terms, a stated limit).
 - **Prerequisites:** model access (ALREADY HAVE), `jq` (ALREADY HAVE). **Who:** Claude Code. **Trigger:** after step 4,
   before Codex code review round 1.
 
@@ -220,7 +259,8 @@ round 3 only with Alex's yes; a 3rd NO-GO is the hard cap.
   inserting needs the price line's position in prose.
 - **Rejected alternatives:** D5.
 - **Least confident:** the payment-word list: too narrow misses a paraphrase (Alex still reviews), too wide flags
-  musician prose. The controls bound both; real drafts may find a third phrasing.
+  musician prose. The controls bound both; real drafts may find a third phrasing. Second: a hand-run GigSalad lead
+  that the model marks "D" gets dated terms with no flag (only `--platform` prevents it; run f measures it).
 
 ## Three Questions
 
