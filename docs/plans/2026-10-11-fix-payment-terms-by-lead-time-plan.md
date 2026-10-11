@@ -1,7 +1,7 @@
 ---
 title: "Payment terms by lead time: the right deposit or full-payment sentence in every quote"
 date: 2026-10-11
-status: plan, Revision 2 (after Codex plan review round 2 = NO-GO on both runs, the 2nd NO-GO; all findings fixed; round 3 needs Alex's yes)
+status: plan, Revision 3 (after Codex plan review round 3 = NO-GO on both runs; HARD CAP, no round 4; all findings fixed). Round 3 authorized by Alejandro: YES (2026-10-11). Ready for work
 branch: feat/hub-phase0
 ---
 
@@ -15,6 +15,13 @@ branch: feat/hub-phase0
 That plan is paused behind this one (Alex: "payment terms first"). Its example says "A 50% deposit holds the date."
 for an event 6 days out, which this plan makes wrong; the T4 plan's revision changes that sentence to match before it
 ships. No brainstorm (skip gate: Alex gave the rule and the exact words in chat).
+
+## Revision 3 (after Codex PLAN round 3 = NO-GO on both runs; HARD CAP, no round 4)
+
+Record: `docs/reviews/2026-10-11-payment-terms-plan-codex-round3.md`. Changes: `unknown_platform` gets a line that
+claims nothing (D3) and "payment" joins the word list (D4); the execution sample also requires a quote `action`; P10's
+mutation crosses a band; the CLI validates `--platform` before the API-key check (P14). Next independent check: the
+Codex CODE review after the build.
 
 ## Revision 2 (after Codex PLAN round 2 = NO-GO on both runs; the 2nd NO-GO)
 
@@ -93,8 +100,10 @@ pay him directly). Order: this plan first, then the T4 plan.
 - **D3 Prompt (inside the Quote Terms block, which is absent when `kind` is `none`).** Line 270 becomes:
   - `sentence`: `- Payment: write this sentence exactly, once, in both drafts, after the price: "<sentence>". Write no
     other sentence about a deposit, a balance, a due date or paying in full.`
-  - `platform` and `unknown_platform`: `- Payment: the platform handles payment. Say nothing about a deposit, a
-    balance, a due date or payment.`
+  - `platform` (GigSalad, The Bash): `- Payment: the platform handles payment. Say nothing about a deposit, a balance,
+    a due date or payment.`
+  - `unknown_platform`: `- Payment: say nothing about payment, a deposit, a balance or a due date.` (no claim about who
+    collects it: for a Thumbtack lead the platform does NOT; Codex R3 run B).
   "After the price" is guidance only and is NOT checked (Codex R1 run A #8); the check is presence and absence.
 - **D4 Check (`postCheckDrafts` option `paymentTerms?: PaymentTerms`; absent = no check, e.g. old callers in tests).**
   For each draft (whitespace collapsed):
@@ -106,11 +115,11 @@ pay him directly). Order: this plan first, then the T4 plan.
   Failure adds `payment_terms_<full|compressed>: ...` to `violations` (`src/run-pipeline.ts:276-285`: it joins
   `gate.fail_reasons` and sets `verified` false, so the draft reaches Alex flagged, never auto-sent).
   **Payment words (a bounded list; anything else is a stated limit, Alex reviews every draft):**
-  `\bdeposit\b`, `\bretainer\b`, `\bfull payment\b`, `\b(?:pay|paid|payment)\s+in\s+full\b`, `\bdue\s+in\s+full\b`,
+  `\bdeposit\b`, `\bretainer\b`, `\bpayments?\b`, `\bfull payment\b`, `\b(?:pay|paid|payment)\s+in\s+full\b`, `\bdue\s+in\s+full\b`,
   `\bpayable\b`, `\bremaining\s+(?:amount|balance)\b`, `\b(?:entire|full|whole|total)\s+amount\b`,
   `\b\d{1,3}\s?%\s*(?:up\s?front|down|now)\b`, and
   `\b(?:payment|amount|balance|rest|remainder)\s+(?:is\s+|will\s+be\s+)?due\b` (all case-insensitive).
-  Must flag: "Payment is due in full before the event.", "The remaining amount is payable upon signing.", "Please pay
+  Must flag: "Payment is due in full before the event.", "payment through the app", "The remaining amount is payable upon signing.", "Please pay
   50% upfront.", "the entire amount upfront", "the rest is due", "pay in full", "a retainer". Must NOT flag: "I balance
   the sound for the room.", "Pay attention to the toasts.", "It pays off.", "a full program", "the rest of the night",
   "due to the wind".
@@ -184,7 +193,8 @@ All date tests inject `todayIso`; none reads the clock.
   `setClaudeRequesterForTests`); AND WHEN the stubbed final drafts carry exactly that sentence, `.gate.fail_reasons`
   SHALL hold no `payment_terms_`; AND WHEN they carry the old deposit sentence instead, it SHALL hold
   `payment_terms_full` and `payment_terms_compressed`. Mutation: the post-check gets terms computed for another date
-  → the first assertion on `fail_reasons` fails (Codex R2 run B).
+  → the first assertion on `fail_reasons` fails (Codex R2 run B). The mutation's date is 2026-10-10 (15 days: the
+  two-weeks sentence), so it crosses a band; a same-band date such as 2026-10-12 would prove nothing (Codex R3 run B).
 - **P11** WHEN `runEditPipeline` runs on one stored classification (event 2026-10-25) with `today` 2026-10-01 and then
   2026-10-12, THE SYSTEM SHALL send the two-weeks sentence, then the full-payment sentence.
 - **P12** WHEN `runEditPipeline` runs on a stored classification (event 2026-10-25, `past_date_detected` false) with
@@ -193,8 +203,13 @@ All date tests inject `todayIso`; none reads the clock.
 - **P13** WHEN `runPipeline` runs with no platform and the model returns `lead_source_column` "P", THE SYSTEM SHALL
   send the platform line and add `payment_terms_platform_unknown` to `.gate.fail_reasons`, even when the drafts carry
   no payment word.
-- **P14** WHEN `src/index.ts` gets `--platform gigsalad` (or any `Platform` value), THE SYSTEM SHALL pass it to
-  `runPipeline`; WHEN it gets an unknown value, THE SYSTEM SHALL print the usage and exit 2 without calling the model.
+- **P14** `src/index.ts` parses and validates its arguments FIRST, before `dotenv`'s key check (moved below it):
+  `--platform <value>` must be a `Platform` value. WHEN it gets `--platform gigsalad` (or any `Platform` value), THE
+  SYSTEM SHALL pass it to `runPipeline`; WHEN `--platform thumbtack` or `--platform` with no value, THE SYSTEM SHALL
+  print the usage and exit 2, whether or not an API key is set. Test (`src/cli-platform.test.ts`): spawn
+  `npx tsx src/index.ts --platform thumbtack` with `ANTHROPIC_API_KEY=""` and empty stdin → exit 2, stderr contains
+  "usage"; the parsing function `parseCliArgs(argv)` is also unit-tested for the valid values. Mutation: key check
+  first → the spawn test gets exit 1 and fails (Codex R3 run B).
 
 Mutations (each must turn a test red): `<=` → `<` at 14 days; millisecond day count; no round-trip check; clamp removed;
 past date banded; exclusions after platform; `lead_source_column` used for platform; retry calls `generateResponse`
@@ -239,9 +254,11 @@ Network-dependent (real model); the deterministic tests above run offline.
   - **e** (`platform = "yelp"`): lead a's text with "November 10, 2026" → expect two weeks (Yelp gets dated terms).
 - **Deterministic per-draft assertions (a script, not eyeballing):** the expected sentence occurs exactly once (or, for
   b, no payment word); `.gate.fail_reasons` contains no `payment_terms_`; the event date parsed as written.
-- **Fail-closed sample rule:** a lead counts only when its printed kind is the expected one (`sentence` for a, c, d,
-  e; `platform` for b), which a clarification, no-viable-scope or residency reply cannot produce (kind `none`, Codex R2
-  run A). All 5 must count = 10 drafts checked; a lead that does not is re-run once; still not → record
+- **Fail-closed sample rule:** a lead counts only when `classification.action` is "quote" or "assume_and_quote" AND
+  its printed kind is the expected one (`sentence` for a, c, d, e; `platform` for b). The kind alone is not enough: a
+  `one_question` reply with a resolved format still gets kind `platform` (Codex R3 run A). The counting predicate lives
+  in the run script and is checked with a mutation before the runs: a fake output with `action` "one_question" must
+  not count. All 5 must count = 10 drafts checked; a lead that does not is re-run once; still not → record
   "insufficient" and the step FAILS. **f** (extra, no platform): lead b's text run without `platform` → expect kind
   `unknown_platform` and the flag (if the model marks it "D" instead, record it: a hand-run GigSalad lead the model
   reads as direct gets dated terms, a stated limit).
