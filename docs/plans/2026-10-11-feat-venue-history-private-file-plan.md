@@ -1,7 +1,7 @@
 ---
 title: "Venues Alex has played: a private file the app reads (port manifest R081-R089, R405)"
 date: 2026-10-11
-status: plan, Revision 2 (after Codex plan review round 2 = NO-GO on both runs, the 2nd NO-GO); Round 3 authorized by Alejandro: YES (2026-10-11)
+status: plan, Revision 3 (after Codex plan review round 3 = NO-GO on both runs; hard cap, no round 4; all findings fixed). Round 3 authorized by Alejandro: YES (2026-10-11). Ready for work
 branch: feat/hub-phase0
 rows: R081 R082 R083 R084 R085 R087 R088 R089 R405
 ---
@@ -20,6 +20,15 @@ lesson in a different form: the match keys on `venue_name`, so a venue the class
 
 No brainstorm (skip gate: the inputs are 9 manifest rows with named destinations). Alex chose this group and the
 destination on 2026-10-11: "Venues (9 rows)", "Private file in ~/Data".
+
+## Revision 3 (after Codex PLAN round 3 = NO-GO on both runs; HARD CAP, no round 4)
+
+Record: `docs/reviews/2026-10-11-venues-plan-codex-round3.md`. Both runs closed all round-2 findings. Fixed: the
+privacy line no longer says "enforced": the sentinel is bounded, and the privacy gate is a human review of every
+staged diff (work step rule below); V15 lives in `src/port-manifest.test.ts` beside its `tableRows` helper (not
+exported, so no new sharing); the test file says V1-V14 and names V15 as the one test that reads the real public
+manifest. Plus Alex's point (2026-10-11): the `confirmed` date is a label, not proof he approved a sentence; the
+gate is his yes in chat (project `CLAUDE.md` rule + memory).
 
 ## Revision 2 (after Codex PLAN round 2 = NO-GO on both runs; the 2nd NO-GO)
 
@@ -150,10 +159,14 @@ template whose other fields were all blank, so they were shown to Alex verbatim 
 as written."** The four R405 facts: **"All true."** (Prompted by a reviewer note: a wrong room or "many times" in
 a client reply is hard to take back.)
 
-**Rule this adds (mechanical, not a promise):** every `claim` in the file carries `"confirmed": "YYYY-MM-DD"`; the
-loader drops a claim without a valid `confirmed` date (venue fact kept, warning printed). A sentence Alex or a later
-session adds to the file cannot reach a client until someone records his confirmation. Test V7b; mutation: ignore
-`confirmed` → fails.
+**Rule this adds:** every `claim` in the file carries `"confirmed": "YYYY-MM-DD"`; the loader drops a claim without
+a real calendar date there (venue fact kept, warning printed). Test V7b; mutation: ignore `confirmed` → fails.
+**What it does NOT prove (Alex, 2026-10-11):** the date is a label. The app checks that a date is there, not that
+Alex gave it; any session could write a sentence plus today's date. It stops blank and half-finished sentences only.
+**The real gate is procedural:** no session adds or edits a venue sentence (or venue) without showing Alex the exact
+words in chat and getting his yes (project `CLAUDE.md` rule; memory `feedback_venue-sentences-need-alex-yes`).
+Visibility, not prevention: `scripts/check-venue-history.ts` prints every surviving sentence on each run, and
+`~/Data`'s git history shows when each was added.
 
 ## Plan Quality Gate
 
@@ -168,6 +181,8 @@ session adds to the file cannot reach a client until someone records his confirm
 | E | `scripts/run-tests.mjs` | `env.VENUE_HISTORY_PATH = <nonexistent path>` |
 | E3 | `scripts/check-venue-history.ts` (new) | The local real-file check (decision 5) |
 | F | `src/port-manifest-venues.test.ts` (new) | EARS tests V1-V14 |
+| F2 | `src/port-manifest.test.ts` | V15 added beside `tableRows` (the helper stays local) |
+| H | `CLAUDE.md` (project) | One rule: venue sentences need Alex's yes on the exact words |
 | G | `docs/research/2026-10-02-booking-hub/port-manifest.md` | Row statuses (below) |
 
 Manifest outcome: R082, R084, R088, R405 → **PORTED** (marker `ALEX HAS PERFORMED HERE`, test
@@ -183,8 +198,11 @@ PORTED 156 → 163, BLOCKED 0 → 2**; ALREADY PRESENT 197 and NOT PORTED 34 unc
 - A lead with no `venue_name`, or a venue with no match: the assembled context is byte-identical to today
   (test V8).
 - `nameWords` behaviour (org-venue tests O1-O10 stay green unchanged).
-- No source text in the repo: no claim sentence appears in any committed file. Enforced by
-  `scripts/check-venue-history.ts` (iii), locally only (decision 5); CI cannot see the private file.
+- No source text in the repo: no claim sentence appears in any committed file. **Gate: Claude Code reads every
+  staged diff of this work before each commit** (`git diff --cached`), looking for Alex's sentences, paraphrases
+  and short fragments. **Backstop, bounded:** `scripts/check-venue-history.ts` (iii) catches exact copies of 30+
+  characters only, locally only; it misses paraphrases, line splits and copies under 30 characters; CI cannot see
+  the private file.
 - Follow-up prompts: unchanged (V13).
 - `.env`, `data/leads.db`, `public/`: untouched.
 
@@ -209,7 +227,8 @@ merge, it runs on every real lead the Mac poller handles (poller start is still 
 
 ## Acceptance Tests (EARS)
 
-All in `src/port-manifest-venues.test.ts`, titles starting `port manifest venues`, made-up venues only:
+V1-V14 in `src/port-manifest-venues.test.ts`, titles starting `port manifest venues`, made-up venues only (V15 is
+the exception: it is in `src/port-manifest.test.ts` and reads the real, public `port-manifest.md` rows):
 "Example Harbor Hall" (alias "Harbor Hall Pavilion", claim "Example claim sentence.", confirmed "2026-01-01"),
 "Example Garden Estate" (no claim), "Examplia" (one word). Each line names its mutation; the test must FAIL under it.
 
@@ -262,7 +281,7 @@ All in `src/port-manifest-venues.test.ts`, titles starting `port manifest venues
   `VENUE INTELLIGENCE` and the marker. *Mutation:* `else` between the two blocks.
 
 - **V15** In `port-manifest.md`, R081, R082, R083, R084, R087, R088 and R405 SHALL be `PORTED` and R085 and R089
-  SHALL be `BLOCKED`, asserted row by row by id (`tableRows`). *Mutation:* leave R085 `TO PORT` and mark R086
+  SHALL be `BLOCKED`, asserted row by row by id with that file's local `tableRows`; title `port manifest venues rows`. *Mutation:* leave R085 `TO PORT` and mark R086
   `PORTED` (the counts can still add up; this test fails).
 
 **Real-file check (not a unit test, decision 5):** `npx tsx scripts/check-venue-history.ts` → exit 0. Its own
@@ -270,6 +289,10 @@ known-answer controls: `VENUE_HISTORY_PATH=/nonexistent` → exit 2 ("cannot che
 → exit 1 (Verification Commands).
 
 ## Work steps (one concern per commit; failing test first; mutation-check each test)
+
+**Every commit of this work:** read `git diff --cached` in full for Alex's sentences, paraphrases or fragments
+(the privacy gate), and from step 4 on also run `npx tsx scripts/check-venue-history.ts` (the bounded backstop).
+
 
 0. Write `~/Data/gig-lead-responder/venue-history.json` (first `git -C ~/Data status --short`; commit only that
    file there; no push without Alex). Validate with `jq`.
