@@ -19,13 +19,14 @@ claims 0/8, "add nothing" slipped twice (recorded) (`docs/reviews/2026-10-11-ven
 `docs/solutions/architecture/2026-10-11-private-venue-claims-and-an-exact-leak-sentinel.md`; learnings propagated
 (compound-engineering.local.md, memory `project_venue-history-leak-check`, journal 2026-10-11, agent-pitfalls FC98).
 
-**Private data (never in this repo):** `~/Data/gig-lead-responder/venue-history.json`, 9 venues (Lomas Santa Fe
-Country Club added 2026-10-11, fact only, Alex confirmed), committed in ~/Data (`4317501`), **not pushed** (Q3).
+**Private data (never in this repo):** `~/Data/gig-lead-responder/venue-history.json`, 10 venues, 5 with sentences
+(Lomas Santa Fe Country Club fact only; La Valencia added; Del Mar and La Valencia sentences are template praise
+marked to replace with Alex's real descriptions), committed in ~/Data (`4317501`), **not pushed** (Q3).
 Before any commit touching venue work: `npx tsx scripts/check-venue-history.ts` must print PASS (exit 0), and read
 the staged diff yourself (the check misses paraphrases and copies under 30 characters).
 
-**Open questions for Alex:** Q1 the Grand Del Mar entry's blanks; Q2 has he played La Valencia (R085) or Scripps
-(R089)? (both BLOCKED); Q3 OK to push ~/Data to its encrypted remote?
+**Open questions for Alex:** Q1 ANSWERED 2026-10-11 (Grand Del Mar sentence, template praise for now); Q2 La
+Valencia ANSWERED (yes, R085 PORTED, template praise for now), Scripps (R089) still BLOCKED; Q3 OK to push ~/Data to its encrypted remote?
 
 **Idea filed (Alex, 2026-10-11):** a definitive venue database (he has played ~80% of San Diego venues) from his
 memory, Google Calendar, Gmail and venue websites: `docs/brainstorms/2026-10-11-venue-database-seed.md`. A future
