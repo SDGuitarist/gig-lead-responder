@@ -26,7 +26,7 @@ flowchart LR
     A01[0.1 test instrument ✅] --> A02[0.2 single writer, code ✅; poller start ⛔]
     A03[0.3 live defects ✅ except invalid_grant ALERT]
     A04[0.4 migrations ✅]
-    A05[0.5 port: 19 TO PORT]
+    A05[0.5 port: 10 TO PORT, 2 BLOCKED]
     A06[0.6 win-rate baseline ✅ approx]
     A07[0.7 spikes: S1 ✅ S1-adv ✅ C1 ✅ G1 ❌→redesign 1.2 · S3 ✅ · S5 ✅ · S2 S6 open]
   end
@@ -50,7 +50,7 @@ then 0 off-calendar gigs / 0 missed money or COI dates; then hours back.
 | ☐ | 0.2 step 5: **start the Mac poller** | NOT started (`.env` `DRY_RUN=true`) | `spikes.md` row "0.2 step 4" | **Alex only. HARD GATE: never start it against real mail without his explicit yes** |
 | ☐ | 0.3 `invalid_grant` ALERT half | not written (`alert.ts` can't deliver until Module 1) | `spikes.md` row "0.3 `/health` fields" | Claude, inside Module 1.7 |
 | ☑ | 0.3 other live defects, 0.4 migrations | done | `spikes.md` 0.3 rows; HANDOFF header | — |
-| ☐ | **0.5 port: 19 TO PORT** | R006, R020–R025, R081–R085, R087–R089, R329, R398, R403 (NP1/NP3/NP2 3-4h/NP duo prices still open), R405 | `port-manifest.md`; count with **V1** below | Claude; **any new or changed price needs Alex's numbers** |
+| ☐ | **0.5 port: 10 TO PORT, 2 BLOCKED** | TO PORT: R006, R020–R025, R329, R398, R403 (NP1/NP3/NP2 3-4h/NP duo prices still open). BLOCKED on Alex (Q2): R085 La Valencia, R089 Scripps. Venues R081–R084, R087, R088, R405 PORTED 2026-10-11 (private `~/Data` file; plan `docs/plans/2026-10-11-feat-venue-history-private-file-plan.md`) | `port-manifest.md`; count with **V1** below | Claude; **any new or changed price needs Alex's numbers** |
 | ☑ | **0.6 win-rate baseline** | **DONE (approximate) 10-09**: ~415 inquiries (GigSalad 247 threads + Yelp 168 messages) vs 24 paid performances (all sources) | `docs/research/2026-10-02-booking-hub/baseline.md` | Design gap for Module 1: trace each gig to its lead source (GigSalad Booked status is not a win count: Alex books off-platform) |
 | ☑ | S1, S1-adv (locked `claude -p`, injection) | PASSED 10-03 | `spikes.md` `## Executed` | — |
 | ☑ | C1 (Railway stopped; C1b waived by Alex) | PASSED 10-03 | `spikes.md` rows C1a, C1b. ⚠ GitHub auto-deploy note there | — |
@@ -61,8 +61,8 @@ then 0 off-calendar gigs / 0 missed money or COI dates; then hours back.
 | ☐ | S6 overnight awake + catch-up | not run | row S6 | Alex (a night) |
 | ☐ | FileVault restart after an OS update | not run | row FileVault | Alex (next macOS update) |
 
-**V1 (port count by status column; known answer 2026-10-09: 197 ALREADY PRESENT, 156 PORTED, 34 NOT PORTED,
-19 TO PORT, 406 total):**
+**V1 (port count by status column; known answer 2026-10-11: 197 ALREADY PRESENT, 163 PORTED, 34 NOT PORTED,
+10 TO PORT, 2 BLOCKED, 406 total; was 156 PORTED / 19 TO PORT on 2026-10-09):**
 
 ```
 awk -F'|' '/^\| R[0-9]+ \|/{s=$5; gsub(/^ +| +$/,"",s); c[s]++} END{for(k in c) print c[k], k}' docs/research/2026-10-02-booking-hub/port-manifest.md
@@ -92,7 +92,7 @@ Gate (port manifest header): Module 1 cannot go live while any manifest row is `
 
 1. Things only Alex can unblock, raised every session until done: **0.6 baseline**, **S2** (next GigSalad lead),
    **S6** (a night), the **PF-Intel URL** check.
-2. Claude: ~~S5~~ (passed 10-11); the **19 TO PORT** rows (prices need Alex's numbers).
+2. Claude: ~~S5~~ (passed 10-11); ~~venues~~ (ported 10-11); the **10 TO PORT** rows (prices need Alex's numbers); R085/R089 need Alex (Q2).
 3. Module 1 plan review → build 1.1–1.7 → redesign 1.2's send-recovery key (G1 failed) → 20-lead ramp → auto-send → 1 week live.
 4. Only then: write the Module 2 plan from the live results.
 
