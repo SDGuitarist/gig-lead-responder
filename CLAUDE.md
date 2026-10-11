@@ -98,3 +98,7 @@ almost over." This is the last thing you do before stopping.
 ## Conventions
 
 - After `/workflows:compound`, always run `/update-learnings` to propagate lessons to all docs
+- **Venue sentences need Alex's yes.** Never add or change a venue, or a venue sentence (`claim`), in
+  `~/Data/gig-lead-responder/venue-history.json` without showing Alex the exact words in chat and getting his yes;
+  then set `"confirmed"` to that date. The date is only a label: the app cannot tell who wrote it. Never commit
+  those sentences to this (public) repo.
