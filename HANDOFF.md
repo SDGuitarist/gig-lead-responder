@@ -8,7 +8,7 @@
 
 ## START HERE — venue-history cycle COMPLETE (2026-10-11): plan, work, review (R3 GO), compound all done
 
-**State:** branch `feat/hub-phase0`, **8 commits ahead of origin (not pushed: pushing needs Alex's yes)**. Suite
+**State:** branch `feat/hub-phase0`, **pushed to origin 2026-10-11 (Alex said push)**. Suite
 **760 pass / 0 fail / 1 skip**, tsc clean (at `dca2aab`; later commits are docs). S5 PASSED 2026-10-11 (`2cf4f4c`).
 Plan `docs/plans/2026-10-11-feat-venue-history-private-file-plan.md` (Revision 3; plan R1-R3 NO-GO, all fixed).
 Built: `111f47b` loader + one-direction matcher; `ae1a30f` `selectContext` adds "ALEX HAS PERFORMED HERE"; `bc267e0`
@@ -25,7 +25,7 @@ Before any commit touching venue work: `npx tsx scripts/check-venue-history.ts` 
 the staged diff yourself (the check misses paraphrases and copies under 30 characters).
 
 **Open questions for Alex:** Q1 the Grand Del Mar entry's blanks; Q2 has he played La Valencia (R085) or Scripps
-(R089)? (both BLOCKED); Q3 OK to push ~/Data to its encrypted remote? Also: push `feat/hub-phase0`?
+(R089)? (both BLOCKED); Q3 OK to push ~/Data to its encrypted remote?
 
 **Next:** the **10 TO PORT** rows (`docs/END-TO-END-STATUS.md` 0.5 row; recount with V1 first). Prices (NP1/NP3/NP2
 3-4h/NP duo) need Alex's numbers. Other open items: S6 overnight (Alex picks a night); PF-Intel production URL
@@ -46,7 +46,7 @@ Work in /Users/alejandroguillen/Projects/gig-lead-responder.
 FIRST gate (stop and ask Alex if anything differs):
   pwd; git fetch origin; git branch --show-current          # expect: feat/hub-phase0
   git rev-parse HEAD; git status --short                    # expect: HANDOFF's last commit; clean
-  git log --oneline origin/feat/hub-phase0..HEAD | wc -l    # expect: 8+ unless Alex pushed (then 0)
+  git log --oneline origin/feat/hub-phase0..HEAD | wc -l    # expect: 0
 Read: docs/END-TO-END-STATUS.md (re-check any row you act on at its source), HANDOFF.md "START HERE — venue-history
 cycle COMPLETE", CLAUDE.md, docs/research/2026-10-02-booking-hub/port-manifest.md.
 Task: port the remaining TO PORT rows (recount with the V1 command in END-TO-END-STATUS first; expect 10). Group
