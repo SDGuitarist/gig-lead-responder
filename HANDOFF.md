@@ -6,6 +6,52 @@
 **Branch:** `feat/hub-phase0` (cut from `docs/booking-hub-brainstorm` at `c644210`; pushed; not merged)
 **Phase:** Work, Phase 0 **in progress**. 0.1, 0.2 (code), 0.3 (all but the alert half of `invalid_grant alerts`), 0.4, S1, S1-adv done. **0.5 port: 10 TO PORT, 2 BLOCKED** (venues PORTED 2026-10-11; recount with `docs/END-TO-END-STATUS.md` V1). 0.6 DONE, approximate (calendar, both GigSalad accounts, Yelp numbers from Alex; `docs/research/2026-10-02-booking-hub/baseline.md`). S3 PASSED; G1 FAILED (10-03, repeated 10-09) → redesign plan 1.2. **GigSalad portal reading BUILT.** Module 1 not started.
 
+## START HERE — Tier B venue-pricing cycle COMPLETE (2026-10-12): plan, work, review (R1 + R2 GO), compound done
+
+**State:** branch `feat/hub-phase0`, **NOT pushed** (origin at `8815785`; push only when Alex says). Suite **811 pass /
+0 fail / 1 skip**, tsc clean, leak check exit 0. ~/Data unchanged this cycle (Estancia `4bc6b09` already pushed).
+
+**What shipped:** at Coasterra, Tom Ham's Lighthouse, Marina Village and Brick, **100+ guests is premium automatically;
+under 100 or unknown is always held with both rate-card prices** (the AI's corporate call shown only in the note;
+Tom Ham's and Coasterra 50-99 add "waterfront 50+ buyout rule may apply"). Scripps Seaside Forum and Martin Johnson
+House always premium. No day or time trigger. The app never writes the tier; notes use `tier_b:` (hidden from drafts,
+shown in the dashboard Concerns row). Plan `docs/plans/2026-10-12-fix-tier-b-venue-rule-conflict-hold-plan.md`
+(Revisions 1-5b, every rule change Alex's). Code `2ece142`, `ca49e11`, `62929e0`, `69ae3ae`, `61e60a6`. Runs
+`docs/reviews/2026-10-12-tier-b-local-runs.md` (9/9 + 6/6, pre-registered). Reviews: plan R1-R3 NO-GO (hard cap);
+code R1 GO both, R2 GO both (`docs/reviews/2026-10-12-tier-b-*`). Solution
+`docs/solutions/architecture/2026-10-12-tier-b-venue-rules-from-facts-hold-with-both-prices.md`. Memory
+`project_tier-b-venue-holds`, `feedback_anchor-scripted-doc-edits`; journal 2026-10-12; agent-pitfalls log row
+(candidate FC99 not minted: the registry has a pre-existing FC57 gap).
+
+**Also found:** Tom Ham's rule had been mis-ported on 10-03 (source: "Large party, sunset timing"). Alex's source file
+for rules: `~/Data/gig-lead-responder/Gig_Lead_Response_System_4.0_Extraction.md` (read; never copy into the repo).
+
+**Open, Alex's call:** a Saturday / peak-day price as its own rule (with his calendar data); nonprofit prices (NP1,
+NP3, NP2 3-4h, NP duo); the T4 example's "Full payment holds the date." wording; push.
+
+**Next:** Alex picks: (a) the T4 reference-lead plan, (b) nonprofit prices once he has numbers, (c) the peak-day
+question.
+
+### Three Questions (Tier B cycle; from the solution doc's Feed-Forward)
+1. **Hardest decision?** What the app may decide alone: only the copied number; every judgment goes to Alex with both
+   prices.
+2. **What was rejected?** App override of the tier; prompt-only precedence; corporate as an automatic trigger.
+3. **Least confident about?** Hold volume at the four venues; Alex's picks on those holds are the data for a better rule.
+
+### Prompt for Next Session
+
+```
+Work in /Users/alejandroguillen/Projects/gig-lead-responder.
+FIRST gate (stop and ask Alex if anything differs):
+  pwd; git branch --show-current                            # expect: feat/hub-phase0
+  git rev-parse HEAD; git status --short                    # expect: HANDOFF's last commit; clean
+Read: docs/END-TO-END-STATUS.md, HANDOFF.md "START HERE — Tier B venue-pricing cycle COMPLETE", CLAUDE.md.
+Ask Alex which next: (a) docs/plans/2026-10-11-feat-t4-reference-lead-plan.md, (b) nonprofit prices if he has
+numbers, (c) a Saturday / peak-day price rule. Never invent a price; never commit venue sentences; run made-up leads
+locally before any review of drafted text. Scripted doc edits: anchor on "\n## Heading\n", assert one match, list
+headings after (memory feedback_anchor-scripted-doc-edits).
+```
+
 ## START HERE — PF-Intel venue-facts cycle COMPLETE (2026-10-11): plan, work, review (closed by Alex), compound done
 
 **State:** branch `feat/hub-phase0`, **NOT pushed** (origin at `f554fac`; push only when Alex says). Suite **796 pass /
