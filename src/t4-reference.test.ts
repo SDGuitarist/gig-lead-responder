@@ -7,7 +7,7 @@ import { readFileSync, readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { buildGeneratePrompt } from "./prompts/generate.js";
 import { buildVerifyPrompt } from "./prompts/verify.js";
-import { lookupPrice } from "./pipeline/price.js";
+import { budgetGapFor, lookupPrice } from "./pipeline/price.js";
 import { paymentLine, type PaymentTerms } from "./pipeline/payment-terms.js";
 import { VOICE_REFERENCES } from "./data/voice-references.js";
 import type { Classification } from "./types.js";
@@ -210,6 +210,40 @@ describe("T4 reference T2: non-T4 prompts are untouched", () => {
     const pricing = lookupPrice(base);
     const redirect = { ...pricing, budget: { ...pricing.budget, tier: "no_viable_scope" } } as typeof pricing;
     assert.ok(!buildGeneratePrompt(base, redirect, "ctx", { kind: "none" }).includes(MARKER));
+  });
+
+  // Codex code review round 1, P1: the gate modelled "Quote Terms exists", not "the whole T4 structure fits the
+  // response mode". Each of these modes has its own structure the reference would contradict.
+  it("T4 reference T2 a T4 lead in the large budget-gap mode carries no block (two prices and its own close)", () => {
+    const c = t4Lead({ stated_budget: 1000 } as Partial<Classification>);
+    const p = lookupPrice(c);
+    const withGap = { ...p, budget: budgetGapFor(c, p) } as typeof p;
+    assert.equal(withGap.budget.tier, "large", "setup: a stated budget of 1000 must reach the large-gap tier");
+    assert.ok(!buildGeneratePrompt(c, withGap, "ctx", termsFor(c)).includes(MARKER));
+  });
+
+  it("T4 reference T2 a T4 lead in graceful-decline mode carries no block (no pitch after the exit line)", () => {
+    assert.ok(!gen(t4Lead({ graceful_decline: true } as Partial<Classification>)).includes(MARKER));
+  });
+
+  it("T4 reference T2 a T4 lead whose date looks past carries no block (the year is confirmed first)", () => {
+    assert.ok(!gen(t4Lead({ past_date_detected: true } as Partial<Classification>)).includes(MARKER));
+  });
+
+  it("T4 reference T2 positive control: a quoted T4 lead with a met budget still carries the block", () => {
+    const c = t4Lead({ stated_budget: 1300 } as Partial<Classification>);
+    const p = lookupPrice(c);
+    const withGap = { ...p, budget: budgetGapFor(c, p) } as typeof p;
+    assert.equal(withGap.budget.tier, "none", "setup: a stated budget of 1300 is above the floor");
+    assert.ok(buildGeneratePrompt(c, withGap, "ctx", termsFor(c)).includes(MARKER));
+  });
+
+  it("T4 reference T2 decision control: the small budget-gap mode keeps one price, so the block stays", () => {
+    const c = t4Lead({ stated_budget: 1150 } as Partial<Classification>);
+    const p = lookupPrice(c);
+    const withGap = { ...p, budget: budgetGapFor(c, p) } as typeof p;
+    assert.equal(withGap.budget.tier, "small", "setup: a stated budget of 1150 is a gap under 75");
+    assert.ok(buildGeneratePrompt(c, withGap, "ctx", termsFor(c)).includes(MARKER));
   });
 
   it("T4 reference T2 control: the same T4 lead with a quote does carry the block", () => {

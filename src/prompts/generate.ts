@@ -202,11 +202,22 @@ ${buildDualFormatBlock(classification, pricing)}`;
  */
 /**
  * The T4 reference lead (plan 2026-10-11-feat-t4-reference-lead-plan), with its own blank-line padding, or "" so
- * every non-T4 prompt stays byte-identical. Also "" when the lead gets no quote (clarification, redirect,
- * residency): the reference ends in a price and a payment sentence, which those prompts forbid.
+ * every non-T4 prompt stays byte-identical.
+ *
+ * The reference is one fixed shape: availability, a wedge, validation, ONE price, a payment sentence, one close.
+ * It is withheld in every response mode that has its own mandatory shape, because two shapes in one prompt
+ * contradict (Codex code review round 1, P1):
+ *   - no quote at all (clarification, no_viable_scope redirect, residency): `quoteTermsOff`;
+ *   - the large budget gap: two prices and its own "hold the shorter set" close;
+ *   - graceful decline: an exit line, with no pitch after it;
+ *   - a date that looks past: the year is confirmed in the first 2-3 sentences.
+ * The small-gap mode is NOT withheld: it keeps one price and adds one sentence (decision recorded in the plan).
  */
 function buildT4ReferenceSection(classification: Classification, pricing: PricingResult): string {
   if (quoteTermsOff(classification, pricing)) return "";
+  if (pricing.budget.tier === "large") return "";
+  if (classification.graceful_decline === true) return "";
+  if (classification.past_date_detected === true) return "";
   const block = buildT4ReferenceBlock(classification);
   return block ? `\n${block}\n` : "";
 }
