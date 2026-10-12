@@ -49,13 +49,23 @@ question.
 ```
 Work in /Users/alejandroguillen/Projects/gig-lead-responder.
 FIRST gate (stop and ask Alex if anything differs):
-  pwd; git branch --show-current                            # expect: feat/hub-phase0
+  pwd; git fetch origin; git branch --show-current          # expect: feat/hub-phase0
   git rev-parse HEAD; git status --short                    # expect: HANDOFF's last commit; clean
-Read: docs/END-TO-END-STATUS.md, HANDOFF.md "START HERE — Tier B venue-pricing cycle COMPLETE", CLAUDE.md.
-Ask Alex which next: (a) docs/plans/2026-10-11-feat-t4-reference-lead-plan.md, (b) nonprofit prices if he has
-numbers, (c) a Saturday / peak-day price rule. Never invent a price; never commit venue sentences; run made-up leads
-locally before any review of drafted text. Scripted doc edits: anchor on "\n## Heading\n", assert one match, list
-headings after (memory feedback_anchor-scripted-doc-edits).
+  git log --oneline origin/feat/hub-phase0..HEAD | wc -l    # expect: 0 (pushed 2026-10-12)
+Read: docs/END-TO-END-STATUS.md (known risks + Module 1 checklist), HANDOFF.md "START HERE — Tier B venue-pricing
+cycle COMPLETE", CLAUDE.md.
+Alex wants to tackle ALL open items. List them for him and let him pick the order (one compound cycle each):
+  (1) T4 reference-lead plan: docs/plans/2026-10-11-feat-t4-reference-lead-plan.md (its Codex plan R1 run A text is
+      only in the 2026-10-11 transcript: ask Alex to re-run R1 if needed); show Alex the example's
+      "Full payment holds the date." wording first.
+  (2) Nonprofit prices (NP1, NP3, NP2 3-4h, NP duo): Alex gives the numbers; never invent one.
+  (3) Saturday / peak-day price rule, incl. the general "Saturday evening at named venue" premium line
+      (src/prompts/classify.ts Step 2.75): decide with Alex's calendar data.
+  (4) Module 1 (send gate, approvals incl. the Tier B "use this price" action and the payment refresh on every send
+      path): plan review first.
+Rules: run made-up leads locally before any review of drafted text (PF-Intel lookups are live reads); scripted doc
+edits anchor on "\n## Heading\n" with one-match asserts; the Codex review cap counts rounds (a round-3 NO-GO ends
+review: never write round 4).
 ```
 
 ## START HERE — PF-Intel venue-facts cycle COMPLETE (2026-10-11): plan, work, review (closed by Alex), compound done
