@@ -80,6 +80,12 @@ Gate (port manifest header): Module 1 cannot go live while any manifest row is `
 `refreshPaymentSentence` (`src/pipeline/payment-terms.ts`) with today's `paymentTermsFor(...)` first and refuse on its
 error, as `POST /api/leads/:id/approve` does; otherwise a draft approved days later carries the wrong payment band
 (plan `docs/plans/2026-10-11-fix-payment-terms-by-lead-time-plan.md`, Revision 4).
+**Tier B "use this price" (2026-10-12, Alex):** a held `tier_b:` lead shows the draft's price and both rate-card
+prices, but nothing switches them; picking the other price today means editing the draft by hand before approving.
+1.4 approvals must add a "use this price" action that re-drafts at the chosen tier (the edit path with the stored
+classification, `rate_card_tier` set, prices from `lookupPrice`), so the pick is one click and the price line,
+payment sentence and post-check all follow (plan `docs/plans/2026-10-12-fix-tier-b-venue-rule-conflict-hold-plan.md`,
+Revision 6).
 
 ## Known risks on the path (found by sessions; each recorded at its source)
 
