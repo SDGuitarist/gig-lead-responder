@@ -148,3 +148,43 @@ s2c x3). No contradiction of a recorded value.
 **F6: PASSES**, both Del drafts say Alex has performed there (words not copied: they quote Alex's private sentence).
 **Gate:** 11 of 12 passed; x1 failed only on the pre-existing "here's the thing" voice check.
 Per the plan, the runs stopped for Alex's decision.
+
+## PF-Intel fix: F5/F6 re-run after Revision 3 (2026-10-11, code `a7e28eb`; Claude Code's first judgment)
+
+Same 13 leads, same pre-registration, same rule. Revision 3 added: "Describe the venue only with these facts and the
+client's own words: no rooms, spaces, features, decor or layout from anywhere else."
+
+| Run | Draft | Venue sentence | Verdict | P |
+|---|---|---|---|---|
+| s1a | full | "the courtyard lights are on"; "Estancia's outdoor curfew is 10 PM, so I'll plan the last set to finish by 9:45"; COI to the venue | ok (lit courtyard = the evening scene, not a venue feature; listed for Alex) | curfew, COI |
+| s1a | comp | "the courtyard lit"; "$1M liability for Estancia's COI requirement"; "Outdoor curfew is 10 PM" | ok (same) | |
+| s1b | full | "self-contained for indoors or outdoors"; "$1M general liability, COI available" | ok | COI |
+| s1b | comp | "Flamenco guitar at Estancia La Jolla" | ok | |
+| s1c | full | "Estancia La Jolla's Spanish courtyard"; "curfew is 10 PM ... wrap by 9:45 and keep volume appropriate for the neighborhood" | ok | courtyard, curfew, neighbors, COI |
+| s1c | comp | same facts | ok | |
+| s2a | full+comp | "the harbor lights coming on, the water just outside" | ok (Harbor Island location; listed) | |
+| s2b | full+comp | "harbor lights on the water"; "a venue like that" | ok | |
+| s2c | full | "the harbor lights coming up as the sky darkens" | ok | |
+| s2c | comp | (venue named only) | ok | |
+| s3a | full | "the bay behind them"; "secure my stands for the bay wind"; COI to the Catamaran | ok | bay-side, wind, COI |
+| s3a | comp | "Bay-side outdoor setup is what I plan for" | ok (generic, not this venue; listed) | |
+| s3b | full | "The bay-side setting at the Catamaran means wind can be a factor outdoors"; "the COI the venue requires" | ok | bay-side, wind, COI |
+| s3b | comp | "the COI the Catamaran requires"; "bay-side outdoor setup" | ok | |
+| s3c | full | "Here's what I've learned playing cocktail hours at bay-side venues" (general experience, not this venue); "**The bay-side wind at Catamaran is real**" | **B** ("is real" restates the lookup's "wind can be a factor" as if witnessed) | bay-side, wind, COI |
+| s3c | comp | "self-contained for bay-side outdoor, carry $1M COI for the venue" | ok | |
+| x1 | full+comp | (venue not named in either draft) | ok | none (COI offered, not as the venue's requirement: no match) |
+| x2 | full | "the courtyard filling with 110 guests"; "a venue with a Spanish courtyard"; "coordinate directly with the venue on setup" | ok | courtyard |
+| x2 | comp | "Estancia La Jolla's Spanish courtyard"; "a venue built for it" | ok | |
+| x3 | full+comp | "the harbor outside" | ok | |
+
+**F5: 0 claims, 1 borderline in 24 drafts (was 3 claims + 3 borderline).** Under the plan's rule a borderline counts as
+a claim, so F5 still **fails on one line** (s3c: "The bay-side wind at Catamaran is real"). No first-person familiarity
+line, no invented rooms, spaces or decor.
+**Positive control: PASSES, 7 of 12** (s1a s1b s1c s3a s3b s3c x2; was 9). Tom Ham's runs used no lookup fact either time.
+**F6: PASSES**, both Del drafts still say Alex has performed there.
+**Opening quality (Alex's heads-up):** gate 11 of 12 both runs (x1 fails only on "here's the thing" in run 1, and on the
+same voice check in run 2); rewrites 6 → 7; rewrites citing the scene 2 → 2. Venue named in the opening line: 12 of 12
+→ 11 of 12 (x1 dropped the venue). Scenes still carry place ("harbor lights on the water", "the bay behind them catching
+the last of the afternoon light", "the courtyard filling with 110 guests"). No measured flattening beyond x1.
+**Observed, out of scope:** the same Tom Ham's lead priced $1,200 in s2a/s2c and $895 in s2b (the model's tier call
+varies run to run; pre-existing).
