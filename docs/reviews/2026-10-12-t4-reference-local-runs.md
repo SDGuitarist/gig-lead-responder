@@ -133,6 +133,38 @@ t1 19 / 12, t2 11 / 0, t3 0 / 0; set 2: t1 12 / 0 (the retired Del lead), t2 0 /
 kind: copying is gone (0 windows in 8 drafts); what remains is a scene time the model put inside the stated window.**
 A fourth set is Alex's call (HANDOFF).
 
+## Set 4: code at `c5a1272` (block gains "use only the times the lead states; put no clock time of your own on a moment inside their window")
+
+Pre-registered in the plan (Revision 1d) before the run; same four leads, same copy check (Revision 1c exclusion),
+same threshold. Self-test PASS.
+
+| Lead | Classification | Price | Payment sentence | Copy windows (full / compressed) | Verdict |
+|---|---|---|---|---|---|
+| t1 | T4, solo 2 h, 60; band **short** (urgent expected) | $1,350 | full x1 in both (OK) | 0 / 0 | PASS |
+| t2 | T4, urgent, solo 2 h, 30 | $1,350 | full x1 in both (OK) | 0 / 0 | **literal FAIL: one untraceable number (below)** |
+| t3 | T4, comfortable, solo 3 h, 70 | $1,800 | twoMonths x1 in both (OK) | 0 / 0 | PASS |
+| t4 control | T2 (not T4), no block in the prompt | $700 | twoWeeks x1 in both (OK) | 0 / 0 | PASS |
+
+- **t1 PASS:** no clock time of its own ("five o'clock" is the lead's own 5pm start; set 3's "5:15" is gone); no
+  window shared with the reply; its statements about having played the venue and knowing its spaces trace to the
+  confirmed entry in the private venue file (boolean check, text not printed; the draft's words are not quoted here).
+- **t2 literal FAIL:** "can send the resort a COI within 24 hours of booking". The app text says "within a few
+  days" (`docs/RESPONSE_CRAFT.md`); sets 1 to 3 said "within a day"; the number drifts a little further each run.
+  It is not from the example and not the block's rule: it is the model writing its own COI timeline, which is
+  Alex's separate COI item (2026-10-12: COI "available upon request"). Recorded as a FAIL under the literal rule, and
+  attributed to that item.
+- **t3 PASS:** "load-in through the service road" and "the venue requires a COI" are real PF-Intel setup and policy
+  data for that venue (live read 2026-10-12), not inventions; the venue claim stops at "has performed there"; the
+  payment sentence is the lead-time one, not the example's.
+- **Band:** t1 (9 days out) returned `short` here and `urgent` in set 3, same text, same date. The classifier miss is
+  intermittent (6 days `short` in sets 1 and 2; 9 days `urgent` then `short`), which makes it a classifier item, not a
+  property of this block.
+- **`verified=false` on t2 and the t4 control:** the app's voice kill-list ("land", "here's the thing"); the control
+  has no block.
+
+**Result: Set 4 has no copy, no invented time, no unsupported venue claim in any T4 draft. One literal FAIL (t2's COI
+number) belongs to the COI item. Smoke test status: the block's own rules pass; the COI wording is open.**
+
 ## No-block control (code at `1b353f8`, before the block existed; t1 to t3)
 
 Run to separate what the block caused from what the model does anyway. Same leads, same date, scratch DB. Findings
