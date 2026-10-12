@@ -6,6 +6,57 @@
 **Branch:** `feat/hub-phase0` (cut from `docs/booking-hub-brainstorm` at `c644210`; pushed; not merged)
 **Phase:** Work, Phase 0 **in progress**. 0.1, 0.2 (code), 0.3 (all but the alert half of `invalid_grant alerts`), 0.4, S1, S1-adv done. **0.5 port: 10 TO PORT, 2 BLOCKED** (venues PORTED 2026-10-11; recount with `docs/END-TO-END-STATUS.md` V1). 0.6 DONE, approximate (calendar, both GigSalad accounts, Yelp numbers from Alex; `docs/research/2026-10-02-booking-hub/baseline.md`). S3 PASSED; G1 FAILED (10-03, repeated 10-09) → redesign plan 1.2. **GigSalad portal reading BUILT.** Module 1 not started.
 
+## START HERE — PF-Intel venue-facts cycle COMPLETE (2026-10-11): plan, work, review (closed by Alex), compound done
+
+**State:** branch `feat/hub-phase0`, **NOT pushed** (origin at `f554fac`; push only when Alex says). Suite **796 pass /
+0 fail / 1 skip**, tsc clean, leak check exit 0. `~/Data` has a local commit `4bc6b09` (Estancia La Jolla, fact only),
+not pushed to the encrypted backup.
+
+**What happened today, in order:**
+1. **PF-Intel was dead locally** (Railway-internal URL + stale key in `.env`; every lookup failed silently). Fixed with
+   Alex's yes: production URL + the Railway key (copied without printing), backup `.env.bak-2026-10-11`.
+2. That switched on a never-run instruction ("insider edge ... I've played this room before"); 2 of 3 made-up leads
+   claimed venues. Plan `docs/plans/2026-10-11-fix-pf-intel-facts-are-not-alexs-experience-plan.md` (Revisions 1-3).
+3. Built: `e573f6c` (no past events or contacts in the prompt), `c3a6d28` + `a7e28eb` (`PF_INTEL_USAGE`), `15f521e`
+   (voice guide :12/:137/:141 reworded, Alex's words). Pre-registered runs: claims 3+3 → 0+1 (accepted by Alex).
+4. Review: plan R1-R2 NO-GO (fixed; no R3, Alex); code R1 A GO / B NO-GO → fixed; R2 A NO-GO / B GO → settled by Alex
+   (Starikov example is true; Estancia added to the venue file). Records `docs/reviews/2026-10-11-pf-intel-*`.
+5. Compound: `docs/solutions/architecture/2026-10-11-venue-facts-are-not-experience-and-a-silent-dependency.md`;
+   memory `project_pf-intel-facts-not-experience`; agent-pitfalls FC84 builds-hit; journal 2026-10-11.
+
+**Also today:** S2 (Alex has never emailed GigSalad; no evidence either way), S6 (Mac stays awake; the app's catch-up
+never ran, stays open), both in `docs/END-TO-END-STATUS.md`. Terminal font 12 → 13 (Clear Dark profile).
+
+**OPEN, Alex's call (prices):** the same made-up lead priced $895 (T2) in 5 runs and $1,200 (T3) in 2: the model's
+`stealth_premium` flips at exactly 50 guests ("50+ waterfront private buyout"). Own work item, END-TO-END-STATUS
+known risks. Until fixed, check the price line on every draft.
+**Waiting on Alex:** nonprofit prices (NP1, NP3, NP2 3-4h, NP duo; the table was shown in chat 2026-10-11), push both
+repos, the T4 example's "Full payment holds the date." wording.
+
+**Next:** Alex picks: (a) resume the T4 reference-lead plan (record its R1 run A, Revision 1, show Alex the example's
+payment sentence), (b) plan the price-flip fix, (c) nonprofit prices once he gives numbers.
+
+### Three Questions (PF-Intel cycle; from the solution doc's Feed-Forward)
+1. **Hardest decision?** No detector (D3), twice. Prompt text was the root cause; a detector repeats the price-block loop.
+2. **What was rejected?** Removing PF-Intel from the prompt; labelling past events instead of dropping them; editing
+   Alex's real replies without his yes.
+3. **Least confident about?** That borrowed claims from the kept examples (Lodge, Starikov) stay rare; 24 drafts is a
+   smoke test.
+
+### Prompt for Next Session
+
+```
+Work in /Users/alejandroguillen/Projects/gig-lead-responder.
+FIRST gate (stop and ask Alex if anything differs):
+  pwd; git branch --show-current                            # expect: feat/hub-phase0
+  git rev-parse HEAD; git status --short                    # expect: HANDOFF's last commit; clean
+Read: docs/END-TO-END-STATUS.md (known risks: the price that flips), HANDOFF.md "START HERE — PF-Intel venue-facts
+cycle COMPLETE", CLAUDE.md.
+Ask Alex which next: (a) resume docs/plans/2026-10-11-feat-t4-reference-lead-plan.md, (b) plan the stealth_premium
+price-flip fix (prices: Alex's call), (c) nonprofit prices if he has numbers. Never invent a price; never commit venue
+sentences; run made-up leads locally before any review of drafted text (PF-Intel is live now: lookups are real reads).
+```
+
 ## START HERE — payment-terms cycle COMPLETE (2026-10-11): plan, work, review (R3 GO), compound all done
 
 **State:** branch `feat/hub-phase0`, **22 commits ahead of origin (`f554fac`); NOT pushed (push only when Alex says).**
