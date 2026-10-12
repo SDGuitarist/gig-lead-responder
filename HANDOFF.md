@@ -6,6 +6,77 @@
 **Branch:** `feat/hub-phase0` (cut from `docs/booking-hub-brainstorm` at `c644210`; pushed; not merged)
 **Phase:** Work, Phase 0 **in progress**. 0.1, 0.2 (code), 0.3 (all but the alert half of `invalid_grant alerts`), 0.4, S1, S1-adv done. **0.5 port: 10 TO PORT, 2 BLOCKED** (venues PORTED 2026-10-11; recount with `docs/END-TO-END-STATUS.md` V1). 0.6 DONE, approximate (calendar, both GigSalad accounts, Yelp numbers from Alex; `docs/research/2026-10-02-booking-hub/baseline.md`). S3 PASSED; G1 FAILED (10-03, repeated 10-09) → redesign plan 1.2. **GigSalad portal reading BUILT.** Module 1 not started.
 
+
+## START HERE — T4 reference-lead cycle (2026-10-12): plan R1-R2 NO-GO then closed by Alex; work steps 1-3 DONE; step 4 smoke test FAILED TWICE, waiting on Alex
+
+**State:** branch `feat/hub-phase0`, HEAD = the commit that adds this section (parent `16e0e4c`), **11 commits ahead of origin (`039d38d`); NOT pushed** (push only when
+Alex says). Suite **839 pass / 0 fail / 1 skip**, tsc clean, leak check exit 0. Manifest: 197 present, **171 PORTED,
+35 NOT PORTED, 3 TO PORT** (R006, R398, R403), 406 total (`docs/END-TO-END-STATUS.md` V1).
+
+**What was done:** HANDOFF State line fixed (`1e4a70a`). Plan: Codex R1 re-run NO-GO 5 P1/2 P2 (`4c41fa6`, record
+`docs/reviews/2026-10-12-t4-reference-plan-codex-round1.md`), Revision 1 (`30311a6`), R2 NO-GO 1 P1 that Revision 1
+itself introduced (T5 banned "familiar" but the approved reply says "familiar songs"; record `...-round2.md`),
+Revision 1b (`1f3414b`, `1b353f8`). **Alex chose to stop reviewing after R2 (2nd NO-GO) and build.** Example reply
+ends "Full payment holds the date." (Alex's yes 2026-10-12). Code: `src/data/t4-reference.ts` + `src/t4-reference.test.ts`
+(27 tests; 21 mutations, each fails its test) (`6beba33`), inserted in `buildGeneratePrompt` (`d071aa2`), manifest
+rows (`57504d6`). Real-model runs: `docs/reviews/2026-10-12-t4-reference-local-runs.md`: set 1 FAIL (`f300fea`),
+wording iteration + set 2 FAIL on t1 only (`16e0e4c`). **Per the plan's FAIL rule there is no Codex code review yet.**
+
+**Deviations from the plan (all small, all flagged in the commit messages):**
+1. A T4 lead that gets no quote (clarification, no_viable_scope redirect, residency) carries no block, via the
+   existing `quoteTermsOff`; the reference ends in a price and payment line those prompts forbid. Tested.
+2. T5 asserts the greeting is exactly "Hi Dana," and the sign-off is the name only, instead of embedding the source
+   client's real first name in a public test file.
+3. The block's wording changed once after set 1 (example before the rules, step 4 conditional on a setting problem
+   the lead gives, a DO NOT REUSE paragraph, venue statements capped at the history section). The example, the tests'
+   word lists and the copy check were NOT changed.
+
+**Decisions for Alex (nothing below is started):**
+1. **t1 cannot be told apart from the example by construction:** the lead is the example's own setting (a beach
+   bonfire at the same hotel), so its physical problem and image legitimately match. Keep t1 as is (and accept that a
+   pass needs the model to rephrase the same idea), or change t1 to a different venue and setting so it tests the
+   block and not the example's hotel?
+2. **The copy check's noise:** a 30-character window made only of mandated text (payment sentence + "Want me to lock
+   it in?" + sign-off) fires without being a copy. The plan forbids changing the check after a FAIL; this needs a
+   decision with no draft in front of you. Exclude windows wholly inside mandated sentences, yes or no?
+3. **Classifier miss:** a 6-day event (t1) returns `short`, but Step 5 of `classify.ts` says urgent is under 2
+   weeks; it picks which opening T4 leads get. Its own item (no-block run reproduces it). Start it?
+4. **COI "within a day":** the draft says "within a day of booking"; `docs/RESPONSE_CRAFT.md` says "within a few
+   days". Existing model drift (set 1 and 2, t2). Ignore, or add a post-check?
+5. **Code review anyway?** The plan blocks it while the smoke test fails. Run set 3 first, or send the code to
+   Codex now with the two FAIL sets recorded as known?
+6. Push.
+
+**Next phase:** Work (plan step 4 not passed). Do not write a Codex code-review prompt until decisions 1, 2 and 5 are
+answered.
+
+### Three Questions (T4 reference-lead work phase)
+1. **Hardest implementation decision?** Gating the block on `quoteTermsOff`, which the plan never mentioned: without
+   it a T4 clarification lead would get a "price, then payment" reference its own prompt forbids. Chose gate + test +
+   flag in the commit.
+2. **What did you consider changing but leave alone?** The copy check and the example reply, after set 1 failed.
+   Both were pre-registered or Alex-approved; changing either after a FAIL is tuning the test to pass.
+3. **Least confident about going into review?** Whether any instruction wording can stop a model copying an example
+   when the lead sits in the example's own setting. t1 may be unpassable as written; sets 1 and 2 do not settle it.
+
+### Prompt for Next Session
+
+```
+Work in /Users/alejandroguillen/Projects/gig-lead-responder.
+FIRST gate (stop and ask Alex if anything differs):
+  pwd; git branch --show-current                            # expect: feat/hub-phase0
+  git rev-parse --short HEAD; git status --short            # expect: HANDOFF's last commit; clean
+  git log --oneline origin/feat/hub-phase0..HEAD | wc -l    # expect: 11 (not pushed)
+Read: HANDOFF.md "START HERE — T4 reference-lead cycle", docs/reviews/2026-10-12-t4-reference-local-runs.md,
+docs/plans/2026-10-11-feat-t4-reference-lead-plan.md (Revision 1b), CLAUDE.md.
+Ask Alex for his answers to the six decisions in that HANDOFF section BEFORE touching anything. Then, by answer:
+  - t1 / copy-check decisions: edit the plan (Revision 1c) with his words, then run set 3 with the scratch runner
+    pattern in the runs doc (real model, scratch DATABASE_PATH, today pinned 2026-10-12), self-testing the checks first.
+  - Only when the smoke test passes, or Alex says "review anyway": write the Codex CODE round-1 prompt (run
+    tools/check_handoff_prompt.py round1 on it yourself and read it by eye).
+Rules: never invent a price; never commit venue sentences or private claims; a round-3 NO-GO is the hard cap.
+```
+
 ## START HERE — Tier B venue-pricing cycle COMPLETE (2026-10-12): plan, work, review (R1-R2 GO, R3 NO-GO, R4 at the cap), compound done
 
 **State:** branch `feat/hub-phase0`, **pushed** (origin = local `039d38d`, 0 unpushed, verified 2026-10-12 with
