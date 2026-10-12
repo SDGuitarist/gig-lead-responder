@@ -1,7 +1,7 @@
 ---
 title: "T4 reference lead: Alex's corporate reply as a structure the drafter follows (port manifest R020-R025, R329)"
 date: 2026-10-11
-status: plan, Revision 1 (Codex plan R1 re-run: NO-GO, 5 P1 / 2 P2; fixed below, awaiting narrow round 2)
+status: plan, Revision 1b (plan R1 NO-GO 5 P1 / 2 P2, fixed in Revision 1; plan R2 NO-GO 1 P1, fixed in 1b; round 3 is Alex's call)
 branch: feat/hub-phase0
 rows: R020 R021 R022 R023 R024 R025 R329
 ---
@@ -32,6 +32,12 @@ the example's payment sentence changes (yes, 2026-10-12); the copy-failure thres
 | P1-5 | Copying risk unresolved | Smoke-test label, failure threshold, and what happens on a failure (Feed-Forward, Execution Path) |
 | P2-6 | Stale line numbers | Re-verified 2026-10-12: example call `generate.ts:81`, salutation `:96`, sign-off `:266-267`, Quote Terms `:271`, payment line `:272`, setup `:273`. Codex's own numbers were off by 1-4 in places; these are from the file |
 | P2-7 | Leak check is exact-window only | D6: a precise rule for the example's public venue wording, plus paraphrase checks in the runs and a positive control for the leak check |
+
+**Revision 1b (2026-10-12), plan R2 NO-GO, one P1, mine:** T5/D6 banned the word `familiar` over the whole reply,
+but the approved reply says "familiar songs", so T5 could not pass. Fix: the D6 word list applies to sentences that
+name the Del, and `familiar` is now `familiar with`. Checked by running the rule over the reply's text: 2 sentences
+name the Del, 0 hits; the old whole-reply rule hit exactly one word (`familiar`); a known-positive ("I've played the
+Del's beach before.") fires. Record: `docs/reviews/2026-10-12-t4-reference-plan-codex-round2.md`.
 
 ## What the source holds (read 2026-10-11 in `~/Data`; only the approved anonymized reply is copied below)
 
@@ -108,8 +114,11 @@ R329 is a chat banner in another file ("proceed to DRAFT_METHOD.md").
 
 - **D6 Public venue wording in the example (Codex P2-7):** the example is public and names "the Del" twice ("the
   Del's beach", "send the Del a COI"). Allowed: those two phrases, because they say where the event is and who
-  receives the COI, not that Alex has played there or knows the place. Rule T5 enforces: the example contains none of
-  `played`, `performed`, `last time`, `again`, `familiar`, `I know`, `my usual`. The block also says, in one line:
+  receives the COI, not that Alex has played there or knows the place. Rule T5 enforces, on every sentence of the
+  reply that names the Del (a sentence containing `the Del` or `Del's`): none of `played`, `performed`, `last time`,
+  `again`, `familiar with`, `I know`, `my usual` (Revision 1b: the list was applied to the whole reply with
+  `familiar`, which fails on the approved "familiar songs", a sentence that does not name the Del). The block also
+  says, in one line:
   "The example describes one lead's venue; it is not evidence about any other venue." The exact-window leak check
   (`scripts/check-venue-history.ts`) misses paraphrases by design; the runs add a paraphrase pass (Execution Path).
 - **D7 Payment sentence (Codex P1-1):** the block says "The payment sentence comes from the Quote Terms section only.
@@ -155,8 +164,9 @@ registration). Test names start `T4 reference T<n>` so `npm run test:match -- "T
   `VENUE_HISTORY_HEADER`'s value), `PAYMENT: the sentence comes from the Quote Terms section only`, and the D6
   one-line "not evidence" sentence.
 - **T5** THE SYSTEM SHALL keep `T4_REFERENCE_REPLY` free of a dollar figure (`/\$\d/`), a phone number
-  (`/\(\d{3}\)\s*\d{3}-\d{4}/`), the source client's real first name, the business name, `50%`, and each of the D6
-  words; AND SHALL contain `PAYMENT_SENTENCES.full` exactly once.
+  (`/\(\d{3}\)\s*\d{3}-\d{4}/`), the source client's real first name, the business name, `50%`, and, in each sentence that
+  names the Del, each of the D6 words; AND SHALL contain `PAYMENT_SENTENCES.full` exactly once. The reply stays
+  verbatim, including "familiar songs".
 - **T6** THE SYSTEM SHALL keep the verify prompt free of `REFERENCE LEAD: T4` and of the reply's first 30
   characters; SHALL keep `VOICE_REFERENCES` (count, names) equal to the list pinned in the test at step 1; AND
   SHALL import `src/data/t4-reference.ts` from no non-test file other than `src/prompts/generate.ts` (a scan of
@@ -178,7 +188,7 @@ assertion failing; if it exits 0 the test is vacuous and gets rewritten.
 | T2 | block returned for every tier | `... "T4 reference T2"` | non-T4 prompt contains `REFERENCE LEAD: T4` |
 | T3 | `urgent` branch inverted | `... "T4 reference T3"` | wrong OPENING line for the band |
 | T4 | delete the `NO INVENTED FACTS` line (repeat for each of the four literals) | `... "T4 reference T4"` | missing literal line |
-| T5 | restore `A 50% deposit holds the date.` in the reply (repeat: a `$` figure; the word `played`) | `... "T4 reference T5"` | `50%` / dollar / D6-word check |
+| T5 | restore `A 50% deposit holds the date.` in the reply (repeat: a `$` figure; `played` added to the sentence that names the Del) | `... "T4 reference T5"` | `50%` / dollar / D6-word check |
 | T6 | add the reply to `VOICE_REFERENCES`; separately, import the block in `verify.ts` | `... "T4 reference T6"` | VOICE_REFERENCES count / import-graph / verify-prompt check |
 | T7 | set R329 PORTED in the manifest | `... "T4 reference T7"` | R329 status assertion |
 | T8 | scratch-repo copy of a real claim sentence (control) | `npx tsx scripts/check-venue-history.ts` with `CHECK_REPO_ROOT=<scratch>` | exit 1 (a window found) |
@@ -240,6 +250,10 @@ Plan review round 1 (re-run 2026-10-12): NO-GO, recorded in `docs/reviews/2026-1
 (the 2026-10-11 run A was lost; this replaces it). Round 2 verifies ONLY the named fixes in the Revision 1 table (2
 runs: Claude Code's prompt, Alex runs it twice; stricter verdict wins). Pre-registered stops: a 2nd NO-GO stops
 automatic iteration (round 3 only with Alex's yes); a 3rd NO-GO is the hard cap, no round 4.
+
+**Round 2 (2026-10-12): NO-GO, one P1** (T5 contradicted the verbatim example; 6 of 7 fixes FIXED, P2-7 fixed but
+introduced it). Recorded in `docs/reviews/2026-10-12-t4-reference-plan-codex-round2.md`. Fixed in Revision 1b. This is
+the 2nd NO-GO on this plan, so **automatic iteration has stopped**: round 3 runs only with Alex's written yes.
 
 ## Questions for Alex (do not block the build)
 
