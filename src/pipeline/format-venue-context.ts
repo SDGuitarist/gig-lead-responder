@@ -17,7 +17,7 @@ import { VENUE_CONTEXT_HEADER } from "../constants.js";
  * How the drafter may use the section (plan 2026-10-11, D1; pinned byte for byte by src/pf-intel-context.test.ts).
  * Inside the section, before its closing "---", so it can never be read as applying to a later section.
  */
-export const PF_INTEL_USAGE = "These are public facts about the venue from PF-Intel, not Alex's experience. Use a policy only to answer a logistics concern before the client asks, stated as a fact about the venue or as Alex's plan (for example: \"The venue's outdoor curfew is 10 PM, so I'll plan the last set to finish by 9:45.\"). Never say or imply that Alex knows, has played, has been to, or is familiar with this venue, its rooms, its staff or its load-in. Only Alex's own venue-history section, when one appears further down, allows that.";
+export const PF_INTEL_USAGE = "These are public facts about the venue from PF-Intel, not Alex's experience. Use a policy only to answer a logistics concern before the client asks, stated as a fact about the venue or as Alex's plan (for example: \"The venue's outdoor curfew is 10 PM, so I'll plan the last set to finish by 9:45.\"). Never say or imply that Alex knows, has played, has been to, or is familiar with this venue, its rooms, its staff or its load-in. Only Alex's own venue-history section, when one appears further down, allows that. Describe the venue only with these facts and the client's own words: no rooms, spaces, features, decor or layout from anywhere else.";
 
 export function formatVenueContext(venue: VenueContext): string {
   const sections: string[] = [];

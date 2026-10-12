@@ -35,7 +35,7 @@ test("F3: events and contacts with no policies produce no section at all", () =>
 });
 
 // --- F1, F4: the usage text (D1, pinned byte for byte) and where each permission sits (Revision 2 section bounds) ---
-const D1 = "These are public facts about the venue from PF-Intel, not Alex's experience. Use a policy only to answer a logistics concern before the client asks, stated as a fact about the venue or as Alex's plan (for example: \"The venue's outdoor curfew is 10 PM, so I'll plan the last set to finish by 9:45.\"). Never say or imply that Alex knows, has played, has been to, or is familiar with this venue, its rooms, its staff or its load-in. Only Alex's own venue-history section, when one appears further down, allows that.";
+const D1 = "These are public facts about the venue from PF-Intel, not Alex's experience. Use a policy only to answer a logistics concern before the client asks, stated as a fact about the venue or as Alex's plan (for example: \"The venue's outdoor curfew is 10 PM, so I'll plan the last set to finish by 9:45.\"). Never say or imply that Alex knows, has played, has been to, or is familiar with this venue, its rooms, its staff or its load-in. Only Alex's own venue-history section, when one appears further down, allows that. Describe the venue only with these facts and the client's own words: no rooms, spaces, features, decor or layout from anywhere else.";
 const FORBIDDEN = ["you may say so", "has performed", "insider", "played this room", "track record", "i've played", "i've performed"];
 const PERMISSION = "Alex has performed at this venue. You may say so.";
 const SEP = "\n\n---\n\n"; // selectContext's section separator
