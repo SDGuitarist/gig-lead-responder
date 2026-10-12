@@ -48,7 +48,7 @@ unpushed (the State line's "0 ahead" is stale), set 4 NOT run yet.** Decision 1 
 still open.
 
 **Update 3 (session gig-lead-responder-22, after set 4; supersedes the two statements above that are wrong):**
-`c5a1272` was written by THIS session, not a peer, and **set 4 HAS run** (`ddc3d79`, runs doc): 0 copied windows and
+`c5a1272` was written by THIS session, not a peer, and **set 4 HAS run** (`96650d2`, runs doc; was `ddc3d79` before the 2026-10-12 history rewrite): 0 copied windows and
 no clock time of the draft's own in all T4 drafts; t1 and t3 PASS (their venue statements trace to the confirmed
 private entry and to real PF-Intel setup/policy data); **t2 is a literal FAIL on one number: the COI "within 24
 hours of booking"** (the model's own COI timeline; "a day" in sets 1-3), which is the COI item below, not the block.
