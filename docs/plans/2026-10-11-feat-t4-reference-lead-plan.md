@@ -1,7 +1,7 @@
 ---
 title: "T4 reference lead: Alex's corporate reply as a structure the drafter follows (port manifest R020-R025, R329)"
 date: 2026-10-11
-status: plan, Revision 1b (plan R1 NO-GO 5 P1 / 2 P2, fixed in Revision 1; plan R2 NO-GO 1 P1, fixed in 1b; round 3 is Alex's call)
+status: plan, Revision 1c (plan R1 NO-GO 5 P1 / 2 P2, fixed in Revision 1; plan R2 NO-GO 1 P1, fixed in 1b; review closed by Alex; 1c: t1 replaced and mandated windows excluded after two failed smoke sets)
 branch: feat/hub-phase0
 rows: R020 R021 R022 R023 R024 R025 R329
 ---
@@ -38,6 +38,13 @@ but the approved reply says "familiar songs", so T5 could not pass. Fix: the D6 
 name the Del, and `familiar` is now `familiar with`. Checked by running the rule over the reply's text: 2 sentences
 name the Del, 0 hits; the old whole-reply rule hit exactly one word (`familiar`); a known-positive ("I've played the
 Del's beach before.") fires. Record: `docs/reviews/2026-10-12-t4-reference-plan-codex-round2.md`.
+
+**Revision 1c (2026-10-12), after two failed smoke sets, Alex's decisions:** (1) t1 was the example's own setting
+(a beach bonfire at the same hotel), so its physical problem and image matched legitimately; t1 is replaced by a
+terrace reception at The Lodge at Torrey Pines (Execution Path). (2) Mandated text is cut out before the copy windows
+are taken. The retired t1's two FAIL sets stay in `docs/reviews/2026-10-12-t4-reference-local-runs.md`. Also his
+calls, each its own item: the 6-day `short` band miss (classifier) and the COI "within a day" (post-check). Plan was
+pre-registered here BEFORE set 3 ran.
 
 ## What the source holds (read 2026-10-11 in `~/Data`; only the approved anonymized reply is copied below)
 
@@ -222,7 +229,7 @@ assertion failing; if it exits 0 the test is vacuous and gets rewritten.
 
 | Lead | Text (copy as is) | Expected |
 |---|---|---|
-| **t1** | `Hi Alex, I'm planning a leadership offsite for 40 people and we'd like live music at a beach bonfire reception at the Hotel del Coronado on Sunday, October 18, 2026, from 5 to 7pm. We'd like a solo guitarist. Could you send availability and pricing? Thanks, Maria Lopez, Cobalt Ridge Partners (events team)` | T4; `urgent` (6 days); solo guitar, 2 h; 40 guests; price line $1,350 (floor $1,200); payment sentence = `PAYMENT_SENTENCES.full`; OPENING availability first; a venue claim only from the VENUE HISTORY section |
+| **t1** (replaced 2026-10-12, Alex) | `Hi Alex, I'm the office manager at Larkspur Biologics and we're hosting a partner appreciation reception for 60 people at The Lodge at Torrey Pines on Wednesday, October 21, 2026, from 5 to 7pm, on the terrace. We'd like live background music, ideally a solo guitarist. Could you send your availability and pricing? Thanks, Elena Ruiz` | T4; `urgent` (9 days); solo guitar, 2 h; 60 guests; price line $1,350 (floor $1,200); payment sentence = `PAYMENT_SENTENCES.full` (9 days); OPENING availability first; a venue claim only from the VENUE HISTORY section; **a different setting from the example (terrace, not beach)** |
 | **t2** | `Hello, I'm the executive assistant to the CEO of Northpoint Capital. We're hosting a client dinner for 30 guests on Friday, October 16, 2026, outdoors on the terrace of the five-star Example Grand Resort in La Jolla, 6 to 8pm. We'd like a Spanish or classical guitarist. What are your availability and rates? Thank you, Priya Shah` | T4; `urgent` (4 days); solo guitar, 2 h; 30 guests; $1,350 (floor $1,200); payment = full; NO time or number not in the lead (the 6 and 8pm are given; no sunset time); NO "played there" or any claim about the resort |
 | **t3** | `Hello Alex, our firm is hosting a holiday client dinner for 70 guests at the Fairmont Grand Del Mar on Thursday, December 17, 2026. We'd like a guitarist for the cocktail hour and dinner, about 3 hours starting at 6pm. Could you share your availability and your rate? Best, Daniel Okafor, Meridian Wealth Group` | T4; `comfortable` (66 days); solo guitar, 3 h; 70 guests; $1,800 (floor $1,600); payment = `PAYMENT_SENTENCES.twoMonths` (NOT the example's "Full payment..."); OPENING cinematic first; fact-only venue content from the history section, no invented rooms |
 | **t4** (control) | `Hi Alex, my husband is turning 50 and I'm planning a surprise backyard birthday party for 35 guests at our home in Point Loma on Saturday, November 14, 2026, 5 to 8pm. Could you play guitar for 2 hours? Thanks, Jenny` | NOT T4 (T2 or T3); generate prompt has no `REFERENCE LEAD: T4`; draft has no T4 structure |
@@ -232,8 +239,13 @@ assertion failing; if it exits 0 the test is vacuous and gets rewritten.
   2. the draft's price equals the price line, the payment sentence equals the expected constant (exact), and the
      compressed draft carries it too;
   3. **copy check:** any 30-character window shared with `T4_REFERENCE_REPLY` (whitespace collapsed; the leak
-     scan's window method), AND any of the example's distinctive phrases or a close paraphrase, read by hand:
-     "put the agenda down", "fire taking over", "swallow a guitar", "last daylight", "smart call";
+     scan's window method), **taken after mandated text is cut out of the draft (Revision 1c, Alex 2026-10-12):**
+     every `PAYMENT_SENTENCES` value, any "Want me to lock (it) in ...?" close and the "Alex Guillen" sign-off are
+     replaced by a separator before windows are taken, so text the app mandates cannot count as a copy; AND any
+     of the example's distinctive phrases or a close paraphrase, read by hand: "put the agenda down" (and the word
+     "agenda"), "fire taking over", "swallow a guitar", "last daylight", "smart call", "set levels from where your
+     guests sit". Self-test before use: a draft overlapping the reply only in those three mandated texts reports 0;
+     a draft with a copied clause reports it.
   4. **number trace:** every time, date, count and dollar figure in the draft traced to the lead or the price line;
   5. **venue-claim paraphrase pass (D6):** the draft has none of `played`, `performed`, `last time`, `again`,
      `familiar with`, `returning`, `back at` in a sentence naming the venue unless a VENUE HISTORY section names it;
