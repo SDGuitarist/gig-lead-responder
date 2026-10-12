@@ -124,3 +124,5 @@ Checks that now pass
 
 Because this is the second NO-GO, automatic iteration stops. Round 3 requires Alejandro's explicit authorization; I am not generating a round-3 review prompt.
 ```
+
+**Alex, 2026-10-11:** no plan round 3 ("Start building"). Revision 2 (`4afca19`) fixes all four findings; the code review covers the tests and their mutations, and the F5 record is read by Alex.
