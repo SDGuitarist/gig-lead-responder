@@ -99,7 +99,7 @@ R329 is a chat banner in another file ("proceed to DRAFT_METHOD.md").
     by `paymentLine(paymentTerms)` at `generate.ts:272`, exact text confirmed by `post-check`), em-dashes removed
     after drafting (`src/run-pipeline.ts`, `src/pipeline/post-check.ts`). The block adds only the missing one: never
     mention battery-powered sound. The deposit is NOT a rule the block owns (D7).
-  - Word counts (R025 deviation 1): the example runs 142 words; drafts keep the word limits in the drafting steps.
+  - Word counts (R025 deviation 1): the example runs 141 words (142 before Revision 1's payment sentence, which is one word shorter); drafts keep the word limits in the drafting steps.
   - The price comes from the PRICE LINE section only (the example's `[QUOTED_PRICE]` is not a price).
   - The example, wrapped with the existing `wrapVoiceReference(1, "t4_corporate", T4_REFERENCE_REPLY)`.
 - **D3 R022 (fill-in template):** PORTED as the 7 steps; the bracketed template itself is NOT shipped (a model given
