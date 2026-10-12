@@ -30,6 +30,15 @@ wins (`src/prompts/classify.ts` Step 2.75):
 The model judges both from prose every run, so the tier is a coin flip at the edge. No past quote settles it (Gmail
 both accounts and calendar checked 2026-10-12; platform threads not visible).
 
+## Revision 4 (Alex, 2026-10-12, during work; no plan-review round: the cap fired, the code review covers it)
+
+A heads-up showed "any Saturday" made every Saturday event at Coasterra premium, even a 20-person lunch. **Alex:
+Coasterra is premium only with 100+ guests or a corporate event; Saturday does not count.** Changes: D1 Coasterra
+rule and prompt text "100+ guests or corporate"; the date is no longer read for Tier B (the strict-date rule and B5's
+date cases now assert that the date does not matter); a Coasterra lead with guests unknown and not corporate holds
+("guests not stated"). B13's tb3 (Coasterra, Saturday, 40 guests, noon): expected standard with no note, or held if the
+model prices it premium ("own rule says standard; priced premium"). Commit after the plan: the code change.
+
 ## Revision 3 (after Codex PLAN round 3 = NO-GO on both runs, the hard cap; Alex: fix and build, no further plan review; `docs/reviews/2026-10-12-tier-b-plan-codex-round3.md`)
 
 | # | Finding | Change |
