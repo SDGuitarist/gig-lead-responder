@@ -38,6 +38,11 @@ here" (with his own details: rooms, event types, load-in, sound) is stronger tha
 1. Evidence bar: is a calendar entry at a venue enough to say "Alex has performed here" (fact only), with a sentence
    only from Alex?
 2. Where it lives: stays in `~/Data` (private) as the single source; does PF-Intel read from it or stay separate?
+   **Decide this first (2026-10-11):** since commit `e573f6c` drafts never see PF-Intel's past-event counts or
+   contact names (plan `docs/plans/2026-10-11-fix-pf-intel-facts-are-not-alexs-experience-plan.md`, D2), only its
+   vendor policies. A draft can say Alex played a venue ONLY through `~/Data/gig-lead-responder/venue-history.json`.
+   So a history built into PF-Intel alone would never reach a draft; it must land in (or be exported to) the private
+   venue file, with Alex's yes on each sentence.
 3. Matching at scale: hundreds of names and aliases raise the false-match risk (one-direction rule, must-miss list).
 4. Privacy: the extraction reads client mail and calendars; what is kept (venue, date, event type) and what is never
    copied (names, emails, prices)?
