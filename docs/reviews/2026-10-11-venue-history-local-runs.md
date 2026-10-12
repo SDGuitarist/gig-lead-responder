@@ -190,3 +190,9 @@ the last of the afternoon light", "the courtyard filling with 110 guests"). No m
 varies run to run; pre-existing).
 
 **Alex, 2026-10-11: accepted.** F5 is recorded as failed on one borderline line (s3c), with claims 3+3 -> 0+1 across the two runs; every lead is held for Alex before sending. Next: Codex code review.
+
+**Correction (2026-10-11, after PF-Intel code review round 2):** Alex confirmed he HAS played Estancia La Jolla (his
+real Starikov reply lists it; now in the private venue file as a fact only). So the pre-fix pv2 line "I know the Estancia
+courtyard" and every Estancia judgment above were made against a venue file that was missing a true venue: those
+Estancia lines were not false claims. Tom Ham's, Catamaran and Rancho Bernardo Inn are still not in the file, so their
+judgments stand (including the round 1 Tom Ham's claims and the s3c Catamaran borderline line).
