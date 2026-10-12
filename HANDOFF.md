@@ -68,6 +68,18 @@ request."; a timeline only when the client requires one). It waits on two answer
 (timeline sentence vs always the default) and his yes on the exact words incl. the T4 example's COI sentence.
 A narrow Codex code-review round-1 prompt for the T4 work was prepared (scratch file; HEAD is pinned in it).
 
+**Update 5 (session gig-lead-responder-22):** **Codex CODE review round 1 = NO-GO (1 P1, 2 P2), all fixed**
+(record `docs/reviews/2026-10-12-t4-reference-code-codex-round1.md`): P1 the reference was still on in the
+large-budget-gap, graceful-decline and past-date modes (`378b790`, 3 regression tests + mutations + positive
+controls; the SMALL-gap mode is deliberately kept: it has one price); P2 T7 now ties each PORTED row's marker to a test
+body (`4d43084`); P2 T5 asserts a structural proper-noun boundary instead of embedding the private name (`ffbeba0`).
+A round-2 prompt (narrow, named fixes only) is the next step. **Privacy finding (Alex's heads-up):** the leak check
+only sees 30-character windows; a shingle scan found a few short quoted fragments of venue statements in the runs
+record, some ALREADY PUSHED (they sit in `e000182`, `af35e74`-era text and in `3009cb6`). They are plain descriptions
+now (`8f7f5c7`). **Alex's call:** force-push to remove them from GitHub history (rewrites shared history; I recommend
+NOT, since the fragments are 2-4 words describing the kind of statement and the same repo already carries his public
+voice examples), or leave. Nothing was pushed after `3009cb6`.
+
 **Open decisions for Alex:**
 1. **The 5:15 finding. [ANSWERED and applied in `c5a1272`; set 4 passes it.]** It is not a looked-up fact (the example's sunset was). Two honest routes: (a) one more
    wording iteration of the block ("use only the times the lead states; put no clock time of your own on a moment
