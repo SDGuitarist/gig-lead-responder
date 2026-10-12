@@ -30,6 +30,16 @@ wins (`src/prompts/classify.ts` Step 2.75):
 The model judges both from prose every run, so the tier is a coin flip at the edge. No past quote settles it (Gmail
 both accounts and calendar checked 2026-10-12; platform threads not visible).
 
+## Revision 6 (Alex, 2026-10-12, after code review round 2 GO; a heads-up)
+
+The notes said "Alex picks" but nothing switches the draft's price: approving sends the AI's price, and the notes did
+not all say which price that is. **Alex: both fixes.** (1) Now: every `tier_b:` note names the price the draft uses,
+from the run's own pricing (`clientTotal(pricing, pricing.quote_price)`): "draft uses <tier> $<x>" before the two
+candidate prices; `tierBHold` takes the run's `pricing`. (2) Later: a "use this price" action that re-drafts at the
+other tier, logged in `docs/END-TO-END-STATUS.md` as a Module 1 approvals item (it needs the approve/edit flow).
+Test: every held case's note contains "draft uses <its tier> $<its price>"; mutation: the price taken from the other
+tier fails it.
+
 ## Revision 5 (Alex, 2026-10-12, after code review round 1 GO on both runs; reviewed in code round 2)
 
 Alex asked whether every venue should share one premium rule. **Alex: one shared rule for Coasterra, Tom Ham's
