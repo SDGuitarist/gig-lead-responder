@@ -1,7 +1,7 @@
 ---
 title: "T4 reference lead: Alex's corporate reply as a structure the drafter follows (port manifest R020-R025, R329)"
 date: 2026-10-11
-status: plan, Revision 1c (plan R1 NO-GO 5 P1 / 2 P2, fixed in Revision 1; plan R2 NO-GO 1 P1, fixed in 1b; review closed by Alex; 1c: t1 replaced and mandated windows excluded after two failed smoke sets)
+status: plan, Revision 1d (plan R1 NO-GO 5 P1 / 2 P2, fixed in Revision 1; plan R2 NO-GO 1 P1, fixed in 1b; review closed by Alex; 1c: t1 replaced and mandated windows excluded after two failed smoke sets)
 branch: feat/hub-phase0
 rows: R020 R021 R022 R023 R024 R025 R329
 ---
@@ -45,6 +45,12 @@ terrace reception at The Lodge at Torrey Pines (Execution Path). (2) Mandated te
 are taken. The retired t1's two FAIL sets stay in `docs/reviews/2026-10-12-t4-reference-local-runs.md`. Also his
 calls, each its own item: the 6-day `short` band miss (classifier) and the COI "within a day" (post-check). Plan was
 pre-registered here BEFORE set 3 ran.
+
+**Revision 1d (2026-10-12), after set 3 (0 copied windows; t1 failed on "By 5:15", a scene time inside the stated
+window), Alex: "do it, your recommendation":** the block's NO INVENTED FACTS paragraph gains "Use only the times the
+lead states. Put no clock time of your own on a moment inside their window". New test `T4 reference T4 allows only the
+times the lead states ...` with its mutation. The threshold, the four leads, the copy check (with Revision 1c's
+exclusion) and the expected values are unchanged; set 4 runs on them, pre-registered here.
 
 ## What the source holds (read 2026-10-11 in `~/Data`; only the approved anonymized reply is copied below)
 

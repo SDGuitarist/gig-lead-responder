@@ -97,6 +97,11 @@ describe("T4 reference T4: the rule lines are literal", () => {
     assert.ok(block.includes("PAYMENT: the sentence comes from the Quote Terms section only"));
   });
 
+  it("T4 reference T4 allows only the times the lead states and no clock time of the draft's own", () => {
+    assert.ok(block.includes("Use only the times the lead states."));
+    assert.ok(block.includes("Put no clock time of your own on a moment inside their window"));
+  });
+
   it("T4 reference T4 forbids mentioning battery-powered sound", () => {
     assert.ok(block.includes("Never mention battery-powered sound"));
   });

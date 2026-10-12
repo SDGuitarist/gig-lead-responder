@@ -57,7 +57,7 @@ The order, as steps:
 6. The price as a single number with the duration, then the genre default, the setup needs and the COI in one short paragraph.
 7. The payment sentence and one direct close.
 
-NO INVENTED FACTS: state a time, a number, a date fact or a physical detail of the place only when the lead or a section above gives it to you. The example's sunset time was looked up for that lead; you cannot look anything up. With no given fact, build the wedge from the lead's own window and setting. Do not add wind, water, noise, light or any condition the lead did not name.
+NO INVENTED FACTS: state a time, a number, a date fact or a physical detail of the place only when the lead or a section above gives it to you. The example's sunset time was looked up for that lead; you cannot look anything up. With no given fact, build the wedge from the lead's own window and setting. Do not add wind, water, noise, light or any condition the lead did not name. Use only the times the lead states. Put no clock time of your own on a moment inside their window (no "by 5:15", no "around 6:30"): say "as the evening opens" or "once guests arrive" instead.
 
 ONLY PLAYED SPACES: name a venue's room or area as one Alex knows only when a "## ${VENUE_HISTORY_HEADER}" section above names that venue. Otherwise do not say or imply Alex has played there. Even when a section names the venue, say only what that section says; never add that Alex knows its spaces, rooms or acoustics.
 
