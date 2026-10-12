@@ -446,16 +446,26 @@ export function t4FallbackHold(classification: Pick<Classification, "rate_card_t
 // decides from the guest count alone (a copied number) and never writes the tier; every note names both rate-card
 // prices. Shared venues: 100+ guests is premium; under 100 or unknown is held for Alex, the AI's corporate call shown.
 export function tierBHold(classification: Classification, rawText: string,
-  pricing: Pick<PricingResult, "quote_price" | "travel">, travelData?: TravelFeeData | null): string | null {
+  pricing: Pick<PricingResult, "quote_price" | "travel" | "duration_hours" | "budget" | "residency">,
+  travelData?: TravelFeeData | null): string | null {
   if (classification.nonprofit_buyer === true || classification.format_recommended === "unresolved") return null;
+  // A residency is its own B2B product (its rate or no price, never a T2/T3 private-event price) and is already held by
+  // its residency: note, so the Tier B rule does not apply (Revision 6b, code review round 3).
+  if (pricing.residency) return null;
   const venue = matchTierB(classification.venue_name, rawText);
   if (!venue) return null;
   const at = (tier: "T2" | "T3") => {
     const p = lookupPrice({ ...classification, rate_card_tier: tier }, travelData);
     return clientTotal(p, p.quote_price);
   };
-  // Revision 6 (Alex): name the price the draft actually uses; approving sends it as written.
-  const both = `draft uses ${classification.rate_card_tier} $${clientTotal(pricing, pricing.quote_price)}; T2 $${at("T2")} / T3 $${at("T3")}`;
+  // Revision 6/6b (Alex): name what the draft actually offers, as buildGeneratePrompt prices it; approving sends it.
+  const b = pricing.budget;
+  const full = clientTotal(pricing, pricing.quote_price);
+  const draft = b?.tier === "large"
+    ? `draft offers ${b.scoped_alternative.duration_hours}h $${clientTotal(pricing, b.scoped_alternative.price)} first, then ${pricing.duration_hours}h $${full}`
+    : b?.tier === "no_viable_scope" ? "draft quotes no set price (budget redirect)"
+    : `draft uses ${classification.rate_card_tier} $${full}`;
+  const both = `${draft}; T2 $${at("T2")} / T3 $${at("T3")}`;
   const tag = `tier_b: ${venue.name}`;
   const premium = classification.rate_card_tier === "T3" || classification.rate_card_tier === "T4";
   const met = (why: string) => premium ? null : `${tag} own rule says premium (${why}); ${both}`;

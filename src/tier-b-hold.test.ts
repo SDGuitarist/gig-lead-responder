@@ -5,7 +5,7 @@ import { matchTierB } from "./data/venues.js";
 import { setClaudeRequesterForTests } from "./claude.js";
 import { classifyLead } from "./pipeline/classify.js";
 import { readFileSync } from "node:fs";
-import { tierBHold, lookupPrice, clientTotal } from "./pipeline/price.js";
+import { tierBHold, lookupPrice, clientTotal, budgetGapFor } from "./pipeline/price.js";
 import { buildGeneratePrompt } from "./prompts/generate.js";
 import { buildVerifyPrompt } from "./prompts/verify.js";
 import { routeLead } from "./automation/router.js";
@@ -98,14 +98,20 @@ function hold(over: Partial<Classification> & Record<string, unknown>, raw = "",
   const c = lead(over);
   const before = JSON.stringify(c);
   // A clarification lead has no rate table (the pipeline uses a placeholder pricing for it).
-  const pricing = c.format_recommended === "unresolved" ? { quote_price: 0, travel: null } : lookupPrice(c, travel);
+  const pricing = c.format_recommended === "unresolved"
+    ? { quote_price: 0, travel: null, duration_hours: 0, budget: { tier: "none" as const } }
+    : (() => { const p = lookupPrice(c, travel); p.budget = budgetGapFor(c, p); return p; })();
   const note = tierBHold(c, raw, pricing, travel);
   assert.equal(JSON.stringify(c), before, "the check never writes the classification (tier, price inputs)");
   if (note !== null) {
     assert.ok(note.startsWith("tier_b: "), note);
     assert.ok(note.endsWith(`; ${both(c, travel)}`), `both prices: ${note}`);
-    // Revision 6: the note names the price the draft actually uses (the run's own pricing).
-    const draft = `draft uses ${c.rate_card_tier} $${clientTotal(pricing, pricing.quote_price)}`;
+    // Revision 6/6b: the note names what the draft actually offers (as buildGeneratePrompt prices it).
+    const b = pricing.budget;
+    const draft = b.tier === "large"
+      ? `draft offers ${b.scoped_alternative.duration_hours}h $${clientTotal(pricing, b.scoped_alternative.price)} first, then ${pricing.duration_hours}h $${clientTotal(pricing, pricing.quote_price)}`
+      : b.tier === "no_viable_scope" ? "draft quotes no set price (budget redirect)"
+      : `draft uses ${c.rate_card_tier} $${clientTotal(pricing, pricing.quote_price)}`;
     assert.ok(note.includes(`${draft}; ${both(c, travel)}`), `${draft}: ${note}`);
   }
   return note;
@@ -241,4 +247,12 @@ test("B10: runPipeline puts the note in the classification it returns (the objec
     assert.equal(notes.length, 1, JSON.stringify(out.classification.flagged_concerns));
     assert.ok(notes[0].includes("waterfront 50+ buyout rule may apply"), notes[0]);
   } finally { setClaudeRequesterForTests(); }
+});
+
+test("Revision 6b: a residency gets no Tier B note; a budget gap names what the draft actually offers", () => {
+  none({ engagement_type: "residency", residency_tier: "R2", residency_cadence: "weekly", price_asked: true, duration_hours: 2 });
+  assert.ok(hold({ guest_count: 50, stated_budget: 700 })!.includes("draft offers 2h $650 first, then 3h $895; T2 $895 / T3 $1200"),
+    hold({ guest_count: 50, stated_budget: 700 })!);
+  held({ guest_count: 50, stated_budget: 100 }, "draft quotes no set price (budget redirect)");
+  held({ guest_count: 50, stated_budget: 880 }, "draft uses T2 $895");                    // a small gap quotes the full price
 });
