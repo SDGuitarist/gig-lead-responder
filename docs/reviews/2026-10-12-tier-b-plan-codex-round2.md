@@ -171,3 +171,5 @@ visibility, edit-path intent, Tier A boundaries, pricing context, venue coverage
 [Fix prompt omitted here: gate at 65df651; revise the plan only for items 1-6; preserve the settled behavior; no code,
 model runs, network, server, poller, sends or data/leads.db; no round-3 prompt.]
 ```
+
+**Round 3 authorized by Alejandro: YES** (2026-10-12, after Revision 2 `4d13be2`).
