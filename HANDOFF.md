@@ -7,10 +7,9 @@
 **Phase:** Work, Phase 0 **in progress**. 0.1, 0.2 (code), 0.3 (all but the alert half of `invalid_grant alerts`), 0.4, S1, S1-adv done. **0.5 port: 10 TO PORT, 2 BLOCKED** (venues PORTED 2026-10-11; recount with `docs/END-TO-END-STATUS.md` V1). 0.6 DONE, approximate (calendar, both GigSalad accounts, Yelp numbers from Alex; `docs/research/2026-10-02-booking-hub/baseline.md`). S3 PASSED; G1 FAILED (10-03, repeated 10-09) → redesign plan 1.2. **GigSalad portal reading BUILT.** Module 1 not started.
 
 
-## START HERE — T4 reference-lead cycle (2026-10-12): plan R1-R2 NO-GO then closed by Alex; work steps 1-3 DONE; step 4 smoke test FAILED TWICE, waiting on Alex
+## START HERE — T4 reference-lead cycle (2026-10-12): plan R1-R2 NO-GO then closed by Alex; work steps 1-3 DONE; step 4 smoke test: set 3 has 0 copied windows but t1 fails on one untraceable time; waiting on Alex
 
-**State:** branch `feat/hub-phase0`, HEAD = the commit that adds this section (parent `16e0e4c`), **11 commits ahead of origin (`039d38d`); NOT pushed** (push only when
-Alex says). Suite **839 pass / 0 fail / 1 skip**, tsc clean, leak check exit 0. Manifest: 197 present, **171 PORTED,
+**State:** branch `feat/hub-phase0`, **pushed 2026-10-12 (Alex said push)**; origin = local HEAD (0 ahead). Suite **839 pass / 0 fail / 1 skip**, tsc clean, leak check exit 0. Manifest: 197 present, **171 PORTED,
 35 NOT PORTED, 3 TO PORT** (R006, R398, R403), 406 total (`docs/END-TO-END-STATUS.md` V1).
 
 **What was done:** HANDOFF State line fixed (`1e4a70a`). Plan: Codex R1 re-run NO-GO 5 P1/2 P2 (`4c41fa6`, record
@@ -31,24 +30,30 @@ wording iteration + set 2 FAIL on t1 only (`16e0e4c`). **Per the plan's FAIL rul
    the lead gives, a DO NOT REUSE paragraph, venue statements capped at the history section). The example, the tests'
    word lists and the copy check were NOT changed.
 
-**Decisions for Alex (nothing below is started):**
-1. **t1 cannot be told apart from the example by construction:** the lead is the example's own setting (a beach
-   bonfire at the same hotel), so its physical problem and image legitimately match. Keep t1 as is (and accept that a
-   pass needs the model to rephrase the same idea), or change t1 to a different venue and setting so it tests the
-   block and not the example's hotel?
-2. **The copy check's noise:** a 30-character window made only of mandated text (payment sentence + "Want me to lock
-   it in?" + sign-off) fires without being a copy. The plan forbids changing the check after a FAIL; this needs a
-   decision with no draft in front of you. Exclude windows wholly inside mandated sentences, yes or no?
-3. **Classifier miss:** a 6-day event (t1) returns `short`, but Step 5 of `classify.ts` says urgent is under 2
-   weeks; it picks which opening T4 leads get. Its own item (no-block run reproduces it). Start it?
-4. **COI "within a day":** the draft says "within a day of booking"; `docs/RESPONSE_CRAFT.md` says "within a few
-   days". Existing model drift (set 1 and 2, t2). Ignore, or add a post-check?
-5. **Code review anyway?** The plan blocks it while the smoke test fails. Run set 3 first, or send the code to
-   Codex now with the two FAIL sets recorded as known?
-6. Push.
+**Alex's answers, 2026-10-12 (applied):** t1 replaced by a terrace reception at The Lodge at Torrey Pines (Plan
+Revision 1c, pre-registered `ead1814`); mandated text (payment sentences, "Want me to lock (it) in", sign-off) is
+cut before copy windows are taken; set 3 run; push done. **Set 3** (`docs/reviews/2026-10-12-t4-reference-local-runs.md`,
+`af35e74`): **0 copied windows in all 8 drafts**; t1 classified urgent (9 days); venue statements trace to the
+confirmed private entry; **t1 still fails the pre-registered rule on one item: "By 5:15" (a scene time inside the
+stated 5 to 7pm window, in both drafts)**. t2, t3 and the t4 control pass (notes: COI "within a day"; "bossa nova"
+echo; "talk to each other").
 
-**Next phase:** Work (plan step 4 not passed). Do not write a Codex code-review prompt until decisions 1, 2 and 5 are
-answered.
+**Open decisions for Alex:**
+1. **The 5:15 finding.** It is not a looked-up fact (the example's sunset was). Two honest routes: (a) one more
+   wording iteration of the block ("use only the times the lead states; put no clock time of your own on a moment
+   inside their window"), then set 4; (b) amend the rule to "no looked-up facts" and accept scene times. I recommend
+   (a): it keeps the rule you set, and the failure is one sentence of wording. Your call; I did not change anything.
+2. **Codex code review.** The plan blocks it while the smoke test fails; you said run set 3 first. Now: set 4 first,
+   or send the code with the three recorded sets as known?
+3. **COI "within a day" post-check (you said add it):** needs YOUR exact sentence. The app text says "within a few
+   days"; the safe design is the payment pattern (app writes the fixed sentence, post-check confirms exact text), and
+   a sentence Alex says is his. What is the COI sentence, and for which leads?
+4. **Classifier band miss (you said start it):** queued as its own cycle, not started. First step: reproduce 6 days
+   out returning `short` on the real model with the plain `classify` prompt, then fix Step 5 wording and add a
+   fixed-date test. Say "go" to start it.
+
+**Next phase:** Work (plan step 4 not passed). Do not write a Codex code-review prompt until open decisions 1 and 2
+are answered.
 
 ### Three Questions (T4 reference-lead work phase)
 1. **Hardest implementation decision?** Gating the block on `quoteTermsOff`, which the plan never mentioned: without
@@ -66,14 +71,16 @@ Work in /Users/alejandroguillen/Projects/gig-lead-responder.
 FIRST gate (stop and ask Alex if anything differs):
   pwd; git branch --show-current                            # expect: feat/hub-phase0
   git rev-parse --short HEAD; git status --short            # expect: HANDOFF's last commit; clean
-  git log --oneline origin/feat/hub-phase0..HEAD | wc -l    # expect: 11 (not pushed)
+  git log --oneline origin/feat/hub-phase0..HEAD | wc -l    # expect: 0 (pushed 2026-10-12)
 Read: HANDOFF.md "START HERE — T4 reference-lead cycle", docs/reviews/2026-10-12-t4-reference-local-runs.md,
-docs/plans/2026-10-11-feat-t4-reference-lead-plan.md (Revision 1b), CLAUDE.md.
-Ask Alex for his answers to the six decisions in that HANDOFF section BEFORE touching anything. Then, by answer:
-  - t1 / copy-check decisions: edit the plan (Revision 1c) with his words, then run set 3 with the scratch runner
-    pattern in the runs doc (real model, scratch DATABASE_PATH, today pinned 2026-10-12), self-testing the checks first.
+docs/plans/2026-10-11-feat-t4-reference-lead-plan.md (Revision 1c), CLAUDE.md.
+Ask Alex for his answers to the four open decisions in that HANDOFF section BEFORE touching anything. Then, by answer:
+  - 5:15 / wording: edit `buildT4ReferenceBlock` wording only (never the example, the tests' word lists or the copy
+    check), run tests + mutation checks, then set 4 with the scratch runner pattern in the runs doc (real model,
+    scratch DATABASE_PATH, today pinned 2026-10-12, self-test the checks first; the t1 lead is in the plan).
   - Only when the smoke test passes, or Alex says "review anyway": write the Codex CODE round-1 prompt (run
-    tools/check_handoff_prompt.py round1 on it yourself and read it by eye).
+    ~/.claude/tools/check_handoff_prompt.py round1 on it yourself, with the mode argument, and read it by eye).
+  - COI post-check: only with Alex's exact sentence. Classifier band: his "go".
 Rules: never invent a price; never commit venue sentences or private claims; a round-3 NO-GO is the hard cap.
 ```
 
