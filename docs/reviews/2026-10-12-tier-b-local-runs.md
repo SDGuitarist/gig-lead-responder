@@ -11,3 +11,8 @@ lookups are live reads. **Reader and trigger:** the Codex code-review prompt; Al
 - tb2 (Tom Ham's, 120 guests, Wednesday 6 PM) x2 and tb3 (Coasterra, Saturday, 40 guests, noon) x2: T3, or held with
   both prices; never an unflagged T2.
 - Stop and report to Alex on any miss.
+
+**Amendment before the tb3 runs (Alex, plan Revision 4):** Coasterra is premium only with 100+ guests or corporate.
+tb3 (Coasterra, Saturday, 40 guests, noon) is now expected **standard with no Tier B note**, or held with "own rule
+says standard; priced premium" if the model prices it T3. tb1 x5 and tb2-1 ran on `62929e0` before this change
+(Tom Ham's logic unchanged); tb2-2 and tb3 x2 run on the Revision 4 code.
