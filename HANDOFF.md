@@ -47,17 +47,32 @@ recommendation" (FROM THE PLAN DOC, not heard in this save session). **State is 
 unpushed (the State line's "0 ahead" is stale), set 4 NOT run yet.** Decision 1 below is therefore answered; 2-4 are
 still open.
 
+**Update 3 (session gig-lead-responder-22, after set 4; supersedes the two statements above that are wrong):**
+`c5a1272` was written by THIS session, not a peer, and **set 4 HAS run** (`ddc3d79`, runs doc): 0 copied windows and
+no clock time of the draft's own in all T4 drafts; t1 and t3 PASS (their venue statements trace to the confirmed
+private entry and to real PF-Intel setup/policy data); **t2 is a literal FAIL on one number: the COI "within 24
+hours of booking"** (the model's own COI timeline; "a day" in sets 1-3), which is the COI item below, not the block.
+t1's band came back `short` again at 9 days (it was `urgent` in set 3): the classifier miss is intermittent.
+State: **local HEAD is {N} commits ahead of origin (`e000182`); the new commits are NOT pushed** (Alex's "then push"
+covered the set 3 batch; push again only when he says).
+
 **Open decisions for Alex:**
-1. **The 5:15 finding. [ANSWERED, applied in `c5a1272`; set 4 still to run.]** It is not a looked-up fact (the example's sunset was). Two honest routes: (a) one more
+1. **The 5:15 finding. [ANSWERED and applied in `c5a1272`; set 4 passes it.]** It is not a looked-up fact (the example's sunset was). Two honest routes: (a) one more
    wording iteration of the block ("use only the times the lead states; put no clock time of your own on a moment
    inside their window"), then set 4; (b) amend the rule to "no looked-up facts" and accept scene times. I recommend
    (a): it keeps the rule you set, and the failure is one sentence of wording. Your call; I did not change anything.
-2. **Codex code review.** The plan blocks it while the smoke test fails; you said run set 3 first. Now: set 4 first,
-   or send the code with the three recorded sets as known?
-3. **COI "within a day" post-check (you said add it):** needs YOUR exact sentence. The app text says "within a few
+2. **Codex code review. [ANSWERED 2026-10-12: "yes, narrow".]** A narrow round-1 prompt (the block, its insertion
+   and gate, its tests, the manifest rows) is drafted; run it twice and bring both verdicts. The one open smoke item
+   (t2's COI number) is attributed to decision 3 and stated in the prompt as known.
+3. **COI [Alex 2026-10-12: "COI should be only when requested. On leads it should be similar to 'COI available upon
+   request.'"]** Still needs one answer before a plan can be exact: (A) say nothing about COI unless the lead or the
+   venue's policy raises it, and then use the sentence; or (B) every quote ends with "COI available upon request."?
+   Note the approved T4 example reply says "I can send the Del a COI." and RESPONSE_CRAFT says "within a few days":
+   both change if the app owns the sentence. Original note: needs YOUR exact sentence. The app text says "within a few
    days"; the safe design is the payment pattern (app writes the fixed sentence, post-check confirms exact text), and
    a sentence Alex says is his. What is the COI sentence, and for which leads?
-4. **Classifier band miss (you said start it):** queued as its own cycle, not started. First step: reproduce 6 days
+4. **Classifier band miss (you said "yes"):** queued as its own cycle, not started; the miss is intermittent (same
+   9-day lead: `urgent` then `short`), so the first step is a repeat-run measurement, not a one-shot reproduction. First step: reproduce 6 days
    out returning `short` on the real model with the plain `classify` prompt, then fix Step 5 wording and add a
    fixed-date test. Say "go" to start it.
 
@@ -80,7 +95,7 @@ Work in /Users/alejandroguillen/Projects/gig-lead-responder.
 FIRST gate (stop and ask Alex if anything differs):
   pwd; git branch --show-current                            # expect: feat/hub-phase0
   git rev-parse --short HEAD; git status --short            # expect: HANDOFF's last commit; clean
-  git log --oneline origin/feat/hub-phase0..HEAD | wc -l    # expect: 1 (c5a1272 unpushed) plus this handoff commit, unless Alex pushed
+  git log --oneline origin/feat/hub-phase0..HEAD | wc -l    # expect: 4 (not pushed since e000182) unless Alex pushed
 Read: HANDOFF.md "START HERE — T4 reference-lead cycle", docs/reviews/2026-10-12-t4-reference-local-runs.md,
 docs/plans/2026-10-11-feat-t4-reference-lead-plan.md (Revision 1c), CLAUDE.md.
 Ask Alex for his answers to the four open decisions in that HANDOFF section BEFORE touching anything. Then, by answer:
