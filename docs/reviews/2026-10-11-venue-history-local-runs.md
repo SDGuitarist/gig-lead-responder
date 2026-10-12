@@ -72,3 +72,35 @@ Scratch DBs; nothing sent; real model.
 without PF-Intel and does not cover this. The prompt shows vendor policies under "VENUE INTELLIGENCE" with nothing
 saying they are not Alex's experience, and the drafter turns them into first-person familiarity. Gate passed pv3;
 pv1/pv2 failed only on the pre-existing "lands" voice check. No check holds this. Next: Alex's call (see HANDOFF).
+
+## PF-Intel fix: F5/F6 pre-registration (committed before any run; plan Revision 2)
+
+Code under test: `c3a6d28` (D1 usage text inside the PF-Intel section; D2 no past events or contacts).
+Lookups via the app's own `lookupVenueContext` against production PF-Intel, 2026-10-11, non-null vendor-policy fields:
+
+| Venue | Recorded fields | updated_at |
+|---|---|---|
+| Estancia La Jolla | `curfew_time`: "10:00 PM"; `curfew_notes`: "Courtyard events."; `db_limit_notes`: "Keep volume reasonable — residential neighbors."; `coi_required`: true; `coi_details`: "$1M general liability"; `setup_notes`: "Flamenco guitar style works well here. Spanish courtyard aesthetic." | 2026-03-05T02:34:36.964638Z |
+| Tom Ham's Lighthouse | `curfew_notes`: "No strict curfew — events typically end by 11 PM."; `coi_required`: false; `setup_notes`: "Harbor Island location. Load-in from parking lot side." | 2026-03-05T02:34:37.825851Z |
+| Catamaran Resort | `curfew_time`: "10:00 PM"; `curfew_notes`: "Outdoor bay-side events."; `coi_required`: true; `coi_details`: "$1M general liability"; `setup_notes`: "Bay-side setup. Wind can be a factor — secure music stands." | 2026-03-05T02:34:37.341747Z |
+| Rancho Bernardo Inn | `curfew_time`: "10:00 PM"; `curfew_notes`: "Outdoor areas. Aragon ballroom no curfew."; `coi_required`: true; `coi_details`: "$1M general liability"; `setup_notes`: "Multiple event spaces. Confirm exact room for load-in instructions." | 2026-03-05T02:34:36.496171Z |
+
+Positive-control matches (the plan's field table applied to these values): a curfew of **10 PM** (Estancia, Catamaran,
+Rancho Bernardo Inn; Tom Ham's: "typically end by 11 PM", no strict curfew); **COI / $1M general liability** required
+(Estancia, Catamaran, Rancho Bernardo Inn; Tom Ham's: not required); setup details: Estancia **courtyard**,
+**residential neighbors / keep volume reasonable**, **flamenco suits the Spanish courtyard**; Tom Ham's **Harbor Island**,
+**load-in from the parking lot side**; Catamaran **bay-side**, **wind / secure music stands**; Rancho Bernardo Inn
+**multiple event spaces**, **confirm the exact room for load-in**, **Aragon ballroom has no curfew**. A different value for
+a recorded field (e.g. an 11 PM curfew at Estancia) is a contradiction and fails F5.
+
+Leads (made up; no venue in Alex's venue file except F6):
+
+| Run ids | Venue | Lead |
+|---|---|---|
+| s1a s1b s1c | Estancia La Jolla | Hi there, company holiday party at Estancia La Jolla on Friday, December 10, 2027, 80 people, 6:30-9:30pm. We would like a flamenco guitar duo. Best, Marcus |
+| s2a s2b s2c | Tom Ham's Lighthouse | Hi! Planning my parents 40th anniversary dinner at Tom Hams Lighthouse on Sunday, April 18, 2027, 50 guests, 5-8pm. Solo guitar, romantic Latin music. - Priya |
+| s3a s3b s3c | Catamaran Resort | Hi there, we are planning our wedding cocktail hour at Catamaran Resort on Saturday, June 19, 2027, about 90 guests, 5-6:30pm. Looking for a Spanish guitarist. Thank you! Alicia |
+| x1 | Rancho Bernardo Inn | Hello, we are hosting our wedding reception at Rancho Bernardo Inn on Saturday, May 15, 2027, around 120 guests. Looking for a Spanish guitarist for cocktail hour, 5-6pm. Thanks! Jenna |
+| x2 | Estancia La Jolla | Hello! Our wedding ceremony and cocktail hour are at Estancia La Jolla on Saturday, September 25, 2027, 110 guests, 4-6pm. We would love solo Spanish guitar. Thanks, Renee |
+| x3 | Tom Ham's Lighthouse | Hi, our company is hosting a client appreciation evening at Tom Hams Lighthouse on Thursday, February 11, 2027, around 75 people, 6-8pm. Looking for a guitarist for background music. Regards, Daniel |
+| f6 | Hotel del Coronado (in the venue file) | Hi! We are planning a 60th birthday dinner at Hotel del Coronado on Saturday, March 13, 2027, about 70 guests, 6-9pm. Would love a solo Spanish guitarist for dinner. Thanks, Monica |
