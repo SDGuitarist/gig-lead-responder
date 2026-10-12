@@ -43,8 +43,7 @@ export async function selectContext(
   // because lead-specific context should get more attention weight than generic docs.
   const formattedVenue = venueContext ? formatVenueContext(venueContext) : null;
   if (formattedVenue) {
-    sections.push(formattedVenue
-      + "\n\n**How to use this:** Venue intel is your insider edge. If there are past events, reference the venue's track record in your cinematic opening or differentiator (e.g., \"I've played this room before\" or \"events at [venue] tend to...\"). If there are vendor policies (curfew, dB limits, setup rules), preempt logistics concerns by naming them before the client asks. If there are contacts, mention coordination will be smooth.");
+    sections.push(formattedVenue); // its usage text is inside the section (format-venue-context.ts)
   }
 
   // Venues Alex has played (private ~/Data file; port manifest R081-R089, R405). runPipeline and runEditPipeline
