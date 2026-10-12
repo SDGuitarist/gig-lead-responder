@@ -8,8 +8,10 @@
 
 ## START HERE — Tier B venue-pricing cycle COMPLETE (2026-10-12): plan, work, review (R1-R2 GO, R3 NO-GO, R4 at the cap), compound done
 
-**State:** branch `feat/hub-phase0`, **NOT pushed** (origin at `8815785`; push only when Alex says). Suite **811 pass /
-0 fail / 1 skip**, tsc clean, leak check exit 0. ~/Data unchanged this cycle (Estancia `4bc6b09` already pushed).
+**State:** branch `feat/hub-phase0`, **pushed** (origin = local `039d38d`, 0 unpushed, verified 2026-10-12 with
+`git log origin/feat/hub-phase0..HEAD`). Suite **811 pass /
+0 fail / 1 skip** at the Tier B compound (812 / 0 / 1 after the post-cap fix), tsc clean, leak check exit 0. ~/Data
+unchanged this cycle (Estancia `4bc6b09` already pushed).
 
 **What shipped:** at Coasterra, Tom Ham's Lighthouse, Marina Village and Brick, **100+ guests is premium automatically;
 under 100 or unknown is always held with both rate-card prices** (the AI's corporate call shown only in the note;
@@ -33,7 +35,7 @@ until the peak-day decision.
 for rules: `~/Data/gig-lead-responder/Gig_Lead_Response_System_4.0_Extraction.md` (read; never copy into the repo).
 
 **Open, Alex's call:** a Saturday / peak-day price as its own rule (with his calendar data); nonprofit prices (NP1,
-NP3, NP2 3-4h, NP duo); the T4 example's "Full payment holds the date." wording; push.
+NP3, NP2 3-4h, NP duo); the T4 example's "Full payment holds the date." wording. (Push: done, see State.)
 
 **Next:** Alex picks: (a) the T4 reference-lead plan, (b) nonprofit prices once he has numbers, (c) the peak-day
 question.
