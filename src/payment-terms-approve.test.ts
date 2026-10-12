@@ -52,7 +52,8 @@ async function approve(id: number): Promise<{ status: number; code?: string }> {
 }
 
 test("a full draft with no known sentence, or two, is refused before the claim: 409, no send, nothing saved", async () => {
-  for (const bad of [draft("A deposit secures your date."), draft(`${full} ${twoWeeks}`)]) {
+  // "" is a present draft with no sentence (code round 2), not an absent one.
+  for (const bad of [draft("A deposit secures your date."), draft(`${full} ${twoWeeks}`), ""]) {
     const id = lead(draft(twoWeeks), bad);
     const before = sendAttempts();
     assert.deepEqual(await approve(id), { status: 409, code: "payment_terms_unverifiable" }, bad);

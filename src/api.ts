@@ -115,7 +115,7 @@ router.post("/api/leads/:id/approve", approveLimiter, csrfGuard, asyncHandler(as
   }
   // Every present draft is checked; either failing refuses before the claim, and both are saved only together.
   const compressed = refreshPaymentSentence(lead.compressed_draft, terms);
-  const full = lead.full_draft ? refreshPaymentSentence(lead.full_draft, terms) : null;
+  const full = lead.full_draft != null ? refreshPaymentSentence(lead.full_draft, terms) : null;
   for (const r of [compressed, full]) {
     if (r && "error" in r) {
       sendError(res, 409, "payment_terms_unverifiable", r.error);
