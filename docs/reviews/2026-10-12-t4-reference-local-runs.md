@@ -53,7 +53,49 @@ opening, correctly for the band it was given. The band is a classifier defect th
 get; it needs its own item.
 
 **Result: Set 1 FAILS the smoke test. Per the plan: no code review; the block's wording changes (never the check)
-and all four leads re-run; a second FAIL is shown to Alex before a third set.**
+and all four leads re-run; a second FAIL is shown to Alex before a third set (it happened: see set 2).**
+
+## Set 2: code at the wording iteration (block instructions changed; the example, the tests' word lists and the copy check are NOT changed)
+
+**What changed in the block:** the example now comes BEFORE the rules (the rules are the last thing read); step 4
+("one physical problem") applies only when the lead's own details give one; a `DO NOT REUSE` paragraph names the
+example's own moves (sunset line, "agenda" line, surf-and-wind line, its way of setting levels, its genre list); a
+venue statement is capped at what the history section says. Tests, 13 step-1 mutations and the full suite re-run
+green (839 pass, 1 skip).
+
+| Lead | Classification | Payment sentence | Verdict |
+|---|---|---|---|
+| t1 | T4, **short** (urgent expected; same classifier miss) | full x1 in both drafts (OK) | **FAIL** |
+| t2 | T4, urgent, solo 2 h, 30 | full x1 in both (OK) | PASS on copying; one note (below) |
+| t3 | T4, comfortable, solo 3 h, 70 | twoMonths x1 in both, not the example's sentence (OK) | PASS |
+| t4 control | T2, no block in the prompt | twoWeeks x1 in both (OK) | PASS |
+
+- **t1 still copies (full draft):** "I set levels from where your guests are sitting" (the example's clause, one word
+  changed; the 36-character window still matches), and "shedding the day's agenda around a fire" (the example's
+  "put the agenda down" image, which the phrase list missed because the wording moved). "The sky going amber" adds a
+  light condition the lead did not give. The compressed draft repeats the image ("the fire takes over as the light
+  drops"). **This fails the threshold; set 2 fails.**
+- **t2 is copy-clean this time:** the only shared windows are the mandated payment sentence and the standard close.
+  Note, not a copy: the draft promises a COI "within a day of booking" where `docs/RESPONSE_CRAFT.md` says "within a
+  few days" (also in set 1).
+- **t3 is clean:** no shared windows; the venue statement stops at "has performed there" plus a skill claim ("I know
+  how to read a room"); the set 1 overreach ("know the spaces well") is gone.
+- **Retracted:** t1's load-in line (service entrance, golf cart) is real PF-Intel setup data for that venue (a live
+  read, 2026-10-12), not an invented fact.
+- **`verified=false` on t2, t3 and the t4 control (set 2 only):** the app's own voice kill-list rejected one word
+  ("land"/"lands") after the gate's retries. The t4 control has no block, so this is existing model variance, not this
+  feature; set 1 verified on all four.
+
+**Result: two sets, two FAILs (both on t1).** Per the plan, a third set is not run without Alex: see HANDOFF.
+
+**Open for Alex (decisions, not mine):**
+1. **The copy check's noise:** a 30-character window built only of mandated sentences (payment sentence + the
+   standard close + sign-off) fires the mechanical check without being a copy (t1, t2, t3 in both sets). The plan
+   forbids changing the check after a FAIL; it needs a decision made with no draft in front of it.
+2. **t1's band:** a 6-day event comes back `short`; the classifier's own rule says urgent. Separate item.
+3. **Whether t1 can pass at all:** the lead is the example's own setting (a beach bonfire at the same hotel), so the
+   physical problem and the image are legitimately the same; "never copy a clause" and "same setting" pull against
+   each other. A different t1 setting would test the block, not the example's venue.
 
 ## No-block control (code at `1b353f8`, before the block existed; t1 to t3)
 
