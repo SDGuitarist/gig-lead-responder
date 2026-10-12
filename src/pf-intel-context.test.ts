@@ -3,6 +3,9 @@ import assert from "node:assert/strict";
 import { formatVenueContext, PF_INTEL_USAGE } from "./pipeline/format-venue-context.js";
 import { selectContext } from "./pipeline/context.js";
 import { resetVenueHistoryForTests, setVenueHistoryForTests, VENUE_HISTORY_HEADER } from "./venue-history.js";
+import { buildGeneratePrompt } from "./prompts/generate.js";
+import { lookupPrice } from "./pipeline/price.js";
+import { NO_DATE_TERMS } from "./pipeline/payment-terms.js";
 import type { Classification, VenueContext } from "./types.js";
 
 // Plan docs/plans/2026-10-11-fix-pf-intel-facts-are-not-alexs-experience-plan.md (Revision 2). PF-Intel facts are
@@ -87,5 +90,30 @@ test("F4: a venue in both sources gets both sections; the permission appears onc
     assert.ok(at > h && at < hEnd, `permission inside the venue-history section: ${h} < ${at} < ${hEnd}`);
     const [start, end] = pfIntelBounds(ctx);
     assert.ok(!(at > start && at < end), "not inside the PF-Intel section");
+  } finally { resetVenueHistoryForTests(); }
+});
+
+// --- F7 (code review round 1, run B P2; Alex approved the words 2026-10-11): the always-loaded voice guide no longer
+// models a claim about THIS venue. Positive controls: a vendor-policy fact and a confirmed venue-file claim still reach
+// the generate prompt (the edit path builds its context with the same selectContext).
+const VENUE_CLAIM_MODELS = [
+  "I have played this room enough",
+  "Played the rooms he is quoting",
+  "Confident about: experience at this venue, format judgment",
+];
+
+test("F7: no always-loaded line models a claim about this venue; policies and confirmed claims still reach the prompt", async () => {
+  setVenueHistoryForTests({ type: "ok", venues: [{ name: "Example Harbor Hall", aliases: [], claim: "Example confirmed sentence." }] });
+  try {
+    for (const name of ["Example Bay Club", "Example Harbor Hall"]) {
+      const c = lead(name);
+      const prompt = buildGeneratePrompt(c, lookupPrice(c), await selectContext(c, venue({ venue_name: name })), NO_DATE_TERMS);
+      for (const m of VENUE_CLAIM_MODELS) assert.ok(!prompt.includes(m), `${name}: ${m}`);
+      assert.ok(prompt.includes("**Outdoor curfew:** 10:00 PM"), `${name}: vendor policy reaches the prompt`);
+    }
+    const c = lead("Example Harbor Hall");
+    const prompt = buildGeneratePrompt(c, lookupPrice(c), await selectContext(c, venue()), NO_DATE_TERMS);
+    assert.ok(prompt.includes("Example confirmed sentence."), "a confirmed venue-file claim reaches the prompt");
+    assert.ok(prompt.includes(PERMISSION));
   } finally { resetVenueHistoryForTests(); }
 });
