@@ -17,8 +17,8 @@ import { GUT_CHECK_KEYS, type Classification, type TravelFeeData } from "./types
 // The app decides Tier B from plain facts and holds with both rate-card prices when a rule is undecidable or rules
 // disagree. Made-up leads only; no model.
 
-const TIER_B_LINE = "- Tier B venues (premium only with their own signal): Coasterra (100+ guests or corporate), Tom Ham's Lighthouse (100+ guests and starting 5 PM or later), Marina Village (corporate or 75+), Brick (rule not defined yet: Alex reviews). Scripps Seaside Forum and Martin Johnson House are premium for any booking";
-const OLD_LINE = "- Tier B venues (premium only with another signal: 100+ guests, corporate, Saturday evening)";
+const TIER_B_LINE = "- Tier B venues (premium only with 100+ guests or a corporate event): Coasterra, Tom Ham's Lighthouse, Marina Village, Brick. Scripps Seaside Forum and Martin Johnson House are premium for any booking";
+const OLD_LINE = "- Tier B venues (premium only with their own signal)";
 
 test("B1: the classify prompt carries Alex's Tier B rules exactly once, and not the old line", () => {
   const p = buildClassifyPrompt("2026-10-12");
@@ -113,43 +113,47 @@ const none = (over: Partial<Classification> & Record<string, unknown>, raw = "")
   assert.equal(hold(over, raw), null, JSON.stringify(over));
 const SUN = "2027-04-18", SAT = "2027-07-17";
 
-test("B4: Tom Ham's needs BOTH 100+ guests AND a 5 PM+ start; otherwise the waterfront 50+ rule or a missing fact holds", () => {
-  none({ guest_count: 120, event_start_hour: 18, rate_card_tier: "T3" });                                  // B4a
-  held({ guest_count: 120, event_start_hour: 18 }, "own rule says premium (100+ guests and starts 5 PM or later)"); // B4b
-  none({ guest_count: 40, event_start_hour: 18 }); none({ guest_count: 49, event_start_hour: 16 });          // B4c
-  for (const t of ["T2", "T3"] as const) held({ guest_count: 50, event_start_hour: 17, rate_card_tier: t },
-    "own rule says standard; waterfront 50+ buyout rule may apply");                                         // B4d
-  held({ guest_count: 120, event_start_hour: 12 }, "waterfront 50+ buyout rule may apply");
-  held({ guest_count: 120, event_start_hour: null }, "start hour not stated");                               // B4e
-  held({ guest_count: null, event_start_hour: 18 }, "guests not stated");
-  held({ guest_count: null, event_start_hour: 12 }, "guests not stated; waterfront 50+ buyout rule may apply"); // B4f
-  held({ guest_count: 40, event_start_hour: 12, rate_card_tier: "T3", stealth_premium_signals: ["plated dinner"] },
-    "own rule says standard; priced premium (plated dinner)");                                               // B7
+const SHARED = ["Coasterra", "Tom Ham's Lighthouse", "Marina Village", "Brick"];
+
+test("B4a: at the four shared venues, 100+ guests is premium automatically", () => {
+  for (const v of SHARED) {
+    none({ venue_name: v, guest_count: 120, rate_card_tier: "T3" });
+    none({ venue_name: v, guest_count: 100, rate_card_tier: "T3" });
+    held({ venue_name: v, guest_count: 120 }, "own rule says premium (100+ guests)");
+    held({ venue_name: v, guest_count: 100 }, "own rule says premium (100+ guests)");
+  }
+  held({ guest_count: 120, event_start_hour: 12 }, "own rule says premium (100+ guests)");      // Tom Ham's at noon
 });
 
-test("B5: Coasterra is premium only with 100+ guests or a corporate event (Alex 2026-10-12: Saturday does not count)", () => {
-  const c = { venue_name: "Coasterra", event_start_hour: 12 };
-  none({ ...c, event_date_iso: SAT, guest_count: 30 });                  // a Saturday lunch stays standard
-  none({ ...c, event_date_iso: null, guest_count: 30 });                 // the date no longer matters
-  none({ ...c, event_date_iso: "2026-02-31", guest_count: 30 });
-  held({ ...c, event_date_iso: SUN, guest_count: 30, event_arc: "corporate" }, "own rule says premium (corporate)");
-  none({ ...c, event_date_iso: SUN, guest_count: 30, event_arc: "corporate", rate_card_tier: "T3" });
-  held({ ...c, event_date_iso: SUN, guest_count: null }, "guests not stated");
-  held({ ...c, event_date_iso: SAT, guest_count: 55 }, "waterfront 50+ buyout rule may apply");
-  held({ ...c, event_date_iso: SUN, guest_count: 120 }, "own rule says premium (100+ guests)");
-  held({ ...c, event_date_iso: SAT, guest_count: 30, rate_card_tier: "T3" }, "own rule says standard; priced premium");
+test("B4b/B4e: under 100 guests, or guests unknown, is always held with both prices; corporate only appears in the note", () => {
+  for (const v of SHARED) for (const t of ["T2", "T3"] as const) {
+    for (const g of [10, 49, 50, 99]) {
+      held({ venue_name: v, guest_count: g, rate_card_tier: t }, "under 100 guests (marked not corporate");
+      held({ venue_name: v, guest_count: g, rate_card_tier: t, event_arc: "corporate" }, "under 100 guests (marked corporate");
+    }
+    held({ venue_name: v, guest_count: null, rate_card_tier: t }, "guests not stated");
+    held({ venue_name: v, guest_count: null, rate_card_tier: t, event_arc: "corporate" }, "guests not stated");
+  }
+  const wf = (v: string, g: number) => hold({ venue_name: v, guest_count: g })!.includes("waterfront 50+ buyout rule may apply");
+  for (const v of ["Tom Ham's Lighthouse", "Coasterra"]) {
+    assert.ok(wf(v, 50) && wf(v, 99), `${v}: waterfront phrase at 50-99`);
+    assert.ok(!wf(v, 49), `${v}: no waterfront phrase at 49`);
+  }
+  assert.ok(!wf("Marina Village", 60) && !wf("Brick", 60), "not a waterfront venue");
 });
 
-test("B6: Marina Village, Scripps, Martin Johnson House and Brick", () => {
-  held({ venue_name: "Marina Village", guest_count: 75 }, "own rule says premium (75+ guests)");
-  held({ venue_name: "Marina Village", guest_count: null, event_arc: "corporate" }, "own rule says premium (corporate)");
-  none({ venue_name: "Marina Village", guest_count: 74 });
-  held({ venue_name: "Marina Village", guest_count: null }, "guests not stated");
+test("B5: no date or time is read: a Saturday, a missing or impossible date, any start hour decide the same", () => {
+  for (const event_date_iso of [SAT, SUN, null, "2026-02-31"]) for (const event_start_hour of [9, 12, 17, null]) {
+    held({ venue_name: "Coasterra", guest_count: 30, event_date_iso, event_start_hour }, "under 100 guests");
+    held({ venue_name: "Tom Ham's Lighthouse", guest_count: 120, event_date_iso, event_start_hour }, "own rule says premium (100+ guests)");
+  }
+});
+
+test("B6b: Scripps Seaside Forum and Martin Johnson House are always premium", () => {
   for (const v of ["Scripps Seaside Forum", "Scripps Forum", "Martin Johnson House"]) {
-    held({ venue_name: v }, "own rule says premium (premium for any booking)");
+    held({ venue_name: v, guest_count: 10 }, "own rule says premium (premium for any booking)");
     none({ venue_name: v, rate_card_tier: "T3" });
   }
-  for (const t of ["T2", "T3"] as const) held({ venue_name: "Brick", rate_card_tier: t }, "Brick (rule not defined)");
 });
 
 test("B9: not applied to another venue mentioned in prose, a nonprofit, a clarification lead, no Tier B venue, Tier A", () => {
@@ -210,15 +214,6 @@ test("B11: runEditPipeline sends no tier_b: text to the model, keeps the stored 
 test("B14: the dashboard lead detail prints every flagged concern, so Alex sees the note and both prices", () => {
   const html = readFileSync("public/dashboard.html", "utf-8");
   assert.equal(html.split("['Concerns', c.flagged_concerns.join(', ')]").length - 1, 1);
-});
-
-test("B4/B5/B6 boundaries: exactly 100 guests, a 5 PM start, 75 and 50 guests count; one below does not", () => {
-  held({ guest_count: 100, event_start_hour: 17 }, "own rule says premium (100+ guests and starts 5 PM or later)");
-  held({ guest_count: 99, event_start_hour: 17 }, "waterfront 50+ buyout rule may apply");
-  held({ guest_count: 100, event_start_hour: 16 }, "waterfront 50+ buyout rule may apply");
-  held({ venue_name: "Coasterra", event_date_iso: SUN, guest_count: 100 }, "own rule says premium (100+ guests)");
-  held({ venue_name: "Coasterra", event_date_iso: SUN, guest_count: 50 }, "waterfront 50+ buyout rule may apply");
-  none({ venue_name: "Coasterra", event_date_iso: SUN, guest_count: 49 });
 });
 
 test("B10: runPipeline puts the note in the classification it returns (the object the intake stores)", async () => {

@@ -1,6 +1,6 @@
 import { FLAMENCO_TRIO_3H_DANCER_2H_RATES, MARIACHI_FULL_OUTSIDE_SD_RATES, RATE_TABLES, RESIDENCY_FLOORS, RESIDENCY_RATES, type FormatRates, type TierRates } from "../data/rates.js";
 import { PricingError } from "../errors.js";
-import { matchTierB, type TierBRule } from "../data/venues.js";
+import { matchTierB } from "../data/venues.js";
 import type { Classification, Format, PricingResult, ResidencyCadence, ResidencyQuote, ResidencyTier, BudgetGapResult, ScopedAlternative, TravelBand, TravelFeeData, TravelComponent } from "../types.js";
 
 const BUDGET_GAP_SMALL_THRESHOLD = 75;  // exclusive: gap < 75 is "small"
@@ -442,34 +442,9 @@ export function t4FallbackHold(classification: Pick<Classification, "rate_card_t
     : null;
 }
 
-// Tier B venues (plan docs/plans/2026-10-12-fix-tier-b-venue-rule-conflict-hold-plan.md; Alex's rules 2026-10-12). The
-// app decides each venue's own rule from plain facts and holds the lead, with both rate-card prices, when the rule is
-// met but priced standard, cannot be settled, or another of Alex's rules may apply. It never writes the tier.
-type OwnRule = { met: true; why: string } | { met: false } | { met: null; missing: string };
-
-function ownRule(rule: TierBRule, c: Classification): OwnRule {
-  const g = c.guest_count ?? null, h = c.event_start_hour ?? null, corporate = c.event_arc === "corporate";
-  switch (rule) {
-    case "always":
-      return { met: true, why: "premium for any booking" };
-    case "tom_hams": // BOTH 100+ guests AND a 5 PM+ start (Alex 2026-10-12)
-      if ((g !== null && g < 100) || (h !== null && h < 17)) return { met: false };
-      if (g === null) return { met: null, missing: "guests" };
-      if (h === null) return { met: null, missing: "start hour" };
-      return { met: true, why: "100+ guests and starts 5 PM or later" };
-    case "coasterra": // 100+ guests or corporate (Alex 2026-10-12: Saturday does not count)
-      if (corporate) return { met: true, why: "corporate" };
-      if (g === null) return { met: null, missing: "guests" };
-      return g >= 100 ? { met: true, why: "100+ guests" } : { met: false };
-    case "marina_village": // corporate, or 75+ guests
-      if (corporate) return { met: true, why: "corporate" };
-      if (g === null) return { met: null, missing: "guests" };
-      return g >= 75 ? { met: true, why: "75+ guests" } : { met: false };
-    case "undefined":
-      return { met: null, missing: "rule" };
-  }
-}
-
+// Tier B venues (plan docs/plans/2026-10-12-fix-tier-b-venue-rule-conflict-hold-plan.md, Revisions 5/5b, Alex). The app
+// decides from the guest count alone (a copied number) and never writes the tier; every note names both rate-card
+// prices. Shared venues: 100+ guests is premium; under 100 or unknown is held for Alex, the AI's corporate call shown.
 export function tierBHold(classification: Classification, rawText: string, travelData?: TravelFeeData | null): string | null {
   if (classification.nonprofit_buyer === true || classification.format_recommended === "unresolved") return null;
   const venue = matchTierB(classification.venue_name, rawText);
@@ -481,18 +456,14 @@ export function tierBHold(classification: Classification, rawText: string, trave
   const both = `T2 $${at("T2")} / T3 $${at("T3")}`;
   const tag = `tier_b: ${venue.name}`;
   const premium = classification.rate_card_tier === "T3" || classification.rate_card_tier === "T4";
-  if (venue.rule === "undefined") return `${tag} (rule not defined); ${both}`;
-  const own = ownRule(venue.rule, classification);
-  if (own.met === true) return premium ? null : `${tag} own rule says premium (${own.why}); priced ${classification.rate_card_tier}; ${both}`;
-  if (own.met === null) return `${tag} ${own.missing} not stated; ${both}`;
+  const met = (why: string) => premium ? null : `${tag} own rule says premium (${why}); priced ${classification.rate_card_tier}; ${both}`;
+  if (venue.rule === "always") return met("premium for any booking");
   const g = classification.guest_count ?? null;
-  if (venue.waterfront && g === null) return `${tag} guests not stated; waterfront 50+ buyout rule may apply; ${both}`;
-  if (venue.waterfront && g !== null && g >= 50) return `${tag} own rule says standard; waterfront 50+ buyout rule may apply; ${both}`;
-  if (premium) {
-    const signals = classification.stealth_premium_signals.join("; ") || "no signal named";
-    return `${tag} own rule says standard; priced premium (${signals}); ${both}`;
-  }
-  return null;
+  if (g === null) return `${tag} guests not stated; ${both}`;
+  if (g >= 100) return met("100+ guests");
+  const corporate = classification.event_arc === "corporate" ? "marked corporate" : "marked not corporate";
+  const buyout = venue.waterfront && g >= 50 ? "; waterfront 50+ buyout rule may apply" : "";
+  return `${tag} under 100 guests (${corporate}${buyout}); Alex picks; ${both}`;
 }
 
 // Every nonprofit lead is held (R403; Alex 2026-10-09: a priced NP2 is still reviewed before sending).
