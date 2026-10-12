@@ -17,7 +17,7 @@ import { GUT_CHECK_KEYS, type Classification, type TravelFeeData } from "./types
 // The app decides Tier B from plain facts and holds with both rate-card prices when a rule is undecidable or rules
 // disagree. Made-up leads only; no model.
 
-const TIER_B_LINE = "- Tier B venues (premium only with their own signal): Coasterra (100+ guests, corporate, or any Saturday), Tom Ham's Lighthouse (100+ guests and starting 5 PM or later), Marina Village (corporate or 75+), Brick (rule not defined yet: Alex reviews). Scripps Seaside Forum and Martin Johnson House are premium for any booking";
+const TIER_B_LINE = "- Tier B venues (premium only with their own signal): Coasterra (100+ guests or corporate), Tom Ham's Lighthouse (100+ guests and starting 5 PM or later), Marina Village (corporate or 75+), Brick (rule not defined yet: Alex reviews). Scripps Seaside Forum and Martin Johnson House are premium for any booking";
 const OLD_LINE = "- Tier B venues (premium only with another signal: 100+ guests, corporate, Saturday evening)";
 
 test("B1: the classify prompt carries Alex's Tier B rules exactly once, and not the old line", () => {
@@ -127,15 +127,17 @@ test("B4: Tom Ham's needs BOTH 100+ guests AND a 5 PM+ start; otherwise the wate
     "own rule says standard; priced premium (plated dinner)");                                               // B7
 });
 
-test("B5: Coasterra is premium with 100+ guests, corporate, or any Saturday; an unknown or impossible date holds", () => {
+test("B5: Coasterra is premium only with 100+ guests or a corporate event (Alex 2026-10-12: Saturday does not count)", () => {
   const c = { venue_name: "Coasterra", event_start_hour: 12 };
-  held({ ...c, event_date_iso: SAT, guest_count: 30 }, "own rule says premium (any Saturday)");
+  none({ ...c, event_date_iso: SAT, guest_count: 30 });                  // a Saturday lunch stays standard
+  none({ ...c, event_date_iso: null, guest_count: 30 });                 // the date no longer matters
+  none({ ...c, event_date_iso: "2026-02-31", guest_count: 30 });
+  held({ ...c, event_date_iso: SUN, guest_count: 30, event_arc: "corporate" }, "own rule says premium (corporate)");
   none({ ...c, event_date_iso: SUN, guest_count: 30, event_arc: "corporate", rate_card_tier: "T3" });
-  none({ ...c, event_date_iso: SUN, guest_count: 30 });
-  held({ ...c, event_date_iso: null, guest_count: 30 }, "date not stated");
-  held({ ...c, event_date_iso: "2026-02-31", guest_count: 30 }, "date not stated");
-  held({ ...c, event_date_iso: SUN, guest_count: 55 }, "waterfront 50+ buyout rule may apply");
+  held({ ...c, event_date_iso: SUN, guest_count: null }, "guests not stated");
+  held({ ...c, event_date_iso: SAT, guest_count: 55 }, "waterfront 50+ buyout rule may apply");
   held({ ...c, event_date_iso: SUN, guest_count: 120 }, "own rule says premium (100+ guests)");
+  held({ ...c, event_date_iso: SAT, guest_count: 30, rate_card_tier: "T3" }, "own rule says standard; priced premium");
 });
 
 test("B6: Marina Village, Scripps, Martin Johnson House and Brick", () => {

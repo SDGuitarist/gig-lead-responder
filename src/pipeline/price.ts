@@ -1,7 +1,6 @@
 import { FLAMENCO_TRIO_3H_DANCER_2H_RATES, MARIACHI_FULL_OUTSIDE_SD_RATES, RATE_TABLES, RESIDENCY_FLOORS, RESIDENCY_RATES, type FormatRates, type TierRates } from "../data/rates.js";
 import { PricingError } from "../errors.js";
 import { matchTierB, type TierBRule } from "../data/venues.js";
-import { civilDay } from "./payment-terms.js";
 import type { Classification, Format, PricingResult, ResidencyCadence, ResidencyQuote, ResidencyTier, BudgetGapResult, ScopedAlternative, TravelBand, TravelFeeData, TravelComponent } from "../types.js";
 
 const BUDGET_GAP_SMALL_THRESHOLD = 75;  // exclusive: gap < 75 is "small"
@@ -448,11 +447,6 @@ export function t4FallbackHold(classification: Pick<Classification, "rate_card_t
 // met but priced standard, cannot be settled, or another of Alex's rules may apply. It never writes the tier.
 type OwnRule = { met: true; why: string } | { met: false } | { met: null; missing: string };
 
-function isSaturday(iso: string | null | undefined): boolean | null {
-  const day = iso ? civilDay(iso) : null;
-  return day === null ? null : new Date(day * 86_400_000).getUTCDay() === 6;
-}
-
 function ownRule(rule: TierBRule, c: Classification): OwnRule {
   const g = c.guest_count ?? null, h = c.event_start_hour ?? null, corporate = c.event_arc === "corporate";
   switch (rule) {
@@ -463,13 +457,10 @@ function ownRule(rule: TierBRule, c: Classification): OwnRule {
       if (g === null) return { met: null, missing: "guests" };
       if (h === null) return { met: null, missing: "start hour" };
       return { met: true, why: "100+ guests and starts 5 PM or later" };
-    case "coasterra": { // 100+ guests, corporate, or any Saturday
+    case "coasterra": // 100+ guests or corporate (Alex 2026-10-12: Saturday does not count)
       if (corporate) return { met: true, why: "corporate" };
-      if (g !== null && g >= 100) return { met: true, why: "100+ guests" };
-      const sat = isSaturday(c.event_date_iso);
-      if (sat === true) return { met: true, why: "any Saturday" };
-      return sat === null ? { met: null, missing: "date" } : { met: false };
-    }
+      if (g === null) return { met: null, missing: "guests" };
+      return g >= 100 ? { met: true, why: "100+ guests" } : { met: false };
     case "marina_village": // corporate, or 75+ guests
       if (corporate) return { met: true, why: "corporate" };
       if (g === null) return { met: null, missing: "guests" };

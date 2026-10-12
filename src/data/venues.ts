@@ -14,7 +14,8 @@ export const TIER_A_VENUES: ReadonlyArray<{ name: string; pattern: RegExp }> = [
 ];
 
 // Tier B venues: premium only with their own signal (classify Step 2.75). Alex's rules, 2026-10-12, after reading his
-// source file: the 10-03 port had given Tom Ham's Coasterra's rule. One list for both readers: the classify prompt
+// source file: the 10-03 port had given Tom Ham's Coasterra's rule. Coasterra: 100+ guests or corporate only (Alex
+// dropped Saturday, which would have made every Saturday lunch there premium). One list for both readers: the classify prompt
 // prints it, and tierBHold (pipeline/price.ts) decides from plain facts and holds when a rule cannot be settled.
 export type TierBRule = "coasterra" | "tom_hams" | "marina_village" | "always" | "undefined";
 export interface TierBVenue {
@@ -27,7 +28,7 @@ export interface TierBVenue {
 }
 
 export const TIER_B_VENUES: ReadonlyArray<TierBVenue> = [
-  { name: "Coasterra", pattern: /\bcoasterra\b/i, rule: "coasterra", promptRule: "100+ guests, corporate, or any Saturday", waterfront: true },
+  { name: "Coasterra", pattern: /\bcoasterra\b/i, rule: "coasterra", promptRule: "100+ guests or corporate", waterfront: true },
   { name: "Tom Ham's Lighthouse", pattern: /\btom\s+ham['’]?s?\b/i, rule: "tom_hams", promptRule: "100+ guests and starting 5 PM or later", waterfront: true },
   { name: "Marina Village", pattern: /\bmarina village\b/i, rule: "marina_village", promptRule: "corporate or 75+", waterfront: false },
   { name: "Brick", pattern: /^\s*brick\b/i, rule: "undefined", promptRule: "rule not defined yet: Alex reviews", waterfront: false, venueNameOnly: true },
