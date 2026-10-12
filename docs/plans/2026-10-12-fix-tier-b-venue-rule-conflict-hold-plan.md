@@ -4,7 +4,7 @@ type: fix
 date: 2026-10-12
 status: plan (plan review closed at the hard cap; Alex: fix and build, 2026-10-12)
 feed_forward:
-  risk: "Extraction of guest count and start hour from real lead wording; Brick held until Alex defines it"
+  risk: "Guest count extraction and the corporate (event_arc) call now decide premium at four venues"
   verify_first: true
 ---
 
@@ -29,6 +29,16 @@ wins (`src/prompts/classify.ts` Step 2.75):
 
 The model judges both from prose every run, so the tier is a coin flip at the edge. No past quote settles it (Gmail
 both accounts and calendar checked 2026-10-12; platform threads not visible).
+
+## Revision 5 (Alex, 2026-10-12, after code review round 1 GO on both runs; reviewed in code round 2)
+
+Alex asked whether every venue should share one premium rule. **Alex: one shared rule for Coasterra, Tom Ham's
+Lighthouse, Marina Village and Brick: premium with 100+ guests or a corporate event.** Scripps Seaside Forum and Martin
+Johnson House stay always premium; the waterfront 50+ buyout hold stays at Tom Ham's and Coasterra; no day or time
+trigger (Saturday and the 5 PM start both dropped). Consequences: Tom Ham's 120 guests at noon is premium (was held);
+a corporate Tom Ham's lead of 40 is premium (was standard); Marina Village 75-99 non-corporate is standard (was
+premium); Brick follows the shared rule (was always held). `event_start_hour` stays extracted (B2, B3) but no Tier B
+rule reads it now. The sections below are updated to Revision 5; the revision tables above stay as history.
 
 ## Revision 4 (Alex, 2026-10-12, during work; no plan-review round: the cap fired, the code review covers it)
 
@@ -99,22 +109,21 @@ lead is held with both rate-card prices.** No price is invented or changed; the 
 1. **D1, Tier B as data** (`src/data/venues.ts`, `TIER_B_VENUES`). The classify prompt prints its Tier B line from this
    data. Each entry: name, pattern, own rule, waterfront flag.
 
-   | Venue | Pattern (case-insensitive) | Own rule: premium when | Waterfront (R097 applies) |
+   | Venue | Pattern (case-insensitive) | Own rule: premium when (Revision 5) | Waterfront (R097 applies) |
    |---|---|---|---|
-   | Coasterra | `\bcoasterra\b` | guests >= 100, or corporate, or any Saturday | yes |
-   | Tom Ham's Lighthouse | `\btom\s+ham['’]?s?\b` (Tom Ham's, Tom Hams, Tom Ham) | guests >= 100 **and** start hour >= 17 | yes |
-   | Marina Village | `\bmarina village\b` | corporate, or guests >= 75 | no |
-   | Brick | `venue_name` only, `^\s*brick\b` (the word is common in prose, so never the raw text) | undefined: always held | no |
+   | Coasterra | `\bcoasterra\b` | guests >= 100, or corporate | yes |
+   | Tom Ham's Lighthouse | `\btom\s+ham['’]?s?\b` (Tom Ham's, Tom Hams, Tom Ham) | guests >= 100, or corporate | yes |
+   | Marina Village | `\bmarina village\b` | guests >= 100, or corporate | no |
+   | Brick | `venue_name` only, `^\s*brick\b` (the word is common in prose, so never the raw text) | guests >= 100, or corporate | no |
    | Scripps Seaside Forum | `\bscripps (?:seaside )?forum\b` | always | no |
    | Martin Johnson House | `\bmartin johnson house\b` | always | no |
 
    Matching (Revision 2): when `classification.venue_name` is present, only it is matched; the raw lead text is matched
    only when `venue_name` is null (never for Brick). A lead whose venue is another place but whose prose mentions a Tier
-   B venue ("we considered Tom Ham's") gets no Tier B note. "Corporate" = `event_arc === "corporate"`.
-   "Saturday" = `event_date_iso` is a real calendar date (strict: `civilDay` in `payment-terms.ts`, so "2026-02-31" or
-   "TBD" is not a date) falling on a Saturday; a missing or impossible date means "Saturday" is unknown. The literal new prompt line (B1):
+   B venue ("we considered Tom Ham's") gets no Tier B note. "Corporate" = `event_arc === "corporate"`. No date or time
+   is read. The literal prompt line (B1):
 
-   > `- Tier B venues (premium only with their own signal): Coasterra (100+ guests, corporate, or any Saturday), Tom Ham's Lighthouse (100+ guests and starting 5 PM or later), Marina Village (corporate or 75+), Brick (rule not defined yet: Alex reviews). Scripps Seaside Forum and Martin Johnson House are premium for any booking`
+   > `- Tier B venues (premium only with 100+ guests or a corporate event): Coasterra, Tom Ham's Lighthouse, Marina Village, Brick. Scripps Seaside Forum and Martin Johnson House are premium for any booking`
 
    Rejected: keeping the old line (it carries the mis-ported Tom Ham's rule the model was reading).
 2. **D2, two extracted facts** (`Classification.guest_count?: number | null`, `event_start_hour?: number | null`).
@@ -125,8 +134,7 @@ lead is held with both rate-card prices.** No price is invented or changed; the 
      "midnight" → 0; "evening" or "dinner" with no number → null; none stated → null.
    **Normalization before validation** (`classify.ts`): an integer in range passes (guests 1-5000, hour 0-23); a string
    of digits only is parsed ("50" → 50); anything else ("50+", 50.5, -3, 24, "evening", a missing key) becomes null. A
-   bad value never fails classification. `event_date_iso` null, malformed or impossible
-   (per `civilDay`) → "Saturday" is unknown.
+   bad value never fails classification.
 3. **D3, the check** (`tierBHold(classification, rawText, pricing, travelData)` in `src/pipeline/price.ts`, called in
    `runPipeline` right after `t4FallbackHold`, run-pipeline.ts:219; the note goes into `enriched.flagged_concerns`).
    Tier family: premium = `rate_card_tier` T3 or T4; standard = T1 or T2 (the P/D column is separate and kept).
@@ -134,22 +142,16 @@ lead is held with both rate-card prices.** No price is invented or changed; the 
    "T3": same format, duration, column and travel treatment. Not applied to a nonprofit buyer (the NP track holds it)
    or a clarification lead (no rate table). Cases, first match wins:
 
-   | Case | Note (prefix `tier_b:`) |
+   | Case (Revision 5) | Note (prefix `tier_b:`) |
    |---|---|
-   | Brick | "tier_b: Brick (rule not defined); T2 $a / T3 $b" |
-   | own rule met (Scripps, Martin Johnson always) and priced standard | "tier_b: <venue> own rule says premium (<condition>); priced <tier>; T2 $a / T3 $b" |
+   | own rule met (100+ guests or corporate; Scripps, Martin Johnson always) and priced standard | "tier_b: <venue> own rule says premium (<condition>); priced <tier>; T2 $a / T3 $b" |
    | own rule met and priced premium | none |
-   | own rule undecidable (a needed fact null: guests, start hour, or date) | "tier_b: <venue> <fact> not stated; T2 $a / T3 $b" |
-   | own rule not met, waterfront, guests null (R097 cannot be settled; Revision 3) | "tier_b: <venue> guests not stated; waterfront 50+ buyout rule may apply; T2 $a / T3 $b" |
+   | own rule undecidable: not corporate and guests null | "tier_b: <venue> guests not stated; T2 $a / T3 $b" |
    | own rule not met, waterfront, guests >= 50 (R097, buyout never known) | "tier_b: <venue> own rule says standard; waterfront 50+ buyout rule may apply; T2 $a / T3 $b" |
    | own rule not met and priced premium | "tier_b: <venue> own rule says standard; priced premium (<stealth signals>); T2 $a / T3 $b" |
    | own rule not met, priced standard | none |
 
-   "Undecidable" means the rule cannot be settled with the facts present: Tom Ham's with guests null and hour null or
-   >= 17, or with guests >= 100 and hour null (a known guests < 100 or a known hour < 17 decides it: not met);
-   Coasterra with no corporate, guests < 100 or null, and date null; Marina Village with no corporate and guests null.
-   A rule already met or already failed by a known fact is decided (corporate Coasterra with no date: met). For a
-   waterfront venue whose own rule is not met, guests null is also "not stated" (R097 cannot be settled) and holds.
+   A corporate lead is decided (met) even with guests unknown; a known guest count decides it. No date or time is read.
    **`tier_b:` joins `HOLD_NOTE_PREFIXES`** (`src/types.ts`), so `withoutHoldNotes` strips it from the generate and
    verify prompts; `routeLead` holds any flagged concern; the dashboard shows it.
 
@@ -194,17 +196,11 @@ exactly one `tier_b:` note naming both prices (T2 $a / T3 $b from `lookupPrice`)
   a string in the test) AND SHALL NOT contain the old Tier B line.
 - **B3** WHEN the classify prompt is built, THE SYSTEM SHALL contain the D2 extraction rules (pinned phrases "50+",
   "5-8 PM", "noon", "under 60").
-- **B4a** WHEN a Tom Ham's lead has guests 120, start hour 18 and is priced T3, THE SYSTEM SHALL add no note.
-- **B4b** WHEN a Tom Ham's lead has guests 120, start hour 18 and is priced T2, THE SYSTEM SHALL hold with "own rule says
-  premium (100+ guests and starts 5 PM or later)".
-- **B4c** WHEN a Tom Ham's lead has guests 40, start hour 18 or guests 49, start hour 16, priced T2, THE SYSTEM SHALL add
-  no note.
-- **B5a** WHEN a Coasterra lead is on a Saturday with guests 30, priced T2, THE SYSTEM SHALL hold with "own rule says
-  premium (any Saturday)".
-- **B5b** WHEN a Coasterra lead is corporate on a Sunday with guests 30, priced T3, THE SYSTEM SHALL add no note; WHEN
-  it is not corporate on a Sunday with guests 30, priced T2, THE SYSTEM SHALL add no note.
-- **B6a** WHEN a Marina Village lead has guests 75, or is corporate with guests null, priced T2, THE SYSTEM SHALL hold
-  ("own rule says premium"); WHEN it has guests 74, not corporate, priced T2, THE SYSTEM SHALL add no note.
+- **B4a** WHEN a lead at Coasterra, Tom Ham's, Marina Village or Brick has guests 100 or more, or is corporate, and is
+  priced T3, THE SYSTEM SHALL add no note; priced T2, THE SYSTEM SHALL hold with "own rule says premium (100+ guests)"
+  or "(corporate)" (each venue tested; Tom Ham's 120 guests at noon included).
+- **B4b** WHEN such a lead has guests 49 (any of the four) or 99 at a non-waterfront venue (Marina Village, Brick), not
+  corporate, priced T2, THE SYSTEM SHALL add no note.
 - **B6b** WHEN a Scripps Seaside Forum ("Scripps Forum") or Martin Johnson House lead is priced T2, THE SYSTEM SHALL
   hold; WHEN priced T3, THE SYSTEM SHALL add no note.
 - **B8** WHEN the venue is "Tom Hams Lighthouse", "Tom Ham's", "Tom Ham’s", "TOM HAM'S LIGHTHOUSE", "Coasterra", "Scripps
@@ -235,19 +231,14 @@ exactly one `tier_b:` note naming both prices (T2 $a / T3 $b from `lookupPrice`)
   | 0 | null | 0 |
   | 5001 / 24 (out of range) | null | null |
   | "evening" | null | null |
-- **B4d** WHEN a Tom Ham's lead has guests 50, start hour 17 (priced T2 or T3), or guests 120, start hour 12 (T2), THE
-  SYSTEM SHALL hold with "own rule says standard; waterfront 50+ buyout rule may apply".
-- **B4e** WHEN a Tom Ham's lead has guests 120 and start hour null, THE SYSTEM SHALL hold with "start hour not stated";
-  WHEN guests null and start hour 18, THE SYSTEM SHALL hold with "guests not stated".
-- **B4f** WHEN a Tom Ham's lead has guests null and start hour 12 (own rule decided: not met; R097 cannot be settled),
-  THE SYSTEM SHALL hold with "guests not stated; waterfront 50+ buyout rule may apply" (Revision 3 row).
-- **B5c** WHEN a Coasterra lead has date null, or the impossible date "2026-02-31", guests 30, not corporate, priced T2,
-  THE SYSTEM SHALL hold with "date not stated"; WHEN a Sunday with guests 55, priced T2, THE SYSTEM SHALL hold with the
-  waterfront note.
-- **B6c** WHEN a Marina Village lead has guests null and is not corporate, THE SYSTEM SHALL hold with "guests not
-  stated"; WHEN the venue is "Brick" (`venue_name`), THE SYSTEM SHALL hold at any tier.
-- **B7** WHEN a Tom Ham's lead has guests 40, start hour 12, and is priced T3, THE SYSTEM SHALL hold with "own rule says
-  standard; priced premium (<stealth signals>)".
+- **B4d** WHEN a Tom Ham's or Coasterra lead has guests 50-99, not corporate (priced T2 or T3), THE SYSTEM SHALL hold
+  with "own rule says standard; waterfront 50+ buyout rule may apply".
+- **B4e** WHEN a lead at any of the four shared-rule venues has guests null and is not corporate, THE SYSTEM SHALL hold
+  with "guests not stated"; WHEN guests null and corporate, THE SYSTEM SHALL decide it (premium).
+- **B7** WHEN a Tom Ham's lead has guests 40, not corporate, and is priced T3, THE SYSTEM SHALL hold with "own rule
+  says standard; priced premium (<stealth signals>)".
+- **B5** WHEN the event date is a Saturday, null or impossible, THE SYSTEM SHALL decide the same as for any other date
+  (no date is read).
 - **B9** WHEN `venue_name` is "Example Harbor Grill" and the lead text says "we considered Tom Ham's", or the buyer is a
   nonprofit, or it is a clarification lead, or no Tier B venue is named, or `venue_name` is another venue and the text
   says "brick", or an unrelated waterfront restaurant has 80 guests, THE SYSTEM SHALL add no Tier B note.
@@ -255,10 +246,10 @@ exactly one `tier_b:` note naming both prices (T2 $a / T3 $b from `lookupPrice`)
   `tier_b:` text AND `routeLead` SHALL hold the lead; WHEN `runEditPipeline(stored, pricing, "shorter")` runs with a
   stubbed model requester capturing every prompt, no captured prompt SHALL contain `tier_b:`, the `stored` object SHALL
   still hold the note afterwards, and the return value SHALL still be `{ drafts, gate }`.
-- **B13 (real model)** WHEN tb1 (Tom Ham's, 50 guests, 5 PM, Sunday) runs 5 times, THE SYSTEM SHALL record guest_count
-  50 and event_start_hour 17 and hold with both prices ($895 / $1,200) on every run; WHEN tb2 (Tom Ham's, 120 guests,
-  Wednesday 6 PM) and tb3 (Coasterra, Saturday, 40 guests) run twice each, THE SYSTEM SHALL price them T3, or hold with
-  both prices, and SHALL NEVER leave an unflagged T2.
+- **B13 (real model)** Recorded for Revision 4 code in `docs/reviews/2026-10-12-tier-b-local-runs.md` (9/9). For
+  Revision 5, WHEN tb1 (Tom Ham's, 50 guests, 5 PM) runs twice, THE SYSTEM SHALL hold with both prices both times;
+  WHEN tb4 (Tom Ham's, 120 guests, noon) and tb5 (Brick, corporate, 40 guests) run twice each, THE SYSTEM SHALL price
+  them T3, or hold with "own rule says premium" and both prices, and SHALL NEVER leave an unflagged T2.
 
 ## Work steps (one concern per commit; failing test first; mutation-check each test)
 
@@ -270,6 +261,9 @@ exactly one `tier_b:` note naming both prices (T2 $a / T3 $b from `lookupPrice`)
    nonprofit guard (B9 fails); omit travel data (B10 fails).
 4. Real-model runs B13; record guests, hour, tier, note per run.
 5. Codex code review (both runs).
+6. Revision 5 (shared rule): tests first (B1 line, B4a-B4e, B5, B6b, B7) failing on the Revision 4 code, then
+   `ownRule` "shared" + data + prompt line. Mutations: corporate dropped; 100 as >; the date read again (B5); the 5 PM
+   condition kept for Tom Ham's (B4a fails); Brick still always held (B4a fails).
 
 ## Execution Path
 
@@ -282,6 +276,10 @@ exactly one `tier_b:` note naming both prices (T2 $a / T3 $b from `lookupPrice`)
   for i in 1 2 3 4 5; do DATABASE_PATH=$S/tb1-$i.db npx tsx src/index.ts --json < $L/tb1-tom-hams-50-5pm.txt > $S/tb1-$i.out; done
   for i in 1 2; do DATABASE_PATH=$S/tb2-$i.db npx tsx src/index.ts --json < $L/tb2-tom-hams-120-6pm.txt > $S/tb2-$i.out; done
   for i in 1 2; do DATABASE_PATH=$S/tb3-$i.db npx tsx src/index.ts --json < $L/tb3-coasterra-saturday-40.txt > $S/tb3-$i.out; done
+  # Revision 5 runs:
+  for i in 1 2; do DATABASE_PATH=$S/r5-tb1-$i.db npx tsx src/index.ts --json < $L/tb1-tom-hams-50-5pm.txt > $S/r5-tb1-$i.out; done
+  for i in 1 2; do DATABASE_PATH=$S/tb4-$i.db npx tsx src/index.ts --json < $L/tb4-tom-hams-120-noon.txt > $S/tb4-$i.out; done
+  for i in 1 2; do DATABASE_PATH=$S/tb5-$i.db npx tsx src/index.ts --json < $L/tb5-brick-corporate-40.txt > $S/tb5-$i.out; done
   ```
   Read from each `.out` (the JSON after the log lines): `classification.guest_count`, `event_start_hour`,
   `rate_card_tier`, and every `flagged_concerns` entry starting `tier_b:`. Record them in
@@ -312,8 +310,8 @@ round 3 needs Alex's YES; a 3rd NO-GO is the hard cap.
 - **Hardest decision:** the app holds but never sets the tier. Alex did not pick a default; holding is the one
   behavior that is right under both rules.
 - **Rejected:** app override of the tier; prompt-only precedence; a "buyout" fact.
-- **Least confident:** extraction of guest count and start hour (ranges, "around", missing times); and Brick held on
-  every lead until Alex defines "large" and "evening".
+- **Least confident:** extraction of guest count from real lead wording; whether "corporate" (`event_arc`) is read the
+  same way across runs, since it now decides premium at four venues (Revision 5).
 
 ## Three Questions
 
