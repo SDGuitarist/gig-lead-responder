@@ -51,3 +51,5 @@ Findings: none (no P1/P2/P3).
 
 The OS process check was unavailable due environment permissions, so session liveness could not be independently confirmed.
 ```
+
+**Alex, 2026-10-11: no round 3; code review closed** (the only finding is settled by his decision; nothing left to fix in code). Next: compound.
