@@ -32,14 +32,14 @@ also mandated by other prompt text):
 - **t2 copied:** "I set levels from where your guests sit" (39 characters, verbatim). **t2 invented physical
   detail:** "wind, ambient noise from the water" for a terrace the lead gives no setting detail for (the plan's
   `NO INVENTED FACTS` rule is in the block). Step 4 of the block ("one physical problem of this setting") invites it.
-- **t3 venue claim past the fact:** the history entry for this venue is fact-only ("has performed there"); the draft
-  adds "know the spaces well". The no-block run added a similar overreach ("know the register this room calls
-  for"), so the block neither caused nor prevented it.
+- **t3 venue claim past the fact:** the history entry for this venue is fact-only (it records that Alex has played
+  there and nothing more); the draft added a claim of knowing the venue's spaces. The no-block run added a similar
+  overreach (a claim of knowing what the room calls for), so the block neither caused nor prevented it.
 - **Not findings (attributed):** "Full payment holds the date." (mandated by Quote Terms); "Want me to lock it in?"
   (Alex's standard close, `docs/LEAD_RESPONSE_VOICE.md`, `docs/DRAFT_METHOD.md`); the liability-insurance and COI
-  wording (`docs/RESPONSE_CRAFT.md`); t1's claims "performed there many times" and "knows North Beach", which come
-  from the confirmed entry in the private venue file (checked by boolean, text not printed), and the no-block run made
-  the first one too. A 30-character window made only of mandated sentences (payment sentence + close + sign-off)
+  wording (`docs/RESPONSE_CRAFT.md`); t1's statements about having played that venue, which come from the confirmed
+  entry in the private venue file (checked by boolean; the content is deliberately not described here), and the
+  no-block run made the same kind of statement too. A 30-character window made only of mandated sentences (payment sentence + close + sign-off)
   fires the mechanical copy check without being a copy; the check is not changed in response to a FAIL (plan), and
   this is listed for Alex below.
 
@@ -78,8 +78,8 @@ green (839 pass, 1 skip).
 - **t2 is copy-clean this time:** the only shared windows are the mandated payment sentence and the standard close.
   Note, not a copy: the draft promises a COI "within a day of booking" where `docs/RESPONSE_CRAFT.md` says "within a
   few days" (also in set 1).
-- **t3 is clean:** no shared windows; the venue statement stops at "has performed there" plus a skill claim ("I know
-  how to read a room"); the set 1 overreach ("know the spaces well") is gone.
+- **t3 is clean:** no shared windows; the venue statement stops at the fact that Alex has played there, plus a skill
+  claim about reading a room; the set 1 overreach (a claim of knowing the venue's spaces) is gone.
 - **Retracted:** t1's load-in line (service entrance, golf cart) is real PF-Intel setup data for that venue (a live
   read, 2026-10-12), not an invented fact.
 - **`verified=false` on t2, t3 and the t4 control (set 2 only):** the app's own voice kill-list rejected one word
@@ -118,14 +118,14 @@ t1 19 / 12, t2 11 / 0, t3 0 / 0; set 2: t1 12 / 0 (the retired Del lead), t2 0 /
   example's sunset was that), but the threshold Alex set is "any ONE time or number not traceable to the lead".
   **Recorded as a FAIL under that rule.**
 - **t1 passes everything else:** no shared windows; opens "I'm available October 21." (urgent band, now classified
-  correctly at 9 days); the venue statements ("performed there many times", "on the outdoor terraces") trace to the
-  confirmed entry in the private venue file (checked by boolean, text not printed); payment sentence from Quote Terms.
+  correctly at 9 days); the venue statements trace to the confirmed entry in the private venue file
+  (checked by boolean; the content is deliberately not described here); payment sentence from Quote Terms.
 - **t2 notes, not copies:** "within a day of booking" for the COI (the app text says "within a few days"; same
   drift as sets 1 and 2); "Spanish classical and bossa nova" echoes the example's genre list (the attribution test
   finds "bossa nova" elsewhere in the prompt too, so it is not exclusively the example's). No claim about the
   unknown venue.
 - **t3 note:** "talk to each other" appears (the example has "talk to each other"); a common phrase, four words, no
-  window match. The set 1 overreach ("know the spaces well") did not recur; the claim stops at "performed there".
+  window match. The set 1 overreach (a claim of knowing the venue's spaces) did not recur; the claim stops at the fact that Alex has played there.
 - **`verified=false` on t3 and the t4 control:** the app's own voice kill-list ("lands"/"land"); the control has no
   block. t1 and t2 verified.
 
@@ -154,7 +154,7 @@ same threshold. Self-test PASS.
   Alex's separate COI item (2026-10-12: COI "available upon request"). Recorded as a FAIL under the literal rule, and
   attributed to that item.
 - **t3 PASS:** "load-in through the service road" and "the venue requires a COI" are real PF-Intel setup and policy
-  data for that venue (live read 2026-10-12), not inventions; the venue claim stops at "has performed there"; the
+  data for that venue (live read 2026-10-12), not inventions; the venue claim stops at the fact that Alex has played there; the
   payment sentence is the lead-time one, not the example's.
 - **Band:** t1 (9 days out) returned `short` here and `urgent` in set 3, same text, same date. The classifier miss is
   intermittent (6 days `short` in sets 1 and 2; 9 days `urgent` then `short`), which makes it a classifier item, not a
