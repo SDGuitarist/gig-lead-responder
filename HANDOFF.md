@@ -38,8 +38,17 @@ confirmed private entry; **t1 still fails the pre-registered rule on one item: "
 stated 5 to 7pm window, in both drafts)**. t2, t3 and the t4 control pass (notes: COI "within a day"; "bossa nova"
 echo; "talk to each other").
 
+**Update 2026-10-12 (pre-compact save, after the State line above was written):** route (a) of decision 1 was
+APPLIED by a peer session in `c5a1272` ("fix(t4): block forbids clock times the lead did not state"; plan Revision
+1d). CHECKED this save: that commit changes only the NO INVENTED FACTS paragraph in `src/data/t4-reference.ts`, one
+new test in `src/t4-reference.test.ts`, and a Revision 1d paragraph in the plan; `src/t4-reference.test.ts` runs
+27 pass / 0 fail. NOT re-run here: the full suite and tsc. The plan paragraph quotes Alex as "do it, your
+recommendation" (FROM THE PLAN DOC, not heard in this save session). **State is now: HEAD `c5a1272`, 1 commit
+unpushed (the State line's "0 ahead" is stale), set 4 NOT run yet.** Decision 1 below is therefore answered; 2-4 are
+still open.
+
 **Open decisions for Alex:**
-1. **The 5:15 finding.** It is not a looked-up fact (the example's sunset was). Two honest routes: (a) one more
+1. **The 5:15 finding. [ANSWERED, applied in `c5a1272`; set 4 still to run.]** It is not a looked-up fact (the example's sunset was). Two honest routes: (a) one more
    wording iteration of the block ("use only the times the lead states; put no clock time of your own on a moment
    inside their window"), then set 4; (b) amend the rule to "no looked-up facts" and accept scene times. I recommend
    (a): it keeps the rule you set, and the failure is one sentence of wording. Your call; I did not change anything.
@@ -71,12 +80,12 @@ Work in /Users/alejandroguillen/Projects/gig-lead-responder.
 FIRST gate (stop and ask Alex if anything differs):
   pwd; git branch --show-current                            # expect: feat/hub-phase0
   git rev-parse --short HEAD; git status --short            # expect: HANDOFF's last commit; clean
-  git log --oneline origin/feat/hub-phase0..HEAD | wc -l    # expect: 0 (pushed 2026-10-12)
+  git log --oneline origin/feat/hub-phase0..HEAD | wc -l    # expect: 1 (c5a1272 unpushed) plus this handoff commit, unless Alex pushed
 Read: HANDOFF.md "START HERE — T4 reference-lead cycle", docs/reviews/2026-10-12-t4-reference-local-runs.md,
 docs/plans/2026-10-11-feat-t4-reference-lead-plan.md (Revision 1c), CLAUDE.md.
 Ask Alex for his answers to the four open decisions in that HANDOFF section BEFORE touching anything. Then, by answer:
-  - 5:15 / wording: edit `buildT4ReferenceBlock` wording only (never the example, the tests' word lists or the copy
-    check), run tests + mutation checks, then set 4 with the scratch runner pattern in the runs doc (real model,
+  - 5:15 / wording: ALREADY EDITED in `c5a1272` (do not re-edit); run the full suite + tsc, then set 4 with the
+    scratch runner pattern in the runs doc (real model,
     scratch DATABASE_PATH, today pinned 2026-10-12, self-test the checks first; the t1 lead is in the plan).
   - Only when the smoke test passes, or Alex says "review anyway": write the Codex CODE round-1 prompt (run
     ~/.claude/tools/check_handoff_prompt.py round1 on it yourself, with the mode argument, and read it by eye).
