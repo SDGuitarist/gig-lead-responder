@@ -86,7 +86,7 @@ error, as `POST /api/leads/:id/approve` does; otherwise a draft approved days la
 | Risk | Where recorded | Status |
 |---|---|---|
 | Classifier puts the VENUE in `organization_name` (2/2 runs) → an NP2 in-kind line thanks the hotel | fix: `docs/plans/2026-10-09-fix-organization-name-is-the-venue-plan.md`; runs `docs/reviews/2026-10-09-org-venue-local-runs.md` | **FIXED and reviewed (built `e0ab871`..`bef0bf2`, 3/3 real runs null; Codex code review R1 GO both runs, `docs/reviews/2026-10-09-org-venue-codex-round1.md`; solution `docs/solutions/logic-errors/2026-10-10-organization-name-is-never-the-venue.md`).** Still open: a wrong NON-venue name, "St." vs "Saint" (pinned miss) |
-| **PF-Intel: CHECKED 2026-10-11 (Claude, Alex said drive it).** Production `https://pf-intel-production.up.railway.app` is up (`/health` healthy). Local `.env` is wrong twice: `PF_INTEL_API_URL` is Railway-internal (resolves only inside Railway), and its `PF_INTEL_SERVER_API_KEY` gets 401 (same stale key as `pf-intel/server/.env`). The key in Railway (proud-radiance → pf-intel) returns 200: hit for Hotel del Coronado, `found` false for a made-up venue. Every local run so far had no venue facts | this row | `.env` change needs Alex's yes |
+| **PF-Intel: CHECKED 2026-10-11 (Claude, Alex said drive it).** Production `https://pf-intel-production.up.railway.app` is up (`/health` healthy). Local `.env` is wrong twice: `PF_INTEL_API_URL` is Railway-internal (resolves only inside Railway), and its `PF_INTEL_SERVER_API_KEY` gets 401 (same stale key as `pf-intel/server/.env`). The key in Railway (proud-radiance → pf-intel) returns 200: hit for Hotel del Coronado, `found` false for a made-up venue. Every local run before this had no venue facts. **FIXED 2026-10-11 with Alex's yes:** `.env` now has the production URL and the Railway key (backup `.env.bak-2026-10-11`, gitignored; key copied from Railway without printing). Verified: `lookupVenueContext` hit for Hotel del Coronado, miss for a made-up venue; a full made-up Del lead ran with no `[venue-lookup]` warning | this row | done; if the key rotates in Railway, copy it again |
 | Classifier's T2/T3 call decides whether NP2 fires (first real texts: 0/3 priced) | local-runs record | watch in the ramp |
 | Real-lead false-hold rate of the price block unmeasured (6 runs, 3 texts) | solution doc `architecture/2026-10-09-app-writes-fixed-lines-model-writes-a-marker.md` | measure in the 20-lead ramp |
 | S1-adv: the model appended a meta note under the draft on an injection lead | `spikes.md` row S1-adv | Module 1 post-check must hold text outside the reply |
@@ -95,7 +95,7 @@ error, as `POST /api/leads/:id/approve` does; otherwise a draft approved days la
 ## Critical path (the order sessions should pull from, unless Alex picks otherwise)
 
 1. Things only Alex can unblock, raised every session until done: **0.6 baseline**, **S2** (next GigSalad lead),
-   **S6** (a night, after the poller starts), ~~the PF-Intel URL check~~ (checked 10-11; `.env` fix awaits Alex's yes).
+   **S6** (a night, after the poller starts), ~~the PF-Intel URL check~~ (fixed 10-11).
 2. Claude: ~~S5~~ (passed 10-11); ~~venues~~ (ported 10-11); the **10 TO PORT** rows (prices need Alex's numbers); venue rows all PORTED (Alex rewrites every sentence after the venue-database pull).
 3. Module 1 plan review → build 1.1–1.7 → redesign 1.2's send-recovery key (G1 failed) → 20-lead ramp → auto-send → 1 week live.
 4. Only then: write the Module 2 plan from the live results.
