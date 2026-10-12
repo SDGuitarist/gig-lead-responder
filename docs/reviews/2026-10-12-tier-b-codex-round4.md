@@ -8,7 +8,7 @@ decision.**
 
 | # | Runs | Finding | Disposition |
 |---|---|---|---|
-| 1 | A P1 | no viable scope: the note says "draft quotes no set price (budget redirect)" but the drafting prompt states the minimum ("My solo sets start at $550 for 1hr", `generate.ts:494,498`) | Alex's decision (below) |
+| 1 | A P1 | no viable scope: the note says "draft quotes no set price (budget redirect)" but the drafting prompt states the minimum ("My solo sets start at $550 for 1hr", `generate.ts:494,498`) | **Alex: fix test-first, no further review.** Fixed in `22e9f37`: "draft states the minimum: 1h $550 (budget redirect)" via the same `findMinFloor` + `clientTotal`; test pins the literal; the old wording fails it |
 
 Run A also confirmed: residency skipping is correct; clarification, T4 fallback, minimum profit and travel custom-quote
 paths show no Tier B mismatch.

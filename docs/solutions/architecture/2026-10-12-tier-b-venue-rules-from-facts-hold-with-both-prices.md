@@ -50,6 +50,13 @@ deeper cause: the port had flattened Tom Ham's own rule into Coasterra's.
   `tier_b:` is a hold-note prefix (hidden from generate, verify and edits; shown in the dashboard's Concerns row).
 - Real runs: the measured lead held with both prices on 7 of 7 runs (5 on Revision 4 code, 2 on Revision 5b).
 
+**After round 2 (Revision 6/6b and the cap):** every note names what the draft actually offers, because approving sends
+the draft as written: "draft uses T2 $895", "draft offers 2h $650 first, then 3h $895" (large budget gap), "draft
+states the minimum: 1h $550 (budget redirect)"; residency leads skip the check (their own rate and hold). Code review
+round 3 found the first two mismatches, round 4 the redirect; round 4 was past the cap (Claude Code miscounted; Alex's
+run B refused per policy), and Alex chose to fix the last one test-first without another review. A one-click "use this
+price" action is a Module 1 (1.4 approvals) item.
+
 ## How the rule moved (all Alex's calls, each from a heads-up or a question)
 
 1. Hold edge cases with both prices (Claude Code's recommendation: no first-party data backed either rule).

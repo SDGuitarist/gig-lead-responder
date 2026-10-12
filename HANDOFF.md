@@ -6,7 +6,7 @@
 **Branch:** `feat/hub-phase0` (cut from `docs/booking-hub-brainstorm` at `c644210`; pushed; not merged)
 **Phase:** Work, Phase 0 **in progress**. 0.1, 0.2 (code), 0.3 (all but the alert half of `invalid_grant alerts`), 0.4, S1, S1-adv done. **0.5 port: 10 TO PORT, 2 BLOCKED** (venues PORTED 2026-10-11; recount with `docs/END-TO-END-STATUS.md` V1). 0.6 DONE, approximate (calendar, both GigSalad accounts, Yelp numbers from Alex; `docs/research/2026-10-02-booking-hub/baseline.md`). S3 PASSED; G1 FAILED (10-03, repeated 10-09) → redesign plan 1.2. **GigSalad portal reading BUILT.** Module 1 not started.
 
-## START HERE — Tier B venue-pricing cycle COMPLETE (2026-10-12): plan, work, review (R1 + R2 GO), compound done
+## START HERE — Tier B venue-pricing cycle COMPLETE (2026-10-12): plan, work, review (R1-R2 GO, R3 NO-GO, R4 at the cap), compound done
 
 **State:** branch `feat/hub-phase0`, **NOT pushed** (origin at `8815785`; push only when Alex says). Suite **811 pass /
 0 fail / 1 skip**, tsc clean, leak check exit 0. ~/Data unchanged this cycle (Estancia `4bc6b09` already pushed).
@@ -22,6 +22,12 @@ code R1 GO both, R2 GO both (`docs/reviews/2026-10-12-tier-b-*`). Solution
 `docs/solutions/architecture/2026-10-12-tier-b-venue-rules-from-facts-hold-with-both-prices.md`. Memory
 `project_tier-b-venue-holds`, `feedback_anchor-scripted-doc-edits`; journal 2026-10-12; agent-pitfalls log row
 (candidate FC99 not minted: the registry has a pre-existing FC57 gap).
+
+**After compound (same day):** Revision 6/6b + a post-cap fix: every note names what the draft offers (`1ead7a2`,
+`fa1c481`, `22e9f37`); code review R3 NO-GO both runs, R4 run A NO-GO and run B refused (round 3 NO-GO is the hard cap;
+Claude Code had miscounted); Alex: fix the last finding test-first, no further review. Suite **812 / 0 / 1**. Open: a
+Module 1 "use this price" action (END-TO-END-STATUS); the general "Saturday evening at named venue" premium line, kept
+until the peak-day decision.
 
 **Also found:** Tom Ham's rule had been mis-ported on 10-03 (source: "Large party, sunset timing"). Alex's source file
 for rules: `~/Data/gig-lead-responder/Gig_Lead_Response_System_4.0_Extraction.md` (read; never copy into the repo).
