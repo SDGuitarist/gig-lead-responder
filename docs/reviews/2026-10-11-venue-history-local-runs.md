@@ -51,3 +51,24 @@ familiar / many times / before.
 **Result:** no borrowed claim: 0 false claims in 5 runs without a venue section (8 of 8 with u0-u2). Alex's call was
 "test first, then decide": the example lines stay. b5 repeats the d1 pattern (a true claim plus one added detail);
 recorded, not fixed, for the same reason as d1. Bound: 6 leads, one run each.
+
+## PF-Intel venue facts (2026-10-11, after the `.env` fix)
+
+**Why:** every run above ran with PF-Intel unreachable (local `.env` had a Railway-internal URL and a stale key; a
+failed lookup is silent). Fixed with Alex's yes on 2026-10-11 (`docs/END-TO-END-STATUS.md`). PF-Intel then sent
+vendor policies (curfew, dB, COI, setup notes) into the prompt for the first time. Every PF-Intel venue probed had
+0 events and 0 contacts, so "Performance History" and "Key Contacts" never rendered; only vendor policies did.
+
+Three made-up leads at PF-Intel venues that are NOT in Alex's venue file (any "I know this venue" line is false).
+Scratch DBs; nothing sent; real model.
+
+| Lead | Venue | False familiarity claim? | The words |
+|---|---|---|---|
+| pv1 | Rancho Bernardo Inn | no (states the COI the venue requires) | "I carry the liability insurance Rancho Bernardo Inn requires" |
+| pv2 | Estancia La Jolla | **YES, both drafts** | "I know the Estancia courtyard, the 10 PM curfew, the residential neighbors nearby" |
+| pv3 | Tom Ham's Lighthouse | **YES, both drafts** | "Tom Ham's is a venue I know: I load in from the parking lot side, set up in about 20 minutes"; compressed: "easy load-in at Tom Ham's" |
+
+**Result: 2 of 3 leads claimed knowing a venue Alex has not confirmed.** The earlier "0 false claims in 8" was measured
+without PF-Intel and does not cover this. The prompt shows vendor policies under "VENUE INTELLIGENCE" with nothing
+saying they are not Alex's experience, and the drafter turns them into first-person familiarity. Gate passed pv3;
+pv1/pv2 failed only on the pre-existing "lands" voice check. No check holds this. Next: Alex's call (see HANDOFF).
