@@ -45,6 +45,18 @@ describe("T4 reference T1: the block is T4-only", () => {
     assert.ok(block.includes(T4_REFERENCE_REPLY), "example reply missing");
   });
 
+  it("T4 reference T1 the block lists the seven steps in order", () => {
+    const block = buildT4ReferenceBlock(T4_URGENT);
+    assert.ok(block.includes("The order, as steps:"));
+    let at = block.indexOf("The order, as steps:");
+    for (let n = 1; n <= 7; n++) {
+      const next = block.indexOf(`\n${n}. `, at);
+      assert.ok(next > at, `step ${n} missing or out of order`);
+      at = next;
+    }
+    assert.ok(!block.includes("\n8. "), "there are seven steps");
+  });
+
   it("T4 reference T1 tiers T1, T2 and T3 get an empty string", () => {
     for (const tier of ["T1", "T2", "T3"] as const) {
       assert.equal(buildT4ReferenceBlock({ rate_card_tier: tier, timeline_band: "urgent" }), "", tier);
@@ -83,6 +95,10 @@ describe("T4 reference T4: the rule lines are literal", () => {
 
   it("T4 reference T4 says the payment sentence comes from Quote Terms only", () => {
     assert.ok(block.includes("PAYMENT: the sentence comes from the Quote Terms section only"));
+  });
+
+  it("T4 reference T4 forbids mentioning battery-powered sound", () => {
+    assert.ok(block.includes("Never mention battery-powered sound"));
   });
 
   it("T4 reference T4 says the example is not evidence about any other venue", () => {

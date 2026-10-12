@@ -105,3 +105,11 @@ test("port manifest venues rows: R081-R085, R087-R089, R405 are PORTED", () => {
   const status = new Map(tableRows(`${DIR}/port-manifest.md`).map((r) => [r[0], r[3]]));
   for (const id of ["R081", "R082", "R083", "R084", "R085", "R087", "R088", "R089", "R405"]) assert.equal(status.get(id), "PORTED", id);
 });
+
+// T4 reference-lead plan (2026-10-11, Revision 1b), T7: R020-R025 PORTED and R329 NOT PORTED, by id, so another
+// row cannot move in their place while the counts still add up.
+test("T4 reference T7 manifest rows: R020-R025 are PORTED and R329 is NOT PORTED", () => {
+  const status = new Map(tableRows(`${DIR}/port-manifest.md`).map((r) => [r[0], r[3]]));
+  for (const id of ["R020", "R021", "R022", "R023", "R024", "R025"]) assert.equal(status.get(id), "PORTED", id);
+  assert.equal(status.get("R329"), "NOT PORTED");
+});
