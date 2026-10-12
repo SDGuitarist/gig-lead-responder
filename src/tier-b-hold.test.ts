@@ -97,11 +97,16 @@ const both = (c: Classification, travel: TravelFeeData | null = null) => `T2 $${
 function hold(over: Partial<Classification> & Record<string, unknown>, raw = "", travel: TravelFeeData | null = null): string | null {
   const c = lead(over);
   const before = JSON.stringify(c);
-  const note = tierBHold(c, raw, travel);
+  // A clarification lead has no rate table (the pipeline uses a placeholder pricing for it).
+  const pricing = c.format_recommended === "unresolved" ? { quote_price: 0, travel: null } : lookupPrice(c, travel);
+  const note = tierBHold(c, raw, pricing, travel);
   assert.equal(JSON.stringify(c), before, "the check never writes the classification (tier, price inputs)");
   if (note !== null) {
     assert.ok(note.startsWith("tier_b: "), note);
-    assert.ok(note.endsWith(both(c, travel)), `both prices: ${note}`);
+    assert.ok(note.endsWith(`; ${both(c, travel)}`), `both prices: ${note}`);
+    // Revision 6: the note names the price the draft actually uses (the run's own pricing).
+    const draft = `draft uses ${c.rate_card_tier} $${clientTotal(pricing, pricing.quote_price)}`;
+    assert.ok(note.includes(`${draft}; ${both(c, travel)}`), `${draft}: ${note}`);
   }
   return note;
 }

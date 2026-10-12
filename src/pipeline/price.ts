@@ -445,7 +445,8 @@ export function t4FallbackHold(classification: Pick<Classification, "rate_card_t
 // Tier B venues (plan docs/plans/2026-10-12-fix-tier-b-venue-rule-conflict-hold-plan.md, Revisions 5/5b, Alex). The app
 // decides from the guest count alone (a copied number) and never writes the tier; every note names both rate-card
 // prices. Shared venues: 100+ guests is premium; under 100 or unknown is held for Alex, the AI's corporate call shown.
-export function tierBHold(classification: Classification, rawText: string, travelData?: TravelFeeData | null): string | null {
+export function tierBHold(classification: Classification, rawText: string,
+  pricing: Pick<PricingResult, "quote_price" | "travel">, travelData?: TravelFeeData | null): string | null {
   if (classification.nonprofit_buyer === true || classification.format_recommended === "unresolved") return null;
   const venue = matchTierB(classification.venue_name, rawText);
   if (!venue) return null;
@@ -453,10 +454,11 @@ export function tierBHold(classification: Classification, rawText: string, trave
     const p = lookupPrice({ ...classification, rate_card_tier: tier }, travelData);
     return clientTotal(p, p.quote_price);
   };
-  const both = `T2 $${at("T2")} / T3 $${at("T3")}`;
+  // Revision 6 (Alex): name the price the draft actually uses; approving sends it as written.
+  const both = `draft uses ${classification.rate_card_tier} $${clientTotal(pricing, pricing.quote_price)}; T2 $${at("T2")} / T3 $${at("T3")}`;
   const tag = `tier_b: ${venue.name}`;
   const premium = classification.rate_card_tier === "T3" || classification.rate_card_tier === "T4";
-  const met = (why: string) => premium ? null : `${tag} own rule says premium (${why}); priced ${classification.rate_card_tier}; ${both}`;
+  const met = (why: string) => premium ? null : `${tag} own rule says premium (${why}); ${both}`;
   if (venue.rule === "always") return met("premium for any booking");
   const g = classification.guest_count ?? null;
   if (g === null) return `${tag} guests not stated; ${both}`;

@@ -219,7 +219,7 @@ export async function runPipeline(
   const t4Note = t4FallbackHold(enriched, pricing);
   if (t4Note) enriched.flagged_concerns = [...enriched.flagged_concerns, t4Note];
   // Tier B venues (plan 2026-10-12): Alex's own venue rules from plain facts; both prices when held, tier untouched.
-  const tierBNote = tierBHold(enriched, rawText, travelData);
+  const tierBNote = tierBHold(enriched, rawText, pricing, travelData);
   if (tierBNote) enriched.flagged_concerns = [...enriched.flagged_concerns, tierBNote];
   // Nonprofit (R403): whether NP2 priced it, and why not; the lead is already held by the classify note.
   const npNote = nonprofitPriceNote(enriched, pricing);
