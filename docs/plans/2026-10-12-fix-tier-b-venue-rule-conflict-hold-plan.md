@@ -2,7 +2,10 @@
 title: "Tier B venues: the app decides when the venue rules disagree, and holds with both prices"
 type: fix
 date: 2026-10-12
-status: plan (awaiting Codex plan review)
+status: plan (plan review closed at the hard cap; Alex: fix and build, 2026-10-12)
+feed_forward:
+  risk: "Extraction of guest count and start hour from real lead wording; Brick held until Alex defines it"
+  verify_first: true
 ---
 
 # Tier B venues: when the venue rules disagree, hold with both prices
@@ -26,6 +29,17 @@ wins (`src/prompts/classify.ts` Step 2.75):
 
 The model judges both from prose every run, so the tier is a coin flip at the edge. No past quote settles it (Gmail
 both accounts and calendar checked 2026-10-12; platform threads not visible).
+
+## Revision 3 (after Codex PLAN round 3 = NO-GO on both runs, the hard cap; Alex: fix and build, no further plan review; `docs/reviews/2026-10-12-tier-b-plan-codex-round3.md`)
+
+| # | Finding | Change |
+|---|---|---|
+| 1 | Tom Ham's guests null + start < 17 had no row (A P1) | new D3 row "guests not stated; waterfront 50+ buyout rule may apply" before the waterfront row; B4f |
+| 2 | dashboard visibility not tested (A P1, B P2) | B14 pins the lead-detail "Concerns" renderer |
+| 3 | EARS form and grouping (A P2) | B1-B14 rewritten WHEN/SHALL, Happy Path / Error Cases |
+| 4 | frontmatter (A P2) | `feed_forward` added |
+| 5 | PF-Intel prerequisite (A note) | listed |
+| 6 | "log lines before the JSON" (B P3) | not accepted: the CLI prints log lines on stdout before the JSON (observed 2026-10-11) |
 
 ## Revision 2 (after Codex PLAN round 2 = NO-GO on both runs, the 2nd NO-GO; `docs/reviews/2026-10-12-tier-b-plan-codex-round2.md`)
 
@@ -117,6 +131,7 @@ lead is held with both rate-card prices.** No price is invented or changed; the 
    | own rule met (Scripps, Martin Johnson always) and priced standard | "tier_b: <venue> own rule says premium (<condition>); priced <tier>; T2 $a / T3 $b" |
    | own rule met and priced premium | none |
    | own rule undecidable (a needed fact null: guests, start hour, or date) | "tier_b: <venue> <fact> not stated; T2 $a / T3 $b" |
+   | own rule not met, waterfront, guests null (R097 cannot be settled; Revision 3) | "tier_b: <venue> guests not stated; waterfront 50+ buyout rule may apply; T2 $a / T3 $b" |
    | own rule not met, waterfront, guests >= 50 (R097, buyout never known) | "tier_b: <venue> own rule says standard; waterfront 50+ buyout rule may apply; T2 $a / T3 $b" |
    | own rule not met and priced premium | "tier_b: <venue> own rule says standard; priced premium (<stealth signals>); T2 $a / T3 $b" |
    | own rule not met, priced standard | none |
@@ -160,11 +175,44 @@ See `## Execution Path` below.
 
 ## Acceptance Tests (EARS)
 
-Unit tests use classifications built in the test (no model) and `lookupPrice` for the candidate prices.
+Unit tests use classifications built in the test (no model) and `lookupPrice` for the candidate prices. "Held" means
+exactly one `tier_b:` note naming both prices (T2 $a / T3 $b from `lookupPrice`); "none" means no `tier_b:` note.
+`rate_card_tier` and the quoted price SHALL be unchanged in every case.
+
+### Happy Path
 
 - **B1** WHEN the classify prompt is built, THE SYSTEM SHALL contain the literal D1 Tier B line exactly once (pinned as
-  a string in the test, not regenerated from data) and SHALL NOT contain the old line.
-- **B2** Normalization (before validation; classification never fails for these). Each field tested on its own:
+  a string in the test) AND SHALL NOT contain the old Tier B line.
+- **B3** WHEN the classify prompt is built, THE SYSTEM SHALL contain the D2 extraction rules (pinned phrases "50+",
+  "5-8 PM", "noon", "under 60").
+- **B4a** WHEN a Tom Ham's lead has guests 120, start hour 18 and is priced T3, THE SYSTEM SHALL add no note.
+- **B4b** WHEN a Tom Ham's lead has guests 120, start hour 18 and is priced T2, THE SYSTEM SHALL hold with "own rule says
+  premium (100+ guests and starts 5 PM or later)".
+- **B4c** WHEN a Tom Ham's lead has guests 40, start hour 18 or guests 49, start hour 16, priced T2, THE SYSTEM SHALL add
+  no note.
+- **B5a** WHEN a Coasterra lead is on a Saturday with guests 30, priced T2, THE SYSTEM SHALL hold with "own rule says
+  premium (any Saturday)".
+- **B5b** WHEN a Coasterra lead is corporate on a Sunday with guests 30, priced T3, THE SYSTEM SHALL add no note; WHEN
+  it is not corporate on a Sunday with guests 30, priced T2, THE SYSTEM SHALL add no note.
+- **B6a** WHEN a Marina Village lead has guests 75, or is corporate with guests null, priced T2, THE SYSTEM SHALL hold
+  ("own rule says premium"); WHEN it has guests 74, not corporate, priced T2, THE SYSTEM SHALL add no note.
+- **B6b** WHEN a Scripps Seaside Forum ("Scripps Forum") or Martin Johnson House lead is priced T2, THE SYSTEM SHALL
+  hold; WHEN priced T3, THE SYSTEM SHALL add no note.
+- **B8** WHEN the venue is "Tom Hams Lighthouse", "Tom Ham's", "Tom Ham’s", "TOM HAM'S LIGHTHOUSE", "Coasterra", "Scripps
+  Forum", "Scripps Seaside Forum", "Marina Village" or "Martin Johnson House", THE SYSTEM SHALL match the Tier B entry;
+  WHEN it is "Tom Hanks", "Scripps Ranch" or "Coaster", THE SYSTEM SHALL NOT.
+- **B10** WHEN any note is added, its two prices SHALL equal `lookupPrice` with T2 and T3 for the same format, duration,
+  column and travel data; WHEN the lead is out of area with a travel fee, both prices SHALL include it.
+- **B12** WHEN the Tier A verify tests run, THE SYSTEM SHALL pass them unchanged; WHEN a lead names a Tier A venue only,
+  THE SYSTEM SHALL add no Tier B note.
+- **B14** WHEN the dashboard renders a lead's detail, THE SYSTEM SHALL print every `flagged_concerns` entry in the
+  "Concerns" row (test: `public/dashboard.html` contains the renderer line `['Concerns', c.flagged_concerns.join(', ')]`
+  inside the lead-detail rows, pinned), so Alex sees the `tier_b:` note with both prices.
+
+### Error Cases
+
+- **B2** WHEN `guest_count` / `event_start_hour` arrive as below, THE SYSTEM SHALL normalize before validation and SHALL
+  NOT fail classification. Each field tested on its own:
 
   | Raw value | `guest_count` | `event_start_hour` |
   |---|---|---|
@@ -178,49 +226,37 @@ Unit tests use classifications built in the test (no model) and `lookupPrice` fo
   | 0 | null | 0 |
   | 5001 / 24 (out of range) | null | null |
   | "evening" | null | null |
-- **B3** WHEN the prompt is built, THE SYSTEM SHALL contain the D2 extraction rules (pinned phrases: "50+", "5-8 PM",
-  "noon", "under 60").
-- **B4** Tom Ham's (both conditions needed): guests 120, hour 18, T3 → no note; T2 → "own rule says premium (100+ guests and
-  starts 5 PM or later)", both prices; guests 50, hour 17, T2 or T3 → held, "waterfront 50+ buyout rule may apply", both prices;
-  guests 120, hour 12, T2 → held (waterfront 50+); guests 40, hour 18, T2 → none; guests 40, hour 18, T3 → held
-  (priced premium, own rule says standard); guests 49, hour 16, T2 → none; guests 120, hour null → held (start hour not
-  stated); guests null, hour 18 → held (guests not stated); guests null, hour 12 → held (waterfront, guests not stated).
-- **B5** Coasterra: Saturday, guests 30, T2 → held (any Saturday); Sunday, guests 30, corporate, T3 → none; Sunday,
-  guests 30, T2 → none; date null, guests 30, not corporate, T2 → held (date not stated); date "2026-02-31" (impossible), guests 30,
-  not corporate, T2 → held (date not stated); Sunday, guests 55, T2 → held
-  (waterfront 50+).
-- **B6** Marina Village: guests 75, T2 → held; guests 74, not corporate, T2 → none; corporate, guests null, T2 → held
-  (own rule met); guests null, not corporate → held (guests not stated). Scripps Seaside Forum and "Scripps Forum",
-  Martin Johnson House, priced T2 → held; priced T3 → none. Brick (venue_name "Brick") → held at any tier; the word
-  "brick" in the lead text with another venue → no Tier B note.
-- **B7** Priced premium against an own rule that says standard (Tom Ham's, guests 40, hour 12, T3) → held with both
-  prices and the stealth signals named.
-- **B8** Aliases. Match: "Tom Hams Lighthouse", "Tom Ham's", "Tom Ham’s" (curly), "TOM HAM'S LIGHTHOUSE", "Coasterra",
-  "Scripps Forum", "Scripps Seaside Forum", "Marina Village", "Martin Johnson House". Miss: "Tom Hanks", "Scripps
-  Ranch", "Coaster" and a lead text containing "brick" when `venue_name` is another venue.
-- **B9** Not applied: `venue_name` "Example Harbor Grill" with lead text "we considered Tom Ham's" → no Tier B note; a
-  nonprofit buyer at Tom Ham's; a clarification lead; a lead naming no Tier B venue; an unrelated
-  waterfront restaurant (e.g. "Example Harbor Grill", 80 guests) → no note, tier unchanged.
-- **B10** Candidate prices equal `lookupPrice` with T2 and T3 for the same format, duration, column and travel data;
-  for an out-of-area lead with a travel fee both include it; `rate_card_tier` and the quoted price are unchanged after
-  the check (every case above).
-- **B11** Hidden from the drafter: with a `tier_b:` note in `flagged_concerns`, `buildGeneratePrompt` and the verify
-  prompt contain no `tier_b:` text; `routeLead` holds the lead. Edit path: a test builds a stored classification with
-  the note, calls `runEditPipeline(stored, pricing, "shorter")` with a stubbed model requester that captures every
-  prompt, and asserts (a) no captured prompt contains `tier_b:`, (b) the `stored` object still holds the note after the
-  call (the edit path never re-derives notes), (c) the return value is still `{ drafts, gate }` (shape unchanged).
-- **B12** Tier A unchanged: the existing Tier A verify tests pass untouched; a Tier A venue gets no Tier B note.
-- **B13 (real model)** pv3 Tom Ham's lead x5: `guest_count` 50 and `event_start_hour` 17 on every run, and **held with
-  both prices ($895 / $1,200) on every run** whatever tier the model picks; AND tb2 (Tom Ham's 120 guests, Wednesday
-  6 PM) x2 → premium, or held with both prices if priced T2, never an unflagged T2; AND tb3 (Coasterra, Saturday, 40
-  guests) x2 → premium, or held with both prices, never an unflagged T2.
+- **B4d** WHEN a Tom Ham's lead has guests 50, start hour 17 (priced T2 or T3), or guests 120, start hour 12 (T2), THE
+  SYSTEM SHALL hold with "own rule says standard; waterfront 50+ buyout rule may apply".
+- **B4e** WHEN a Tom Ham's lead has guests 120 and start hour null, THE SYSTEM SHALL hold with "start hour not stated";
+  WHEN guests null and start hour 18, THE SYSTEM SHALL hold with "guests not stated".
+- **B4f** WHEN a Tom Ham's lead has guests null and start hour 12 (own rule decided: not met; R097 cannot be settled),
+  THE SYSTEM SHALL hold with "guests not stated; waterfront 50+ buyout rule may apply" (Revision 3 row).
+- **B5c** WHEN a Coasterra lead has date null, or the impossible date "2026-02-31", guests 30, not corporate, priced T2,
+  THE SYSTEM SHALL hold with "date not stated"; WHEN a Sunday with guests 55, priced T2, THE SYSTEM SHALL hold with the
+  waterfront note.
+- **B6c** WHEN a Marina Village lead has guests null and is not corporate, THE SYSTEM SHALL hold with "guests not
+  stated"; WHEN the venue is "Brick" (`venue_name`), THE SYSTEM SHALL hold at any tier.
+- **B7** WHEN a Tom Ham's lead has guests 40, start hour 12, and is priced T3, THE SYSTEM SHALL hold with "own rule says
+  standard; priced premium (<stealth signals>)".
+- **B9** WHEN `venue_name` is "Example Harbor Grill" and the lead text says "we considered Tom Ham's", or the buyer is a
+  nonprofit, or it is a clarification lead, or no Tier B venue is named, or `venue_name` is another venue and the text
+  says "brick", or an unrelated waterfront restaurant has 80 guests, THE SYSTEM SHALL add no Tier B note.
+- **B11** WHEN `flagged_concerns` holds a `tier_b:` note, `buildGeneratePrompt` and the verify prompt SHALL contain no
+  `tier_b:` text AND `routeLead` SHALL hold the lead; WHEN `runEditPipeline(stored, pricing, "shorter")` runs with a
+  stubbed model requester capturing every prompt, no captured prompt SHALL contain `tier_b:`, the `stored` object SHALL
+  still hold the note afterwards, and the return value SHALL still be `{ drafts, gate }`.
+- **B13 (real model)** WHEN tb1 (Tom Ham's, 50 guests, 5 PM, Sunday) runs 5 times, THE SYSTEM SHALL record guest_count
+  50 and event_start_hour 17 and hold with both prices ($895 / $1,200) on every run; WHEN tb2 (Tom Ham's, 120 guests,
+  Wednesday 6 PM) and tb3 (Coasterra, Saturday, 40 guests) run twice each, THE SYSTEM SHALL price them T3, or hold with
+  both prices, and SHALL NEVER leave an unflagged T2.
 
 ## Work steps (one concern per commit; failing test first; mutation-check each test)
 
 1. `TIER_B_VENUES` + the literal prompt line (B1, B8). Mutations: old line back; drop the apostrophe-optional match.
 2. Two fields: types, prompt rules, normalize-then-validate (B2, B3). Mutations: validate before normalizing (B2
    fails); drop "50+" rule text (B3 fails).
-3. `tierBHold` + `tier_b:` prefix + the one call (B4-B12). Mutations: `>` for `>=` at 100 / 75 / 50 / 17 (each fails
+3. `tierBHold` + `tier_b:` prefix + the one call (B4-B12, B14). Mutations: `>` for `>=` at 100 / 75 / 50 / 17 (each fails
    one case); `||` for `&&` in the Tom Ham's rule (B4 fails); Saturday read as weekend (B5 fails); write the tier (B10 fails); drop the prefix (B11 fails); skip the
    nonprofit guard (B9 fails); omit travel data (B10 fails).
 4. Real-model runs B13; record guests, hour, tier, note per run.
@@ -241,7 +277,8 @@ Unit tests use classifications built in the test (no model) and `lookupPrice` fo
   Read from each `.out` (the JSON after the log lines): `classification.guest_count`, `event_start_hour`,
   `rate_card_tier`, and every `flagged_concerns` entry starting `tier_b:`. Record them in
   `docs/reviews/2026-10-12-tier-b-local-runs.md`.
-- **Prerequisites:** Anthropic key in `.env`: ALREADY HAVE. Suite + tsc green after the work steps: MUST OBTAIN
+- **Prerequisites:** Anthropic key in `.env`: ALREADY HAVE. PF-Intel production URL + key in `.env`: ALREADY HAVE (fixed
+  2026-10-11, verified hit/miss; lookups are live reads). Suite + tsc green after the work steps: MUST OBTAIN
   (produced by the work).
 - **Who:** Claude Code runs and records; Alex reads the hold notes.
 - **Trigger:** after the last code step commits, before the Codex code-review prompt.
