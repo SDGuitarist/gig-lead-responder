@@ -41,6 +41,12 @@ export function deliveryModeFor(format: unknown): DeliveryMode | null {
 }
 
 /** Parses the model's graceful_decline once; only a real boolean true counts (port manifest R320). */
+/** A whole number in [min, max], from a number or a digits-only string; anything else is null (Tier B plan D2). */
+export function normalizeWholeNumber(value: unknown, min: number, max: number): number | null {
+  const n = typeof value === "number" ? value : typeof value === "string" && /^\d+$/.test(value.trim()) ? Number(value.trim()) : NaN;
+  return Number.isInteger(n) && n >= min && n <= max ? n : null;
+}
+
 export function normalizeGracefulDecline(value: unknown): boolean {
   return value === true;
 }
@@ -182,6 +188,8 @@ const validateClassification = (raw: unknown): Classification => {
     }
   }
   obj.event_arc = normalizeEventArc(obj.event_arc);
+  obj.guest_count = normalizeWholeNumber(obj.guest_count, 1, 5000);
+  obj.event_start_hour = normalizeWholeNumber(obj.event_start_hour, 0, 23);
   obj.extended_dancer = normalizeExtendedDancer(obj.extended_dancer);
   obj.nonprofit_buyer = normalizeNonprofitBuyer(obj.nonprofit_buyer);
   obj.np_tier = normalizeNpTier(obj.np_tier, obj.nonprofit_buyer as boolean);

@@ -84,6 +84,9 @@ export interface Classification {
 
   // Event date — extracted by LLM, used by code for date math
   event_date_iso: string | null; // ISO date (YYYY-MM-DD) or null if not mentioned
+  // Plain facts for the Tier B check (plan 2026-10-12): extracted, normalized to null when odd, never judged.
+  guest_count?: number | null;
+  event_start_hour?: number | null; // 0-23, the lead's local time
   past_date_detected?: boolean; // Computed in TypeScript, not by LLM
 
   // Timeline & urgency

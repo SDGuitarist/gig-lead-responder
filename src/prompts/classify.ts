@@ -202,6 +202,10 @@ price_asked = true only when the lead asks about price, rate, cost or budget. Ot
 
 ## EVENT ARC
 
+guest_count: the number of guests the lead states, as a whole number, never words. "50+", "50 or more" or "at least 50" → 50; "about 50" or "around 50" → 50; "50-60" or "50 to 60" → 60; "up to 60" → 60; "under 60" or "fewer than 60" → 59; none stated → null.
+
+event_start_hour: the hour the event (or the music) starts, 0-23, in the lead's local time, as a whole number. "5-8 PM" → 17; "5:30 PM" → 17; "6pm" → 18; "17:00" → 17; "noon" → 12; "midnight" → 0; "evening" or "dinner" with no time → null; none stated → null.
+
 event_arc names the event's structure (each has its own phases and music):
 - "wedding": ceremony, cocktail hour, reception (any part of a wedding day)
 - "corporate": arrival/networking, remarks, social tail (company events, receptions, ribbon-cuttings)
@@ -233,6 +237,8 @@ Return ONLY this JSON object (no markdown fences, no explanation):
   "duration_hours": 1 | 1.5 | 2 | 3 | 4,
   "stated_budget": number | null,
   "event_date_iso": "YYYY-MM-DD" | null,
+  "guest_count": number | null,
+  "event_start_hour": number | null,
   "timeline_band": "comfortable" | "short" | "urgent",
   "close_type": "direct" | "soft_hold" | "hesitant",
   "event_energy": "background" | "performance" | null,
