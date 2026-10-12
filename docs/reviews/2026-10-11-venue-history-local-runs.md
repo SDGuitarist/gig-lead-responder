@@ -104,3 +104,47 @@ Leads (made up; no venue in Alex's venue file except F6):
 | x2 | Estancia La Jolla | Hello! Our wedding ceremony and cocktail hour are at Estancia La Jolla on Saturday, September 25, 2027, 110 guests, 4-6pm. We would love solo Spanish guitar. Thanks, Renee |
 | x3 | Tom Ham's Lighthouse | Hi, our company is hosting a client appreciation evening at Tom Hams Lighthouse on Thursday, February 11, 2027, around 75 people, 6-8pm. Looking for a guitarist for background music. Regards, Daniel |
 | f6 | Hotel del Coronado (in the venue file) | Hi! We are planning a 60th birthday dinner at Hotel del Coronado on Saturday, March 13, 2027, about 70 guests, 6-9pm. Would love a solo Spanish guitarist for dinner. Thanks, Monica |
+
+## PF-Intel fix: F5/F6 results (2026-10-11, code `c3a6d28`; Claude Code's first judgment, for Alex to read)
+
+13 runs, all exit 0, 0 `[venue-lookup]` warnings. Every sentence that mentions the venue, its spaces, staff, load-in
+or neighbors is listed. C = claim, B = borderline (counts as a claim under the plan's rule), ok = not a claim.
+P = a pre-registered lookup fact stated (positive control).
+
+| Run | Draft | Venue sentence | Verdict | P |
+|---|---|---|---|---|
+| s1a | full | "the courtyard lit up for the holidays"; "I carry $1M general liability and can have the COI to Estancia's team" | ok | COI |
+| s1a | comp | "COI available for the venue" | ok | |
+| s1b | full | "80 people moving through the Spanish courtyard"; "The Spanish courtyard aesthetic and the music are designed for each other"; "Estancia's outdoor curfew is 10 PM, so I'll plan the set to finish comfortably before that"; COI | ok | curfew, COI, courtyard |
+| s1b | comp | "working the courtyard"; "the one call that actually fits the venue"; "$1M general liability for the venue" | ok | |
+| s1c | full | "Eighty people in the Estancia La Jolla courtyard on a December Friday, **the string lights already on**"; "The venue has a 10 PM outdoor curfew, so I'll plan the final set to finish by 9:45" | **B** (string lights: a venue detail not in the lookup, stated in the scene) | curfew |
+| s1c | comp | "**string lights on**"; "finish before the venue's 10 PM curfew" | **B** (same) | |
+| s2a | full | "Sunday evening on Harbor Island"; "**Tom Ham's has both interior and harbor-view spaces; I'm fully self-contained for either**" | **C** (venue layout not in the lookup, stated as known) | Harbor Island |
+| s2a | comp | "**Fully self-contained for Tom Ham's interior or harbor-side**" | **C** (same) | |
+| s2b | full | "**Tom Ham's has both indoor and outdoor space**, and I'm fully self-contained for either" | **C** | |
+| s2b | comp | "I'm fully self-contained for indoor or outdoor" | ok (no venue named; listed for Alex) | |
+| s2c | full | "fully self-contained for indoors or outdoors at the waterfront" | ok (a plan; listed for Alex) | |
+| s2c | comp | (venue named in the scene only) | ok | |
+| s3a | full | "bay breeze coming off Mission Bay"; "For a bay-side setting like this, I secure my stand for the wind"; "The Catamaran also requires a $1M COI; I carry it" | ok | bay-side, wind, COI |
+| s3a | comp | "self-contained for bay-side outdoor setup, professional sound, COI included" | ok | |
+| s3b | full | "**Catamaran's bay-side setup is one I plan for specifically.**" "I account for wind when positioning the speaker"; COI | **B** ("one I plan for specifically" can read as a practiced, venue-specific routine) | bay-side, wind, COI |
+| s3b | comp | "self-contained for Catamaran's bay-side outdoor setup"; COI | ok | |
+| s3c | full | "the bay adds its own ambient sound"; "I secure my equipment for bay-side wind"; "The Catamaran requires a COI and I carry $1M general liability" | ok | wind, COI |
+| s3c | comp | "I carry the COI the Catamaran requires" | ok | |
+| x1 | full | "Rancho Bernardo Inn has multiple event spaces, so once you confirm the exact room, I'll coordinate load-in directly with the venue"; COI | ok | spaces, room, COI |
+| x1 | comp | "provide COI to the venue once you confirm the room" | ok | |
+| x2 | full | "the Spanish courtyard doing exactly what it was built for"; "solo Spanish guitar fits it like almost nothing else does"; "I calibrate volume for the courtyard on-site"; "Estancia requires a COI" | ok | courtyard, flamenco fit, COI |
+| x2 | comp | "the Spanish courtyard"; "That venue was built for this"; "the COI Estancia requires" | ok | |
+| x3 | full | "harbor lights on the water"; "For a corporate room at this venue, I default to..." | ok | |
+| x3 | comp | "harbor lights behind them" | ok | |
+
+**F5: FAILS under the plan's rule.** 3 claims (s2a full + compressed, s2b full) and 3 borderline (s1c x2, s3b full) in
+24 drafts. **No first-person familiarity line in 24 drafts** ("I know the courtyard", "a venue I know", "easy load-in at"):
+the D1 text removed the pattern measured before the fix (2 of 3 leads). What remains is a different shape: **venue
+details the model knows from general knowledge, not from PF-Intel, stated as fact** (Tom Ham's "interior and harbor-view
+spaces", Estancia's "string lights"), all inside scene-setting or self-containment lines.
+**Positive control: PASSES**, 9 of 12 runs stated a pre-registered fact (s1a s1b s1c s2a s3a s3b s3c x1 x2; not s2b
+s2c x3). No contradiction of a recorded value.
+**F6: PASSES**, both Del drafts say Alex has performed there (words not copied: they quote Alex's private sentence).
+**Gate:** 11 of 12 passed; x1 failed only on the pre-existing "here's the thing" voice check.
+Per the plan, the runs stopped for Alex's decision.
