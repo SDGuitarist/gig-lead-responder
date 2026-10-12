@@ -55,10 +55,10 @@ then 0 off-calendar gigs / 0 missed money or COI dates; then hours back.
 | ☑ | S1, S1-adv (locked `claude -p`, injection) | PASSED 10-03 | `spikes.md` `## Executed` | — |
 | ☑ | C1 (Railway stopped; C1b waived by Alex) | PASSED 10-03 | `spikes.md` rows C1a, C1b. ⚠ GitHub auto-deploy note there | — |
 | ☑ | G1 Gmail supplied Message-ID | **FAIL 10-03** (Gmail replaces it; search verified by controls); repeated 10-09, same result | `spikes.md` G1 result rows (NOT the UNEXECUTED table) | **Consequence: plan §1.2 duplicate-send recovery must be redesigned** (candidates: body/subject token, or the Gmail id from the send response); auto-send stays off until then |
-| ☐ | S2 GigSalad email reply lands on platform | not run | `## UNEXECUTED` row S2 | **Alex**, on the next real GigSalad lead |
+| ☐ | S2 GigSalad email reply lands on platform | not run. **No prior evidence either way:** Alex has never replied to GigSalad by email (he replies in the portal; Alex 2026-10-11) | `## UNEXECUTED` row S2 | **Alex**, on the next real GigSalad lead |
 | ☑ | S3 iMessage to self + read-back | **PASSED 10-09** (sent + delivered, read back from `chat.db`; Alex confirmed on iPhone) | `spikes.md` row "S3: iMessage to self + read-back \| 2026-10-09" | Finding: self-messages create two rows; only `is_from_me=1` is Alex |
 | ☑ | S5 Gmail token valid on day 8 | **PASSED 10-11** 00:00 PDT (7 d 16 h after the production sign-in; refresh token used: loader refreshed and rewrote the token file) | `spikes.md` row "S5: token valid on day 8 \| 2026-10-11"; probe `evidence/s5-probe.ts` | No weekly re-auth needed. Revocation (password change, 6 months unused) still ends it: that is the `invalid_grant` alert in 0.3 |
-| ☐ | S6 overnight awake + catch-up | not run | row S6 | Alex (a night) |
+| ☐ | S6 overnight awake + catch-up | **half known:** Alex reports the Mac stays awake overnight (2026-10-11). The app's catch-up (`wake-watch.ts` → `pollNow()`) has never run for real: the poller has never been started (needs Alex's yes). Stays open until one real night with the app running | row S6 | Alex (a night, after the poller starts) |
 | ☐ | FileVault restart after an OS update | not run | row FileVault | Alex (next macOS update) |
 
 **V1 (port count by status column; known answer 2026-10-11 (after R085, R089): 197 ALREADY PRESENT, 165 PORTED, 34 NOT PORTED,
@@ -86,7 +86,7 @@ error, as `POST /api/leads/:id/approve` does; otherwise a draft approved days la
 | Risk | Where recorded | Status |
 |---|---|---|
 | Classifier puts the VENUE in `organization_name` (2/2 runs) → an NP2 in-kind line thanks the hotel | fix: `docs/plans/2026-10-09-fix-organization-name-is-the-venue-plan.md`; runs `docs/reviews/2026-10-09-org-venue-local-runs.md` | **FIXED and reviewed (built `e0ab871`..`bef0bf2`, 3/3 real runs null; Codex code review R1 GO both runs, `docs/reviews/2026-10-09-org-venue-codex-round1.md`; solution `docs/solutions/logic-errors/2026-10-10-organization-name-is-never-the-venue.md`).** Still open: a wrong NON-venue name, "St." vs "Saint" (pinned miss) |
-| `PF_INTEL_API_URL` in local `.env` is Railway-internal → venue lookups fail silently; production unknown (and production is moving to the Mac anyway) | HANDOFF "NEW items" | Alex to check; never edit `.env` without asking |
+| **PF-Intel: CHECKED 2026-10-11 (Claude, Alex said drive it).** Production `https://pf-intel-production.up.railway.app` is up (`/health` healthy). Local `.env` is wrong twice: `PF_INTEL_API_URL` is Railway-internal (resolves only inside Railway), and its `PF_INTEL_SERVER_API_KEY` gets 401 (same stale key as `pf-intel/server/.env`). The key in Railway (proud-radiance → pf-intel) returns 200: hit for Hotel del Coronado, `found` false for a made-up venue. Every local run so far had no venue facts | this row | `.env` change needs Alex's yes |
 | Classifier's T2/T3 call decides whether NP2 fires (first real texts: 0/3 priced) | local-runs record | watch in the ramp |
 | Real-lead false-hold rate of the price block unmeasured (6 runs, 3 texts) | solution doc `architecture/2026-10-09-app-writes-fixed-lines-model-writes-a-marker.md` | measure in the 20-lead ramp |
 | S1-adv: the model appended a meta note under the draft on an injection lead | `spikes.md` row S1-adv | Module 1 post-check must hold text outside the reply |
@@ -95,7 +95,7 @@ error, as `POST /api/leads/:id/approve` does; otherwise a draft approved days la
 ## Critical path (the order sessions should pull from, unless Alex picks otherwise)
 
 1. Things only Alex can unblock, raised every session until done: **0.6 baseline**, **S2** (next GigSalad lead),
-   **S6** (a night), the **PF-Intel URL** check.
+   **S6** (a night, after the poller starts), ~~the PF-Intel URL check~~ (checked 10-11; `.env` fix awaits Alex's yes).
 2. Claude: ~~S5~~ (passed 10-11); ~~venues~~ (ported 10-11); the **10 TO PORT** rows (prices need Alex's numbers); venue rows all PORTED (Alex rewrites every sentence after the venue-database pull).
 3. Module 1 plan review → build 1.1–1.7 → redesign 1.2's send-recovery key (G1 failed) → 20-lead ramp → auto-send → 1 week live.
 4. Only then: write the Module 2 plan from the live results.
