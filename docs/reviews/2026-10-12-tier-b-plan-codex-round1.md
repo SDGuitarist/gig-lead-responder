@@ -187,3 +187,5 @@ P3 — B1: "byte-identical" needs a literal pinned fixture.
 [Handoff prompt omitted here: gate at 0054c94; revise the plan only for the eight items above; keep the settled
 behavior; no model, PF-Intel, server, poller, network or data/leads.db.]
 ```
+
+**Alex changed the Tom Ham's rule the same day (2026-10-12, before round 2):** premium only with BOTH 100+ guests AND a start at 5 PM or later ("either" would have moved most Tom Ham's evening quotes from $895 to $1,200). The table above records his first answer.

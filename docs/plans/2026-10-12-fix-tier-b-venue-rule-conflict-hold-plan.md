@@ -32,10 +32,13 @@ both accounts and calendar checked 2026-10-12; platform threads not visible).
 **Alex's answers (2026-10-12), after Claude Code read his source file** (`~/Data/gig-lead-responder/Gig_Lead_Response_
 System_4.0_Extraction.md`, "Tier B: Context-Dependent Premium", lines 1110-1122; text not copied beyond venue rules):
 - The source's Tom Ham's rule is "Large party, sunset timing", **not** the 100+/corporate/Saturday rule the 10-03 port
-  gave it (a port error). Alex: **Tom Ham's is premium with 100+ guests OR a start at 5 PM or later, either alone.**
+  gave it (a port error). Alex first said "either alone", then the same day changed it: **Tom Ham's is premium only
+  with BOTH 100+ guests AND a start at 5 PM or later** (his reason: "either" made almost every Tom Ham's evening event
+  premium, moving most quotes there from $895 to $1,200).
 - **"Saturday evening" means any Saturday** ("the busiest day of the week").
 - Brick ("Large corporate, evening event") is not defined: **held until Alex defines it.**
-- Under these rules the measured lead (Tom Ham's, 50 guests, starts 5 PM) is premium: T3. The flip had two causes: the
+- Under these rules the measured lead (Tom Ham's, 50 guests, starts 5 PM) is standard by Tom Ham's own rule, while
+  the waterfront 50+ buyout rule may apply: it is **held with both prices** on every run. The flip had two causes: the
   wrong Tom Ham's rule in the prompt, and two rules judged from prose.
 
 | # | Finding (runs) | Change |
@@ -63,7 +66,7 @@ lead is held with both rate-card prices.** No price is invented or changed; the 
    | Venue | Pattern (case-insensitive) | Own rule: premium when | Waterfront (R097 applies) |
    |---|---|---|---|
    | Coasterra | `\bcoasterra\b` | guests >= 100, or corporate, or any Saturday | yes |
-   | Tom Ham's Lighthouse | `\btom\s+ham['’]?s?\b` (Tom Ham's, Tom Hams, Tom Ham) | guests >= 100, or start hour >= 17 | yes |
+   | Tom Ham's Lighthouse | `\btom\s+ham['’]?s?\b` (Tom Ham's, Tom Hams, Tom Ham) | guests >= 100 **and** start hour >= 17 | yes |
    | Marina Village | `\bmarina village\b` | corporate, or guests >= 75 | no |
    | Brick | `venue_name` only, `^\s*brick\b` (the word is common in prose, so never the raw text) | undefined: always held | no |
    | Scripps Seaside Forum | `\bscripps (?:seaside )?forum\b` | always | no |
@@ -72,7 +75,7 @@ lead is held with both rate-card prices.** No price is invented or changed; the 
    Matching runs on `classification.venue_name` first, then the raw lead text (except Brick). "Corporate" = `event_arc === "corporate"`.
    "Saturday" = `event_date_iso` is a Saturday (calendar date, no time zone math). The literal new prompt line (B1):
 
-   > `- Tier B venues (premium only with their own signal): Coasterra (100+ guests, corporate, or any Saturday), Tom Ham's Lighthouse (100+ guests, or starting 5 PM or later), Marina Village (corporate or 75+), Brick (large corporate evening). Scripps Seaside Forum and Martin Johnson House are premium for any booking`
+   > `- Tier B venues (premium only with their own signal): Coasterra (100+ guests, corporate, or any Saturday), Tom Ham's Lighthouse (100+ guests and starting 5 PM or later), Marina Village (corporate or 75+), Brick (large corporate evening). Scripps Seaside Forum and Martin Johnson House are premium for any booking`
 
    Rejected: keeping the old line (it carries the mis-ported Tom Ham's rule the model was reading).
 2. **D2, two extracted facts** (`Classification.guest_count?: number | null`, `event_start_hour?: number | null`).
@@ -101,9 +104,11 @@ lead is held with both rate-card prices.** No price is invented or changed; the 
    | own rule not met and priced premium | "tier_b: <venue> own rule says standard; priced premium (<stealth signals>); T2 $a / T3 $b" |
    | own rule not met, priced standard | none |
 
-   "Undecidable" means the rule cannot be settled with the facts present: Tom Ham's with guests < 100 or null AND hour
-   null; Coasterra with no corporate, guests < 100 or null, and date null; Marina Village with no corporate and guests
-   null. A rule already met by another fact is decided (corporate Coasterra with no date: met).
+   "Undecidable" means the rule cannot be settled with the facts present: Tom Ham's with guests null and hour null or
+   >= 17, or with guests >= 100 and hour null (a known guests < 100 or a known hour < 17 decides it: not met);
+   Coasterra with no corporate, guests < 100 or null, and date null; Marina Village with no corporate and guests null.
+   A rule already met or already failed by a known fact is decided (corporate Coasterra with no date: met). For a
+   waterfront venue whose own rule is not met, guests null is also "not stated" (R097 cannot be settled) and holds.
    **`tier_b:` joins `HOLD_NOTE_PREFIXES`** (`src/types.ts`), so `withoutHoldNotes` strips it from the generate and
    verify prompts; `routeLead` holds any flagged concern; the dashboard shows it.
 
@@ -125,13 +130,13 @@ stealth list's own "Saturday evening at named venue" line is out of scope (Alex 
 
 ### 3. How will we know it worked?
 EARS below (each mutation-checked), suite + tsc green, leak check exit 0, and the real-model runs: the measured Tom
-Ham's lead is premium by Alex's rule with no note when the model prices T3, a held note when it prices T2; leads whose
-rule is undecidable are held every run.
+Ham's lead is held with both prices on every run (its own rule says standard; the waterfront 50+ rule may apply);
+leads whose rule is undecidable are held every run.
 
 ### 4. What is the most likely way this plan is wrong?
 **Extraction misses** (guests or start hour null when the lead states them) hold leads Alex did not need to see. The
-runs record both facts for every lead. Second: the corrected Tom Ham's rule makes most Tom Ham's evening events
-premium; that is Alex's rule, confirmed 2026-10-12, but it changes quotes at that venue (more T3).
+runs record both facts for every lead. Second: most Tom Ham's leads are 50-99 guests, so many will be held (waterfront 50+);
+that is Alex's chosen trade (a hold over a guessed price), measured in the runs.
 
 ### 5. How will a human RUN this, and when?
 See `## Execution Path` below.
@@ -147,10 +152,11 @@ Unit tests use classifications built in the test (no model) and `lookupPrice` fo
   SHALL NOT fail for any of them.
 - **B3** WHEN the prompt is built, THE SYSTEM SHALL contain the D2 extraction rules (pinned phrases: "50+", "5-8 PM",
   "noon", "under 60").
-- **B4** Tom Ham's: guests 50, hour 17, priced T3 → no note; priced T2 → "own rule says premium (starts 5 PM or
-  later)" with T3 price; guests 120, hour 12, T2 → held (100+); guests 40, hour 12, T2 → none; guests 60, hour 12,
-  T2 → held (waterfront 50+); guests 49, hour 16, T2 → none; guests 60, hour null, T2 → held (start hour not stated);
-  guests null, hour 18, T3 → none (decided by the hour).
+- **B4** Tom Ham's (both conditions needed): guests 120, hour 18, T3 → no note; T2 → "own rule says premium (100+ guests and
+  starts 5 PM or later)"; guests 50, hour 17, T2 or T3 → held, "waterfront 50+ buyout rule may apply", both prices;
+  guests 120, hour 12, T2 → held (waterfront 50+); guests 40, hour 18, T2 → none; guests 40, hour 18, T3 → held
+  (priced premium, own rule says standard); guests 49, hour 16, T2 → none; guests 120, hour null → held (start hour not
+  stated); guests null, hour 18 → held (guests not stated); guests null, hour 12 → held (waterfront, guests not stated).
 - **B5** Coasterra: Saturday, guests 30, T2 → held (any Saturday); Sunday, guests 30, corporate, T3 → none; Sunday,
   guests 30, T2 → none; date null, guests 30, not corporate, T2 → held (date not stated); Sunday, guests 55, T2 → held
   (waterfront 50+).
@@ -173,9 +179,10 @@ Unit tests use classifications built in the test (no model) and `lookupPrice` fo
   the note sends no `tier_b:` text to the model (stubbed requester, captured prompts) and returns the classification
   with the note intact.
 - **B12** Tier A unchanged: the existing Tier A verify tests pass untouched; a Tier A venue gets no Tier B note.
-- **B13 (real model)** pv3 Tom Ham's lead x5: `guest_count` 50 and `event_start_hour` 17 on every run; T3 runs carry no
-  Tier B note, T2 runs carry "own rule says premium"; AND Tom Ham's 60 guests at noon x2 → held both runs (waterfront
-  50+); AND Coasterra on a Saturday, 40 guests x2 → premium or held, never an unflagged T2.
+- **B13 (real model)** pv3 Tom Ham's lead x5: `guest_count` 50 and `event_start_hour` 17 on every run, and **held with
+  both prices ($895 / $1,200) on every run** whatever tier the model picks; AND Tom Ham's 120 guests on a weekday at
+  6 PM x2 → premium, or held if priced T2, never an unflagged T2; AND Coasterra on a Saturday, 40 guests x2 → premium or
+  held, never an unflagged T2.
 
 ## Work steps (one concern per commit; failing test first; mutation-check each test)
 
@@ -183,7 +190,7 @@ Unit tests use classifications built in the test (no model) and `lookupPrice` fo
 2. Two fields: types, prompt rules, normalize-then-validate (B2, B3). Mutations: validate before normalizing (B2
    fails); drop "50+" rule text (B3 fails).
 3. `tierBHold` + `tier_b:` prefix + the one call (B4-B12). Mutations: `>` for `>=` at 100 / 75 / 50 / 17 (each fails
-   one case); Saturday read as weekend (B5 fails); write the tier (B10 fails); drop the prefix (B11 fails); skip the
+   one case); `||` for `&&` in the Tom Ham's rule (B4 fails); Saturday read as weekend (B5 fails); write the tier (B10 fails); drop the prefix (B11 fails); skip the
    nonprofit guard (B9 fails); omit travel data (B10 fails).
 4. Real-model runs B13; record guests, hour, tier, note per run.
 5. Codex code review (both runs).
