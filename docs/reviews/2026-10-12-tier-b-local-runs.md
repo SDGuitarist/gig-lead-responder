@@ -35,3 +35,13 @@ says standard; priced premium" if the model prices it T3. tb1 x5 and tb2-1 ran o
 flipped $895/$1,200 across 7 runs on 2026-10-11, priced T2 on all 5 runs and was held with both prices every time.
 No unflagged T2 where a rule said premium. All runs exit 0. Note: tb3 priced 2 hours (the lead says 12-2pm); the
 earlier test leads were 3 hours.
+
+## Revision 5/5b runs (code `61e60a6`; expected results written before the runs)
+
+Rule (Alex): Coasterra, Tom Ham's, Marina Village, Brick: 100+ guests is premium; under 100 or unknown is held with
+both prices (the AI's corporate call appears only in the note).
+- tb1 (Tom Ham's, 50 guests, 5 PM) x2: held "under 100 guests (...; waterfront 50+ buyout rule may apply)", both prices.
+- tb4 (Tom Ham's, 120 guests, noon) x2: T3 with no note, or held "own rule says premium (100+ guests)"; never an
+  unflagged T2.
+- tb5 (Brick, corporate dinner, 40 guests, 6 PM) x2: held "under 100 guests (marked corporate ...)" both times (if the
+  AI marks it corporate; "marked not corporate" is also a correct hold), both prices.
