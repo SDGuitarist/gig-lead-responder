@@ -235,8 +235,9 @@ test("port manifest venues V13: follow-up prompts never carry the section (exclu
 });
 
 test("port manifest venues V14: PF-Intel venue intel and Alex's history appear together", async () => {
-  const pf = { found: true, venue_name: "Example Harbor Hall", venue_id: "v1", vendor_policies: null, contacts: [],
-    event_count: 3, recent_events: [] } as unknown as VenueContext;
+  // A policy, not an event count: past events are never rendered (PF-Intel plan 2026-10-11, D2).
+  const pf = { found: true, venue_name: "Example Harbor Hall", venue_id: "v1", vendor_policies: { curfew_time: "10:00 PM" },
+    contacts: [], event_count: 3, recent_events: [] } as unknown as VenueContext;
   setVenueHistoryForTests(FIXTURE);
   try {
     const ctx = await selectContext(classification("Example Harbor Hall"), pf);

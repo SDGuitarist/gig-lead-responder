@@ -9,6 +9,9 @@ import { VENUE_CONTEXT_HEADER } from "../constants.js";
  * - Omit sections with all-null data
  * - Include updated_at from vendor_policies as freshness signal
  * - No phone/email (enforced at API level)
+ * - Past events and contacts are fetched but NEVER rendered, populated or not (plan 2026-10-11, PF-Intel facts are
+ *   not Alex's experience): "N past events" invites "I've played here" and a name invites name-dropping. Venue
+ *   experience comes only from Alex's private venue file (src/venue-history.ts), which needs his yes.
  */
 export function formatVenueContext(venue: VenueContext): string {
   const sections: string[] = [];
@@ -37,25 +40,6 @@ export function formatVenueContext(venue: VenueContext): string {
       sections.push(header);
       sections.push(lines.join("\n"));
     }
-  }
-
-  // Key Contacts
-  if (venue.contacts && venue.contacts.length > 0) {
-    sections.push("### Key Contacts");
-    const contactLines = venue.contacts.map((c) =>
-      c.role ? `- **${c.name}** — ${c.role}` : `- **${c.name}**`,
-    );
-    sections.push(contactLines.join("\n"));
-  }
-
-  // Performance History
-  if (venue.event_count > 0) {
-    const recentDate = venue.recent_events?.[0]?.date;
-    const detail = recentDate
-      ? `${venue.event_count} past events (most recent: ${recentDate})`
-      : `${venue.event_count} past events`;
-    sections.push("### Performance History");
-    sections.push(`- ${detail}`);
   }
 
   // Only the header exists — no actionable intelligence
