@@ -6,6 +6,57 @@
 **Branch:** `feat/hub-phase0` (cut from `docs/booking-hub-brainstorm` at `c644210`; pushed; not merged)
 **Phase:** Work, Phase 0 **in progress**. 0.1, 0.2 (code), 0.3 (all but the alert half of `invalid_grant alerts`), 0.4, S1, S1-adv done. **0.5 port: 10 TO PORT, 2 BLOCKED** (venues PORTED 2026-10-11; recount with `docs/END-TO-END-STATUS.md` V1). 0.6 DONE, approximate (calendar, both GigSalad accounts, Yelp numbers from Alex; `docs/research/2026-10-02-booking-hub/baseline.md`). S3 PASSED; G1 FAILED (10-03, repeated 10-09) → redesign plan 1.2. **GigSalad portal reading BUILT.** Module 1 not started.
 
+## START HERE — payment-terms cycle COMPLETE (2026-10-11): plan, work, review (R3 GO), compound all done
+
+**State:** branch `feat/hub-phase0`, **22 commits ahead of origin (`f554fac`); NOT pushed (push only when Alex says).**
+Suite **791 pass / 0 fail / 1 skip**, tsc clean, leak check exit 0 (at `53f9f59`; later commits are docs).
+Plan `docs/plans/2026-10-11-fix-payment-terms-by-lead-time-plan.md` (Revisions 1-4; plan R1-R3 NO-GO, all fixed).
+Alex's exact sentences, by lead time: >2 months "A 50% deposit holds the date, and the balance is due two months
+before the event."; >14 days to 2 months "...two weeks before the event."; 14 days or less "Full payment holds the
+date."; no date "A 50% deposit holds the date." Edges in the shorter band. GigSalad / The Bash (intake platform):
+no payment sentence. Yelp, Thumbtack, Knot, WeddingWire, direct: dated. Hand-run "P" with no platform: none + flag;
+CLI `--platform`. Approve swaps the sentence at send and refuses (409) unless every present draft has exactly one.
+Real-model runs 10/10 drafts right (`docs/reviews/2026-10-11-payment-terms-local-runs.md`).
+**REVIEW:** code R1 NO-GO (both runs; approve checked only the compressed draft) → `df6b2b0`; R2 NO-GO (run A; `""`
+full draft read as absent) → `53f9f59`; R3 (authorized by Alex) **GO both runs**
+(`docs/reviews/2026-10-11-payment-terms-codex-round{1,2,3}.md`). **COMPOUND:** solution doc
+`docs/solutions/architecture/2026-10-11-payment-terms-by-lead-time-and-send-time-swap.md`; learnings propagated
+(compound-engineering.local.md, memory `project_payment-terms-send-time-swap`, journal 2026-10-11, agent-pitfalls
+FC83 builds-hit, no new FC).
+
+**Module 1 obligation:** every send path must call `refreshPaymentSentence` on the stored drafts before sending
+(`docs/END-TO-END-STATUS.md`). Nothing enforces it yet: grep `claimLeadForSending` and every sender call when Module 1 lands.
+
+**Next: resume the T4 reference-lead plan** (`docs/plans/2026-10-11-feat-t4-reference-lead-plan.md`, paused for this
+work). Its Codex plan R1 run A was NO-GO (3 P1, 3 P2, 1 P3) and is NOT yet recorded in docs/reviews: the text is in
+the 2026-10-11 session transcript only, so ask Alex to re-run the R1 prompt (or re-run run A) if it is lost. Revision 1
+must change the approved example's "A 50% deposit holds the date." to "Full payment holds the date." (6 days out):
+**show Alex the exact words first.** Then the other TO PORT rows (R006 own plan; R398 is Module 1; R403 NP prices need
+Alex's numbers).
+
+### Three Questions (payment-terms cycle; from the solution doc's Feed-Forward)
+1. **Hardest decision?** Where the rule is enforced: the app owns the exact sentence, and the send step must re-own it
+   because time passes between draft and send.
+2. **What was rejected?** The model picking the band from the date (prose inference again); keying platform on the
+   model's `lead_source_column` (wrong for Yelp and Thumbtack, which pay Alex).
+3. **Least confident about?** That Module 1 will call `refreshPaymentSentence` on every send path. It is written down,
+   and nothing enforces it.
+
+### Prompt for Next Session
+
+```
+Work in /Users/alejandroguillen/Projects/gig-lead-responder.
+FIRST gate (stop and ask Alex if anything differs):
+  pwd; git branch --show-current                            # expect: feat/hub-phase0
+  git rev-parse HEAD; git status --short                    # expect: HANDOFF's last commit; clean
+Read: docs/END-TO-END-STATUS.md, HANDOFF.md "START HERE — payment-terms cycle COMPLETE", CLAUDE.md,
+docs/plans/2026-10-11-feat-t4-reference-lead-plan.md.
+Task: resume the T4 reference-lead plan. Record its Codex plan R1 (ask Alex for the run A/run B texts if not in
+docs/reviews), write Revision 1 fixing every finding, and change the example's deposit sentence to "Full payment holds
+the date." after showing Alex the exact words. Then Codex plan review (both runs). Never invent a price; never commit
+venue sentences; run made-up leads locally before any review of drafted text.
+```
+
 ## START HERE — venue-history cycle COMPLETE (2026-10-11): plan, work, review (R3 GO), compound all done
 
 **State:** branch `feat/hub-phase0`, **pushed to origin 2026-10-11 (Alex said push)**. Suite

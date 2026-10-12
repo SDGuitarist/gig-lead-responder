@@ -2,36 +2,36 @@
 
 ## Risk Chain
 
-**Brainstorm risk:** None — **no brainstorm this cycle** (skip gate: the input was the port manifest's 9 venue rows,
-R081-R089 and R405, with exact ids; Alex chose "venues first" and "a private file in ~/Data").
+**Brainstorm risk:** None — **no brainstorm this cycle** (skip gate: Alex gave the exact rule in chat on 2026-10-11:
+four sentences by lead time, edges in the shorter band, no terms for GigSalad / The Bash, dated terms for Yelp,
+Thumbtack, The Knot, WeddingWire and direct).
 
-**Plan mitigation:** `docs/plans/2026-10-11-feat-venue-history-private-file-plan.md` (Revision 3). A private
-`~/Data/gig-lead-responder/venue-history.json`; a one-direction matcher (equal name/alias, or the canonical 2+-word
-name inside the lead's venue; never the reverse); claims only with a real `confirmed` date and Alex's yes in chat;
-`selectContext` placement so both pipeline paths get it; a by-hand check script with a bounded leak sentinel. Plan
-review: R1 and R2 NO-GO (both runs), R3 authorized and NO-GO (hard cap), all findings fixed in Revision 3.
+**Plan mitigation:** `docs/plans/2026-10-11-fix-payment-terms-by-lead-time-plan.md` (Revisions 1-4). The app picks
+the sentence from calendar dates (`civilDay`, no DST) and the intake `platform`; the model copies it; the post-check
+confirms it exactly once plus a bounded payment-word list. One `PaymentTerms` per run through retries, edits and the
+post-check. Revision 4 (Alex): swap the sentence at approve, refuse when not exactly one. Plan review R1-R3 NO-GO
+(hard cap), all fixed.
 
-**Work risk (from Feed-Forward):** "whether the model already invents venue experience for unknown venues." Measured:
-baseline u0 plus u1, u2 and 6 borrowed-claim runs (unknown, near-miss, no venue): 0 false claims
-(`docs/reviews/2026-10-11-venue-history-local-runs.md`). "Add nothing" slipped twice (d1, b5): recorded, not fixed.
+**Work risk (from Feed-Forward):** "The payment-word list's coverage, and the paraphrase rate." Measured: 5/5 counted
+real-model leads, 10/10 drafts with the right sentence once, 0 payment flags
+(`docs/reviews/2026-10-11-payment-terms-local-runs.md`). A paraphrase outside the list would still pass.
 
-**Review resolution:** Codex code review R1 NO-GO (P1: the leak-check exemption covered every window of a venue's
-sentence in 4 files, and a per-file `break` hid later matches); R2 NO-GO (P2: test env override bypassed the check on
-the real repo; P2: "known" meant anything in the historical file); R3 (authorized) **GO on both runs**. Final shape:
-67 fixed, file-bound fingerprints of already-public windows; no env override; control-repo runs apply no exemptions.
-Records: `docs/reviews/2026-10-11-venues-codex-round{1,2,3}.md`. Pattern: FC98.
+**Review resolution:** Codex code review R1 NO-GO (A P2, B P1: approve checked only the compressed refresh; a bad
+full draft was ignored, and the full draft was refreshed only when the compressed text changed) → `df6b2b0`. R2 NO-GO
+(A P1: `full_draft ""` read as absent by a truthiness test) → `53f9f59`. R3 (authorized by Alex) **GO on both runs**.
+Route-level test through `createApp()` + temp DB, mutation-checked 4 ways.
 
 ## Files to Scrutinize
 
 | File | What changed | Risk area |
 |------|-------------|-----------|
-| `src/venue-history.ts` | loader (ok/missing/invalid, cached per path), one-direction matcher, section formatter | a false match is a false claim to a client; claims without a real date must drop |
-| `src/pipeline/context.ts` | adds the venue section after PF-Intel | must reach both `runPipeline` and `runEditPipeline`; follow-ups excluded |
-| `scripts/check-venue-history.ts` | by-hand real-file check; 67-fingerprint exemption | any widening of the exemption is a privacy bypass (FC98) |
-| `scripts/venue-leak-scan.ts` (+ test) | pure scan: every window, no break, file-bound keys | stopping early or keying wider re-opens R1/R2 |
-| `scripts/run-tests.mjs` | `VENUE_HISTORY_PATH` points tests at a path that cannot exist | tests must never read `~/Data` |
+| `src/pipeline/payment-terms.ts` | sentences, bands, precedence, post-check words, `refreshPaymentSentence` | money wording; a band edge or a platform rule wrong means a wrong term sent to a client |
+| `src/api.ts` (approve) | refresh both drafts, 409 before the claim, save together | any new send path (Module 1) must call the refresh too |
+| `src/run-pipeline.ts`, `src/pipeline/generate.ts`, `src/pipeline/verify.ts`, `src/pipeline/post-check.ts` | one `PaymentTerms` per run, passed through | a caller using a different terms value than the run's |
+| `src/prompts/generate.ts` | `paymentLine` replaces the fixed deposit line | prompt byte-identity is pinned by the P8 baselines |
+| `src/cli-args.ts`, `src/index.ts` | `--platform` for hand-run leads | a hand-run GigSalad lead without the flag gets dated terms |
+| `scripts/check-venue-history.ts` | 27 fingerprints for the prompt baselines | never widen an exemption (FC98) |
 
 ## Plan Reference
 
-`docs/plans/2026-10-11-feat-venue-history-private-file-plan.md`
-Solution: `docs/solutions/architecture/2026-10-11-private-venue-claims-and-an-exact-leak-sentinel.md`
+`docs/plans/2026-10-11-fix-payment-terms-by-lead-time-plan.md`
