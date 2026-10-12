@@ -1,4 +1,4 @@
-import { TIER_A_VENUES } from "../data/venues.js";
+import { TIER_A_VENUES, tierBPromptLine } from "../data/venues.js";
 
 /**
  * Builds the system prompt for lead classification.
@@ -82,7 +82,7 @@ Check for hidden wealth signals. ANY ONE present = stealth_premium: true:
 - Luxury cues: valet, plated dinner, "black tie", executive audience, VIP
 - Saturday evening at named venue
 - Tier A venues (auto-premium, whatever else the lead says, except a nonprofit buyer): ${TIER_A_VENUES.map((v) => v.name).join(", ")}
-- Tier B venues (premium only with another signal: 100+ guests, corporate, Saturday evening): Coasterra, Tom Ham's Lighthouse, Marina Village (corporate or 75+), Brick (large corporate evening). Scripps Seaside Forum and Martin Johnson House are premium for any booking
+${tierBPromptLine()}
 - Auto-premium patterns: Private estate in Rancho Santa Fe, La Jolla or Coronado; country club in Rancho Santa Fe, La Jolla or Fairbanks Ranch; winery in Temecula or Ramona; yacht or boat; museum + private event (not a nonprofit or donor event: see BUYER)
 - Context-dependent: downtown rooftop (75+ guests, corporate), waterfront restaurant private buyout (50+), golf club outside a premium zip (tournament or corporate), brewery private event (corporate, 100+)
 - Also affluent: Rancho Santa Fe alternate zip 92091
