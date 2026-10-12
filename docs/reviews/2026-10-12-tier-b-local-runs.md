@@ -16,3 +16,22 @@ lookups are live reads. **Reader and trigger:** the Codex code-review prompt; Al
 tb3 (Coasterra, Saturday, 40 guests, noon) is now expected **standard with no Tier B note**, or held with "own rule
 says standard; priced premium" if the model prices it T3. tb1 x5 and tb2-1 ran on `62929e0` before this change
 (Tom Ham's logic unchanged); tb2-2 and tb3 x2 run on the Revision 4 code.
+
+## Results (2026-10-12)
+
+| Run | Code | guest_count | event_start_hour | Tier | Quote | Tier B note |
+|---|---|---|---|---|---|---|
+| tb1-1 | `62929e0` | 50 | 17 | T2 | $895 (solo 3h) | "own rule says standard; waterfront 50+ buyout rule may apply; T2 $895 / T3 $1200" |
+| tb1-2 | `62929e0` | 50 | 17 | T2 | $895 | same |
+| tb1-3 | `62929e0` | 50 | 17 | T2 | $895 | same |
+| tb1-4 | `62929e0` | 50 | 17 | T2 | $895 | same |
+| tb1-5 | `62929e0` | 50 | 17 | T2 | $895 | same |
+| tb2-1 | `62929e0` | 120 | 18 | T3 | $1,200 | none (own rule met, priced premium) |
+| tb2-2 | `69ae3ae` | 120 | 18 | T3 | $1,200 | none |
+| tb3-1 | `69ae3ae` | 40 | 12 | T2 | $700 (solo 2h) | none (own rule not met, under 50) |
+| tb3-2 | `69ae3ae` | 40 | 12 | T2 | $700 | none |
+
+**B13: PASSES, 9 of 9.** Extraction exact on every run (guests and start hour). The measured Tom Ham's lead, which
+flipped $895/$1,200 across 7 runs on 2026-10-11, priced T2 on all 5 runs and was held with both prices every time.
+No unflagged T2 where a rule said premium. All runs exit 0. Note: tb3 priced 2 hours (the lead says 12-2pm); the
+earlier test leads were 3 hours.
