@@ -27,6 +27,19 @@ wins (`src/prompts/classify.ts` Step 2.75):
 The model judges both from prose every run, so the tier is a coin flip at the edge. No past quote settles it (Gmail
 both accounts and calendar checked 2026-10-12; platform threads not visible).
 
+## Revision 2 (after Codex PLAN round 2 = NO-GO on both runs, the 2nd NO-GO; `docs/reviews/2026-10-12-tier-b-plan-codex-round2.md`)
+
+| # | Finding | Change |
+|---|---|---|
+| 1 | stale duplicate EARS / Work steps block (an edit-script bug: it matched "## Execution Path" inside Q5) | deleted; one B1-B13 set |
+| 2 | prompt still described Brick | "Brick (rule not defined yet: Alex reviews)" |
+| 3 | own-rule-met note showed only T3 | every `tier_b:` note names both prices |
+| 4 | B11 asked for a return value that does not exist | asserts on the stored object passed in; return shape unchanged |
+| 5 | Execution Path not runnable | fixtures committed in `docs/reviews/2026-10-12-tier-b-leads/`; exact commands |
+| 6 | B2 mapping ambiguous | a table per field |
+| 7 | venue-name vs raw-text precedence | `venue_name` when present; raw text only when null; negative test (B9) |
+| 8 | impossible dates | strict `civilDay`; impossible = unknown; test (B5) |
+
 ## Revision 1 (after Codex PLAN round 1 = NO-GO on both runs; `docs/reviews/2026-10-12-tier-b-plan-codex-round1.md`)
 
 **Alex's answers (2026-10-12), after Claude Code read his source file** (`~/Data/gig-lead-responder/Gig_Lead_Response_
@@ -72,10 +85,13 @@ lead is held with both rate-card prices.** No price is invented or changed; the 
    | Scripps Seaside Forum | `\bscripps (?:seaside )?forum\b` | always | no |
    | Martin Johnson House | `\bmartin johnson house\b` | always | no |
 
-   Matching runs on `classification.venue_name` first, then the raw lead text (except Brick). "Corporate" = `event_arc === "corporate"`.
-   "Saturday" = `event_date_iso` is a Saturday (calendar date, no time zone math). The literal new prompt line (B1):
+   Matching (Revision 2): when `classification.venue_name` is present, only it is matched; the raw lead text is matched
+   only when `venue_name` is null (never for Brick). A lead whose venue is another place but whose prose mentions a Tier
+   B venue ("we considered Tom Ham's") gets no Tier B note. "Corporate" = `event_arc === "corporate"`.
+   "Saturday" = `event_date_iso` is a real calendar date (strict: `civilDay` in `payment-terms.ts`, so "2026-02-31" or
+   "TBD" is not a date) falling on a Saturday; a missing or impossible date means "Saturday" is unknown. The literal new prompt line (B1):
 
-   > `- Tier B venues (premium only with their own signal): Coasterra (100+ guests, corporate, or any Saturday), Tom Ham's Lighthouse (100+ guests and starting 5 PM or later), Marina Village (corporate or 75+), Brick (large corporate evening). Scripps Seaside Forum and Martin Johnson House are premium for any booking`
+   > `- Tier B venues (premium only with their own signal): Coasterra (100+ guests, corporate, or any Saturday), Tom Ham's Lighthouse (100+ guests and starting 5 PM or later), Marina Village (corporate or 75+), Brick (rule not defined yet: Alex reviews). Scripps Seaside Forum and Martin Johnson House are premium for any booking`
 
    Rejected: keeping the old line (it carries the mis-ported Tom Ham's rule the model was reading).
 2. **D2, two extracted facts** (`Classification.guest_count?: number | null`, `event_start_hour?: number | null`).
@@ -86,7 +102,8 @@ lead is held with both rate-card prices.** No price is invented or changed; the 
      "midnight" → 0; "evening" or "dinner" with no number → null; none stated → null.
    **Normalization before validation** (`classify.ts`): an integer in range passes (guests 1-5000, hour 0-23); a string
    of digits only is parsed ("50" → 50); anything else ("50+", 50.5, -3, 24, "evening", a missing key) becomes null. A
-   bad value never fails classification. `event_date_iso` null or invalid → "Saturday" is unknown.
+   bad value never fails classification. `event_date_iso` null, malformed or impossible
+   (per `civilDay`) → "Saturday" is unknown.
 3. **D3, the check** (`tierBHold(classification, rawText, pricing, travelData)` in `src/pipeline/price.ts`, called in
    `runPipeline` right after `t4FallbackHold`, run-pipeline.ts:219; the note goes into `enriched.flagged_concerns`).
    Tier family: premium = `rate_card_tier` T3 or T4; standard = T1 or T2 (the P/D column is separate and kept).
@@ -97,7 +114,7 @@ lead is held with both rate-card prices.** No price is invented or changed; the 
    | Case | Note (prefix `tier_b:`) |
    |---|---|
    | Brick | "tier_b: Brick (rule not defined); T2 $a / T3 $b" |
-   | own rule met (Scripps, Martin Johnson always) and priced standard | "tier_b: <venue> own rule says premium (<condition>); priced <tier>; T3 $b" |
+   | own rule met (Scripps, Martin Johnson always) and priced standard | "tier_b: <venue> own rule says premium (<condition>); priced <tier>; T2 $a / T3 $b" |
    | own rule met and priced premium | none |
    | own rule undecidable (a needed fact null: guests, start hour, or date) | "tier_b: <venue> <fact> not stated; T2 $a / T3 $b" |
    | own rule not met, waterfront, guests >= 50 (R097, buyout never known) | "tier_b: <venue> own rule says standard; waterfront 50+ buyout rule may apply; T2 $a / T3 $b" |
@@ -147,18 +164,30 @@ Unit tests use classifications built in the test (no model) and `lookupPrice` fo
 
 - **B1** WHEN the classify prompt is built, THE SYSTEM SHALL contain the literal D1 Tier B line exactly once (pinned as
   a string in the test, not regenerated from data) and SHALL NOT contain the old line.
-- **B2** WHEN `guest_count` / `event_start_hour` arrive as 50 / 17, "50" / "17", "50+", 50.5, -3, 24, "evening", or are
-  missing, THE SYSTEM SHALL produce 50 / 17, 50 / 17, null, null, null, null (hour), null, null; and classification
-  SHALL NOT fail for any of them.
+- **B2** Normalization (before validation; classification never fails for these). Each field tested on its own:
+
+  | Raw value | `guest_count` | `event_start_hour` |
+  |---|---|---|
+  | 50 / 17 (integer in range) | 50 | 17 |
+  | "50" / "17" (digits only) | 50 | 17 |
+  | key missing | null | null |
+  | null | null | null |
+  | "50+" / "5pm" (other text) | null | null |
+  | 50.5 / 17.5 (decimal) | null | null |
+  | -3 / -1 (negative) | null | null |
+  | 0 | null | 0 |
+  | 5001 / 24 (out of range) | null | null |
+  | "evening" | null | null |
 - **B3** WHEN the prompt is built, THE SYSTEM SHALL contain the D2 extraction rules (pinned phrases: "50+", "5-8 PM",
   "noon", "under 60").
 - **B4** Tom Ham's (both conditions needed): guests 120, hour 18, T3 → no note; T2 → "own rule says premium (100+ guests and
-  starts 5 PM or later)"; guests 50, hour 17, T2 or T3 → held, "waterfront 50+ buyout rule may apply", both prices;
+  starts 5 PM or later)", both prices; guests 50, hour 17, T2 or T3 → held, "waterfront 50+ buyout rule may apply", both prices;
   guests 120, hour 12, T2 → held (waterfront 50+); guests 40, hour 18, T2 → none; guests 40, hour 18, T3 → held
   (priced premium, own rule says standard); guests 49, hour 16, T2 → none; guests 120, hour null → held (start hour not
   stated); guests null, hour 18 → held (guests not stated); guests null, hour 12 → held (waterfront, guests not stated).
 - **B5** Coasterra: Saturday, guests 30, T2 → held (any Saturday); Sunday, guests 30, corporate, T3 → none; Sunday,
-  guests 30, T2 → none; date null, guests 30, not corporate, T2 → held (date not stated); Sunday, guests 55, T2 → held
+  guests 30, T2 → none; date null, guests 30, not corporate, T2 → held (date not stated); date "2026-02-31" (impossible), guests 30,
+  not corporate, T2 → held (date not stated); Sunday, guests 55, T2 → held
   (waterfront 50+).
 - **B6** Marina Village: guests 75, T2 → held; guests 74, not corporate, T2 → none; corporate, guests null, T2 → held
   (own rule met); guests null, not corporate → held (guests not stated). Scripps Seaside Forum and "Scripps Forum",
@@ -169,20 +198,22 @@ Unit tests use classifications built in the test (no model) and `lookupPrice` fo
 - **B8** Aliases. Match: "Tom Hams Lighthouse", "Tom Ham's", "Tom Ham’s" (curly), "TOM HAM'S LIGHTHOUSE", "Coasterra",
   "Scripps Forum", "Scripps Seaside Forum", "Marina Village", "Martin Johnson House". Miss: "Tom Hanks", "Scripps
   Ranch", "Coaster" and a lead text containing "brick" when `venue_name` is another venue.
-- **B9** Not applied: a nonprofit buyer at Tom Ham's; a clarification lead; a lead naming no Tier B venue; an unrelated
+- **B9** Not applied: `venue_name` "Example Harbor Grill" with lead text "we considered Tom Ham's" → no Tier B note; a
+  nonprofit buyer at Tom Ham's; a clarification lead; a lead naming no Tier B venue; an unrelated
   waterfront restaurant (e.g. "Example Harbor Grill", 80 guests) → no note, tier unchanged.
 - **B10** Candidate prices equal `lookupPrice` with T2 and T3 for the same format, duration, column and travel data;
   for an out-of-area lead with a travel fee both include it; `rate_card_tier` and the quoted price are unchanged after
   the check (every case above).
 - **B11** Hidden from the drafter: with a `tier_b:` note in `flagged_concerns`, `buildGeneratePrompt` and the verify
-  prompt contain no `tier_b:` text; `routeLead` holds the lead; `runEditPipeline` given the stored classification with
-  the note sends no `tier_b:` text to the model (stubbed requester, captured prompts) and returns the classification
-  with the note intact.
+  prompt contain no `tier_b:` text; `routeLead` holds the lead. Edit path: a test builds a stored classification with
+  the note, calls `runEditPipeline(stored, pricing, "shorter")` with a stubbed model requester that captures every
+  prompt, and asserts (a) no captured prompt contains `tier_b:`, (b) the `stored` object still holds the note after the
+  call (the edit path never re-derives notes), (c) the return value is still `{ drafts, gate }` (shape unchanged).
 - **B12** Tier A unchanged: the existing Tier A verify tests pass untouched; a Tier A venue gets no Tier B note.
 - **B13 (real model)** pv3 Tom Ham's lead x5: `guest_count` 50 and `event_start_hour` 17 on every run, and **held with
-  both prices ($895 / $1,200) on every run** whatever tier the model picks; AND Tom Ham's 120 guests on a weekday at
-  6 PM x2 → premium, or held if priced T2, never an unflagged T2; AND Coasterra on a Saturday, 40 guests x2 → premium or
-  held, never an unflagged T2.
+  both prices ($895 / $1,200) on every run** whatever tier the model picks; AND tb2 (Tom Ham's 120 guests, Wednesday
+  6 PM) x2 → premium, or held with both prices if priced T2, never an unflagged T2; AND tb3 (Coasterra, Saturday, 40
+  guests) x2 → premium, or held with both prices, never an unflagged T2.
 
 ## Work steps (one concern per commit; failing test first; mutation-check each test)
 
@@ -195,49 +226,21 @@ Unit tests use classifications built in the test (no model) and `lookupPrice` fo
 4. Real-model runs B13; record guests, hour, tier, note per run.
 5. Codex code review (both runs).
 
-## Execution Path` below.
-
-## Acceptance Tests (EARS)
-
-- **B1** WHEN the classify prompt is built, THE SYSTEM SHALL print the Tier B line from `TIER_B_VENUES`, byte-identical
-  to today's line (pinned).
-- **B2** WHEN the classifier returns `guest_count` or `event_start_hour` outside the allowed shape (non-integer, < 0,
-  hour > 23, a string), THE SYSTEM SHALL treat it as null; a valid integer passes through.
-- **B3** WHEN a non-nonprofit lead names Tom Ham's Lighthouse with guests 50, a Sunday, start hour 17, not corporate,
-  THE SYSTEM SHALL add one hold note naming both prices (T2 and T3 from `lookupPrice`), whether the classification is T2
-  or T3, and SHALL NOT change `rate_card_tier` or the quoted price.
-- **B4** WHEN the same lead has guests 49 (under both thresholds), THE SYSTEM SHALL add no Tier B note.
-- **B5** WHEN guests 100, or `event_arc` corporate, or a Saturday with start hour 17 (each alone), and the lead is
-  priced T2, THE SYSTEM SHALL hold ("own rule says premium"); priced T3, no note.
-- **B6** WHEN a Saturday with start hour 12, guests 40, THE SYSTEM SHALL add no note (Saturday but not evening).
-- **B7** WHEN guests or start hour is null and the own rule cannot be decided without it, THE SYSTEM SHALL hold with
-  both prices; WHEN it can be decided anyway (corporate, or guests >= 100), THE SYSTEM SHALL NOT hold for the null.
-- **B8** WHEN the lead is a nonprofit buyer, or names no Tier B venue, THE SYSTEM SHALL add no Tier B note.
-- **B9** WHEN Scripps Seaside Forum is priced T2, THE SYSTEM SHALL hold; Marina Village guests 75 priced T2 SHALL hold,
-  guests 74 not corporate SHALL NOT.
-- **B10** WHEN `runPipeline` returns for a held Tier B lead, THE SYSTEM SHALL include the note in the returned
-  classification's `flagged_concerns` (the object the intake stores, so an edit keeps it).
-- **B11 (real model)** WHEN the Tom Ham's anniversary lead (pv3 text) runs 5 times, THE SYSTEM SHALL hold all 5 with
-  both prices ($895 and $1,200) and record `guest_count` 50 every time; AND a Tom Ham's lead with 120 guests on a
-  Saturday at 6 PM runs twice and is priced T3 without a Tier B note (positive control).
-
-## Work steps (one concern per commit; failing test first; mutation-check each test)
-
-1. `TIER_B_VENUES` + prompt line from data (B1). Mutation: drop a venue (pin fails).
-2. Two fields: types, classify prompt wording, validation (B2). Mutation: accept a string (fails).
-3. `tierBHold` + wiring, both paths (B3-B10). Mutations: change the tier (B3 fails); `>` for `>=` at 50 (B3 fails);
-   ignore the hour (B6 fails); hold on null when decidable (B7 fails); skip the nonprofit guard (B8 fails); add the
-   note to a copy instead of the returned classification (B10 fails).
-4. Real-model runs B11; record guest counts, start hours, tiers, notes.
-5. Codex code review (both runs).
-
 ## Execution Path
 
 - **Target:** Alex's MacBook, this repo, the CLI against the real model (PF-Intel lookups are live reads).
-- **Mechanism:** lead texts committed in `docs/reviews/2026-10-12-tier-b-local-runs.md` before any run (pv3 Tom Ham's
-  text from `docs/reviews/2026-10-11-venue-history-local-runs.md`; two new texts). Per run, in a session scratch
-  folder `$S`: `DATABASE_PATH=$S/tbN.db npx tsx src/index.ts --json < $S/tbN.txt > $S/tbN.out`; nothing is sent; it
-  overwrites the clipboard. Read `classification.guest_count`, `event_start_hour`, `rate_card_tier`, `flagged_concerns`.
+- **Mechanism:** the three lead texts are committed in `docs/reviews/2026-10-12-tier-b-leads/` (tb1 = the pv3 Tom Ham's
+  lead, 50 guests, 5 PM, Sunday; tb2 = Tom Ham's, 120 guests, 6 PM, Wednesday; tb3 = Coasterra, 40 guests, noon,
+  Saturday). From the repo root (nothing is sent; each run overwrites the clipboard):
+  ```
+  S=$(mktemp -d); L=docs/reviews/2026-10-12-tier-b-leads
+  for i in 1 2 3 4 5; do DATABASE_PATH=$S/tb1-$i.db npx tsx src/index.ts --json < $L/tb1-tom-hams-50-5pm.txt > $S/tb1-$i.out; done
+  for i in 1 2; do DATABASE_PATH=$S/tb2-$i.db npx tsx src/index.ts --json < $L/tb2-tom-hams-120-6pm.txt > $S/tb2-$i.out; done
+  for i in 1 2; do DATABASE_PATH=$S/tb3-$i.db npx tsx src/index.ts --json < $L/tb3-coasterra-saturday-40.txt > $S/tb3-$i.out; done
+  ```
+  Read from each `.out` (the JSON after the log lines): `classification.guest_count`, `event_start_hour`,
+  `rate_card_tier`, and every `flagged_concerns` entry starting `tier_b:`. Record them in
+  `docs/reviews/2026-10-12-tier-b-local-runs.md`.
 - **Prerequisites:** Anthropic key in `.env`: ALREADY HAVE. Suite + tsc green after the work steps: MUST OBTAIN
   (produced by the work).
 - **Who:** Claude Code runs and records; Alex reads the hold notes.
