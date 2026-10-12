@@ -1,6 +1,6 @@
 import { classifyLead, normalizeOrganizationName } from "./pipeline/classify.js";
 import { verifyClassificationHeuristics } from "./pipeline/classify-verify.js";
-import { lookupPrice, budgetGapFor, minimumProfitHold, nonprofitPriceNote, t4FallbackHold } from "./pipeline/price.js";
+import { lookupPrice, budgetGapFor, minimumProfitHold, nonprofitPriceNote, t4FallbackHold, tierBHold } from "./pipeline/price.js";
 import { priceBlockFor } from "./pipeline/price-block.js";
 import { enrichClassification } from "./pipeline/enrich.js";
 import { getTodayISO } from "./utils/dates.js";
@@ -218,6 +218,9 @@ export async function runPipeline(
   // T4 with no T4 price for this format (R403): priced at the T3 reference, held for Alex.
   const t4Note = t4FallbackHold(enriched, pricing);
   if (t4Note) enriched.flagged_concerns = [...enriched.flagged_concerns, t4Note];
+  // Tier B venues (plan 2026-10-12): Alex's own venue rules from plain facts; both prices when held, tier untouched.
+  const tierBNote = tierBHold(enriched, rawText, travelData);
+  if (tierBNote) enriched.flagged_concerns = [...enriched.flagged_concerns, tierBNote];
   // Nonprofit (R403): whether NP2 priced it, and why not; the lead is already held by the classify note.
   const npNote = nonprofitPriceNote(enriched, pricing);
   if (npNote) enriched.flagged_concerns = [...enriched.flagged_concerns, npNote];
