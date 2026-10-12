@@ -4,6 +4,7 @@ import { priceBlockFor, priceLineTail } from "../pipeline/price-block.js";
 import { paymentLine, quoteTermsOff, type PaymentTerms } from "../pipeline/payment-terms.js";
 import { SETUP_SPACE } from "../data/setup-space.js";
 import { VOICE_REFERENCES } from "../data/voice-references.js";
+import { buildT4ReferenceBlock } from "../data/t4-reference.js";
 import { withoutHoldNotes, CONCERN_4PIECE_ALT, CONCERN_FULL_ENSEMBLE, GUT_CHECK_KEYS, GUT_CHECK_THRESHOLD, GUT_CHECK_TOTAL, type Classification, type Format, type PricingResult, type ResidencyQuote } from "../types.js";
 import { sanitizeClassification, wrapUntrustedData, wrapVoiceReference } from "../utils/sanitize.js";
 
@@ -79,7 +80,7 @@ ${context}
 ${buildVoiceRulesBlock(classification, pricing)}
 
 ${buildVoiceExamplesBlock()}
-
+${buildT4ReferenceSection(classification, pricing)}
 ## STEP 1: REASON (mandatory before any prose)
 
 Before writing a single word of the draft, you MUST fill the "reasoning" block in the output JSON. This is your thinking space — every field must be populated.
@@ -199,6 +200,17 @@ ${buildDualFormatBlock(classification, pricing)}`;
  * Build the VOICE EXAMPLES section with active reference responses.
  * Uses Claude-native <example> tags with defensive wrapping.
  */
+/**
+ * The T4 reference lead (plan 2026-10-11-feat-t4-reference-lead-plan), with its own blank-line padding, or "" so
+ * every non-T4 prompt stays byte-identical. Also "" when the lead gets no quote (clarification, redirect,
+ * residency): the reference ends in a price and a payment sentence, which those prompts forbid.
+ */
+function buildT4ReferenceSection(classification: Classification, pricing: PricingResult): string {
+  if (quoteTermsOff(classification, pricing)) return "";
+  const block = buildT4ReferenceBlock(classification);
+  return block ? `\n${block}\n` : "";
+}
+
 function buildVoiceExamplesBlock(): string {
   const active = VOICE_REFERENCES.filter(r => r.active);
   if (active.length === 0) return '';
