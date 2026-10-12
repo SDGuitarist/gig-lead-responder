@@ -30,6 +30,17 @@ wins (`src/prompts/classify.ts` Step 2.75):
 The model judges both from prose every run, so the tier is a coin flip at the edge. No past quote settles it (Gmail
 both accounts and calendar checked 2026-10-12; platform threads not visible).
 
+## Revision 6b (after code review round 3 = NO-GO on both runs, the first code NO-GO; `docs/reviews/2026-10-12-tier-b-codex-round3.md`)
+
+"draft uses" assumed `quote_price` is what goes out. Two exceptions, matching how `buildGeneratePrompt` prices them:
+(1) **residency**: the draft quotes the residency rate or no price, never a T2/T3 private-event price; a residency is
+its own B2B product and is already held by its `residency:` note, so **the Tier B check does not apply** (returns no
+note when `pricing.residency` is set). (2) **budget gap**: large gap → "draft offers <alt>h $<scoped> first, then
+<n>h $<full>"; no viable scope → "draft quotes no set price (budget redirect)"; small gap and no gap → "draft uses
+<tier> $<full>" as before. Tests first: residency → no note; a Tom Ham's 3h T2 lead with budget $700 → the literal
+"draft offers 2h $650 first, then 3h $895"; budget $100 → "draft quotes no set price". Mutations: residency not
+skipped; the large-gap branch removed; the redirect branch removed.
+
 ## Revision 6 (Alex, 2026-10-12, after code review round 2 GO; a heads-up)
 
 The notes said "Alex picks" but nothing switches the draft's price: approving sends the AI's price, and the notes did
