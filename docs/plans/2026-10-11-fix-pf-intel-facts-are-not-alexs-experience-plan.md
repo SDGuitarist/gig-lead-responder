@@ -15,6 +15,14 @@ without this file (the PF-Intel guidance even models "I've played this room befo
 (`docs/plans/2026-10-11-feat-venue-history-private-file-plan.md`). That risk was real and stayed hidden because
 PF-Intel was unreachable on every local run. This plan fixes the guidance it named.
 
+## Revision 3 (Alex, 2026-10-11, after the F5 runs; no plan-review round: Alex chose no round 3, the code review covers it)
+
+F5 failed under the pre-registered rule (`docs/reviews/2026-10-11-venue-history-local-runs.md`, "F5/F6 results"): 0
+first-person familiarity lines in 24 drafts, but 3 claims + 3 borderline from venue details the model knows on its own
+("Tom Ham's has both interior and harbor-view spaces", Estancia's "string lights"). **Alex: add one rule and re-run.**
+D1 gains a last sentence (below); F1's pin follows it; F5 re-runs the same 12 leads (24 drafts) under the same rule
+and pre-registration, and F6 once. Same stop: any claim or borderline goes to Alex.
+
 ## Revision 2 (after Codex PLAN round 2 = NO-GO on both runs, the 2nd NO-GO; `docs/reviews/2026-10-11-pf-intel-plan-codex-round2.md`)
 
 | # | Finding | Change |
@@ -68,7 +76,8 @@ No test covers either file's prompt text. That is how the "insider edge" line su
    > answer a logistics concern before the client asks, stated as a fact about the venue or as Alex's plan (for
    > example: "The venue's outdoor curfew is 10 PM, so I'll plan the last set to finish by 9:45."). Never say or imply that Alex
    > knows, has played, has been to, or is familiar with this venue, its rooms, its staff or its load-in. Only Alex's
-   > own venue-history section, when one appears further down, allows that.
+   > own venue-history section, when one appears further down, allows that. Describe the venue only with these facts
+   > and the client's own words: no rooms, spaces, features, decor or layout from anywhere else.
 
    The example uses a curfew (a policy), never a first-person memory.
    **Placement (Revision 2):** `formatVenueContext` inserts `PF_INTEL_USAGE` (moved to `format-venue-context.ts` and
