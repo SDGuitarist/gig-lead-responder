@@ -45,3 +45,16 @@ both prices (the AI's corporate call appears only in the note).
   unflagged T2.
 - tb5 (Brick, corporate dinner, 40 guests, 6 PM) x2: held "under 100 guests (marked corporate ...)" both times (if the
   AI marks it corporate; "marked not corporate" is also a correct hold), both prices.
+
+| Run | Venue | guests | event_arc | Tier | Quote | Tier B note |
+|---|---|---|---|---|---|---|
+| r5-tb1-1 | Tom Ham's | 50 | private_celebration | T2 | $895 | "under 100 guests (marked not corporate; waterfront 50+ buyout rule may apply); Alex picks; T2 $895 / T3 $1200" |
+| r5-tb1-2 | Tom Ham's | 50 | private_celebration | T2 | $895 | same |
+| tb4-1 | Tom Ham's | 120 | private_celebration | T3 | $1,200 | none (100+, priced premium) |
+| tb4-2 | Tom Ham's | 120 | private_celebration | T3 | $1,200 | none |
+| tb5-1 | Brick | 40 | corporate | T2 | $895 | "under 100 guests (marked corporate); Alex picks; T2 $895 / T3 $1200" |
+| tb5-2 | Brick | 40 | corporate | T2 | $895 | same |
+
+**Revision 5/5b runs: PASS, 6 of 6** as pre-registered. Brick matched from `venue_name` ("Brick"). The corporate Brick
+lead priced T2 while marked corporate: under the old Revision 5 rule that would have been a silent mismatch; now it is
+held with both prices.
