@@ -23,6 +23,21 @@ const T4_COMFORTABLE: Ctx = { rate_card_tier: "T4", timeline_band: "comfortable"
 const OPEN_AVAILABILITY = "OPENING: availability first, then the cinematic line.";
 const OPEN_CINEMATIC = "OPENING: cinematic line first, then availability.";
 
+/** Capitalised words that are not the first word of a line or sentence, sorted and de-duplicated. */
+function midSentenceCapitals(text: string): string[] {
+  const found = new Set<string>();
+  for (const line of text.split("\n")) {
+    const words = line.trim().split(/\s+/).filter(Boolean);
+    let startOfSentence = true;
+    for (const raw of words) {
+      const word = raw.replace(/^[("\[]+|[,.;:!?)"\]]+$/g, "");
+      if (!startOfSentence && /^[A-Z]/.test(word) && !/^\[/.test(raw)) found.add(word);
+      startOfSentence = /[.?!]$/.test(raw);
+    }
+  }
+  return [...found].sort();
+}
+
 const D6_WORDS = ["played", "performed", "last time", "again", "familiar with", "I know", "my usual"];
 
 function sentencesNamingTheDel(text: string): string[] {
@@ -125,6 +140,20 @@ describe("T4 reference T5: the example reply is clean", () => {
     const lines = reply.split("\n").map((l) => l.trim());
     assert.equal(lines[0], "Hi Dana,");
     assert.equal(lines[lines.length - 1], "Alex Guillen");
+  });
+
+  // The source client's real first name and business are private: embedding them here to assert their absence
+  // would publish them. The boundary is structural instead (Codex code review round 1, P2): the reply may contain
+  // exactly this set of mid-sentence capitalised words ("I" is the pronoun), so a new person, company or place name fails here and
+  // forces a deliberate edit of this list.
+  it("T4 reference T5 introduces no proper noun beyond the approved set, and no contact handle", () => {
+    assert.deepEqual(midSentenceCapitals(reply), ["COI", "Dana", "Del", "Del's", "Guillen", "I", "October", "Thursday"]);
+    assert.ok(!/@|https?:|www\./i.test(reply), "email, link or handle");
+  });
+
+  it("T4 reference T5 the proper-noun check can fail: an added name is found (positive control)", () => {
+    const found = midSentenceCapitals("Hi Dana,\n\nWe love Maria and Acme Corp at the Del. Alex Guillen");
+    for (const w of ["Maria", "Acme", "Corp"]) assert.ok(found.includes(w), w);
   });
 
   it("T4 reference T5 carries the payment sentence from the code constant exactly once", () => {
