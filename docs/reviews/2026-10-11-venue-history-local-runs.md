@@ -188,3 +188,5 @@ same voice check in run 2); rewrites 6 → 7; rewrites citing the scene 2 → 2.
 the last of the afternoon light", "the courtyard filling with 110 guests"). No measured flattening beyond x1.
 **Observed, out of scope:** the same Tom Ham's lead priced $1,200 in s2a/s2c and $895 in s2b (the model's tier call
 varies run to run; pre-existing).
+
+**Alex, 2026-10-11: accepted.** F5 is recorded as failed on one borderline line (s3c), with claims 3+3 -> 0+1 across the two runs; every lead is held for Alex before sending. Next: Codex code review.
