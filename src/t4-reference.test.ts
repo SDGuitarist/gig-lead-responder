@@ -151,6 +151,14 @@ describe("T4 reference T5: the example reply is clean", () => {
     assert.ok(!/@|https?:|www\./i.test(reply), "email, link or handle");
   });
 
+  // The check above skips the first word of each sentence, so a name that starts a sentence would pass it. This one
+  // pins EVERY capitalised word, sentence-initial included.
+  it("T4 reference T5 every capitalised word, sentence-initial included, is in the approved list", () => {
+    const all = [...new Set([...reply.matchAll(/(?<![\w'])[A-Z][A-Za-z']*/g)].map((m) => m[0]))].sort();
+    assert.deepEqual(all, ["Alex", "COI", "Dana", "Del", "Del's", "Full", "Guillen", "Hi", "How", "I", "I'm", "It's",
+      "My", "October", "Putting", "QUOTED", "Solo", "Spanish", "Sunset", "Surf", "That", "Thursday", "Want"]);
+  });
+
   it("T4 reference T5 the proper-noun check can fail: an added name is found (positive control)", () => {
     const found = midSentenceCapitals("Hi Dana,\n\nWe love Maria and Acme Corp at the Del. Alex Guillen");
     for (const w of ["Maria", "Acme", "Corp"]) assert.ok(found.includes(w), w);
