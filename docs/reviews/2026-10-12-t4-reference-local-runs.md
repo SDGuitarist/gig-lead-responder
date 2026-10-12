@@ -86,7 +86,7 @@ green (839 pass, 1 skip).
   ("land"/"lands") after the gate's retries. The t4 control has no block, so this is existing model variance, not this
   feature; set 1 verified on all four.
 
-**Result: two sets, two FAILs (both on t1).** Per the plan, a third set is not run without Alex: see HANDOFF.
+**Result: two sets, two FAILs (both on t1).** A third set ran only after Alex's decisions (Revision 1c); see set 3.
 
 **Open for Alex (decisions, not mine):**
 1. **The copy check's noise:** a 30-character window built only of mandated sentences (payment sentence + the
@@ -96,6 +96,42 @@ green (839 pass, 1 skip).
 3. **Whether t1 can pass at all:** the lead is the example's own setting (a beach bonfire at the same hotel), so the
    physical problem and the image are legitimately the same; "never copy a clause" and "same setting" pull against
    each other. A different t1 setting would test the block, not the example's venue.
+
+## Set 3: code at `ead1814` (block wording of set 2; t1 replaced; mandated text cut before copy windows)
+
+**Pre-registered in the plan BEFORE the run** (Revision 1c, `ead1814`, Alex 2026-10-12): t1 is now a terrace
+reception for 60 at The Lodge at Torrey Pines on Wednesday, October 21 (9 days out; a history venue; not the
+example's hotel or beach); "mandated text" (payment sentences, "Want me to lock (it) in ...?", the sign-off) is cut
+out of a draft before 30-character windows are taken. The check self-tested first (mandated-only text reports 0; a
+copied clause reports it). **Re-count of the earlier sets under the new rule** (windows, full / compressed): set 1:
+t1 19 / 12, t2 11 / 0, t3 0 / 0; set 2: t1 12 / 0 (the retired Del lead), t2 0 / 0, t3 0 / 0.
+
+| Lead | Classification (expected) | Price | Payment sentence | Copy windows (full / compressed) | Verdict |
+|---|---|---|---|---|---|
+| t1 | T4, **urgent**, solo 2 h, 60 (all OK) | $1,350 | full x1 in both (OK) | 0 / 0 | **FAIL: one untraceable time (below)** |
+| t2 | T4, urgent, solo 2 h, 30 (OK) | $1,350 | full x1 in both (OK) | 0 / 0 | PASS (notes) |
+| t3 | T4, comfortable, solo 3 h, 70 (OK) | $1,800 | twoMonths x1 in both (OK) | 0 / 0 | PASS (note) |
+| t4 control | T2 (not T4), no block in the prompt | $700 | twoWeeks x1 in both (OK) | 0 / 0 | PASS |
+
+- **t1 finding (both drafts):** the draft says "By 5:15" (full) and "By 5:15, the terrace is filling" (compressed). The
+  lead states 5 to 7pm; 5:15 is not in it. It is a scene time inside the stated window, not a looked-up fact (the
+  example's sunset was that), but the threshold Alex set is "any ONE time or number not traceable to the lead".
+  **Recorded as a FAIL under that rule.**
+- **t1 passes everything else:** no shared windows; opens "I'm available October 21." (urgent band, now classified
+  correctly at 9 days); the venue statements ("performed there many times", "on the outdoor terraces") trace to the
+  confirmed entry in the private venue file (checked by boolean, text not printed); payment sentence from Quote Terms.
+- **t2 notes, not copies:** "within a day of booking" for the COI (the app text says "within a few days"; same
+  drift as sets 1 and 2); "Spanish classical and bossa nova" echoes the example's genre list (the attribution test
+  finds "bossa nova" elsewhere in the prompt too, so it is not exclusively the example's). No claim about the
+  unknown venue.
+- **t3 note:** "talk to each other" appears (the example has "talk to each other"); a common phrase, four words, no
+  window match. The set 1 overreach ("know the spaces well") did not recur; the claim stops at "performed there".
+- **`verified=false` on t3 and the t4 control:** the app's own voice kill-list ("lands"/"land"); the control has no
+  block. t1 and t2 verified.
+
+**Result: Set 3 still FAILS under the pre-registered rule, on one item in one lead, and the failure has changed
+kind: copying is gone (0 windows in 8 drafts); what remains is a scene time the model put inside the stated window.**
+A fourth set is Alex's call (HANDOFF).
 
 ## No-block control (code at `1b353f8`, before the block existed; t1 to t3)
 
