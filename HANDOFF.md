@@ -56,6 +56,18 @@ t1's band came back `short` again at 9 days (it was `urgent` in set 3): the clas
 State: **local HEAD is {N} commits ahead of origin (`e000182`); the new commits are NOT pushed** (Alex's "then push"
 covered the set 3 batch; push again only when he says).
 
+**Update 4 (session gig-lead-responder-22, history rewrite + COI plan):** a phrase quoted in the set 4 record
+repeated a confirmed private venue claim (leak check exit 1, caught locally before any push). With Alex's yes
+("rewrite the local, unpushed commits so the text never existed in them") the 6 unpushed commits after `e000182` were
+rebuilt; tree byte-identical to the leak-free tip; leak check exit 0 at each commit; none of the old text reachable
+from the branch or `origin`. **Hashes changed:** set 4 record `96650d2` (was `ddc3d79`), handoff `9b07b3d` (was
+`feea76e`), COI plan `dd9b05d` (was `10ad506`). Old tip kept as LOCAL tag `backup/pre-leak-rewrite-2026-10-12`; it
+holds the leaked text: **never push tags or `--all`; delete the tag after Alex confirms** (`git tag -d`). COI plan:
+`docs/plans/2026-10-12-feat-coi-sentence-by-request-plan.md` (Alex 2026-10-12: first reply always "COI available upon
+request."; a timeline only when the client requires one). It waits on two answers: the first-message edge case
+(timeline sentence vs always the default) and his yes on the exact words incl. the T4 example's COI sentence.
+A narrow Codex code-review round-1 prompt for the T4 work was prepared (scratch file; HEAD is pinned in it).
+
 **Open decisions for Alex:**
 1. **The 5:15 finding. [ANSWERED and applied in `c5a1272`; set 4 passes it.]** It is not a looked-up fact (the example's sunset was). Two honest routes: (a) one more
    wording iteration of the block ("use only the times the lead states; put no clock time of your own on a moment
