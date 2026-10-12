@@ -5,7 +5,7 @@ import { matchTierB } from "./data/venues.js";
 import { setClaudeRequesterForTests } from "./claude.js";
 import { classifyLead } from "./pipeline/classify.js";
 import { readFileSync } from "node:fs";
-import { tierBHold, lookupPrice, clientTotal, budgetGapFor } from "./pipeline/price.js";
+import { tierBHold, lookupPrice, clientTotal, budgetGapFor, findMinFloor, rateTableFor } from "./pipeline/price.js";
 import { buildGeneratePrompt } from "./prompts/generate.js";
 import { buildVerifyPrompt } from "./prompts/verify.js";
 import { routeLead } from "./automation/router.js";
@@ -99,7 +99,7 @@ function hold(over: Partial<Classification> & Record<string, unknown>, raw = "",
   const before = JSON.stringify(c);
   // A clarification lead has no rate table (the pipeline uses a placeholder pricing for it).
   const pricing = c.format_recommended === "unresolved"
-    ? { quote_price: 0, travel: null, duration_hours: 0, budget: { tier: "none" as const } }
+    ? { quote_price: 0, travel: null, duration_hours: 0, budget: { tier: "none" as const }, format: "unresolved" as const, tier_key: "" }
     : (() => { const p = lookupPrice(c, travel); p.budget = budgetGapFor(c, p); return p; })();
   const note = tierBHold(c, raw, pricing, travel);
   assert.equal(JSON.stringify(c), before, "the check never writes the classification (tier, price inputs)");
@@ -110,7 +110,9 @@ function hold(over: Partial<Classification> & Record<string, unknown>, raw = "",
     const b = pricing.budget;
     const draft = b.tier === "large"
       ? `draft offers ${b.scoped_alternative.duration_hours}h $${clientTotal(pricing, b.scoped_alternative.price)} first, then ${pricing.duration_hours}h $${clientTotal(pricing, pricing.quote_price)}`
-      : b.tier === "no_viable_scope" ? "draft quotes no set price (budget redirect)"
+      : b.tier === "no_viable_scope"
+        ? (() => { const m = findMinFloor(rateTableFor(pricing), pricing.tier_key);
+            return `draft states the minimum: ${m.min_duration}h $${clientTotal(pricing, m.min_floor)} (budget redirect)`; })()
       : `draft uses ${c.rate_card_tier} $${clientTotal(pricing, pricing.quote_price)}`;
     assert.ok(note.includes(`${draft}; ${both(c, travel)}`), `${draft}: ${note}`);
   }
@@ -253,6 +255,7 @@ test("Revision 6b: a residency gets no Tier B note; a budget gap names what the 
   none({ engagement_type: "residency", residency_tier: "R2", residency_cadence: "weekly", price_asked: true, duration_hours: 2 });
   assert.ok(hold({ guest_count: 50, stated_budget: 700 })!.includes("draft offers 2h $650 first, then 3h $895; T2 $895 / T3 $1200"),
     hold({ guest_count: 50, stated_budget: 700 })!);
-  held({ guest_count: 50, stated_budget: 100 }, "draft quotes no set price (budget redirect)");
+  // After the cap (Alex, review round 4 finding): the redirect states the minimum, as buildGeneratePrompt does.
+  held({ guest_count: 50, stated_budget: 100 }, "draft states the minimum: 1h $550 (budget redirect)");
   held({ guest_count: 50, stated_budget: 880 }, "draft uses T2 $895");                    // a small gap quotes the full price
 });

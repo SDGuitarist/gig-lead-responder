@@ -446,7 +446,7 @@ export function t4FallbackHold(classification: Pick<Classification, "rate_card_t
 // decides from the guest count alone (a copied number) and never writes the tier; every note names both rate-card
 // prices. Shared venues: 100+ guests is premium; under 100 or unknown is held for Alex, the AI's corporate call shown.
 export function tierBHold(classification: Classification, rawText: string,
-  pricing: Pick<PricingResult, "quote_price" | "travel" | "duration_hours" | "budget" | "residency">,
+  pricing: Pick<PricingResult, "quote_price" | "travel" | "duration_hours" | "budget" | "residency" | "format" | "rate_table" | "tier_key">,
   travelData?: TravelFeeData | null): string | null {
   if (classification.nonprofit_buyer === true || classification.format_recommended === "unresolved") return null;
   // A residency is its own B2B product (its rate or no price, never a T2/T3 private-event price) and is already held by
@@ -463,7 +463,10 @@ export function tierBHold(classification: Classification, rawText: string,
   const full = clientTotal(pricing, pricing.quote_price);
   const draft = b?.tier === "large"
     ? `draft offers ${b.scoped_alternative.duration_hours}h $${clientTotal(pricing, b.scoped_alternative.price)} first, then ${pricing.duration_hours}h $${full}`
-    : b?.tier === "no_viable_scope" ? "draft quotes no set price (budget redirect)"
+    : b?.tier === "no_viable_scope" ? (() => { // the redirect states the minimum (buildGeneratePrompt, no viable scope)
+        const m = findMinFloor(rateTableFor(pricing), pricing.tier_key);
+        return `draft states the minimum: ${m.min_duration}h $${clientTotal(pricing, m.min_floor)} (budget redirect)`;
+      })()
     : `draft uses ${classification.rate_card_tier} $${full}`;
   const both = `${draft}; T2 $${at("T2")} / T3 $${at("T3")}`;
   const tag = `tier_b: ${venue.name}`;
