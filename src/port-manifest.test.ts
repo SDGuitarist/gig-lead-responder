@@ -106,10 +106,53 @@ test("port manifest venues rows: R081-R085, R087-R089, R405 are PORTED", () => {
   for (const id of ["R081", "R082", "R083", "R084", "R085", "R087", "R088", "R089", "R405"]) assert.equal(status.get(id), "PORTED", id);
 });
 
-// T4 reference-lead plan (2026-10-11, Revision 1b), T7: R020-R025 PORTED and R329 NOT PORTED, by id, so another
-// row cannot move in their place while the counts still add up.
-test("T4 reference T7 manifest rows: R020-R025 are PORTED and R329 is NOT PORTED", () => {
-  const status = new Map(tableRows(`${DIR}/port-manifest.md`).map((r) => [r[0], r[3]]));
-  for (const id of ["R020", "R021", "R022", "R023", "R024", "R025"]) assert.equal(status.get(id), "PORTED", id);
-  assert.equal(status.get("R329"), "NOT PORTED");
+// T4 reference-lead plan (2026-10-11), T7 (strengthened for Codex code review round 1, P2): R020-R025 PORTED and
+// R329 NOT PORTED by id, AND each PORTED row's marker is tied to a test whose BODY asserts it (the generic test
+// above only proves a marker and a test title exist somewhere in a file).
+const T4_ROWS: Record<string, { marker: string; test: string; body: string }> = {
+  R020: { marker: "REFERENCE LEAD: T4 CORPORATE", test: "T4 reference T1", body: "REFERENCE LEAD: T4 CORPORATE" },
+  R021: { marker: "The order, as steps:", test: "T4 reference T1", body: "The order, as steps:" },
+  R022: { marker: "NO INVENTED FACTS", test: "T4 reference T4", body: "NO INVENTED FACTS" },
+  R023: { marker: "ONLY PLAYED SPACES", test: "T4 reference T4", body: "ONLY PLAYED SPACES" },
+  R024: { marker: "Never mention battery-powered sound", test: "T4 reference T4", body: "Never mention battery-powered sound" },
+  // R025's marker is asserted through the test file's constant of the same line.
+  R025: { marker: "OPENING: availability first, then the cinematic line.", test: "T4 reference T3", body: "OPEN_AVAILABILITY" },
+};
+
+/** The text of every `it("<title>"...` whose title starts with `prefix` (up to the next `it(` or the end). */
+function testBodies(text: string, prefix: string): string[] {
+  const parts = text.split(/\n\s*it\(/).slice(1);
+  return parts.filter((p) => p.startsWith(`"${prefix}`));
+}
+
+test("T4 reference T7 manifest rows: R020-R025 are PORTED, R329 is NOT PORTED, and each marker is asserted by its test", () => {
+  const rows = new Map(tableRows(`${DIR}/port-manifest.md`).map((r) => [r[0], r]));
+  const impl = readFileSync("src/data/t4-reference.ts", "utf-8");
+  const tests = readFileSync("src/t4-reference.test.ts", "utf-8");
+  for (const [id, want] of Object.entries(T4_ROWS)) {
+    const row = rows.get(id);
+    assert.ok(row, `${id}: row missing`);
+    assert.equal(row[3], "PORTED", `${id}: status`);
+    assert.equal(row[6].replace(/^`|`$/g, ""), want.marker, `${id}: manifest marker`);
+    assert.ok((row[7] ?? "").includes(want.test), `${id}: manifest names ${want.test}`);
+    assert.ok(impl.includes(want.marker), `${id}: marker not in src/data/t4-reference.ts`);
+    const bodies = testBodies(tests, want.test);
+    assert.ok(bodies.length > 0, `${id}: no test titled "${want.test}"`);
+    assert.ok(bodies.some((b) => b.includes(want.body)), `${id}: no "${want.test}" test body asserts ${want.body}`);
+    // A body that asserts through a constant is only worth something if the constant is defined as the marker.
+    if (want.body !== want.marker) {
+      assert.ok(tests.includes(`const ${want.body} = "${want.marker}"`), `${id}: ${want.body} is not defined as the marker`);
+    }
+  }
+  const r329 = rows.get("R329");
+  assert.ok(r329);
+  assert.equal(r329[3], "NOT PORTED");
+  assert.ok(/DRAFT_METHOD\.md/.test(r329[4]) && /approved by Alex/.test(r329[4]), "R329: reason and Alex's approval");
+});
+
+test("T4 reference T7 the body finder can fail: a title with no matching body is not found", () => {
+  const fake = `describe("x", () => {\n  it("T4 reference T9 only", () => {\n    assert.ok(a.includes("FOO"));\n  });\n});`;
+  assert.equal(testBodies(fake, "T4 reference T9").length, 1);
+  assert.ok(testBodies(fake, "T4 reference T9").some((b) => b.includes("FOO")));
+  assert.equal(testBodies(fake, "T4 reference T1").length, 0);
 });
