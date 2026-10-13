@@ -1,7 +1,7 @@
 ---
 title: "COI: the app writes the sentence; 'available upon request' first, a timeline only when the client requires one"
 date: 2026-10-12
-status: plan, Revision 0 (before plan review; one open question for Alex, below)
+status: plan, Revision 1 (Alex answered both questions 2026-10-12; before plan review round 1)
 branch: feat/hub-phase0
 ---
 
@@ -42,16 +42,17 @@ Two sentences, so:
 - **The pipeline has no first-reply / later-reply signal.** `runPipeline(rawText, onStage, platform, gigsaladPage,
   today)` sees one text. The only signal for "they require a COI" is the text itself.
 
-## Open question for Alex (one; the plan's default is stated)
+## Alex's answers (2026-10-12, in chat; Revision 1)
 
-**How should the app know a client "requires a COI"?** Default in this plan: the classifier reads the incoming text and
-sets `coi_required` (like `price_asked`), true when the text says they require or ask for a COI or proof of insurance.
-Consequence: a FIRST message that already says "we require a COI" gets the timeline sentence, not "available upon
-request", which departs from "always state available upon request on the first reply". If Alex wants the first reply
-to ALWAYS be the default sentence, the app needs a reply-stage input (a CLI flag like `--platform`, and a dashboard
-control), which is a larger change. **Do not build until he picks.**
+1. **How the app knows "requires a COI": the text route (the plan's default).** The classifier reads the incoming
+   text and sets `coi_required`. A first message that already says the client requires a COI gets the timeline
+   sentence, not "available upon request". No reply-stage input is built (no CLI flag, no dashboard control).
+2. **The exact words, approved ("Yes, all three"):** default `COI available upon request.`; required
+   `I carry liability insurance ($1M/$2M) and can provide COI within a few days of booking.` (his line,
+   `docs/RESPONSE_CRAFT.md:101`); and the approved T4 example's "I can send the Del a COI." becomes
+   `COI available upon request.` (D6).
 
-## Decision (assuming the default)
+## Decision
 
 - **D1 Where the sentence is chosen:** `src/pipeline/coi.ts` exports `COI_SENTENCES = { default, required }` and
   `coiSentence(classification)`: `required` when `classification.coi_required === true`, otherwise `default`. Pure,
@@ -76,6 +77,14 @@ control), which is a larger change. **Do not build until he picks.**
 - **D7 Rejected:** a detector that rewrites any COI promise it finds (a prose detector: the repo's own rule, see the
   NP2 price block, is substitute a fixed line and check it exactly); asking the model to "keep it short"; making
   `coi_required` come from PF-Intel's venue flag (that is the venue, not the client's reply).
+
+## Known risk added in Revision 1 (for the plan reviewer)
+
+- **PF-Intel's venue facts reach the generate prompt with a COI line** (`src/pipeline/format-venue-context.ts:36-38`:
+  "COI required: Yes" and `coi_details`). That is a venue policy, not the client's reply, and D7 keeps it from
+  choosing the sentence. But the model sees it next to the rule "write no other COI or insurance sentence"; D4's
+  `coi_other_wording` flag is what catches a draft that follows the venue line instead. Real-run lead 5 (T4, venue
+  with a COI policy) is meant to show which wins; if the model follows the venue line, the plan returns to Alex.
 
 ## Plan Quality Gate
 
@@ -138,15 +147,16 @@ condition inverted), run with `npm run test:match -- "<name>"`, expected exit 1.
      required sentence, once.
   3. a later reply: "Thanks! One thing, the venue needs proof of insurance before the date.": true; required.
   4. "Do you carry liability insurance?": true (the boundary case; record what the classifier says).
-  5. a T4 corporate lead with no COI mention: default sentence; T4 reference block still applies.
+  5. a T4 corporate lead with no COI mention, at a venue whose PF-Intel policy says "COI required: Yes" (Claude Code
+     finds one with `lookupVenueContext` first and records which): default sentence; T4 reference block still applies;
+     the draft must follow the app's sentence, not the venue line (the Revision 1 risk).
   6. a no-quote clarification lead: no COI line at all.
 - **Checks per draft:** the exact sentence once in each draft; no other `COI`/`insurance` wording; the payment
   sentence unchanged.
 
 ## Questions for Alex
 
-1. The open question above (how "requires" is known; default = text-based).
-2. **Show the exact words before building:** the two sentences in the table, and the T4 example change in D6.
+None open: both answered 2026-10-12 (above). Anything that changes the two sentences or the trigger returns to Alex.
 
 ## Feed-Forward
 
