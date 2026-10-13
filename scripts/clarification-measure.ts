@@ -3,6 +3,8 @@
 //
 //   npx tsx scripts/clarification-measure.ts [--runs 3] [--leads v1,v2,...] [--out <dir>] [--tag <name>] [--today 2026-10-12]
 //
+// Records, per run: whether a draft came back, `verified`, the gate status and fail reasons; per generate call: the
+// question sentences of both drafts.
 // Needs ANTHROPIC_API_KEY (read from .env). For each made-up vague lead it runs the real pipeline `--runs` times and
 // logs every generate response (the pipeline throws a rejected draft away), then scans each draft for price-like text.
 // The scan is OBSERVATIONAL evidence of what the model wrote on these runs, not proof that the validator catches
@@ -69,7 +71,9 @@ const { setClaudeRequesterForTests } = await import(join(root, "src/claude.ts"))
 const { runPipeline } = await import(join(root, "src/run-pipeline.ts"));
 
 type Hit = ReturnType<typeof scan>[number];
-type Call = { full_draft: string; compressed_draft: string; fullHits: Hit[]; compressedHits: Hit[]; questions: [number, number] };
+type Call = { full_draft: string; compressed_draft: string; fullHits: Hit[]; compressedHits: Hit[]; questions: [number, number]; questionSentences: [string[], string[]] };
+/** Every sentence of a draft that holds a question mark (shows a binary question split over two sentences). */
+const questionSentences = (t: string) => (t.match(/[^.!?\n]*\?/g) ?? []).map((s) => s.trim());
 let calls: Call[] = [];
 setClaudeRequesterForTests((async (request: unknown) => {
   const res = await client.messages.create(request);
@@ -80,12 +84,13 @@ setClaudeRequesterForTests((async (request: unknown) => {
     const f = parsed.full_draft;
     const c = String(parsed.compressed_draft ?? "");
     calls.push({ full_draft: f, compressed_draft: c, fullHits: scan(f), compressedHits: scan(c),
-      questions: [(f.match(/\?/g) ?? []).length, (c.match(/\?/g) ?? []).length] });
+      questions: [(f.match(/\?/g) ?? []).length, (c.match(/\?/g) ?? []).length],
+      questionSentences: [questionSentences(f), questionSentences(c)] });
   }
   return res;
 }) as never);
 
-type RunResult = { lead: string; run: number; ok: boolean; error?: string; action?: string; seconds: number; calls: Call[] };
+type RunResult = { lead: string; run: number; ok: boolean; error?: string; action?: string; verified?: boolean; gate_status?: string; fail_reasons?: string[]; seconds: number; calls: Call[] };
 const results: RunResult[] = [];
 const names = Object.keys(LEADS).filter((n) => only.length === 0 || only.includes(n));
 for (const name of names) {
@@ -95,12 +100,12 @@ for (const name of names) {
     let r: Omit<RunResult, "calls" | "seconds" | "lead" | "run">;
     try {
       const o = await runPipeline(LEADS[name], undefined, undefined, undefined, today);
-      r = { ok: true, action: o.classification.action };
+      r = { ok: true, action: o.classification.action, verified: o.verified, gate_status: o.gate.gate_status, fail_reasons: o.gate.fail_reasons };
     } catch (e) {
       r = { ok: false, error: String(e).slice(0, 200) };
     }
     results.push({ lead: name, run, ...r, seconds: Math.round((Date.now() - t0) / 1000), calls });
-    console.log(`${name} run${run}: ${r.ok ? "draft (" + r.action + ")" : "ERROR " + r.error} [${calls.length} generate call(s)]`);
+    console.log(`${name} run${run}: ${r.ok ? `draft (${r.action}) verified=${r.verified} gate=${r.gate_status}` : "ERROR " + r.error} [${calls.length} generate call(s)]`);
   }
 }
 writeFileSync(join(out, `clarification-${tag}.json`), JSON.stringify({ today, runs, results }, null, 2));
@@ -120,6 +125,9 @@ console.log(JSON.stringify({
   calls_with_a_stated_amount_or_internal_term: allCalls.filter((c) => [...c.fullHits, ...c.compressedHits].some((h) => h.kind === "stated")).length,
   stated_classes: count("stated"),
   allowed_word_classes: count("word"),
+  drafts_verified: results.filter((r) => r.ok && r.verified).length,
+  drafts_not_verified: results.filter((r) => r.ok && !r.verified).length,
+  fail_reasons: [...new Set(results.flatMap((r) => r.fail_reasons ?? []))],
   errors: [...new Set(results.filter((r) => !r.ok).map((r) => r.error))],
 }, null, 2));
 console.log(`details: ${join(out, `clarification-${tag}.json`)}`);
