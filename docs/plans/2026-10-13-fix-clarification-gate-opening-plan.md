@@ -1,7 +1,7 @@
 ---
 title: "fix: the verify gate's opening rule asks a vague lead's reply to cite a detail the lead never gave"
 date: 2026-10-13
-status: plan, Revision 1 (plan review R1 NO-GO, 4 P1 / 3 P2, all accepted and answered below; rewritten in place)
+status: plan, Revision 1b (plan review R1 NO-GO, 4 P1 / 3 P2, answered in Revision 1; R2 NO-GO, 2 not fixed + 1 P2, answered in Revision 1b at the cap; Alex chose to fix and build, no round 3)
 branch: feat/hub-phase0
 ---
 
@@ -119,26 +119,28 @@ not claimed.
 | S8 | `one_question` with `format_recommended: solo` (predicate near-miss 1) | the mode predicate |
 | S9 | `quote` with `format_recommended: unresolved` (predicate near-miss 2) | the mode predicate |
 | S10 | quote with `cultural_context_active` | cultural vocabulary builder |
+| S11 | quote with `past_date_detected: true` | `buildPastDateInstruction` active branch (`src/prompts/verify.ts:237`) |
+| S12 | quote with `flagged_concerns` holding `CONCERN_4PIECE_ALT` | `buildMariachiPricingInstruction` active branch (`src/prompts/verify.ts:248`) |
 
 Snapshots are **intentionally stale on any unrelated edit** to `buildVerifyPrompt`: G2 fails, and the only way to
 update them is a commit whose message begins `snapshot refresh:` with a reviewed diff of the prompt change that
-caused it. The test header says so. Where the conditional is already exercised elsewhere (past date, mariachi), the
-builder functions are not re-snapshotted separately: S1, S2 and S10 reach them through the baseline, and that is a
-stated limit, not a claim.
+caused it. The test header says so. Not covered, by name: the timeline builder's three bands, the genre-default
+builder's variants, and the budget builder's tiers other than `no_viable_scope` (S4) and none (S1). Those builders
+sit outside the two scoped spans; an unrelated edit to them is outside this guard, and that is a stated limit.
 
 ## Plan Quality Gate
 
 1. **What exactly is changing?** Two spans of `src/prompts/verify.ts` (section 6b and one gut-check line), for
-   clarification mode only; a new `src/clarification-gate-prompt.test.ts`; eleven snapshot files under
+   clarification mode only; a new `src/clarification-gate-prompt.test.ts`; thirteen snapshot files (S0-S12) under
    `src/fixtures/verify-prompt-baseline/`; two comments (`src/types.ts`, the runner); one runner field (`opening`).
-2. **What must not change?** The verify prompt for every non-clarification mode (byte-equal to S1-S10); section 9 and
+2. **What must not change?** The verify prompt for every non-clarification mode (byte-equal to S1-S12); section 9 and
    section 8 text in every mode (byte-equal, G4); `GUT_CHECK_*`; `src/pipeline/verify.ts`; the generate prompt; the
    clarification validator; the rewrite loop; post-check; COI and payment lines.
 3. **How will we know it worked?** EARS below, each with a named mutation; plus the 18-run re-run judged by the
    decision table below, not by "rises toward". Observational: 18 runs, one model, made-up leads.
 4. **Most likely way this plan is wrong?** (a) The verifier fails the 4 for a reason the booleans do not show, and a
-   scoped definition moves nothing: the decision table's row 2 stops the cycle and returns to Alex. (b) The scoped
-   definition passes a generic opener: G3 pins two literal fail examples; the table's row 4 treats a generic opener
+   scoped definition moves nothing: the decision table's opening-only-candidate category stops the cycle and returns to Alex. (b) The scoped
+   definition passes a generic opener: G3 pins two literal fail examples; the table's "verified with a failing opening" category treats a generic opener
    in a verified draft as a failure of this plan. (c) The snapshots miss a branch: the inventory is bounded and its
    limit is stated.
 5. **How will a human RUN this, and when?** Claude Code (or Alex) on the MacBook, after the code step and before the
@@ -148,20 +150,27 @@ stated limit, not a claim.
 ## Acceptance Tests (EARS)
 
 File `src/clarification-gate-prompt.test.ts`; names start `Clarification Gate G<n>` so
-`npm run test:match -- "Clarification Gate G3"` runs one. Each calls `buildVerifyPrompt`. A helper extracts a section
-by its `### <n>.` heading up to the next `### ` heading; tests compare extracted sections, never whole-prompt
-inequality.
+`npm run test:match -- "Clarification Gate G3"` runs one. Each calls `buildVerifyPrompt`. The extraction helper
+`sectionOf(prompt, id)`: `id` is a numeric id with an optional letter suffix (`6b`, `7a`, `7b`, `7c`, `7d`, `8`,
+`9`; the pattern is `^### <id>\.` at the start of a line); the section runs from that heading line up to, and
+excluding, the next line that starts with `### ` or `## `, or the end of the prompt. It throws if the heading is
+absent or appears more than once, so a missing section fails loudly instead of comparing two empty strings. Tests
+compare extracted sections, never whole-prompt inequality.
+
+- **G0** WHEN the extractor is run on S1 (a quote prompt), THE SYSTEM SHALL return, for `6b`, `7a`, `7b`, `8` and
+  `9`, a non-empty body whose first line is that heading (`### 6b. Lead-Specificity Check`, `### 7a. ...`); for `7c`
+  on S6 and `7d` on S5, likewise; and it SHALL throw for `7c` on S1 (absent) and for an id that does not exist.
 
 - **G1** WHEN the classification is clarification mode, THE SYSTEM SHALL include, as the extracted section 6b and
   as the `lead_specific_opening` line, exactly the clarification definition, including the minimum-anchor sentence and
   the list of non-qualifying phrases ("your event", "this inquiry", "what you're looking for", "the right fit").
-- **G2** WHEN the classification is any of S1-S10 (every non-clarification mode and both near-misses), THE SYSTEM
+- **G2** WHEN the classification is any of S1-S12 (every non-clarification mode and both near-misses), THE SYSTEM
   SHALL return a prompt byte-equal to its committed snapshot, and SHALL NOT contain "does NOT qualify" or
   "do NOT qualify".
 - **G3** WHEN the clarification prompt is built, THE SYSTEM SHALL carry both literal fail examples ("What a
   wonderful way to celebrate!" and "You're looking for the right music for your event.") and the pass example, and
   the deletion-test sentence.
-- **G4** WHEN any prompt of S0-S10 or the new clarification prompt is built, THE SYSTEM SHALL contain a section 9
+- **G4** WHEN any prompt of S0-S12 or the new clarification prompt is built, THE SYSTEM SHALL contain a section 9
   block and a section 8 block byte-equal to the pre-change block of the same classification (extracted, whole block).
 - **G5** WHEN the clarification prompt and S9 (`quote` + `unresolved`) are built, THE SYSTEM SHALL differ in the
   extracted section 6b and in the `lead_specific_opening` line, and S9's extracted 6b SHALL equal the pre-change text.
@@ -180,6 +189,7 @@ Mutation map (each must fail the named test; recorded, not committed):
 |---|---|
 | clarification text applied to every mode | G2, G5, G7 |
 | the clarification branch dropped | G1, G6 |
+| the extractor matches a numeric-only id (`^### \d+\.`) | G0 (6b not found), G1, G5, G6 |
 | predicate `action === "one_question"` only (format ignored) | G7 (S8 passes through to new text) |
 | predicate `format_recommended === "unresolved"` only | G7 (S9) |
 | a fail example removed | G3 |
@@ -188,26 +198,31 @@ Mutation map (each must fail the named test; recorded, not committed):
 | one line of section 9 edited, substrings kept | G4 |
 | section 8 edited | G4 |
 
-## Decision table for the re-run (answers R1 P2-5)
+## Decision table for the re-run (answers R1 P2-5 and R2 P2-5)
 
-"Candidates" are the 4 drafts above (opening is the only observed cause); the runner records, per run, the final
-gate detail and the opening sentence `opening` (first sentence of the final full draft, split at the first `.`, `!`,
-`?` or line break). Every verified draft's opening is read by Claude Code and listed in the record with a
-pass/fail against the minimum anchor.
+One re-run is 18 runs of one model on made-up leads: a stochastic sample, so no row below is a fixed total. Each run
+is put in exactly one category from its recorded fields (`ok`, `verified`, `gate_status`, the final gate detail,
+`fail_reasons`, `opening`), and the action attaches to the category. The runner records `opening` (first sentence of
+the final full draft, split at the first `.`, `!`, `?` or line break); Claude Code reads the opening of every
+verified draft and lists it in the record with a pass/fail against the minimum anchor.
 
-| Observation | Meaning | Action |
+| Category (from the recorded fields) | Meaning | Action |
 |---|---|---|
-| A candidate-type run verifies | the scoped definition moved the verifier | record; continue to code review |
-| Runs whose only false check was the opening still fail with `lead_specific_opening` false | the verifier does not follow the definition | STOP; return to Alex; no further wording round in this cycle |
-| Runs fail with the opening true and only section 8, `sounds_like_alex` or other checks | another cause, outside this plan | record by name; feeds plan 2 or a voice item |
-| Verified count above the 6 arithmetic-pass drafts' share (more than about 6 of 17, since scene and competitor failures are untouched) | the instrument or the definition is passing drafts it should not | read every verified draft; treat as a defect of this plan until explained |
-| A verified draft's opening is generic by the minimum anchor | the definition is too loose | the plan failed; tighten or revert |
-| Any non-clarification snapshot (G2) fails | regression | blocker |
-| Zero verified, with openings now true in the gate detail | the opening was not the binding cause | record; return to Alex with the new fail reasons |
+| No draft, or `GenerationError` (`ok: false`) | the generate step threw: a pricing-language or one-question rule, not this change | list the error by name; not this plan's defect; counts toward plan 2 / the question rule only |
+| Draft, scene `structural` or competitor test true | a hard condition, untouched here | record the count; feeds plan 2 |
+| Draft, hard conditions pass, `lead_specific_opening` still false in the final gate, and no other false check or reason (an opening-only arithmetic candidate) | the verifier did not follow the definition | STOP; return to Alex; no further wording round in this cycle |
+| Draft, `lead_specific_opening` true in the final gate, but not verified (another false check, a verifier reason, or a post-check violation) | another cause, outside this plan | record each by name (voice judgment, voice-kill, section 8, other); feeds a voice item or plan 2 |
+| Draft verified (`verified: true`) with an opening that fails the minimum anchor | the definition is too loose | the plan failed: tighten or revert before the code review |
+| Draft verified with an opening that passes the minimum anchor, and a gate detail consistent with its rule (scene cinematic, competitor false) | the scoped definition worked on this run | record; continue |
+| Draft verified, but its gate detail shows scene `structural`, competitor true, or more than 2 other false checks | the instrument passed a draft its own rule fails | read it; treat as a defect of the measurement until explained |
+| Any non-clarification snapshot (G2) fails | regression | blocker, before any re-run |
+
+The table reports counts per category, never a pass bar from the sample. A re-run with zero verified drafts and the
+opening true in the gate detail is reported as "the opening was not the binding cause" and returned to Alex.
 
 ## Work steps (one concern per commit; failing test first)
 
-1. Snapshots S0-S10 from the CURRENT code and G2 (and the extraction helper); confirm they pass.
+1. Snapshots S0-S12 from the CURRENT code, G0 and G2 (and the extraction helper); confirm they pass.
 2. G1, G3, G4, G5, G6, G7 (failing), then the prompt change (all pass).
 3. The two comment corrections and the runner's `opening` field (one commit, a docs/script-only change).
 4. The mutation map, run and recorded; full suite, `tsc`, leak check.
@@ -240,7 +255,7 @@ pass/fail against the minimum anchor.
 - **Rejected:** relaxing the scene check; computing the gate's pass in code; editing the generate prompt in this
   cycle; a broader "clarification gate" rewrite; claiming 6 of 17 will move.
 - **Least confident:** that the verifier follows a scoped definition. `gate_status` is its judgment and the same
-  drafts may fail for a reason the booleans do not show; the decision table's second row is written for that.
+  drafts may fail for a reason the booleans do not show; the decision table's opening-only-candidate category is written for that.
 
 ## Three Questions
 
