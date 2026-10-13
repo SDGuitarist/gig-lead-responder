@@ -191,6 +191,15 @@ computes `coiTermsFor` itself instead of taking a parameter. **Outside this plan
 can raise `GenerationError: Clarification mode ... must not include pricing language` (pre-existing, reproduced on the
 pre-COI code; own item). **Next: Codex CODE review round 1 for the COI work; nothing pushed after `72490b7`.**
 
+**Update 12 (session gig-lead-responder-22, COI code review closed):** Codex CODE review R1 NO-GO (1 P1: the dashboard
+approve route sent a stored draft with no COI sentence), fixed in `2837845` after Alex's decision "Refuse, like
+payment" (409 `coi_sentence_unverifiable`, before the claim, nothing saved; pre-COI stored drafts are refused until
+re-run); **R2 = GO, no new defects** (`docs/reviews/2026-10-13-coi-code-codex-round1.md`, `...round2.md`). The COI
+review loop is CLOSED. Suite 902 pass / 0 fail / 1 skip. **Next: Compound for COI** (solution doc +
+`/update-learnings`), then the clarification-validator plan review
+(`docs/plans/2026-10-13-fix-clarification-pricing-validator-plan.md`, prompt in the scratchpad, not yet run), then the
+classifier band miss. Local only, not pushed: see `git log origin/feat/hub-phase0..HEAD`.
+
 #### Pre-compact save 2026-10-12 22:47 (appended; text above NOT modified, may be stale)
 
 **State (CHECKED this session):** branch `feat/hub-phase0`, base HEAD `2ae6936` (this save commit adds one), **pushed**:
