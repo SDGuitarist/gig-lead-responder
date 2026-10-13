@@ -90,7 +90,7 @@ setClaudeRequesterForTests((async (request: unknown) => {
   return res;
 }) as never);
 
-type RunResult = { lead: string; run: number; ok: boolean; error?: string; action?: string; verified?: boolean; gate_status?: string; fail_reasons?: string[]; seconds: number; calls: Call[] };
+type RunResult = { lead: string; run: number; ok: boolean; error?: string; action?: string; verified?: boolean; gate_status?: string; fail_reasons?: string[]; gate_detail?: { scene_type: string; competitor_test: boolean; false_checks: string[]; empty_traceability: number; rule_implied_pass: boolean }; seconds: number; calls: Call[] };
 const results: RunResult[] = [];
 const names = Object.keys(LEADS).filter((n) => only.length === 0 || only.includes(n));
 for (const name of names) {
@@ -100,7 +100,14 @@ for (const name of names) {
     let r: Omit<RunResult, "calls" | "seconds" | "lead" | "run">;
     try {
       const o = await runPipeline(LEADS[name], undefined, undefined, undefined, today);
-      r = { ok: true, action: o.classification.action, verified: o.verified, gate_status: o.gate.gate_status, fail_reasons: o.gate.fail_reasons };
+      const g = o.gate;
+      const falseChecks = Object.entries(g.gut_checks).filter(([, v]) => v === false).map(([k]) => k);
+      const emptyTrace = g.concern_traceability.filter((t: { draft_sentence: string }) => !t.draft_sentence).length;
+      // The gate's own stated rule (src/prompts/verify.ts section 9): cinematic, competitor_test false, no empty
+      // traceability, at least 12 of 14 gut checks. gate_status is the verifier model's judgment, not computed.
+      const implied = g.scene_type === "cinematic" && g.competitor_test === false && emptyTrace === 0 && falseChecks.length <= 2;
+      r = { ok: true, action: o.classification.action, verified: o.verified, gate_status: g.gate_status, fail_reasons: g.fail_reasons,
+        gate_detail: { scene_type: g.scene_type, competitor_test: g.competitor_test, false_checks: falseChecks, empty_traceability: emptyTrace, rule_implied_pass: implied } };
     } catch (e) {
       r = { ok: false, error: String(e).slice(0, 200) };
     }
