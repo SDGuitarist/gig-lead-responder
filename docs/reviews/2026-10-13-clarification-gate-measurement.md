@@ -27,8 +27,10 @@ The rule: scene_type cinematic, competitor_test false, no empty traceability, an
 | Hard conditions pass, at most 2 other checks false (the rule would PASS), the verifier failed it anyway | **6** |
 | Hard conditions pass, 3 or more other checks false | 2 |
 
-All 6 in the middle row have `lead_specific_opening` as the only false check (two add `sounds_like_alex` or a
-voice-kill word). The verifier's reasons say the opener "contains no concrete detail from the classification (no
+In the middle row, 4 have `lead_specific_opening` as the only false check and the only fail reason; `b v6` also has
+`sounds_like_alex` false, and `a v5` also carries code-side voice-kill violations ("land", "lands", "here's the
+thing"; `src/pipeline/post-check.ts:143-144`), which fail a draft deterministically (corrected after plan review
+round 1, P1-1). The verifier's reasons say the opener "contains no concrete detail from the classification (no
 date, venue, guest count, format)". `gate_status` is the verifier model's judgment, not computed in code
 (`src/pipeline/verify.ts` copies it), so the gate is stricter than its own stated rule on these leads.
 
