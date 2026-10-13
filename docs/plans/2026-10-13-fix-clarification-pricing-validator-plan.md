@@ -77,7 +77,8 @@ floor"); the validator has always rejected them. 0 of 21 logged generate calls h
 
 - **D1 The validator:** replace `PRICE_SIGNAL_PATTERN` with `PRICE_STATEMENT_PATTERN`, these alternatives, case-
   insensitive:
-  1. `\$\s?\d`
+  1. `\$\s?\d[\d,]*(?:\.\d+)?` (the whole figure, so the error names `$1200`, not `$1`; the same set of drafts
+     is rejected as `\$\s?\d`; found by V7 when building)
   2. `\b\d[\d,]*(?:\.\d+)?\s?(?:dollars?|bucks|usd)\b`
   3. `\busd\s?\d`
   4. a run of number words followed by `dollars` or `bucks`:

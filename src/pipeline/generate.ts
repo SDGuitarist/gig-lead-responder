@@ -28,7 +28,19 @@ interface GenerateResponse {
 }
 
 const SIGN_OFF = `\nAlex Guillen`;
-const PRICE_SIGNAL_PATTERN = /\$\s?\d|\brate\b|\bquote\b|\banchor\b|\bfloor\b|\binvestment\b/i;
+// Clarification mode states no price (plan docs/plans/2026-10-13-fix-clarification-pricing-validator-plan.md, Rev 1b).
+// This rejects text matching a SUPPORTED PRICE GRAMMAR plus the internal pricing terms. It does NOT reject the bare
+// words "quote" and "rate" ("Before I quote, one question" failed 17 of 18 real drafts), and an amount with no
+// currency marker ("around fifteen hundred") is outside the grammar by decision, pinned by the V10 tests.
+const NUMBER_WORD = "(?:a|an|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety|hundred|thousand|grand)";
+const PRICE_STATEMENT_PATTERN = new RegExp([
+  String.raw`\$\s?\d[\d,]*(?:\.\d+)?`, // $1200, $ 850, $1,200, $1.2k: the whole figure, so the error names it
+  String.raw`\b\d[\d,]*(?:\.\d+)?\s?(?:dollars?|bucks|usd)\b`, // 800 dollars, 1,500 bucks, 950 USD
+  String.raw`\busd\s?\d`, // USD 900
+  String.raw`\b${NUMBER_WORD}(?:[\s-]+${NUMBER_WORD})*\s+(?:dollars?|bucks)\b`, // a thousand dollars, fifteen hundred dollars
+  String.raw`\b\d+(?:\.\d+)?\s?k\b`, // 1.5k, 2k
+  String.raw`\banchor\b|\bfloor\b|\binvestment\b`, // the internal pricing terms, unchanged
+].join("|"), "i");
 
 const RESERVE_MAX_CHARS = 240;
 // More than one sentence: an end mark followed by more text. Errs toward dropping
@@ -143,8 +155,10 @@ function enforceClarificationDraft(field: "full_draft" | "compressed_draft", dra
     throw new GenerationError(`Clarification mode ${field} must contain exactly one question`);
   }
 
-  if (PRICE_SIGNAL_PATTERN.test(draft)) {
-    throw new GenerationError(`Clarification mode ${field} must not include pricing language`);
+  // The error names the matched text and only that (never the draft): it goes to server logs, not to a client.
+  const priced = PRICE_STATEMENT_PATTERN.exec(draft);
+  if (priced) {
+    throw new GenerationError(`Clarification mode ${field} must not include pricing language: "${priced[0]}"`);
   }
 }
 
