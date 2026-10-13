@@ -250,6 +250,19 @@ agent-pitfalls log row, journal 2026-10-13). Local only, not pushed (see `git lo
 (3) Alex's force-push call (I recommend no); (4) older items (nonprofit prices, Saturday/peak-day rule, Module 1 plan
 review, R006/R398/R403 TO PORT). Do not read or enter the Sandbox directory while Autopilot Run 104 runs.
 
+**Update 16 (session gig-lead-responder-22, clarification gate opening rule, compound):** the cycle is complete and
+reviewed to the cap. Code: `ead7385` (scoped rule), tests `3fc16e2`, fixes `d00f378` (voice block pinned by hash) and
+`90318c7` (`openingOf`). Plan review R1/R2 NO-GO (answered, Alex fixed and built); code review R1 NO-GO (2 P2, fixed),
+R2 NO-GO (1 P2 prose, fixed at the cap with Alex's choice, no round 3). Re-run: 0 of 17 verified -> 2 of 16; the
+decision table's stop row fired (4 runs still fail the opening alone, 3 of them correctly). Suite 946 pass / 0 fail /
+1 skip. Compound: `docs/solutions/architecture/2026-10-13-verify-gate-asked-a-vague-lead-for-a-detail-it-never-gave.md`;
+`/update-learnings` ran. **Open, in order:** (1) plan 2: the generate-side scene gap (4 of 16 drafts structural or
+competitor-test failures; recommended first a length ceiling and shape instruction, no words from Alex needed; a
+reference reply only with his exact words); (2) the "exactly one question" rule (6 of 72 runs; no change); (3) the
+classifier `timeline_band` miss; (4) Alex's force-push call (I recommend no); (5) older items (nonprofit prices,
+Saturday/peak-day rule, Module 1 plan review, R006/R398/R403 TO PORT). Do not read or enter the Sandbox directory while
+Autopilot Run 104 runs. A legitimate edit to the verify prompt's voice references needs a `snapshot refresh:` commit.
+
 #### Pre-compact save 2026-10-12 22:47 (appended; text above NOT modified, may be stale)
 
 **State (CHECKED this session):** branch `feat/hub-phase0`, base HEAD `2ae6936` (this save commit adds one), **pushed**:
