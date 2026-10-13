@@ -123,6 +123,14 @@ received. Local only, NOT pushed: `a4999c7`, `8536db1` (origin = `c2f9aba`). Sui
 inference written into a memory file, which is deleted. One run per round; if he pastes more than one verdict, record
 each and the stricter governs. Older lines in this file that say "run twice" are historical, not instructions.
 
+**Update 8 (session gig-lead-responder-22):** **Codex CODE review round 3 = NO-GO, classification (c)**: the T7 fix
+(`8536db1`) binds each row to its exact title correctly, but `assertsPositively` accepts a marker typed in a trailing
+comment on an assert line (P2, test-only, no production defect). **The cap has fired: no round 4, automatic fixing and
+reviewing stopped.** Record `docs/reviews/2026-10-12-t4-reference-code-codex-round3.md`. Alex decides: (i) different
+approach (export markers as constants and import them in T7), (ii) revert T7 to the round 1 version, (iii) accept the
+residue with a comment naming the limit. Nothing pushed after `c2f9aba` (local: `a4999c7`, `8536db1`, `05d25a1`, and
+the round 3 record).
+
 #### Pre-compact save 2026-10-12 22:47 (appended; text above NOT modified, may be stale)
 
 **State (CHECKED this session):** branch `feat/hub-phase0`, base HEAD `2ae6936` (this save commit adds one), **pushed**:
