@@ -20,6 +20,29 @@ const COMPONENT_QUALITY_TABLE = `| Component | Present (Minimum) | Excellent (St
 | **Logistics** | Answers questions | Preempts every question AND addresses inferred fears. Weaved into the scene naturally. No visible FAQ section. |
 | **Close** | Has a next step | The next step feels like the natural conclusion. Not a sales push—an invitation. |`;
 
+/**
+ * Section 6b (lead specificity). A vague lead gave no date, venue, count or format, so the default rule (cite a
+ * concrete detail from the classification) cannot be met and failed every clarification draft in the 2026-10-13
+ * measurement. Clarification mode asks instead for a word the lead itself supplied; generic references still fail.
+ * Plan docs/plans/2026-10-13-fix-clarification-gate-opening-plan.md; pinned by src/clarification-gate-prompt.test.ts.
+ */
+const DEFAULT_LEAD_SPECIFICITY = `### 6b. Lead-Specificity Check
+Does the opening sentence reference a CONCRETE DETAIL from the classification? This is different from the Competitor Test: competitor_test asks "could another vendor write this?" (voice/insight), while lead-specificity asks "does the opening reference a factual detail from this specific lead?" (grounding).
+- Look at the FIRST sentence of the draft
+- Check if it mentions a specific detail from the classification: event type, date, venue, format, cultural context, or any other concrete fact
+- Generic openings like "What a beautiful event" or "Congratulations on your upcoming celebration" → lead_specific_opening = false
+- Specific openings like "A mariachi serenata at sunset for your parents' 50th anniversary" → lead_specific_opening = true
+`;
+
+const CLARIFICATION_LEAD_SPECIFICITY = `### 6b. Lead-Specificity Check
+This lead is vague: the form gave no date, venue, guest count or format, so the opening cannot cite them. The first sentence passes only if it repeats or restates a fact or an uncertainty the lead itself supplied: the occasion or event type the lead wrote (a birthday, a wedding, a party), the time frame the lead wrote (next month, this winter, spring), or the lead's own stated doubt ("not sure what kind of music"). References that could be said to any inquiry do NOT qualify: "your event", "this inquiry", "what you're looking for", "the right fit", "the right music", "what would work best".
+- Look at the FIRST sentence of the draft
+- Deletion test: remove the words that came from this lead; if the sentence still works for any inquiry → lead_specific_opening = false
+- Pass: "You said live music next month and haven't picked a format yet, which is the right moment for one question."
+- Fail (compliment): "What a wonderful way to celebrate!"
+- Fail (generic acknowledgement): "You're looking for the right music for your event."
+`;
+
 function residencyPriceRule(classification: Classification, q: ResidencyQuote): string {
   return residencyStatesPrice(classification, q)
     ? q.series
@@ -76,13 +99,7 @@ structural = AUTOMATIC FAIL
 Could another vendor have written this exact opening? If yes → competitor_test = true → FAIL.
 The opening must contain an insight specific to THIS lead.
 
-### 6b. Lead-Specificity Check
-Does the opening sentence reference a CONCRETE DETAIL from the classification? This is different from the Competitor Test: competitor_test asks "could another vendor write this?" (voice/insight), while lead-specificity asks "does the opening reference a factual detail from this specific lead?" (grounding).
-- Look at the FIRST sentence of the draft
-- Check if it mentions a specific detail from the classification: event type, date, venue, format, cultural context, or any other concrete fact
-- Generic openings like "What a beautiful event" or "Congratulations on your upcoming celebration" → lead_specific_opening = false
-- Specific openings like "A mariachi serenata at sunset for your parents' 50th anniversary" → lead_specific_opening = true
-
+${clarificationMode ? CLARIFICATION_LEAD_SPECIFICITY : DEFAULT_LEAD_SPECIFICITY}
 ### 7. Gut Checks (all boolean)
 - can_see_it: Reader can visualize a specific moment
 - validated_them: Draft validates the person, not just the event
@@ -93,7 +110,7 @@ Does the opening sentence reference a CONCRETE DETAIL from the classification? T
 - best_line_present: There's a genuinely strong line
 - prose_flows: Reads as one continuous movement, not assembled sections
 - competitor_test: false means PASS (no competitor would write this)
-- lead_specific_opening: First sentence references a concrete detail from the classification (not generic)
+- lead_specific_opening: ${clarificationMode ? "Apply section 6b (clarification mode): the first sentence repeats a fact or an uncertainty this lead supplied; generic references that fit any inquiry do not count." : "First sentence references a concrete detail from the classification (not generic)"}
 - budget_acknowledged: ${clarificationMode ? "Always true — clarification mode does not quote yet." : pricing.residency ? "Always true — residency pricing is Alex's call (every residency is held)." : buildBudgetInstruction(budget, classification)}
 - past_date_acknowledged: ${buildPastDateInstruction(classification)}
 - mariachi_pricing_format: ${buildMariachiPricingInstruction(classification)}

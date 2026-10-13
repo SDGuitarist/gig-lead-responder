@@ -65,3 +65,68 @@ describe("Clarification Gate G2: every non-clarification mode is byte-equal to i
     });
   }
 });
+
+describe("Clarification Gate G1 / G3: the clarification definition", () => {
+  it("Clarification Gate G1 section 6b and the gut-check line are exactly the clarification definition", () => {
+    const prompt = promptOf("S0");
+    assert.equal(sectionOf(prompt, "6b"), CLARIFICATION_6B);
+    assert.equal(lineOf(prompt), CLARIFICATION_OPENING_LINE);
+    for (const phrase of ["your event", "this inquiry", "what you're looking for", "the right fit"]) {
+      assert.ok(sectionOf(prompt, "6b").includes(`"${phrase}"`), phrase);
+    }
+  });
+
+  it("Clarification Gate G3 both fail examples, the pass example and the deletion test are literal", () => {
+    const six = sectionOf(promptOf("S0"), "6b");
+    assert.ok(six.includes('Fail (compliment): "What a wonderful way to celebrate!"'));
+    assert.ok(six.includes(`Fail (generic acknowledgement): "You're looking for the right music for your event."`));
+    assert.ok(six.includes("Pass: \"You said live music next month and haven't picked a format yet"));
+    assert.ok(six.includes("Deletion test: remove the words that came from this lead"));
+  });
+});
+
+describe("Clarification Gate G4: sections 8 and 9 are never edited", () => {
+  it("Clarification Gate G4 the section 8 and section 9 blocks of the clarification prompt equal the pre-change blocks", () => {
+    const now = promptOf("S0");
+    assert.equal(sectionOf(now, "9"), sectionOf(snapshotOf("S0"), "9"));
+    assert.equal(sectionOf(now, "8"), sectionOf(snapshotOf("S0"), "8"));
+    assert.match(sectionOf(now, "9"), /At least 16 of 18 gut_checks are true/);
+  });
+
+  it("Clarification Gate G4 sections 8 and 9 are byte-equal to the snapshot for every other case too", () => {
+    for (const c of VERIFY_CASES) {
+      const prompt = promptOf(c.id);
+      assert.equal(sectionOf(prompt, "9"), sectionOf(snapshotOf(c.id), "9"), `${c.id} section 9`);
+      assert.equal(sectionOf(prompt, "8"), sectionOf(snapshotOf(c.id), "8"), `${c.id} section 8`);
+    }
+  });
+});
+
+describe("Clarification Gate G5 / G7: the scope is the mode, not a keyword", () => {
+  it("Clarification Gate G5 a quote with an unresolved format keeps the old 6b and gut-check line; clarification differs", () => {
+    const clar = promptOf("S0");
+    const nearMiss = promptOf("S9");
+    assert.notEqual(sectionOf(clar, "6b"), sectionOf(nearMiss, "6b"));
+    assert.notEqual(lineOf(clar), lineOf(nearMiss));
+    assert.equal(sectionOf(nearMiss, "6b"), sectionOf(snapshotOf("S9"), "6b"));
+    assert.equal(lineOf(nearMiss), lineOf(snapshotOf("S9")));
+  });
+
+  it("Clarification Gate G7 one_question with a resolved format (S8) and quote with an unresolved format (S9) do not use the definition", () => {
+    for (const id of ["S8", "S9"]) {
+      assert.ok(!sectionOf(promptOf(id), "6b").includes("This lead is vague"), id);
+      assert.notEqual(lineOf(promptOf(id)), CLARIFICATION_OPENING_LINE, id);
+    }
+  });
+});
+
+describe("Clarification Gate G6: the change is exactly the two spans", () => {
+  it("Clarification Gate G6 the pre-change clarification prompt with the two spans replaced equals the new prompt", () => {
+    const before = snapshotOf("S0");
+    const patched = before
+      .replace(sectionOf(before, "6b"), CLARIFICATION_6B)
+      .replace(lineOf(before), CLARIFICATION_OPENING_LINE);
+    assert.notEqual(patched, before, "the replacement did something");
+    assert.equal(promptOf("S0"), patched);
+  });
+});
