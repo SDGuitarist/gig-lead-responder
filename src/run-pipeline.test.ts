@@ -47,8 +47,8 @@ const MOCK_GENERATION = {
     cinematic_opening: "What a wonderful celebration",
     validation_line: "You've got a great eye for what this evening needs",
   },
-  full_draft: "Hi Sarah, your evening is going to be something special. I'm available and ready to hold the date. Alex Guillen",
-  compressed_draft: "Hi Sarah, I'm available for your event. Want me to hold the date? Alex Guillen",
+  full_draft: "Hi Sarah, your evening is going to be something special. I'm available and ready to hold the date. COI available upon request. Alex Guillen",
+  compressed_draft: "Hi Sarah, I'm available for your event. Want me to hold the date? COI available upon request. Alex Guillen",
 };
 
 const MOCK_GATE_PASS = {
@@ -148,7 +148,7 @@ describe("runPipeline", () => {
   // R058 (Alex option a): the written-price check runs on BOTH drafting paths. If a call site
   // stopped passing pricing, the check would switch off with every unit test green.
   it("port manifest R058 wiring: a draft priced below the floor is not verified, on both paths", async () => {
-    const cheap = { ...MOCK_GENERATION, full_draft: "Hi Sarah, two hours is $100. Alex Guillen" };
+    const cheap = { ...MOCK_GENERATION, full_draft: "Hi Sarah, two hours is $100. COI available upon request. Alex Guillen" };
     mockClaudeForPipeline([MOCK_CLASSIFICATION, cheap, MOCK_GATE_PASS]); // solo T2P 2h: floor $550
     const out = await runPipeline("I need a guitarist for two hours");
     assert.equal(out.verified, false);

@@ -47,8 +47,8 @@ const MOCK_GENERATION = {
     cinematic_opening: "What a celebration",
     validation_line: "You've planned something special",
   },
-  full_draft: "Hi Sarah, your evening is going to be something people remember. Alex Guillen",
-  compressed_draft: "Hi Sarah, I'm available. Want me to hold the date? Alex Guillen",
+  full_draft: "Hi Sarah, your evening is going to be something people remember. COI available upon request. Alex Guillen",
+  compressed_draft: "Hi Sarah, I'm available. Want me to hold the date? COI available upon request. Alex Guillen",
 };
 
 const MOCK_GATE_PASS = {

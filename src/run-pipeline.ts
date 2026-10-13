@@ -5,6 +5,7 @@ import { priceBlockFor } from "./pipeline/price-block.js";
 import { enrichClassification } from "./pipeline/enrich.js";
 import { getTodayISO } from "./utils/dates.js";
 import { isPastDate, paymentTermsFor } from "./pipeline/payment-terms.js";
+import { coiTermsFor } from "./pipeline/coi.js";
 import { selectContext } from "./pipeline/context.js";
 import { generateResponse } from "./pipeline/generate.js";
 import { verifyGate, runWithVerification } from "./pipeline/verify.js";
@@ -267,7 +268,7 @@ export async function runPipeline(
     drafts.compressed_draft,
     enriched.platform,
     { gracefulDecline: enriched.graceful_decline === true, pricing, askedHours: enriched.duration_hours,
-      priceBlock: priceBlockFor(enriched, pricing), paymentTerms },
+      priceBlock: priceBlockFor(enriched, pricing), paymentTerms, coiTerms: coiTermsFor(enriched, pricing) },
   );
 
   // Apply auto-fixes (em dashes replaced with commas)
@@ -344,7 +345,7 @@ export async function runEditPipeline(
   // Post-check: auto-fix em dashes, flag banned phrases
   const postCheck = postCheckDrafts(drafts.full_draft, drafts.compressed_draft, classification.platform,
     { gracefulDecline: classification.graceful_decline === true, pricing, askedHours: classification.duration_hours,
-      priceBlock: priceBlockFor(classification, pricing), paymentTerms });
+      priceBlock: priceBlockFor(classification, pricing), paymentTerms, coiTerms: coiTermsFor(classification, pricing) });
   const cleanedDrafts: Drafts = {
     full_draft: postCheck.full_draft,
     compressed_draft: postCheck.compressed_draft,

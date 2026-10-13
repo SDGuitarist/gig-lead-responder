@@ -7,6 +7,7 @@ import { clientTotal, findMinFloor, IN_KIND_ORG_PLACEHOLDER, rateTableFor } from
 import { FORMAT_NAME, type PriceBlock } from "./price-block.js";
 import type { PricingResult } from "../types.js";
 import { PLATFORM_UNKNOWN_FLAG, paymentViolations, type PaymentTerms } from "./payment-terms.js";
+import { coiViolations, type CoiTerms } from "./coi.js";
 
 export interface PostCheckResult {
   full_draft: string;         // cleaned draft (auto-fixes applied)
@@ -107,7 +108,7 @@ export function postCheckDrafts(
   compressedDraft: string,
   platform?: string,
   options: { gracefulDecline?: boolean; pricing?: PricingResult; askedHours?: number; priceBlock?: PriceBlock | null;
-    paymentTerms?: PaymentTerms } = {},
+    paymentTerms?: PaymentTerms; coiTerms?: CoiTerms } = {},
 ): PostCheckResult {
   const violations: string[] = [];
 
@@ -224,6 +225,10 @@ export function postCheckDrafts(
     violations.push(...paymentViolations(cleanedFull, "full", terms), ...paymentViolations(cleanedCompressed, "compressed", terms));
     if (terms.kind === "unknown_platform") violations.push(PLATFORM_UNKNOWN_FLAG);
   }
+
+  // --- Check: the run's COI sentence (COI plan R2-2). Absent terms run no check, as with paymentTerms. ---
+  const coi = options.coiTerms;
+  if (coi) violations.push(...coiViolations(cleanedFull, "full", coi), ...coiViolations(cleanedCompressed, "compressed", coi));
 
   return {
     full_draft: cleanedFull,
