@@ -1,7 +1,7 @@
 ---
 title: "COI: the app writes the sentence; 'available upon request' first, a timeline only when the client requires one"
 date: 2026-10-12
-status: plan, Revision 2 (Codex plan review round 1 NO-GO, 6 P1 / 3 P2, answered below; before round 2)
+status: plan, Revision 3 (plan review R1 NO-GO answered in Rev 2; R2 NO-GO answered in Rev 3; before round 3, which Alex chose)
 branch: feat/hub-phase0
 ---
 
@@ -54,24 +54,24 @@ Two sentences, so:
 
 ## Decision
 
-> **Revision 2 (below, "Revision 2: Codex plan review round 1") supersedes D1, D3, D4 and the Execution Path where it
-> says so.** D2, D5, D6, D7 stand.
+> **Revision 3:** D1-D4 below were rewritten in place to match "Revision 2" (R2-1 to R2-8); where a D-line and an R2
+> section ever differ, the R2 section is the contract.
 
-- **D1 Where the sentence is chosen:** `src/pipeline/coi.ts` exports `COI_SENTENCES = { default, required }` and
-  `coiSentence(classification)`: `required` when `classification.coi_required === true`, otherwise `default`. Pure,
-  no date, no clock (unlike payment, nothing about it changes between draft and send, so there is NO send-time swap).
-- **D2 Classifier:** new field `coi_required: boolean` in `Classification` (`src/types.ts`) and in the classify
-  prompt and validator, beside `price_asked`. Definition in the prompt: true only when the lead text itself says the
-  client or the venue needs a certificate of insurance or proof of insurance; a venue's name alone is not a signal.
-- **D3 Generate prompt:** the Quote Terms block (`src/prompts/generate.ts`, beside `paymentLine`) gains one line, the
-  exact sentence from `coiSentence`, and the existing "COI in one short paragraph" / voice-doc wording is overridden
-  by one rule: "COI: use the sentence in Quote Terms exactly, once. Write no other COI or insurance sentence."
-  The off-switch is the same `quoteTermsOff` the payment line uses (clarification, no_viable_scope, residency: no
-  quote, no COI line).
-- **D4 Post-check:** `post-check.ts` confirms the chosen COI sentence appears exactly once in the full draft and once
-  in the compressed draft (same as the payment check; flags `coi_sentence_missing` / `coi_sentence_repeated`), and
-  flags `coi_other_wording` when the draft contains `COI` or `certificate of insurance` or `liability insurance`
-  outside the exact sentence. **A flag, not a rewrite**: this app does not silently edit Alex's drafts.
+- **D1 Where the sentence is chosen:** `src/pipeline/coi.ts` exports `COI_SENTENCES`, `CoiTerms`, `coiTermsFor`,
+  `coiLine`, `coiViolations` (R2-1, R2-2). Pure, no date, no clock (nothing about it changes between draft and send,
+  so there is NO send-time swap).
+- **D2 Classifier:** new OPTIONAL field `coi_required?: boolean` in `Classification` (`src/types.ts`) and in the
+  classify prompt and validator, beside `price_asked`; only a real `true` counts (R2-3). Definition in the prompt:
+  true only when the lead text says the client or the venue requires or needs a certificate of insurance or proof of
+  insurance, or asks for one; a question whether Alex carries insurance is false; a venue's name alone is not a
+  signal (R2-4).
+- **D3 Generate prompt:** the Quote Terms block (`src/prompts/generate.ts`, beside `paymentLine`) gains one line, from
+  `coiLine(coiTerms)`, and the existing "COI in one short paragraph" / voice-doc wording is overridden by one rule:
+  "COI: use the sentence in Quote Terms exactly, once. Write no other COI or insurance sentence." The line is absent
+  in clarification, `no_viable_scope`, residency (`quoteTermsOff`) and graceful decline (R2-1 matrix).
+- **D4 Post-check:** `postCheckDrafts` takes `coiTerms` beside `paymentTerms` and appends `coiViolations` for the full
+  and the compressed draft (R2-2: exact strings, precedence, exemption). **A flag, not a rewrite**: this app does not
+  silently edit Alex's drafts.
 - **D5 Docs the model reads:** the five doc lines above are reconciled to say the app owns the sentence (one edit
   each, anchored on the line), so the injected context stops teaching "front-load COI" and a different timeline.
 - **D6 T4 block and example:** step 6 loses "and the COI" (it reads "then the genre default and the setup needs");
@@ -128,9 +128,11 @@ recorded, not changed here. The COI line is the only new line, and it has the st
 1. `kind: "none"` returns `[]` (no COI flags when COI is disabled).
 2. Whitespace-collapse the draft (`\s+` to one space, as `paymentViolations` does), then split on the exact chosen
    sentence. Zero occurrences: `coi_sentence_missing_<label>: must contain exactly once: "<sentence>"`. Two or more:
-   `coi_sentence_repeated_<label>: ...`. (One flag per draft; a pass in one draft and a fail in the other gives one flag.)
-3. Join the remainder with a space and scan it for COI wording: `/\bCOI\b/i`, `/certificate of insurance/i`,
-   `/proof of insurance/i`, `/liability insurance/i`, `/\binsured\b/i`. Any hit:
+   `coi_sentence_repeated_<label>: ...`. **Precedence (Revision 3, as `paymentViolations` does): a wrong count returns
+   that ONE flag and stops; step 3 never runs for that draft.** So each draft yields at most one COI flag, and a pass
+   in one draft with a fail in the other gives exactly one flag, for the failing draft.
+3. Only when the count is exactly 1: join the remainder with a space and scan it for COI wording: `/\bCOI\b/i`,
+   `/certificate of insurance/i`, `/proof of insurance/i`, `/liability insurance/i`, `/\binsured\b/i`. Any hit:
    `coi_other_wording_<label>: other COI or insurance wording besides "<sentence>"`.
    The chosen sentence is REMOVED before this scan, so the valid required sentence ("COI", "liability insurance")
    never flags itself. Checked 2026-10-12 (probe): the required sentence with its `$1M/$2M` raises no existing
@@ -192,32 +194,46 @@ No port-manifest row and no `docs/END-TO-END-STATUS.md` row changes. The manifes
 (`R339` is a generic non-negotiables row; `END-TO-END-STATUS.md` line 42 is about COI dates on the calendar, a
 different thing). The earlier "one manifest/status note" in the Plan Quality Gate is withdrawn.
 
+## Revision 3: Codex plan review round 2 (NO-GO; record `docs/reviews/2026-10-12-coi-plan-codex-round2.md`)
+
+What changed, all in this one document (no code):
+
+| Round 2 finding | Resolution |
+|---|---|
+| Stale Quality Gate, work step 3, Execution Path, "most likely wrong" | rewritten IN PLACE (not appended): D1-D4, Quality Gate items 1, 4, 5, the Work steps, the Execution Path prerequisites |
+| Two possible flags per draft | precedence defined in R2-2: a wrong count returns the single count flag and stops (as `paymentViolations`); other wording is checked only at count 1; C9 pins it with a both-conditions case and positive controls |
+| Mutations not mapped to C8-C12 | the mutation map under Acceptance Tests assigns one or more mutations to every C-test |
+| Platform replies | Codex: keep the sentence. Stays (R2-1 table) |
+
 ## Plan Quality Gate
 
 1. **What exactly is changing?** `src/pipeline/coi.ts` (new), `Classification.coi_required`, the classify prompt and
-   validator, one Quote Terms line and one rule in `generate.ts`, `post-check.ts` (3 flags), five doc lines, the T4
-   block's step 6 and (with Alex's yes) the example sentence, tests, one manifest/status note.
+   validator, one Quote Terms line and one rule in `generate.ts`, `post-check.ts` (`coiTerms` option; three flag kinds, per draft), five doc lines, the T4
+   block's step 6 and the example sentence (Alex approved both), tests. No port-manifest or `END-TO-END-STATUS.md`
+   change (R2-8).
 2. **What must not change?** Payment sentences and their send-time refresh; prices; the verify prompt's gate checks
    (the 14 gut checks, kill lists); every non-COI line of the Quote Terms block; PF-Intel's `coi_required` display;
    `post-check`'s existing flags. No venue sentence or private claim enters the repo.
 3. **How will we know it worked?** EARS below; plus 6 real-model runs (Execution Path) with recorded results before
    the Codex code review.
-4. **Most likely way this plan is wrong?** The classifier reads "we'll need a COI for the venue" as `required` too
-   eagerly or misses "do you carry insurance?" (a prose judgement, and the repo's `price_asked` has misfired before).
-   Second: the model still writes a second COI sentence in the compressed draft; D4 flags it, it does not fix it.
+4. **Most likely way this plan is wrong?** The classifier reads an indirect phrasing as `required` too eagerly
+   ("the venue is strict about vendors", "do you carry insurance?" are meant to be false) or misses a real requirement
+   phrased unusually (a prose judgement, and the repo's `price_asked` has misfired before). Second: the model still
+   writes a second COI sentence or restates the venue's COI policy; the post-check flags it, it does not fix it.
 5. **How will a human RUN this, and when?** Claude Code, on Alex's MacBook, the same scratch runner pattern as the T4
    runs (real model, scratch `DATABASE_PATH`, today pinned), after the code steps and before the code review. Alex
-   reads the six drafts in `docs/reviews/<date>-coi-local-runs.md`. Prerequisites: model access (ALREADY HAVE).
+   reads the six drafts in `docs/reviews/<date>-coi-local-runs.md`. Prerequisites: the Execution Path list below
+   (each CHECKED 2026-10-12).
 
 ## Acceptance Tests (EARS)
 
 - **C1** WHEN `coi_required` is false or absent, THE SYSTEM SHALL put exactly `COI available upon request.` in the
   Quote Terms block of the generate prompt, and not the required sentence.
 - **C2** WHEN `coi_required` is true, THE SYSTEM SHALL put exactly the required sentence there, and not the default.
-- **C3** WHEN `quoteTermsOff` is true, THE SYSTEM SHALL put no COI line in the prompt.
-- **C4** WHEN a draft contains the chosen sentence once in each draft and no other COI wording, THE SYSTEM SHALL add
-  no COI flag; WHEN a draft lacks it, repeats it, or adds other COI or insurance wording, THE SYSTEM SHALL add
-  `coi_sentence_missing`, `coi_sentence_repeated` or `coi_other_wording` respectively (one named test each).
+- **C3** WHEN `quoteTermsOff` is true or the lead is a graceful decline, THE SYSTEM SHALL put no COI line in the
+  prompt (the full mode matrix is C8).
+- **C4** THE SYSTEM SHALL carry exactly one COI sentence in the Quote Terms block of a quoted prompt, the one
+  `coiTermsFor` chose (the per-draft post-check contract is C9).
 - **C5** THE SYSTEM SHALL leave every payment-terms test, the three prompt-baseline fixtures' non-COI lines, and the
   verify prompt unchanged (the P8 baseline test is updated for exactly the COI line, as it was for payment).
 - **C6** WHEN the classify prompt receives a lead that says "we will need a certificate of insurance", THE SYSTEM
@@ -229,7 +245,10 @@ different thing). The earlier "one manifest/status note" in the Plan Quality Gat
 - **C9** (post-check contract) THE SYSTEM SHALL return exactly these strings: `coi_sentence_missing_full`,
   `coi_sentence_missing_compressed`, `coi_sentence_repeated_full`, `coi_sentence_repeated_compressed`,
   `coi_other_wording_full`, `coi_other_wording_compressed` (prefix match on the flag, one independent test each, plus a
-  case where one draft passes and the other fails), and NO flag for a draft holding the valid required sentence once.
+  case where one draft passes and the other fails), NO flag for a draft holding the valid required sentence once (and
+  none for the valid default sentence once: the positive controls), and, by precedence, exactly ONE flag
+  (`coi_sentence_missing_*` or `coi_sentence_repeated_*`, never also `coi_other_wording_*`) for a draft that has a
+  wrong sentence count AND other COI wording.
 - **C10** (both pipelines) WHEN `runPipeline` and `runEditPipeline` each produce a draft with a missing COI sentence,
   THE SYSTEM SHALL add the same flag in both (one test each, with a stubbed generator).
 - **C11** (compatibility) WHEN a classification has no `coi_required`, or a non-boolean one, THE SYSTEM SHALL treat it
@@ -238,17 +257,35 @@ different thing). The earlier "one manifest/status note" in the Plan Quality Gat
   request for proof of insurance is true and a question whether Alex carries insurance is not, pinned as literal lines
   (deterministic; the model runs are observation).
 
-Each test gets a named mutation (default and required swapped; line dropped; off-switch removed; each flag's
-condition inverted), run with `npm run test:match -- "<name>"`, expected exit 1.
+**Mutation map (Revision 3).** Each mutation is applied by a scratch script, the named test is run with
+`npm run test:match -- "<name>"`, and the expected exit is 1 (3 would mean the name matched nothing, which is a test
+defect). Test names are `COI <C-id> ...`.
+
+| Test | Mutation that must fail it |
+|---|---|
+| C1 | `coiTermsFor` returns the required sentence when `coi_required` is false |
+| C2 | `coiTermsFor` ignores `coi_required` (always default) |
+| C3 | `coiLine` emits a line for kind `none` |
+| C4 | superseded by C9 (kept only as the prompt-level "one chosen sentence appears in the prompt once") |
+| C5 | the P8 / T4 baseline tests: add one extra line to the Quote Terms block |
+| C6 | the validator accepts the string `"yes"` as true |
+| C7 | the example reply loses the default sentence, or carries it twice |
+| C8 | `coiTermsFor` drops the `graceful_decline` condition; separately drops the `quoteTermsOff` condition |
+| C9 | each flag's condition inverted; the count check removed; the other-wording scan run before the count check; the exact sentence not removed before the scan |
+| C10 | `runEditPipeline` stops passing `coiTerms` to `postCheckDrafts` (and the same for `runPipeline`) |
+| C11 | `coiTermsFor` reads truthiness (`if (c.coi_required)`) instead of `=== true` |
+| C12 | one of the literal definition lines in the classify prompt reworded (the boundary line) |
 
 ## Work steps (one concern per commit; failing test first)
 
-1. `src/pipeline/coi.ts` + tests (C1, C2).
-2. `coi_required` in the type, classify prompt and validator + a classify-prompt test (C6 wiring).
-3. Quote Terms line, the override rule, the `quoteTermsOff` gate (C3, C5).
-4. Post-check flags (C4).
+1. `src/pipeline/coi.ts`: `CoiTerms`, `coiTermsFor` (full mode matrix), `coiLine`, `coiViolations` + tests (C1, C2, C8,
+   C9, C11).
+2. `coi_required?` in the type, classify prompt and validator + the classify-prompt text tests (C6, C11, C12).
+3. Quote Terms line and the override rule in `generate.ts`; the P8 and T4 baseline tests updated for exactly the COI
+   line (C3, C4, C5).
+4. `postCheckDrafts` takes `coiTerms`; wired in `runPipeline` AND `runEditPipeline` (C9 wiring, C10).
 5. Docs reconciliation (D5) and the T4 block/example (D6, C7).
-6. Real-model runs (Execution Path), recorded.
+6. Real-model runs (Execution Path), recorded; every mutation in the map run and recorded.
 
 ## Execution Path
 
@@ -258,8 +295,11 @@ condition inverted), run with `npm run test:match -- "<name>"`, expected exit 1.
   `docs/reviews/2026-10-12-t4-reference-local-runs.md`) calls
   `runPipeline(text, undefined, undefined, undefined, "2026-10-12")` once per lead and records the classification
   (`coi_required`), the chosen sentence, both drafts and the post-check flags.
-- **Prerequisites:** model access (ALREADY HAVE: `ANTHROPIC_API_KEY` in `.env`); the private venue file (ALREADY
-  HAVE); `jq` (ALREADY HAVE). Alex's yes on the two sentences (Questions for Alex 2) BEFORE step 3.
+- **Prerequisites (each CHECKED 2026-10-12):** Node, `npm`, `tsx`; `ANTHROPIC_API_KEY` in `.env`;
+  `PF_INTEL_API_URL` and `PF_INTEL_SERVER_API_KEY` in `.env` (lengths checked, values never printed; if PF-Intel is
+  unreachable on the day, lead 5 is recorded NOT RUN); the private venue file; `jq`. Alex's yes on the two sentences
+  was given 2026-10-12 (above). The runs record names the lead-5 venue only as "venue A" plus the policy boolean and
+  never copies `coi_details` or a venue claim (R2-6).
 - **Who:** Claude Code. **Trigger:** after step 5, before the Codex code review.
 - **Leads (copy as is; expectations are hypotheses until run):**
   1. first inquiry, no COI mention (a backyard birthday, 35 guests): `coi_required` false; default sentence.
