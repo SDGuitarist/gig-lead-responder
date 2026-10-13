@@ -103,6 +103,15 @@ voice examples), or leave. Nothing was pushed after `3009cb6`.
 **Next phase:** Work (plan step 4 not passed). Do not write a Codex code-review prompt until open decisions 1 and 2
 are answered.
 
+**Update 6 (session gig-lead-responder-22, after the pre-compact save below):** **Codex CODE review round 2 = GO,
+"no new defects"** on all three named fixes (run 1 of 2 pasted by Alex, label not confirmed; record
+`docs/reviews/2026-10-12-t4-reference-code-codex-round2.md`). **Run 2 not yet received: the stricter verdict wins.**
+If both are GO the review loop for the T4 work is closed (round 1 NO-GO fixed, round 2 GO; no round 3 needed) and the
+next phase is Compound (solution doc in `docs/solutions/` + `/update-learnings`). Codex's only non-T4 note is a
+sandbox `EPERM` on `src/payment-terms-approve.test.ts` (it cannot bind a local port there; passes here). The
+"Open decisions" item 1 in the pre-compact block below ("Codex round 2 ... waiting") is now answered by this line.
+
+
 #### Pre-compact save 2026-10-12 22:47 (appended; text above NOT modified, may be stale)
 
 **State (CHECKED this session):** branch `feat/hub-phase0`, base HEAD `2ae6936` (this save commit adds one), **pushed**:
