@@ -128,7 +128,8 @@ each and the stricter governs. Older lines in this file that say "run twice" are
 comment on an assert line (P2, test-only, no production defect). **The cap has fired: no round 4, automatic fixing and
 reviewing stopped.** Record `docs/reviews/2026-10-12-t4-reference-code-codex-round3.md`. Alex decides: (i) different
 approach (export markers as constants and import them in T7), (ii) revert T7 to the round 1 version, (iii) accept the
-residue with a comment naming the limit. Nothing pushed after `c2f9aba` (local: `a4999c7`, `8536db1`, `05d25a1`, and
+residue with a comment naming the limit. **ANSWERED: Alex chose (iii) ("iii"); the comment is in the test, the T4
+code-review loop is CLOSED; the next phase is Compound.** Nothing pushed after `c2f9aba` (local: `a4999c7`, `8536db1`, `05d25a1`, and
 the round 3 record).
 
 #### Pre-compact save 2026-10-12 22:47 (appended; text above NOT modified, may be stale)

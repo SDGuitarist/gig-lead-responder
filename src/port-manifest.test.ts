@@ -132,7 +132,11 @@ function bodyOfTitle(text: string, title: string): string[] {
   return text.split(/\n\s*it\(/).slice(1).filter((p) => p.startsWith(`"${title}"`));
 }
 
-/** True when some `assert` line names `needle` and does not negate it (`!x.includes(...)` proves absence, not presence). */
+/**
+ * True when some `assert` line names `needle` and does not negate it (`!x.includes(...)` proves absence, not presence).
+ * KNOWN LIMIT, accepted by Alex 2026-10-12 after Codex round 3 (class (c)): this is a text scan, so a marker typed in a
+ * trailing comment on an assert line also passes. It catches a deleted assertion, not a deliberate fake.
+ */
 function assertsPositively(body: string, needle: string): boolean {
   return body.split("\n").some((l) => l.includes(needle) && /assert\./.test(l) && !/!\s*[\w.]+\.includes\(/.test(l));
 }

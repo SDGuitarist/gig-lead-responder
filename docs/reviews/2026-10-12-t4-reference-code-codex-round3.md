@@ -62,4 +62,10 @@ There is no Round 4.
 2. **Revert** T7 to the round 1 version (statuses only).
 3. **Accept** the residue: keep `8536db1`, record the limit in the test's comment and here.
 
-Recommendation: see HANDOFF Update 8.
+Recommendation: (iii).
+
+## Decision (Alex, 2026-10-12): "iii" — ACCEPT the residue
+
+Kept `8536db1` as is. The limit is named in a comment above `assertsPositively` in `src/port-manifest.test.ts`
+(comment only, no logic change). This review loop is closed at the cap; no further review of this change. The
+unreviewed edit is a comment, so there is nothing left for a reviewer to check.
