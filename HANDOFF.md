@@ -233,6 +233,14 @@ Rules: never invent a price; never commit a venue sentence or a fragment of one;
 without the literal approval; never push tags or --all; a post-check "flag" FAILS the draft.
 ```
 
+**Update 14 (session gig-lead-responder-22, clarification validator, code review closed):** the validator fix
+(`1750cd6`, regex bound `d1c5941`) is **pushed** (origin `d1c5941`). Codex CODE review R1 = **GO, no findings**
+(`docs/reviews/2026-10-13-clarification-code-codex-round1.md`). Re-run: no draft 17 of 18 -> 3 of 18; 0 pricing-language
+errors. Suite 919 pass / 0 fail / 1 skip. **Open, in order:** (1) Compound for the clarification fix (solution doc +
+`/update-learnings`); (2) the "exactly one question" failure (3 of 18 runs, the model splits the binary question over
+two sentences; the runner should also capture `verified`); (3) the classifier `timeline_band` miss; (4) Alex's
+force-push call; (5) older items (nonprofit prices, Saturday/peak-day rule, Module 1, R006/R398/R403 TO PORT).
+
 #### Pre-compact save 2026-10-12 22:47 (appended; text above NOT modified, may be stale)
 
 **State (CHECKED this session):** branch `feat/hub-phase0`, base HEAD `2ae6936` (this save commit adds one), **pushed**:
