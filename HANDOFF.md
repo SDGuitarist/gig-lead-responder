@@ -7,7 +7,7 @@
 **Phase:** Work, Phase 0 **in progress**. 0.1, 0.2 (code), 0.3 (all but the alert half of `invalid_grant alerts`), 0.4, S1, S1-adv done. **0.5 port: 10 TO PORT, 2 BLOCKED** (venues PORTED 2026-10-11; recount with `docs/END-TO-END-STATUS.md` V1). 0.6 DONE, approximate (calendar, both GigSalad accounts, Yelp numbers from Alex; `docs/research/2026-10-02-booking-hub/baseline.md`). S3 PASSED; G1 FAILED (10-03, repeated 10-09) → redesign plan 1.2. **GigSalad portal reading BUILT.** Module 1 not started.
 
 
-## START HERE — T4 reference-lead cycle COMPLETE (2026-10-12): plan, work, review (R3 NO-GO class (c), residue accepted), compound done; COI, band miss, force-push open
+## START HERE — COI + T4 cycles COMPLETE (2026-10-13): COI plan, work, review (code R2 GO), compound done; clarification fix is at plan; band miss, force-push open
 
 **State:** branch `feat/hub-phase0`, **pushed 2026-10-12 (Alex said push)**; origin = local HEAD (0 ahead). Suite **839 pass / 0 fail / 1 skip**, tsc clean, leak check exit 0. Manifest: 197 present, **171 PORTED,
 35 NOT PORTED, 3 TO PORT** (R006, R398, R403), 406 total (`docs/END-TO-END-STATUS.md` V1).
@@ -199,6 +199,35 @@ review loop is CLOSED. Suite 902 pass / 0 fail / 1 skip. **Next: Compound for CO
 `/update-learnings`), then the clarification-validator plan review
 (`docs/plans/2026-10-13-fix-clarification-pricing-validator-plan.md`, prompt in the scratchpad, not yet run), then the
 classifier band miss. Local only, not pushed: see `git log origin/feat/hub-phase0..HEAD`.
+
+**Update 13 (session gig-lead-responder-22, COI compound):** the COI cycle is complete and **pushed** (origin
+`856eea7`; the solution doc and this update are local until pushed). Compound written:
+`docs/solutions/architecture/2026-10-13-coi-sentence-owned-by-the-app-and-every-send-surface.md`;
+`/update-learnings` ran (local review context replaced, memory `project_coi-sentence-app-owned.md`, agent-pitfalls
+FC45 + log row, journal 2026-10-13). This file was edited in place, not replaced. **Open, in order:**
+(1) the clarification-validator PLAN review (`docs/plans/2026-10-13-fix-clarification-pricing-validator-plan.md`, a
+prompt exists in the scratchpad and needs a repin; direction approved by Alex "1 yes": narrow the validator, leave the
+prompt); (2) the classifier `timeline_band` miss (own cycle, repeat-run measurement first); (3) Alex's force-push
+call; (4) older items: nonprofit prices, Saturday/peak-day rule, Module 1 (plan review first), R006/R398/R403 TO PORT.
+**Coordination note:** another session (autopilot Run 104) edits `~/.claude/docs/agent-pitfalls.md` and the shared
+journal; this session committed only its own hunks and left that session's changes uncommitted.
+
+##### Prompt for Next Session (after the COI compound; supersedes the earlier prompts in this section)
+```
+Work in /Users/alejandroguillen/Projects/gig-lead-responder.
+FIRST gate (stop and ask Alex if anything differs):
+  pwd; git branch --show-current                  # expect: feat/hub-phase0
+  git rev-parse --short HEAD; git status --short  # expect: 856eea7 or later (docs-only commits); clean
+  git fetch origin; git log --oneline origin/feat/hub-phase0..HEAD | wc -l   # expect: 0-4 (unpushed docs commits)
+Read: HANDOFF.md "START HERE - COI + T4 cycles COMPLETE" incl. Update 13,
+docs/solutions/architecture/2026-10-13-coi-sentence-owned-by-the-app-and-every-send-surface.md,
+docs/plans/2026-10-13-fix-clarification-pricing-validator-plan.md,
+docs/reviews/2026-10-13-clarification-failure-measurement.md, CLAUDE.md.
+Do: ask Alex which open item next. For the clarification fix: run its Codex PLAN review round 1 (repin the prompt),
+then build test-first, then the 18-run re-run. Do not read or enter the Sandbox directory while Autopilot Run 104 runs.
+Rules: never invent a price; never commit a venue sentence or a fragment of one; one Codex run per round; no round 3
+without the literal approval; never push tags or --all; a post-check "flag" FAILS the draft.
+```
 
 #### Pre-compact save 2026-10-12 22:47 (appended; text above NOT modified, may be stale)
 
