@@ -20,7 +20,8 @@ const { getTodayISO } = await import("./utils/dates.js");
 const { full, twoWeeks } = PAYMENT_SENTENCES;
 // 13 days from the route's own today: full payment is current, the two-weeks sentence is stale.
 const event = new Date((civilDay(getTodayISO())! + 13) * 86_400_000).toISOString().slice(0, 10);
-const draft = (s: string) => `Hi Sarah,\nSolo guitar, $650, 2 hours.\n${s} Want me to hold it?\nAlex Guillen`;
+// COI plan: approve also requires the exact COI sentence in a quoted draft, so these payment drafts carry it.
+const draft = (s: string) => `Hi Sarah,\nSolo guitar, $650, 2 hours.\n${s} COI available upon request. Want me to hold it?\nAlex Guillen`;
 
 function lead(compressed: string, fullDraft: string, platform?: string): number {
   const { id } = insertLead({ raw_email: "x" });

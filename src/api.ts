@@ -9,6 +9,7 @@ import { analyzeLimiter, approveLimiter } from "./rate-limit.js";
 import { alertAlex as sendSms } from "./alert.js";
 import { runPipeline } from "./run-pipeline.js";
 import { paymentTermsFor, refreshPaymentSentence, type PaymentTerms } from "./pipeline/payment-terms.js";
+import { coiTermsFor, coiViolations, type CoiTerms } from "./pipeline/coi.js";
 import { getTodayISO } from "./utils/dates.js";
 import { shapeLead } from "./utils/shape-lead.js";
 import { asyncHandler } from "./utils/async-handler.js";
@@ -104,11 +105,13 @@ router.post("/api/leads/:id/approve", approveLimiter, csrfGuard, asyncHandler(as
   // Payment terms follow the lead time on the day it goes out, not the day it was drafted (payment-terms plan
   // Revision 4, Alex 2026-10-11): swap the exact sentence, or refuse when it cannot be found exactly once.
   let terms: PaymentTerms;
+  let coiTerms: CoiTerms;
   try {
     const c = JSON.parse(lead.classification_json ?? "null");
     const pr = JSON.parse(lead.pricing_json ?? "null");
     if (!c || !pr?.budget) throw new Error("missing");
     terms = paymentTermsFor(c, pr, getTodayISO());
+    coiTerms = coiTermsFor(c, pr);
   } catch {
     sendError(res, 409, "payment_terms_unverifiable", "Stored classification or pricing is unreadable; re-run the lead");
     return;
@@ -124,6 +127,17 @@ router.post("/api/leads/:id/approve", approveLimiter, csrfGuard, asyncHandler(as
   }
   const newCompressed = (compressed as { text: string }).text;
   const newFull = full ? (full as { text: string }).text : lead.full_draft;
+  // COI plan, code review round 1 P1 (Alex 2026-10-13: "Refuse, like payment"): a stored draft must carry the app's
+  // exact COI sentence once and no other COI wording, the same contract the pipelines apply at drafting time. Nothing
+  // here depends on a date, so there is no swap: refuse before the claim, before anything is saved.
+  const coiProblems = [
+    ...coiViolations(newCompressed, "compressed", coiTerms),
+    ...(newFull != null ? coiViolations(newFull, "full", coiTerms) : []),
+  ];
+  if (coiProblems.length > 0) {
+    sendError(res, 409, "coi_sentence_unverifiable", `The stored draft does not carry the exact COI sentence (${coiProblems.map((p) => p.split(":")[0]).join(", ")}); re-run the lead`);
+    return;
+  }
   if (newCompressed !== lead.compressed_draft || newFull !== lead.full_draft) {
     updateLead(id, { compressed_draft: newCompressed, full_draft: newFull });
     lead.compressed_draft = newCompressed;
