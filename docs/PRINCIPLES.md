@@ -145,7 +145,7 @@ Every question they have to ask is friction. Anticipate what they'll need to kno
 
 | Client Type | They Will Ask | Front-Load |
 |-------------|---------------|------------|
-| Corporate / Event Director | Equipment, outdoor capability, COI, setup time | "Self-contained for indoor or outdoor, COI available" |
+| Corporate / Event Director | Equipment, outdoor capability, setup time | "Self-contained for indoor or outdoor" |
 | Venue Coordinator | Load-in, power needs, space footprint | "Minimal footprint, one standard outlet, 30-min setup" |
 | Wedding Planner | Timeline flexibility, ceremony coverage | "I build in flexibility for timeline shifts" |
 | Luxury Private Client | Volume control, weather contingency | "I calibrate volume on-site, and I'm set for outdoor" |

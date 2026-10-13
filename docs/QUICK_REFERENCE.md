@@ -161,7 +161,7 @@ Use as a quick mental scan; the pipeline enforces the full gate automatically.
 
 | Client Type | Front-Load |
 |-------------|------------|
-| Corporate / Event Director | Self-contained, COI available |
+| Corporate / Event Director | Self-contained (the COI sentence comes from Quote Terms) |
 | Venue Coordinator | Minimal footprint, one outlet, 30-min setup |
 | Wedding Planner | Timeline flexibility built in |
 | Luxury Private | Volume calibration on-site, set for outdoor |

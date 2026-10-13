@@ -237,7 +237,7 @@ What will they need to know that they didn't ask?
 |--------------|---------|
 | Outdoor / patio | Sound system, weather adaptability (never mention battery-powered sound) |
 | Indoor/outdoor uncertain | Self-contained for either, adapts on the spot |
-| Corporate | COI availability, professional setup |
+| Corporate | Professional setup (the COI sentence comes from Quote Terms) |
 | Wedding | Timeline flexibility, ceremony experience |
 | Private residence | Self-contained, minimal footprint |
 | Long format (3+ hrs) | Arc of evening (use Long-Format Expertise pattern from RESPONSE_CRAFT.md Step 7) |

@@ -4,6 +4,7 @@ import { readFileSync } from "node:fs";
 import { COI_SENTENCES, coiLine, coiTermsFor, coiViolations, type CoiTerms } from "./pipeline/coi.js";
 import { buildGeneratePrompt } from "./prompts/generate.js";
 import { NO_DATE_TERMS } from "./pipeline/payment-terms.js";
+import { selectContext } from "./pipeline/context.js";
 import { budgetGapFor, lookupPrice } from "./pipeline/price.js";
 import type { Classification } from "./types.js";
 
@@ -200,5 +201,22 @@ describe("COI C2 / C3 / C4 in the generate prompt (C5 is the two baseline-equali
     assert.ok(!gen(c, { ...p, budget: { ...p.budget, tier: "no_viable_scope" } } as typeof p).includes(COI_MARK), "no_viable_scope");
     assert.ok(!gen(c, { ...p, residency: { tier: "R2" } } as unknown as typeof p).includes(COI_MARK), "residency");
     assert.ok(!gen(lead({ graceful_decline: true } as Partial<Classification>)).includes(COI_MARK), "graceful decline");
+  });
+});
+
+// D5: the docs the model reads must not teach a COI timeline or "front-load COI" of their own. A corporate lead loads
+// the most doc rows (the corporate voice and quick-reference tables).
+describe("COI D5: the injected docs defer to the Quote Terms sentence", () => {
+  const corporate = { ...base, event_arc: "corporate", rate_card_tier: "T4", format_recommended: "solo" } as unknown as Classification;
+
+  it("COI D5 no doc row says to front-load or list COI, and the one timeline phrase is the app-owned row", async () => {
+    const ctx = await selectContext(corporate);
+    assert.ok(ctx.length > 1000, "control: the docs loaded");
+    for (const bad of ["Front-load self-contained, COI", "Self-contained, COI available", "COI availability, professional setup",
+      "Equipment, outdoor capability, COI, setup time"]) {
+      assert.ok(!ctx.includes(bad), `stale doc line still injected: ${bad}`);
+    }
+    assert.equal(ctx.split("within a few days of booking").length - 1, 1, "the timeline phrase appears once");
+    assert.ok(ctx.includes("The app writes this sentence"), "and that one is the app-owned row");
   });
 });

@@ -22,7 +22,7 @@ Putting a bonfire inside a three-day program is a smart call. It's the hour peop
 
 Surf and wind swallow a guitar, so I set levels from where your guests sit, present but under conversation. How many people are you expecting around the fire? That tells me how to size the sound.
 
-Solo guitar, two hours: [QUOTED_PRICE], sound system included. Spanish guitar, bossa nova, familiar songs. My only electrical need is one standard 110V outlet within 25 feet, plus an armless chair. I can send the Del a COI.
+Solo guitar, two hours: [QUOTED_PRICE], sound system included. Spanish guitar, bossa nova, familiar songs. My only electrical need is one standard 110V outlet within 25 feet, plus an armless chair. COI available upon request.
 
 Full payment holds the date. Want me to lock it in?
 
@@ -54,7 +54,7 @@ The order, as steps:
 3. Validate the decision THEY made, then one line on what that moment does for their people.
 4. One physical problem of this setting, only when the lead's own details give one (a beach, a terrace, a patio, a long room). If the lead gives none, leave the problem out; say what Alex does about it in your own words.
 5. One question, framed as logistics and not as price.
-6. The price as a single number with the duration, then the genre default, the setup needs and the COI in one short paragraph.
+6. The price as a single number with the duration, then the genre default and the setup needs in one short paragraph.
 7. The payment sentence and one direct close.
 
 NO INVENTED FACTS: state a time, a number, a date fact or a physical detail of the place only when the lead or a section above gives it to you. The example's sunset time was looked up for that lead; you cannot look anything up. With no given fact, build the wedge from the lead's own window and setting. Do not add wind, water, noise, light or any condition the lead did not name. Use only the times the lead states. Put no clock time of your own on a moment inside their window (no "by 5:15", no "around 6:30"): say "as the evening opens" or "once guests arrive" instead.

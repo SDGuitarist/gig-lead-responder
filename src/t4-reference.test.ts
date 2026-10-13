@@ -148,7 +148,9 @@ describe("T4 reference T5: the example reply is clean", () => {
   // exactly this set of mid-sentence capitalised words ("I" is the pronoun), so a new person, company or place name fails here and
   // forces a deliberate edit of this list.
   it("T4 reference T5 introduces no proper noun beyond the approved set, and no contact handle", () => {
-    assert.deepEqual(midSentenceCapitals(reply), ["COI", "Dana", "Del", "Del's", "Guillen", "I", "October", "Thursday"]);
+    // COI plan step 5: "I can send the Del a COI." became "COI available upon request." (Alex's yes), so "COI" now
+    // starts a sentence and "Del" appears only as "Del's".
+    assert.deepEqual(midSentenceCapitals(reply), ["Dana", "Del's", "Guillen", "I", "October", "Thursday"]);
     assert.ok(!/@|https?:|www\./i.test(reply), "email, link or handle");
   });
 
@@ -156,7 +158,7 @@ describe("T4 reference T5: the example reply is clean", () => {
   // pins EVERY capitalised word, sentence-initial included.
   it("T4 reference T5 every capitalised word, sentence-initial included, is in the approved list", () => {
     const all = [...new Set([...reply.matchAll(/(?<![\w'])[A-Z][A-Za-z']*/g)].map((m) => m[0]))].sort();
-    assert.deepEqual(all, ["Alex", "COI", "Dana", "Del", "Del's", "Full", "Guillen", "Hi", "How", "I", "I'm", "It's",
+    assert.deepEqual(all, ["Alex", "COI", "Dana", "Del's", "Full", "Guillen", "Hi", "How", "I", "I'm", "It's",
       "My", "October", "Putting", "QUOTED", "Solo", "Spanish", "Sunset", "Surf", "That", "Thursday", "Want"]);
   });
 
@@ -169,12 +171,25 @@ describe("T4 reference T5: the example reply is clean", () => {
     assert.equal(reply.split(PAYMENT_SENTENCES.full).length - 1, 1);
   });
 
+  // COI plan C7 (D6, Alex's yes 2026-10-12): the app owns the COI sentence; the example shows the default one.
+  it("COI C7 the example reply carries the default COI sentence exactly once and no other COI wording", () => {
+    assert.equal(reply.split("COI available upon request.").length - 1, 1);
+    assert.equal((reply.match(/\bCOI\b/g) ?? []).length, 1, "COI appears only inside that sentence");
+    assert.ok(!/certificate of insurance|liability insurance|I can send/i.test(reply));
+  });
+
+  it("COI C7 step 6 of the block no longer asks for a COI of its own", () => {
+    const step6 = buildT4ReferenceBlock(T4_URGENT).split("\n").find((l) => l.startsWith("6. ")) ?? "";
+    assert.ok(step6.length > 0, "step 6 present");
+    assert.ok(!/COI/.test(step6), step6);
+  });
+
   it("T4 reference T5 keeps the price as a placeholder", () => {
     assert.ok(reply.includes("[QUOTED_PRICE]"));
   });
 
   it("T4 reference T5 makes no played-here claim in a sentence that names the Del (D6)", () => {
-    assert.equal(sentencesNamingTheDel(reply).length, 2, "expected the two sentences that name the Del");
+    assert.equal(sentencesNamingTheDel(reply).length, 1, "expected the one sentence that names the Del (the COI sentence no longer does)");
     assert.deepEqual(d6Violations(reply), []);
   });
 

@@ -98,7 +98,7 @@ Every flagged concern requires **integrated proof**, concern, experience, and so
 | Outdoor / no cover | "I've performed outdoor events without cover many times. I carry backup equipment for weather and arrive early to calibrate." |
 | Equipment uncertainty | "I'm fully self-contained. I bring everything needed, including professional sound." |
 | Small space | "A [format] is perfect for that space, full sound without crowding your guests." |
-| COI / insurance | "I carry liability insurance ($1M/$2M) and can provide COI within a few days of booking." |
+| COI / insurance | The app writes this sentence (the Quote Terms line): "COI available upon request." by default, and "I carry liability insurance ($1M/$2M) and can provide COI within a few days of booking." only when the client says they require a COI. |
 | Noise restrictions | "I calibrate volume during setup to stay within limits while still filling the space." |
 | Indoor/outdoor uncertain | "I'm fully self-contained for indoors or outdoors, and if you end up moving inside, I adapt on the spot. Either way, I'm covered." |
 

@@ -54,7 +54,7 @@ The substrate above holds for every lead. Surface settings shift by who is on th
 | **Wedding planner / event planner** | Peer-to-peer. Compressed. Assume operational fluency. Lead with availability and price. Light on cinematic. Heavy on logistics confidence. |
 | **Venue coordinator (Lodge, La Valencia, etc.)** | Insider voice. Reference the room you both know. Operational language is fine. Skip selling; confirm the fit. |
 | **Private client (bride, host, family member)** | Warmer. Cinematic opening has more room. Validation is foregrounded. Logistics still present but later. |
-| **Corporate event lead (F&B director, event director)** | Calm professional peer. Front-load self-contained, COI, setup time. Background-music framing. Skip the heart language. |
+| **Corporate event lead (F&B director, event director)** | Calm professional peer. Front-load self-contained and setup time; the COI sentence comes from Quote Terms. Background-music framing. Skip the heart language. |
 | **Agency / aggregator lead** | Peer-to-peer with markup awareness. Quote in T3P/T2D zone. Self-contained, flexible, available. Minimal cinematic. |
 | **Sourced lead (mariachi, bolero, cultural ensemble)** | Curator voice. "The ensemble," "I program," "I coordinate." Cultural authenticity foregrounded. Single-point accountability stated explicitly. See DRAFT_METHOD.md → Sourced Lead Drafting. |
 
