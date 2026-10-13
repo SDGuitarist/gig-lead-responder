@@ -133,8 +133,9 @@ sit outside the two scoped spans; an unrelated edit to them is outside this guar
 1. **What exactly is changing?** Two spans of `src/prompts/verify.ts` (section 6b and one gut-check line), for
    clarification mode only; a new `src/clarification-gate-prompt.test.ts`; thirteen snapshot files (S0-S12) under
    `src/fixtures/verify-prompt-baseline/`; two comments (`src/types.ts`, the runner); one runner field (`opening`).
-2. **What must not change?** The verify prompt for every non-clarification mode (byte-equal to S1-S12); section 9 and
-   section 8 text in every mode (byte-equal, G4); `GUT_CHECK_*`; `src/pipeline/verify.ts`; the generate prompt; the
+2. **What must not change?** The verify prompt for every non-clarification mode (byte-equal to S1-S12 outside the
+   voice-reference block, which G8 pins by SHA-256); section 9 and section 8 text in every mode (extracted whole
+   sections, byte-equal, G4); `GUT_CHECK_*`; `src/pipeline/verify.ts`; the generate prompt; the
    clarification validator; the rewrite loop; post-check; COI and payment lines.
 3. **How will we know it worked?** EARS below, each with a named mutation; plus the 18-run re-run judged by the
    decision table below, not by "rises toward". Observational: 18 runs, one model, made-up leads.
@@ -165,8 +166,12 @@ compare extracted sections, never whole-prompt inequality.
   as the `lead_specific_opening` line, exactly the clarification definition, including the minimum-anchor sentence and
   the list of non-qualifying phrases ("your event", "this inquiry", "what you're looking for", "the right fit").
 - **G2** WHEN the classification is any of S1-S12 (every non-clarification mode and both near-misses), THE SYSTEM
-  SHALL return a prompt byte-equal to its committed snapshot, and SHALL NOT contain "does NOT qualify" or
-  "do NOT qualify".
+  SHALL return a prompt byte-equal to its committed snapshot outside the voice-reference block (the snapshots store
+  that block as a marker, because its reference replies carry private venue text), and SHALL NOT contain "does NOT
+  qualify" or "do NOT qualify".
+- **G8** WHEN any case's prompt is built, THE SYSTEM SHALL contain a voice-reference block whose SHA-256 equals the
+  pinned value (identical for all 13 cases), so an edit inside the block is caught without storing its text; the
+  pin is refreshed only by a `snapshot refresh:` commit.
 - **G3** WHEN the clarification prompt is built, THE SYSTEM SHALL carry both literal fail examples ("What a
   wonderful way to celebrate!" and "You're looking for the right music for your event.") and the pass example, and
   the deletion-test sentence.
@@ -175,8 +180,8 @@ compare extracted sections, never whole-prompt inequality.
 - **G5** WHEN the clarification prompt and S9 (`quote` + `unresolved`) are built, THE SYSTEM SHALL differ in the
   extracted section 6b and in the `lead_specific_opening` line, and S9's extracted 6b SHALL equal the pre-change text.
 - **G6** WHEN the pre-change clarification snapshot S0 has its section 6b and its `lead_specific_opening` line
-  replaced by the new definition, THE SYSTEM SHALL equal the new clarification prompt byte for byte (the change is
-  exactly those two spans, nothing else).
+  replaced by the new definition, THE SYSTEM SHALL equal the new clarification prompt byte for byte in the snapshot form
+  (outside the voice-reference block; the change is exactly those two spans, nothing else).
 - **G7** WHEN the classification is S8 (`one_question` + a resolved format) or S9 (`quote` + `unresolved`), THE
   SYSTEM SHALL NOT use the clarification definition (the predicate is both conditions, not either).
 
@@ -197,6 +202,7 @@ Mutation map (each must fail the named test; recorded, not committed):
 | the gut-check line left unscoped (6b changed only) | G1, G6 |
 | one line of section 9 edited, substrings kept | G4 |
 | section 8 edited | G4 |
+| an edit inside the voice-reference block (e.g. its template instruction line) | G8 only (G2 and G4 compare outside the block) |
 
 ## Decision table for the re-run (answers R1 P2-5 and R2 P2-5)
 
