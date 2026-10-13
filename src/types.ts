@@ -250,8 +250,8 @@ export const GUT_CHECK_KEYS = [
   "compressed_validation_present",
 ] as const;
 
-export const GUT_CHECK_TOTAL = GUT_CHECK_KEYS.length; // 15
-export const GUT_CHECK_THRESHOLD = GUT_CHECK_TOTAL - 2; // 13
+export const GUT_CHECK_TOTAL = GUT_CHECK_KEYS.length; // 18
+export const GUT_CHECK_THRESHOLD = GUT_CHECK_TOTAL - 2; // 16
 
 export interface GateResult {
   validation_line: string;

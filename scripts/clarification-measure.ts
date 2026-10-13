@@ -90,7 +90,7 @@ setClaudeRequesterForTests((async (request: unknown) => {
   return res;
 }) as never);
 
-type RunResult = { lead: string; run: number; ok: boolean; error?: string; action?: string; verified?: boolean; gate_status?: string; fail_reasons?: string[]; gate_detail?: { scene_type: string; competitor_test: boolean; false_checks: string[]; empty_traceability: number; rule_implied_pass: boolean }; seconds: number; calls: Call[] };
+type RunResult = { lead: string; run: number; ok: boolean; error?: string; action?: string; verified?: boolean; gate_status?: string; fail_reasons?: string[]; gate_detail?: { scene_type: string; competitor_test: boolean; false_checks: string[]; empty_traceability: number; rule_implied_pass: boolean; opening: string }; seconds: number; calls: Call[] };
 const results: RunResult[] = [];
 const names = Object.keys(LEADS).filter((n) => only.length === 0 || only.includes(n));
 for (const name of names) {
@@ -104,10 +104,17 @@ for (const name of names) {
       const falseChecks = Object.entries(g.gut_checks).filter(([, v]) => v === false).map(([k]) => k);
       const emptyTrace = g.concern_traceability.filter((t: { draft_sentence: string }) => !t.draft_sentence).length;
       // The gate's own stated rule (src/prompts/verify.ts section 9): cinematic, competitor_test false, no empty
-      // traceability, at least 12 of 14 gut checks. gate_status is the verifier model's judgment, not computed.
-      const implied = g.scene_type === "cinematic" && g.competitor_test === false && emptyTrace === 0 && falseChecks.length <= 2;
+      // traceability, at least 16 of 18 gut checks (GUT_CHECK_THRESHOLD of GUT_CHECK_TOTAL; competitor_test is one of the
+      // 18 keys and passes when false, so it is not counted as a false check below). gate_status is the verifier model's
+      // judgment, not computed.
+      const otherFalse = falseChecks.filter((k) => k !== "competitor_test");
+      const implied = g.scene_type === "cinematic" && g.competitor_test === false && emptyTrace === 0 && otherFalse.length <= 2;
+      // The opening: first sentence of the final full draft (a leading salutation line such as "Hi Sam," is skipped).
+      const lines = String(o.drafts.full_draft).split("\n").map((l: string) => l.trim()).filter(Boolean);
+      if (lines.length > 1 && /,$/.test(lines[0]) && lines[0].length <= 40) lines.shift();
+      const opening = (lines[0] ?? "").split(/(?<=[.!?])\s/)[0];
       r = { ok: true, action: o.classification.action, verified: o.verified, gate_status: g.gate_status, fail_reasons: g.fail_reasons,
-        gate_detail: { scene_type: g.scene_type, competitor_test: g.competitor_test, false_checks: falseChecks, empty_traceability: emptyTrace, rule_implied_pass: implied } };
+        gate_detail: { scene_type: g.scene_type, competitor_test: g.competitor_test, false_checks: falseChecks, empty_traceability: emptyTrace, rule_implied_pass: implied, opening } };
     } catch (e) {
       r = { ok: false, error: String(e).slice(0, 200) };
     }
