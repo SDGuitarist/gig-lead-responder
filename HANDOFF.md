@@ -153,7 +153,11 @@ investment). **MEASURED 2026-10-13** (`docs/reviews/2026-10-13-clarification-fai
 runs ended with no draft; the token is the bare word "quote" in 16 of 17 failing calls ("Before I quote, one
 question ...") and "rate" in 1; 0 dollar figures, 0 anchor/floor/investment. The validator rejects words the model uses
 as a bridge, not prices; the prompt itself says "No quote yet". Candidate fixes are listed there (narrow the validator,
-change the prompt, or both). Own cycle; plan not written yet.
+change the prompt, or both). **FIXED 2026-10-13 in `1750cd6`** (plan review R1-R2 NO-GO at the cap, wording fixed in Revision 1b; the validator now
+rejects a supported price grammar plus the internal terms, not the words quote and rate; 17 mutations killed). **Re-run
+(`docs/reviews/2026-10-13-clarification-failure-rerun.md`): no draft in 3 of 18 runs, down from 17, and 0 are pricing
+language.** The 3 now fail the separate "exactly one question" rule (the model splits the binary question over two
+sentences): own item, not started. Codex CODE review: not run yet.
 
 ##### Prompt for Next Session (after compound; supersedes the older prompts in this section)
 ```
