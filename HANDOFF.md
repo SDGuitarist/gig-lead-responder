@@ -86,7 +86,7 @@ voice examples), or leave. Nothing was pushed after `3009cb6`.
    inside their window"), then set 4; (b) amend the rule to "no looked-up facts" and accept scene times. I recommend
    (a): it keeps the rule you set, and the failure is one sentence of wording. Your call; I did not change anything.
 2. **Codex code review. [ANSWERED 2026-10-12: "yes, narrow".]** A narrow round-1 prompt (the block, its insertion
-   and gate, its tests, the manifest rows) is drafted; run it twice and bring both verdicts. The one open smoke item
+   and gate, its tests, the manifest rows) is drafted; run it and bring the verdict. The one open smoke item
    (t2's COI number) is attributed to decision 3 and stated in the prompt as known.
 3. **COI [Alex 2026-10-12: "COI should be only when requested. On leads it should be similar to 'COI available upon
    request.'"]** Still needs one answer before a plan can be exact: (A) say nothing about COI unless the lead or the
@@ -111,6 +111,17 @@ next phase is Compound (solution doc in `docs/solutions/` + `/update-learnings`)
 sandbox `EPERM` on `src/payment-terms-approve.test.ts` (it cannot bind a local port there; passes here). The
 "Open decisions" item 1 in the pre-compact block below ("Codex round 2 ... waiting") is now answered by this line.
 
+
+**Update 7 (session gig-lead-responder-22, after the pre-compact save):** Codex CODE review round 2 run 2 =
+**NO-GO, 1 P2** (T7 matched test titles by prefix; R020 and R025 each had two bodies holding the marker); the stricter
+verdict governs, so R2 is NO-GO and was the 2nd NO-GO on this change. Reproduced by counting, then fixed test-only in
+`8536db1` (exact title per row + positive assertion; old test stayed green under the R020/R025 mutations, new one kills
+all six). Alex authorized round 3 in words ("you are authorised for round three, yes"); the round 3 prompt (narrow, T7
+fix only, `Round 3 authorized by Alejandro: YES`) was linted ACCEPT and put on the clipboard; its verdict is NOT
+received. Local only, NOT pushed: `a4999c7`, `8536db1` (origin = `c2f9aba`). Suite 851 pass / 0 fail / 1 skip.
+**Process correction (Alex, 2026-10-12):** "run every Codex prompt twice (run A / run B)" was never his rule; it was an
+inference written into a memory file, which is deleted. One run per round; if he pastes more than one verdict, record
+each and the stricter governs. Older lines in this file that say "run twice" are historical, not instructions.
 
 #### Pre-compact save 2026-10-12 22:47 (appended; text above NOT modified, may be stale)
 
@@ -140,7 +151,7 @@ narrow". "delete the backup tag, then copy Codex Round Two Prompt to Clipboard."
    (`/private/tmp/claude-501/-Users-alejandroguillen-Projects-gig-lead-responder/d92dc97e-5fe9-4d8a-a27e-41a8b53a7a33/scratchpad/t4-code-r2-prompt.md`,
    may not survive); regenerate from this section if lost. **Its first gate pins HEAD `2ae6936`; this save commit
    moves HEAD, so Codex will stop at the gate: edit the "Expected starting HEAD" line to the new HEAD (docs-only
-   difference) before running.** Alex runs it twice; a 2nd NO-GO stops automatic iteration; round 3 needs the literal
+   difference) before running.** Alex runs it once per round; a 2nd NO-GO stops automatic iteration; round 3 needs the literal
    `Round 3 authorized by Alejandro: YES`; a 3rd NO-GO is the hard cap.
 2. **COI plan** `docs/plans/2026-10-12-feat-coi-sentence-by-request-plan.md` (Revision 0, not built, not reviewed):
    (a) a FIRST message that already says "we require a COI": timeline sentence (plan default, text-based
@@ -168,7 +179,7 @@ narrow". "delete the backup tag, then copy Codex Round Two Prompt to Clipboard."
 **Not verified (FROM CONVERSATION):** the content of Alex's words above; the claim that a peer is live (from
 `ListAgents`, earlier today).
 
-**Next action (one):** Alex runs the round 2 prompt (twice) and pastes both verdicts; fix only the named findings
+**Next action (one):** Alex runs the round 2 prompt and pastes the verdict; fix only the named findings
 under the fix contract; do NOT write a round-3 prompt without his literal approval.
 
 ##### Prompt for Next Session (pre-compact save)
