@@ -109,20 +109,32 @@ test("port manifest venues rows: R081-R085, R087-R089, R405 are PORTED", () => {
 // T4 reference-lead plan (2026-10-11), T7 (strengthened for Codex code review round 1, P2): R020-R025 PORTED and
 // R329 NOT PORTED by id, AND each PORTED row's marker is tied to a test whose BODY asserts it (the generic test
 // above only proves a marker and a test title exist somewhere in a file).
-const T4_ROWS: Record<string, { marker: string; test: string; body: string }> = {
-  R020: { marker: "REFERENCE LEAD: T4 CORPORATE", test: "T4 reference T1", body: "REFERENCE LEAD: T4 CORPORATE" },
-  R021: { marker: "The order, as steps:", test: "T4 reference T1", body: "The order, as steps:" },
-  R022: { marker: "NO INVENTED FACTS", test: "T4 reference T4", body: "NO INVENTED FACTS" },
-  R023: { marker: "ONLY PLAYED SPACES", test: "T4 reference T4", body: "ONLY PLAYED SPACES" },
-  R024: { marker: "Never mention battery-powered sound", test: "T4 reference T4", body: "Never mention battery-powered sound" },
+// `test` is the prefix the manifest row names; `title` is the ONE test whose body must assert the marker (Codex code
+// review round 2, run 2: a prefix matched several bodies, so deleting the assertion from the intended one stayed green).
+const T4_ROWS: Record<string, { marker: string; test: string; title: string; body: string }> = {
+  R020: { marker: "REFERENCE LEAD: T4 CORPORATE", test: "T4 reference T1", title: "T4 reference T1 a T4 lead gets the section header and the example reply", body: "REFERENCE LEAD: T4 CORPORATE" },
+  R021: { marker: "The order, as steps:", test: "T4 reference T1", title: "T4 reference T1 the block lists the seven steps in order", body: "The order, as steps:" },
+  R022: { marker: "NO INVENTED FACTS", test: "T4 reference T4", title: "T4 reference T4 states no invented facts", body: "NO INVENTED FACTS" },
+  R023: { marker: "ONLY PLAYED SPACES", test: "T4 reference T4", title: "T4 reference T4 states only played spaces and names the venue-history header by its constant", body: "ONLY PLAYED SPACES" },
+  R024: { marker: "Never mention battery-powered sound", test: "T4 reference T4", title: "T4 reference T4 forbids mentioning battery-powered sound", body: "Never mention battery-powered sound" },
   // R025's marker is asserted through the test file's constant of the same line.
-  R025: { marker: "OPENING: availability first, then the cinematic line.", test: "T4 reference T3", body: "OPEN_AVAILABILITY" },
+  R025: { marker: "OPENING: availability first, then the cinematic line.", test: "T4 reference T3", title: "T4 reference T3 urgent: availability first, and never the other line", body: "OPEN_AVAILABILITY" },
 };
 
 /** The text of every `it("<title>"...` whose title starts with `prefix` (up to the next `it(` or the end). */
 function testBodies(text: string, prefix: string): string[] {
   const parts = text.split(/\n\s*it\(/).slice(1);
   return parts.filter((p) => p.startsWith(`"${prefix}`));
+}
+
+/** The body of the one `it("<title>"...` with exactly this title (the closing quote must follow the title). */
+function bodyOfTitle(text: string, title: string): string[] {
+  return text.split(/\n\s*it\(/).slice(1).filter((p) => p.startsWith(`"${title}"`));
+}
+
+/** True when some `assert` line names `needle` and does not negate it (`!x.includes(...)` proves absence, not presence). */
+function assertsPositively(body: string, needle: string): boolean {
+  return body.split("\n").some((l) => l.includes(needle) && /assert\./.test(l) && !/!\s*[\w.]+\.includes\(/.test(l));
 }
 
 test("T4 reference T7 manifest rows: R020-R025 are PORTED, R329 is NOT PORTED, and each marker is asserted by its test", () => {
@@ -136,9 +148,10 @@ test("T4 reference T7 manifest rows: R020-R025 are PORTED, R329 is NOT PORTED, a
     assert.equal(row[6].replace(/^`|`$/g, ""), want.marker, `${id}: manifest marker`);
     assert.ok((row[7] ?? "").includes(want.test), `${id}: manifest names ${want.test}`);
     assert.ok(impl.includes(want.marker), `${id}: marker not in src/data/t4-reference.ts`);
-    const bodies = testBodies(tests, want.test);
-    assert.ok(bodies.length > 0, `${id}: no test titled "${want.test}"`);
-    assert.ok(bodies.some((b) => b.includes(want.body)), `${id}: no "${want.test}" test body asserts ${want.body}`);
+    assert.ok(want.title.startsWith(want.test), `${id}: the exact title must sit under the manifest's prefix`);
+    const bodies = bodyOfTitle(tests, want.title);
+    assert.equal(bodies.length, 1, `${id}: expected exactly one test titled "${want.title}"`);
+    assert.ok(assertsPositively(bodies[0], want.body), `${id}: "${want.title}" does not assert ${want.body}`);
     // A body that asserts through a constant is only worth something if the constant is defined as the marker.
     if (want.body !== want.marker) {
       assert.ok(tests.includes(`const ${want.body} = "${want.marker}"`), `${id}: ${want.body} is not defined as the marker`);
@@ -155,4 +168,33 @@ test("T4 reference T7 the body finder can fail: a title with no matching body is
   assert.equal(testBodies(fake, "T4 reference T9").length, 1);
   assert.ok(testBodies(fake, "T4 reference T9").some((b) => b.includes("FOO")));
   assert.equal(testBodies(fake, "T4 reference T1").length, 0);
+});
+
+test("T4 reference T7 exact binding: a same-prefix body holding the marker cannot stand in for the intended test", () => {
+  const fake = [
+    'describe("x", () => {',
+    '  it("T4 reference T1 intended", () => {',
+    '    assert.ok(block.includes("hello"));',
+    "  });",
+    '  it("T4 reference T1 other", () => {',
+    '    assert.ok(prompt.includes("MARKER"));',
+    "  });",
+    "});",
+  ].join("\n");
+  // Prefix matching finds a body with MARKER (the old false green)...
+  assert.ok(testBodies(fake, "T4 reference T1").some((b) => b.includes("MARKER")));
+  // ...exact binding looks only at the intended one and refuses.
+  const intended = bodyOfTitle(fake, "T4 reference T1 intended");
+  assert.equal(intended.length, 1);
+  assert.equal(assertsPositively(intended[0], "MARKER"), false);
+  // Positive control: a correctly bound body passes.
+  assert.equal(assertsPositively(intended[0], "hello"), true);
+  // A title that is only a prefix of another title does not bind.
+  assert.equal(bodyOfTitle(fake, "T4 reference T1 inten").length, 0);
+});
+
+test("T4 reference T7 a negated assertion is not a positive one", () => {
+  const body = '    assert.ok(!block.includes(OPEN_AVAILABILITY), "must not appear");';
+  assert.equal(assertsPositively(body, "OPEN_AVAILABILITY"), false);
+  assert.equal(assertsPositively('    assert.ok(block.includes(OPEN_AVAILABILITY), "x");', "OPEN_AVAILABILITY"), true);
 });
