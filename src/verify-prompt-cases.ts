@@ -54,15 +54,23 @@ export function sectionOf(prompt: string, id: string): string {
   return lines.slice(starts[0], next === -1 ? lines.length : starts[0] + 1 + next).join("\n");
 }
 
+const VOICE_BLOCK = /## VOICE CALIBRATION REFERENCES[\s\S]*?(?=\n## EVALUATION CRITERIA)/g;
+
+/** The raw "VOICE CALIBRATION REFERENCES" block of a verify prompt. Throws unless it appears exactly once. */
+export function voiceBlockOf(prompt: string): string {
+  const found = prompt.match(VOICE_BLOCK) ?? [];
+  if (found.length !== 1) throw new Error(`voiceBlockOf: expected one voice references block, found ${found.length}`);
+  return found[0];
+}
+
 /**
  * The form a snapshot is stored and compared in. The prompt's "VOICE CALIBRATION REFERENCES" block is replaced by a
  * marker: the reference replies carry private venue text that scripts/check-venue-history.ts (rightly) forbids in a
- * new file, and the block is outside the spans this change touches (src/verify-prompt.test.ts covers its presence).
+ * new file. So a snapshot comparison is byte-equal OUTSIDE that block only; the block itself is pinned separately by
+ * a SHA-256 of its text (G8 in src/clarification-gate-prompt.test.ts), which stores no private text.
  * Throws unless the block is found exactly once, so the normalisation cannot silently do nothing.
  */
 export function snapshotForm(prompt: string): string {
-  const block = /## VOICE CALIBRATION REFERENCES[\s\S]*?(?=\n## EVALUATION CRITERIA)/g;
-  const found = prompt.match(block) ?? [];
-  if (found.length !== 1) throw new Error(`snapshotForm: expected one voice references block, found ${found.length}`);
-  return prompt.replace(block, "## VOICE CALIBRATION REFERENCES\n[omitted from snapshots: the reference replies carry private venue text]\n");
+  voiceBlockOf(prompt);
+  return prompt.replace(VOICE_BLOCK, "## VOICE CALIBRATION REFERENCES\n[omitted from snapshots: the reference replies carry private venue text]\n");
 }

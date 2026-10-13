@@ -1,8 +1,9 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { buildVerifyPrompt } from "./prompts/verify.js";
-import { VERIFY_CASES, sectionOf, snapshotForm } from "./verify-prompt-cases.js";
+import { VERIFY_CASES, sectionOf, snapshotForm, voiceBlockOf } from "./verify-prompt-cases.js";
 
 // The clarification definition, as the plan (Revision 1b, D1) specifies it. The test holds its own copy: it is the pin.
 const CLARIFICATION_6B = [
@@ -28,6 +29,10 @@ const lineOf = (prompt: string) => {
 // lead-specificity rule is scoped to clarification mode, and every other mode is byte-identical to the snapshots in
 // src/fixtures/verify-prompt-baseline/. Names start "Clarification Gate G<n>".
 //
+// "Byte-equal" means byte-equal OUTSIDE the voice-reference block: the snapshots store that block as a marker (its
+// reference replies carry private venue text the leak check forbids in a new file). G8 pins the block itself by a
+// SHA-256, so an edit inside it is caught without storing the text.
+//
 // THE SNAPSHOTS ARE INTENTIONALLY STALE on any unrelated edit to buildVerifyPrompt: G2 then fails. The only way to
 // update them is `npx tsx scripts/snapshot-verify-prompts.ts` in a commit whose message begins "snapshot refresh:"
 // with a reviewed diff of the prompt change that caused it.
@@ -38,6 +43,7 @@ const caseOf = (id: string) => {
   return c;
 };
 const promptOf = (id: string) => snapshotForm(buildVerifyPrompt(caseOf(id).classification, caseOf(id).pricing));
+const promptOfRaw = (id: string) => buildVerifyPrompt(caseOf(id).classification, caseOf(id).pricing);
 const snapshotOf = (id: string) => readFileSync(`src/fixtures/verify-prompt-baseline/${id}.txt`, "utf-8");
 
 describe("Clarification Gate G0: the section extractor", () => {
@@ -56,9 +62,9 @@ describe("Clarification Gate G0: the section extractor", () => {
   });
 });
 
-describe("Clarification Gate G2: every non-clarification mode is byte-equal to its snapshot", () => {
+describe("Clarification Gate G2: every non-clarification mode is byte-equal to its snapshot outside the voice-reference block", () => {
   for (const id of ["S1", "S2", "S3", "S4", "S5", "S6", "S7", "S8", "S9", "S10", "S11", "S12"]) {
-    it(`Clarification Gate G2 ${id} (${caseOf(id).what}) is byte-equal to its snapshot`, () => {
+    it(`Clarification Gate G2 ${id} (${caseOf(id).what}) is byte-equal to its snapshot outside the voice block`, () => {
       const prompt = promptOf(id);
       assert.equal(prompt, snapshotOf(id));
       assert.ok(!/do NOT qualify|does NOT qualify/.test(prompt), "no clarification definition outside clarification mode");
@@ -128,5 +134,25 @@ describe("Clarification Gate G6: the change is exactly the two spans", () => {
       .replace(lineOf(before), CLARIFICATION_OPENING_LINE);
     assert.notEqual(patched, before, "the replacement did something");
     assert.equal(promptOf("S0"), patched);
+  });
+});
+
+describe("Clarification Gate G8: the voice-reference block is pinned by hash", () => {
+  // SHA-256 of the "VOICE CALIBRATION REFERENCES" block of the unchanged prompt (identical for all 13 cases). Refresh it
+  // only with a "snapshot refresh:" commit, like the snapshots.
+  const VOICE_BLOCK_SHA256 = "a48c4fbed16d76a2c64c6326d912d45c29f5a3aec1c0c47e832149afb8fc89ef";
+
+  it("Clarification Gate G8 the voice block of every case hashes to the pinned value", () => {
+    for (const c of VERIFY_CASES) {
+      const block = voiceBlockOf(buildVerifyPrompt(c.classification, c.pricing));
+      assert.equal(createHash("sha256").update(block).digest("hex"), VOICE_BLOCK_SHA256, c.id);
+    }
+  });
+
+  it("Clarification Gate G8 the block is non-trivial and holds both references (the hash is not of an empty string)", () => {
+    const block = voiceBlockOf(promptOfRaw("S1"));
+    assert.ok(block.length > 1000, `block length ${block.length}`);
+    assert.match(block, /Reference: Sparse Cocktail/);
+    assert.match(block, /Reference: Patterson/);
   });
 });
