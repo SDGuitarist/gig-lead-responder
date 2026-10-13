@@ -1,7 +1,7 @@
 ---
 title: "COI: the app writes the sentence; 'available upon request' first, a timeline only when the client requires one"
 date: 2026-10-12
-status: plan, Revision 3 (plan review R1 NO-GO answered in Rev 2; R2 NO-GO answered in Rev 3; before round 3, which Alex chose)
+status: plan, Revision 3c (plan review R1-R3 NO-GO, cap fired; Alex accepted with two text fixes and chose to build)
 branch: feat/hub-phase0
 ---
 
@@ -117,7 +117,7 @@ No send-time swap (nothing in it depends on a date).
 | past date | sentence | still a quoted reply; the payment line also stays (no-date sentence) |
 | large budget gap (two prices) | sentence | still a quote; Quote Terms present |
 | small budget gap / met budget / normal quote | sentence | normal |
-| platform lead (GigSalad, The Bash) | sentence | the COI sentence is not a payment term; a platform reply may state it. **Open for the reviewer: say if a platform reply should omit it.** |
+| platform lead (GigSalad, The Bash) | sentence | the COI sentence is not a payment term; a platform reply may state it. **Decided: a platform reply keeps the sentence** (Codex plan review round 2; Alex's rule is about replies, platform payment handling is unrelated). |
 
 Known and left alone: today the Quote Terms block (so the payment line) is also emitted in graceful decline, which
 the graceful-decline block's "no pitch" contradicts. That is the payment cycle's behaviour, not this plan's; it is
@@ -210,6 +210,10 @@ What changed, all in this one document (no code):
 | Mutations not mapped to C8-C12 | the mutation map under Acceptance Tests assigns one or more mutations to every C-test |
 | Platform replies | Codex: keep the sentence. Stays (R2-1 table) |
 
+**Revision 3c (Alex: "Accept, apply the 2 text fixes, build", after round 3, the cap):** two text defects fixed
+without a further review: the platform row now says decided, and the work steps are reordered so the field and the
+`coiTerms` wiring come before their users. No design, sentence or contract changed.
+
 **Revision 3b (after a heads-up on the same day, verified in `src/run-pipeline.ts:290`):** a COI violation FAILS the
 draft, it is not an advisory flag. Wording corrected in D4 and R2-2, and Alex decided that a restated venue policy
 fails and that the prompt says not to restate it (D3, C4). No code or approved sentence changed.
@@ -288,12 +292,16 @@ defect). Test names are `COI <C-id> ...`.
 
 ## Work steps (one concern per commit; failing test first)
 
-1. `src/pipeline/coi.ts`: `CoiTerms`, `coiTermsFor` (full mode matrix), `coiLine`, `coiViolations` + tests (C1, C2, C8,
-   C9, C11).
-2. `coi_required?` in the type, classify prompt and validator + the classify-prompt text tests (C6, C11, C12).
-3. Quote Terms line and the override rule in `generate.ts`; the P8 and T4 baseline tests updated for exactly the COI
-   line (C3, C4, C5).
-4. `postCheckDrafts` takes `coiTerms`; wired in `runPipeline` AND `runEditPipeline` (C9 wiring, C10).
+(Each step builds only on the steps before it, so every commit type-checks.)
+
+1. `coi_required?: boolean` in `Classification` (`src/types.ts`), the classify prompt text and the validator + the
+   classify tests (C6, C11 validator half, C12).
+2. `src/pipeline/coi.ts`: `CoiTerms`, `coiTermsFor` (full mode matrix; reads the field from step 1), `coiLine`,
+   `coiViolations` + tests (C1, C2, C8, C9, C11 `coiTermsFor` and `sanitizeClassification` half).
+3. The generate path: `coiTerms` is computed in `runPipeline` AND `runEditPipeline`, passed through
+   `runWithVerification` / `generateResponse` into `buildGeneratePrompt`, which adds the Quote Terms line and the
+   override rule; the P8 and T4 baseline tests updated for exactly the COI line (C3, C4, C5).
+4. `postCheckDrafts` takes the same `coiTerms` option; passed from both pipelines (C9 wiring, C10).
 5. Docs reconciliation (D5) and the T4 block/example (D6, C7).
 6. Real-model runs (Execution Path), recorded; every mutation in the map run and recorded.
 
