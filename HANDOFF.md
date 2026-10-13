@@ -149,9 +149,11 @@ nonprofit prices (Alex's numbers), Saturday/peak-day rule, Module 1 (plan review
 (5) **Clarification-mode generation fails outright on some vague leads** (found by the COI runs, 2026-10-12;
 pre-existing, reproduced on `72490b7`): `GenerationError: Clarification mode full_draft must not include pricing
 language` (`src/pipeline/generate.ts`, `PRICE_SIGNAL_PATTERN`: a `$` figure or the words rate, quote, anchor, floor,
-investment). One vague lead failed 3 of 3 runs, another 1 of 2; no draft is produced. Own cycle, not started; first
-step is to capture WHICH token the model writes (the error discards the draft). Record:
-`docs/reviews/2026-10-12-coi-local-runs.md`.
+investment). **MEASURED 2026-10-13** (`docs/reviews/2026-10-13-clarification-failure-measurement.md`): 17 of 18
+runs ended with no draft; the token is the bare word "quote" in 16 of 17 failing calls ("Before I quote, one
+question ...") and "rate" in 1; 0 dollar figures, 0 anchor/floor/investment. The validator rejects words the model uses
+as a bridge, not prices; the prompt itself says "No quote yet". Candidate fixes are listed there (narrow the validator,
+change the prompt, or both). Own cycle; plan not written yet.
 
 ##### Prompt for Next Session (after compound; supersedes the older prompts in this section)
 ```
