@@ -241,6 +241,15 @@ errors. Suite 919 pass / 0 fail / 1 skip. **Open, in order:** (1) Compound for t
 two sentences; the runner should also capture `verified`); (3) the classifier `timeline_band` miss; (4) Alex's
 force-push call; (5) older items (nonprofit prices, Saturday/peak-day rule, Module 1, R006/R398/R403 TO PORT).
 
+**Update 15 (session gig-lead-responder-22, clarification validator compound):** the cycle is complete. Compound
+written: `docs/solutions/architecture/2026-10-13-clarification-validator-rejects-stated-prices-not-vocabulary.md`;
+`/update-learnings` ran (local review context replaced, memory `project_clarification-validator-stated-prices.md`,
+agent-pitfalls log row, journal 2026-10-13). Local only, not pushed (see `git log origin/feat/hub-phase0..HEAD`).
+**Open, in order:** (1) the "exactly one question" failure (3 of 18 runs; capture `verified` in
+`scripts/clarification-measure.ts` first); (2) the classifier `timeline_band` miss (repeat-run measurement first);
+(3) Alex's force-push call (I recommend no); (4) older items (nonprofit prices, Saturday/peak-day rule, Module 1 plan
+review, R006/R398/R403 TO PORT). Do not read or enter the Sandbox directory while Autopilot Run 104 runs.
+
 #### Pre-compact save 2026-10-12 22:47 (appended; text above NOT modified, may be stale)
 
 **State (CHECKED this session):** branch `feat/hub-phase0`, base HEAD `2ae6936` (this save commit adds one), **pushed**:

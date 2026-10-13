@@ -2,33 +2,31 @@
 
 ## Risk Chain
 
-**Brainstorm risk:** None -- **no brainstorm** (skip gate: Alex's stated COI rule, 2026-10-12, plus measured drift of
-the model's own COI timeline in four T4 smoke sets).
+**Brainstorm risk:** None -- **no brainstorm** (skip gate: a measured defect; 17 of 18 real-model vague-lead runs
+ended with no draft, `docs/reviews/2026-10-13-clarification-failure-measurement.md`).
 
-**Plan mitigation:** `docs/plans/2026-10-12-feat-coi-sentence-by-request-plan.md` (Revisions 0-3c). The app writes the
-exact sentence (`COI available upon request.` by default; the timeline sentence only when the client says they
-require a COI) and the post-check confirms it, the pattern payment terms use. A wrong sentence count returns one flag
-and stops; other COI wording is scanned only at count 1. Plan review R1-R3 NO-GO at the cap, mostly stale text from
-appending revisions instead of rewriting; Alex accepted with two text fixes and built.
+**Plan mitigation:** `docs/plans/2026-10-13-fix-clarification-pricing-validator-plan.md` (Revision 1b). The
+clarification-mode validator rejects text matching a supported price grammar (dollar figure, digits next to
+dollars/bucks/USD, number words next to dollars/bucks, a k amount) and the internal terms anchor/floor/investment; the
+bare words quote, rate and price are allowed. Alex: "narrow the validator, leave the prompt". Plan review R1 NO-GO
+(3 P1, 3 P2), R2 NO-GO (1 wording P1, a contradiction between "no AMOUNT" and the documented unmarked-amount limit),
+fixed in place at Alex's choice.
 
-**Work risk (from Feed-Forward):** the classifier's `coi_required` on indirect phrasings. Five real-model leads
-behaved as set (one run each); the capability question ("Do you carry liability insurance?") is false by Alex's
-trigger and is observation-only.
+**Work risk (from Feed-Forward):** an unmarked amount ("around fifteen hundred") or a soft statement ("on the higher
+end") now passes by decision (test V10); nothing deterministic stops it.
 
-**Review resolution:** code review R1 NO-GO, 1 P1: the dashboard approve route sent a stored draft with no COI
-sentence. Alex chose "refuse, like payment": 409 `coi_sentence_unverifiable` before the claim. R2 GO, no new defects.
+**Review resolution:** code review R1 = GO, no findings (919 pass / 0 fail / 1 skip). The 18-run re-run: no draft
+17 of 18 -> 3 of 18, 0 pricing-language errors; the 3 remaining end on "exactly one question" (existing rule, V9).
 
 ## Files to Scrutinize
 
 | File | What changed | Risk area |
 |------|-------------|-----------|
-| `src/pipeline/coi.ts` | `coiTermsFor` (mode matrix), `coiLine`, `coiViolations` | a new response mode with its own shape must be added to the matrix; the regex list for other COI wording |
-| `src/api.ts` | the approve route applies `coiViolations` to the stored drafts | any new send path (Module 1) must apply the same check and refresh payment |
-| `src/prompts/generate.ts` | the Quote Terms COI line; `buildGeneratePrompt` calls `coiTermsFor` itself | prompt and post-check must stay on the same function |
-| `src/pipeline/post-check.ts`, `src/run-pipeline.ts` | `coiTerms` option, passed from both pipelines | a violation FAILS the draft and holds auto-send |
-| `src/pipeline/classify.ts`, `src/prompts/classify.ts` | `coi_required` (only a real true), literal definition lines | indirect phrasings; a venue name alone is not a signal |
-| `docs/RESPONSE_CRAFT.md` and three more injected docs | stop teaching a COI timeline | the docs are read at run time, not in the baseline fixtures |
+| `src/pipeline/generate.ts` | `PRICE_STATEMENT_PATTERN` replaces the vocabulary pattern; error names only the match | a regex over model output: keep the number-word run bounded (V11), watch false rejects of ordinary prose |
+| `src/clarification-validator.test.ts` | V1-V11 | V7's "no other part of the draft" assertion; stubbed model; sign-off added by `ensureSignOff` |
+| `scripts/clarification-measure.ts` | committed runner (observational) | does not capture `verified` or the gate's reasons |
+| `src/prompts/generate.ts` | NOT changed (Clarification Mode hard constraint) | prompt says "no price, rate, anchor, floor or package"; the validator no longer enforces the vocabulary half |
 
 ## Plan Reference
 
-`docs/plans/2026-10-12-feat-coi-sentence-by-request-plan.md`
+`docs/plans/2026-10-13-fix-clarification-pricing-validator-plan.md`
