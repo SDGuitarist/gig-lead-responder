@@ -171,6 +171,18 @@ wording after a heads-up: a COI post-check violation FAILS the draft; Alex decid
 the prompt tells the model not to restate it. **Open: Alex chooses (accept with the two text fixes, accept as is, or a
 different approach); no COI code written.** Local only (not pushed): `60a6185`..`0a8f8f4` and the round 3 record.
 
+**Update 11 (session gig-lead-responder-22, COI cycle work phase):** the COI plan was built test-first from
+Revision 3c (Alex: "Accept, apply the 2 text fixes, build"): `61977e7` classifier field `coi_required`, `41be68d`
+`src/pipeline/coi.ts` (mode matrix, exact sentence, post-check contract), `1f937bb` the Quote Terms COI line,
+`8341484` post-check wired in BOTH pipelines, `25691b5` docs and the T4 example (`COI available upon request.`).
+Suite 895 pass / 0 fail / 1 skip, tsc clean, leak check exit 0; ~40 mutations each fail a named test. Real-model
+runs (`docs/reviews/2026-10-12-coi-local-runs.md`): the trigger and the sentence held in 5 of 5 quoted leads, no model
+COI timeline, no restated venue policy at a COI-policy venue (one run each). **A COI violation FAILS the draft**
+(Alex's decision after the heads-up). **Deviation from plan R2-1 (flagged in the commit):** `buildGeneratePrompt`
+computes `coiTermsFor` itself instead of taking a parameter. **Outside this plan, found by the runs:** a vague lead
+can raise `GenerationError: Clarification mode ... must not include pricing language` (pre-existing, reproduced on the
+pre-COI code; own item). **Next: Codex CODE review round 1 for the COI work; nothing pushed after `72490b7`.**
+
 #### Pre-compact save 2026-10-12 22:47 (appended; text above NOT modified, may be stale)
 
 **State (CHECKED this session):** branch `feat/hub-phase0`, base HEAD `2ae6936` (this save commit adds one), **pushed**:
