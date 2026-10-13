@@ -82,6 +82,11 @@ export function normalizeExtendedDancer(value: unknown): boolean {
   return value === true;
 }
 
+/** Parses the model's coi_required once (COI plan, 2026-10-12); only a real boolean true counts. */
+export function normalizeCoiRequired(value: unknown): boolean {
+  return value === true;
+}
+
 /** Parses the model's nonprofit_buyer once (port manifest R403); only a real boolean true counts. */
 export function normalizeNonprofitBuyer(value: unknown): boolean {
   return value === true;
@@ -195,6 +200,7 @@ const validateClassification = (raw: unknown): Classification => {
   obj.np_tier = normalizeNpTier(obj.np_tier, obj.nonprofit_buyer as boolean);
   obj.organization_name = normalizeOrganizationName(obj.organization_name, obj.nonprofit_buyer as boolean, obj.venue_name);
   obj.graceful_decline = normalizeGracefulDecline(obj.graceful_decline);
+  obj.coi_required = normalizeCoiRequired(obj.coi_required);
   obj.delivery_mode = deliveryModeFor(obj.format_recommended);
   Object.assign(obj, normalizeEngagement(obj));
   return raw as Classification;

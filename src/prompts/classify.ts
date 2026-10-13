@@ -200,6 +200,8 @@ residency_cadence (residency only, else null): "weekly" (4+ a month), "biweekly"
 
 price_asked = true only when the lead asks about price, rate, cost or budget. Otherwise false.
 
+coi_required = true only when the lead text says the client or the venue requires or needs a certificate of insurance or proof of insurance, or asks for one. A question about whether Alex carries insurance is NOT enough: false. A venue's name alone is not a signal. Otherwise false.
+
 ## EVENT ARC
 
 guest_count: the number of guests the lead states, as a whole number, never words. "50+", "50 or more" or "at least 50" → 50; "about 50" or "around 50" → 50; "50-60" or "50 to 60" → 60; "up to 60" → 60; "under 60" or "fewer than 60" → 59; none stated → null.
@@ -249,6 +251,7 @@ Return ONLY this JSON object (no markdown fences, no explanation):
   "residency_tier": "R1" | "R2" | "R3" | null,
   "residency_cadence": "weekly" | "biweekly" | "monthly" | null,
   "price_asked": boolean,
+  "coi_required": boolean,
   "cultural_context_active": boolean,
   "cultural_tradition": "spanish_latin" | null,
   "planner_effort_active": boolean,
