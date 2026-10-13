@@ -1,7 +1,7 @@
 ---
 title: "fix: clarification-mode drafts are written as explanatory essays; the generate prompt asks for steps a vague lead has nothing to fill"
 date: 2026-10-13
-status: plan, Revision 1 (plan review R1 NO-GO, 2 P1 / 3 P2 / 1 P3, all accepted and answered below; rewritten in place)
+status: plan, Revision 1b (plan review R1 NO-GO, 2 P1 / 3 P2 / 1 P3, answered in Revision 1; R2 NO-GO, three P2 consistency items, answered in Revision 1b at the cap; Alex chose to fix and build, no round 3)
 branch: feat/hub-phase0
 ---
 
@@ -142,6 +142,13 @@ beginning `- Must retain:`.
   unchanged, byte for byte, including "Ask exactly ONE binary clarifying question" and "Do NOT state a price".
 - **P7** WHEN `npm run test:match -- "Clarification V"` and `"Clarification Gate G"` run, THE SYSTEM SHALL pass
   unchanged (the validator and verify prompt are untouched).
+- **M1** WHEN `compareArms` (`src/arm-manifest.ts`, a pure function the measurement record calls) gets five identical
+  manifests per arm with A's `promptSha256` equal to the stored pre-change hash, B's different and equal to the
+  post-change value, A's `gitSha` an ancestor of B's, and equal `models`, `today` and `leadSetSha256`, THE SYSTEM
+  SHALL return `ok: true`. **M2** WHEN any one field differs within an arm, across the models, the date or the lead
+  set, when A's prompt hash is not the pre-change hash, or `dirtyPromptFiles` is non-empty, THE SYSTEM SHALL return
+  `ok: false` naming the field. **M3** WHEN only the result file name (the tag) differs, THE SYSTEM SHALL return
+  `ok: true` (positive control: the tag must not void a comparison).
 - **P8** WHEN the clarification classification has a flagged concern, THE SYSTEM SHALL contain "Address each flagged
   concern: <the concern>" (the Concern Traceability block) AND the bundled step 3 sentence instruction, so a
   traceable sentence is requested.
@@ -163,7 +170,7 @@ They change only in a commit whose message begins `snapshot refresh:` and shows 
 test header says so. The hashes do not prove what text changed, only that it did.
 
 Mutation map (each must fail the named test; recorded, not committed): the new text applied to every mode (P4); the
-branch dropped (P1, P2, P3, P5); `price` left in "Must retain" (P3); old word range left (P2); step 3 marked SKIP or
+branch dropped (P1, P2, P3, P5); `compareArms` ignoring one field (M2) or comparing the tag (M3); `price` left in "Must retain" (P3); old word range left (P2); step 3 marked SKIP or
 removed (P1, P8); the HARD CONSTRAINT block edited (P6, P5); the predicate `action` only, and `format_recommended`
 only (P4 via C8, C9); a change outside the three spans (P5, P5b); the extractor anchored on a non-unique line (P5c).
 
@@ -177,7 +184,8 @@ only (P4 via C8, C9); a change outside the three spans (P5, P5b); the extractor 
 `promptSha256` (SHA-256 of the clarification-mode generate prompt for a fixed probe classification, the same
 function the hash inventory uses), `models` (the distinct `request.model` values seen), `today`, `leadSetSha256`
 (over the ordered lead texts), `node`. The measurement record prints all ten manifests and checks, mechanically:
-all five A manifests are identical in every field except the process tag; the same for B; `promptSha256` of A equals
+all five A manifests are deep-equal in every manifest field (the process tag is NOT a manifest field: it is only in the
+result file name and `--tag`, and the comparison reads the `manifest` object); the same for B; `promptSha256` of A equals
 the pre-change clarification hash in the fixture and B's differs from it and equals the post-change value;
 `gitSha` of A is an ancestor of B's; `models`, `today` and `leadSetSha256` are equal across arms; `dirtyPromptFiles`
 is empty. Any failure voids the comparison; the record says so.
@@ -190,8 +198,8 @@ identity, not exposure, and the record states it.
 **Estimand (answers R1 P2-3).** Primary: the **unusable-run rate** = the share of ALL 50 runs that do not yield a
 draft with scene `cinematic` and `competitor_test` false (a no-draft run and a hard-condition failure both count as
 unusable). The denominator is fixed at 50, so a change in the no-draft rate cannot hide inside it. Secondary
-(reported, not gating): the hard-condition rate among returned drafts; `verified`; the word count of the final full
-draft; the opening.
+(reported, not gating): the hard-condition rate among returned drafts; `verified`; the word count and the sentence
+count of the final full draft (`sentenceCount` in `src/draft-opening.ts`, the sign-off excluded); the opening.
 
 **Power, stated honestly.** The baseline unusable rate from the two earlier sets is 16 of 36 (44%). With 50 runs per
 arm and a one-sided test at 0.10, power is about 60% for a 15-point drop (44% to 29%) and about 90% for a 25-point
@@ -207,7 +215,7 @@ can show a large effect; a null result does not show there is none.
 | Any `pricing language` error in B | D3 or D1 pushed the model toward a price | read the draft; defect until explained |
 | Any returned draft in B with an empty concern-traceability entry that A did not have at that rate | the bundled step 3 sentence is not doing its job | read the draft; return to Alex |
 | `verified` in B below A | shortening lost what the verifier wants | read `can_see_it` and opening failures; return to Alex |
-| Median words of B's full drafts within 70-100 | the length instruction was followed | report only; it does not gate |
+| Median words of B's full drafts within 70-100, and median sentences within 4-6 | the length instruction was followed | report only; neither gates |
 | A non-clarification hash (P4) fails | regression | blocker before any run |
 
 Each arm is reported with counts, the rate and a Wilson 95% interval; the comparison is labelled exploratory and
@@ -216,7 +224,8 @@ tuned against.
 
 ## Work steps (one concern per commit; failing test first)
 
-1. The runner: `--arm`, the manifest, and h1-h4 (one commit; no output read).
+1. The runner: `--arm`, the manifest, the sentence count, and h1-h4; `src/arm-manifest.ts` with M1-M3 and
+   `sentenceCount` with its tests (one concern per commit; no output read).
 2. The hash inventory (generator, fixture, P4 and P5 with their controls) from the CURRENT prompt; confirm it passes.
 3. Arm A run and recorded (the baseline), manifest checked.
 4. P1, P2, P3, P6, P8 (failing), then the prompt change (all pass).
@@ -229,7 +238,7 @@ tuned against.
   databases under one output directory (nothing sent; `data/leads.db` untouched).
 - **Mechanism:** the committed runner wraps the real model call, runs `runPipeline` per made-up lead, and records
   `ok`, `verified`, `gate_status`, `fail_reasons`, the final gate detail, `opening`, the final full draft's word
-  count, and the manifest.
+  count and sentence count, and the manifest.
 - **Command (exact), from the repo root, once per arm (arm A BEFORE step 4, arm B after):**
   `OUT=$(mktemp -d /tmp/clar-shape-<arm>.XXXXXX); echo "$OUT"; for t in 1 2 3 4 5; do npx tsx scripts/clarification-measure.ts --arm <arm> --runs 1 --tag <arm>$t --out "$OUT" --today 2026-10-12 & done; wait`
   with `<arm>` = `A` or `B`. Each process runs all ten leads once, with its own tag and scratch database
@@ -237,11 +246,11 @@ tuned against.
   18-run set.
 - **Prerequisites:** ALREADY HAVE (CHECKED 2026-10-13, used for four earlier runs): Node, `npm`, `tsx`;
   `ANTHROPIC_API_KEY` in `.env`; network. MUST OBTAIN: none. NONE other.
-- **Output:** the ten JSON files per arm and each process's summary; recorded in
+- **Output:** five JSON files per arm (one per process; ten in total) and each process's summary; recorded in
   `docs/reviews/2026-10-13-clarification-shape-measurement.md` with the manifest check.
 - **Who:** Claude Code or Alex. **Trigger:** arm A after step 2, arm B after step 5.
 - **Expected (a hypothesis until run):** the unusable-run rate falls from about 44% toward 25% or lower, and the
-  median full draft moves toward 70-100 words. What this does NOT show: that real leads behave the same, or that a
+  median full draft moves toward 70-100 words and 4 to 6 sentences. What this does NOT show: that real leads behave the same, or that a
   smaller effect than the power allows is absent.
 
 ## Feed-Forward
