@@ -2,6 +2,8 @@ import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { COI_SENTENCES, coiLine, coiTermsFor, coiViolations, type CoiTerms } from "./pipeline/coi.js";
+import { buildGeneratePrompt } from "./prompts/generate.js";
+import { NO_DATE_TERMS } from "./pipeline/payment-terms.js";
 import { budgetGapFor, lookupPrice } from "./pipeline/price.js";
 import type { Classification } from "./types.js";
 
@@ -169,5 +171,34 @@ describe("COI C9: the post-check contract", () => {
 
   it("COI C9 kind none raises no flag whatever the draft says", () => {
     assert.deepEqual(coiViolations("The venue requires a COI. COI. COI.", "full", { kind: "none" }), []);
+  });
+});
+
+describe("COI C2 / C3 / C4 in the generate prompt (C5 is the two baseline-equality tests)", () => {
+  const gen = (c: Classification, p = priced(c)) => buildGeneratePrompt(c, p, "ctx", NO_DATE_TERMS);
+  const COI_MARK = "- COI: use this sentence exactly, once, in both drafts:";
+
+  it("COI C4 a quoted prompt carries the default sentence once, in the Quote Terms block, after the payment line", () => {
+    const prompt = gen(lead());
+    assert.equal(prompt.split(COI_MARK).length - 1, 1);
+    assert.ok(prompt.includes(`${COI_MARK} "${DEFAULT}".`));
+    assert.ok(prompt.indexOf(COI_MARK) > prompt.indexOf("- Payment:"), "after the payment line");
+    assert.ok(prompt.indexOf(COI_MARK) < prompt.indexOf("- Setup needs:"), "before the setup line");
+  });
+
+  it("COI C2 a prompt for a client who requires a COI carries the required sentence and not the default", () => {
+    const prompt = gen(lead({ coi_required: true }));
+    assert.ok(prompt.includes(`${COI_MARK} "${REQUIRED}".`));
+    assert.ok(!prompt.includes(`"${DEFAULT}"`));
+  });
+
+  it("COI C3 clarification, no_viable_scope, residency and graceful decline prompts carry no COI line", () => {
+    const c = lead();
+    const p = priced(c);
+    const clar = { ...c, action: "one_question", format_recommended: "unresolved" } as Classification;
+    assert.ok(!gen(clar, p).includes(COI_MARK), "clarification");
+    assert.ok(!gen(c, { ...p, budget: { ...p.budget, tier: "no_viable_scope" } } as typeof p).includes(COI_MARK), "no_viable_scope");
+    assert.ok(!gen(c, { ...p, residency: { tier: "R2" } } as unknown as typeof p).includes(COI_MARK), "residency");
+    assert.ok(!gen(lead({ graceful_decline: true } as Partial<Classification>)).includes(COI_MARK), "graceful decline");
   });
 });

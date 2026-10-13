@@ -9,6 +9,7 @@ import { buildGeneratePrompt } from "./prompts/generate.js";
 import { buildVerifyPrompt } from "./prompts/verify.js";
 import { budgetGapFor, lookupPrice } from "./pipeline/price.js";
 import { paymentLine, type PaymentTerms } from "./pipeline/payment-terms.js";
+import { coiLine, coiTermsFor } from "./pipeline/coi.js";
 import { VOICE_REFERENCES } from "./data/voice-references.js";
 import type { Classification } from "./types.js";
 
@@ -228,8 +229,11 @@ describe("T4 reference T2: non-T4 prompts are untouched", () => {
     for (const { name, context, classification } of inputs) {
       const before = readFileSync(`src/fixtures/prompt-baseline/${name}.txt`, "utf-8");
       const t = termsFor(classification);
-      const now = buildGeneratePrompt(classification, lookupPrice(classification), context, t);
-      assert.equal(now, before.replace(OLD_LINE, paymentLine(t)), name);
+      const pricing = lookupPrice(classification);
+      const now = buildGeneratePrompt(classification, pricing, context, t);
+      // COI plan step 3: the Quote Terms block now also carries the COI line, right after the payment line.
+      const coi = coiLine(coiTermsFor(classification, pricing));
+      assert.equal(now, before.replace(OLD_LINE, paymentLine(t) + (coi ? `\n${coi}` : "")), name);
     }
   });
 

@@ -2,6 +2,7 @@ import { RATE_TABLES, type FormatRates, type TierRates } from "../data/rates.js"
 import { clientTotal, findMinFloor, rateTableFor, residencyStatesPrice } from "../pipeline/price.js";
 import { priceBlockFor, priceLineTail } from "../pipeline/price-block.js";
 import { paymentLine, quoteTermsOff, type PaymentTerms } from "../pipeline/payment-terms.js";
+import { coiLine, coiTermsFor } from "../pipeline/coi.js";
 import { SETUP_SPACE } from "../data/setup-space.js";
 import { VOICE_REFERENCES } from "../data/voice-references.js";
 import { buildT4ReferenceBlock } from "../data/t4-reference.js";
@@ -260,6 +261,10 @@ Do NOT state any price, rate or number in either draft. ${classification.price_a
  * word counts, compressed targets, contact/sign-off, output JSON schema.
  */
 function buildStyleRulesBlock(classification: Classification, pricing: PricingResult, paymentTerms: PaymentTerms): string {
+  // COI plan step 3: the exact sentence the post-check will confirm. coiTermsFor is pure over these two inputs, so the
+  // prompt and the check cannot disagree; kind none (no quote, graceful decline) has no line.
+  const coi = coiLine(coiTermsFor(classification, pricing));
+  const coiQuoteLine = coi ? `${coi}\n` : "";
   const clarificationMode = classification.action === "one_question" && classification.format_recommended === "unresolved";
   const compressedTarget = getCompressedTarget(classification.competition_level);
   const setupSpace = classification.format_recommended === "unresolved" ? undefined : SETUP_SPACE[classification.format_recommended];
@@ -293,7 +298,7 @@ ${quoteTermsOff(classification, pricing)
     : `
 **Quote Terms (every quote, both drafts):**
 ${paymentLine(paymentTerms)}
-- Setup needs: one standard 110V outlet within about 25 ft of where I play (the only electrical need) and one armless chair. Keep it to one short clause in the compressed draft.
+${coiQuoteLine}- Setup needs: one standard 110V outlet within about 25 ft of where I play (the only electrical need) and one armless chair. Keep it to one short clause in the compressed draft.
 ${setupSpace ? `- Space and setup time for this format: ${setupSpace}. Use it only when the lead raises space, the layout, load-in or start time; otherwise leave it out.
 ` : ""}`}
 

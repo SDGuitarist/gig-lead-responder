@@ -4,6 +4,7 @@ import { readFileSync } from "node:fs";
 import { buildGeneratePrompt } from "./prompts/generate.js";
 import { lookupPrice } from "./pipeline/price.js";
 import { PAYMENT_SENTENCES, paymentLine, type PaymentTerms } from "./pipeline/payment-terms.js";
+import { coiLine, coiTermsFor } from "./pipeline/coi.js";
 import type { Classification, PricingResult } from "./types.js";
 
 // Payment terms plan (2026-10-11), P7 and P8. P8's fixtures were captured from a clean worktree of 38acd73 by
@@ -20,8 +21,11 @@ describe("payment terms in the generate prompt", () => {
       const before = readFileSync(`src/fixtures/prompt-baseline/${name}.txt`, "utf-8");
       assert.equal(before.split(OLD_LINE).length - 1, 1, `${name}: the old line occurs once in the baseline`);
       const t = terms(classification);
-      const now = buildGeneratePrompt(classification, lookupPrice(classification), context, t);
-      assert.equal(now, before.replace(OLD_LINE, paymentLine(t)), name);
+      const pricing = lookupPrice(classification);
+      const now = buildGeneratePrompt(classification, pricing, context, t);
+      // COI plan step 3: the only other difference from the baseline is the COI line after the payment line.
+      const coi = coiLine(coiTermsFor(classification, pricing));
+      assert.equal(now, before.replace(OLD_LINE, paymentLine(t) + (coi ? `\n${coi}` : "")), name);
     }
   });
 
