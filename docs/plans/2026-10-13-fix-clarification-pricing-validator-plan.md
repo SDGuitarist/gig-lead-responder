@@ -81,8 +81,8 @@ floor"); the validator has always rejected them. 0 of 21 logged generate calls h
      is rejected as `\$\s?\d`; found by V7 when building)
   2. `\b\d[\d,]*(?:\.\d+)?\s?(?:dollars?|bucks|usd)\b`
   3. `\busd\s?\d`
-  4. a run of number words followed by `dollars` or `bucks`:
-     `\b<NUM>(?:[\s-]+<NUM>)*\s+(?:dollars?|bucks)\b`, where `<NUM>` is one of a, an, one ... twenty, thirty ...
+  4. a run of number words (the first plus at most 5 more) followed by `dollars` or `bucks`:
+     `\b<NUM>(?:[\s-]+<NUM>){0,5}\s+(?:dollars?|bucks)\b`, where `<NUM>` is one of a, an, one ... twenty, thirty ...
      ninety, hundred, thousand, grand
   5. `\b\d+(?:\.\d+)?\s?k\b`
   6. `\banchor\b|\bfloor\b|\binvestment\b`
@@ -149,6 +149,8 @@ does) and a clarification classification.
   `$` figure still returns).
 - **V9** THE SYSTEM SHALL keep the "exactly one question" rule: a draft with two question marks still throws
   `must contain exactly one question`.
+- **V11** (found while preparing code review) WHEN a 50,000-character draft of repeated number words (no price) goes
+  through the validator, THE SYSTEM SHALL finish in under 700 ms (an unbounded number-word run took about 2 s).
 - **V10** (the documented boundary) WHEN a draft contains "around fifteen hundred", "starts low", or "my rate is on
   the higher end", THE SYSTEM SHALL not throw. This pins the limit so changing it is a deliberate edit.
 
@@ -174,6 +176,7 @@ internal pricing terms". No grammar, test, mutation, runner or design changed.
 | V8 | `enforceClarificationDraft` called for every mode |
 | V9 | the question-mark check removed |
 | V10 | `hundred` alone, or `starts`, added as a rejected word |
+| V11 | the bound `{0,5}` replaced by `*` (killed 2026-10-13) |
 
 ## Work steps (one concern per commit; failing test first)
 

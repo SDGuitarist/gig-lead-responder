@@ -37,7 +37,9 @@ const PRICE_STATEMENT_PATTERN = new RegExp([
   String.raw`\$\s?\d[\d,]*(?:\.\d+)?`, // $1200, $ 850, $1,200, $1.2k: the whole figure, so the error names it
   String.raw`\b\d[\d,]*(?:\.\d+)?\s?(?:dollars?|bucks|usd)\b`, // 800 dollars, 1,500 bucks, 950 USD
   String.raw`\busd\s?\d`, // USD 900
-  String.raw`\b${NUMBER_WORD}(?:[\s-]+${NUMBER_WORD})*\s+(?:dollars?|bucks)\b`, // a thousand dollars, fifteen hundred dollars
+  // a thousand dollars, fifteen hundred dollars. At most 5 further number words: an unbounded run was quadratic on a
+  // long run of "a a a ..." (2 s on 50k characters, found while preparing code review).
+  String.raw`\b${NUMBER_WORD}(?:[\s-]+${NUMBER_WORD}){0,5}\s+(?:dollars?|bucks)\b`,
   String.raw`\b\d+(?:\.\d+)?\s?k\b`, // 1.5k, 2k
   String.raw`\banchor\b|\bfloor\b|\binvestment\b`, // the internal pricing terms, unchanged
 ].join("|"), "i");

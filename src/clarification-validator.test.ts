@@ -144,6 +144,17 @@ describe("Clarification V8 / V9: the scope and the question rule", () => {
   });
 });
 
+describe("Clarification V11: the validator is not quadratic on a long draft", () => {
+  it("Clarification V11 a 50,000-character run of number words goes through the validator in well under a second", async () => {
+    const long = "a ".repeat(25_000).trim(); // no price; the unbounded number-word run took about 2 s on this
+    const t0 = Date.now();
+    const drafts = await run(`Hi Alondra,\n\n${long}. ${QUESTION}${SIGN}`, `Hi Alondra, ${QUESTION}${SIGN}`);
+    const ms = Date.now() - t0;
+    assert.ok(drafts.full_draft.length > 40_000, "the long draft went through the validator");
+    assert.ok(ms < 700, `took ${ms} ms`);
+  });
+});
+
 describe("Clarification V10: the documented boundary (an unmarked amount and price vocabulary pass)", () => {
   it("Clarification V10 'around fifteen hundred', 'starts low' and 'on the higher end' do not throw", async () => {
     for (const s of ["It is around fifteen hundred for that.", "It starts low and grows with the hours.", "My rate is on the higher end."]) {
