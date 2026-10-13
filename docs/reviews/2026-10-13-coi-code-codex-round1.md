@@ -55,3 +55,27 @@ results with sandbox failures separate; remaining risks; no second self-review.)
   drafting and sending (a swap), and it refuses with `409 payment_terms_unverifiable`.
 - **So the fix is a POLICY choice, not only a code gap:** making COI a hard refusal at approval makes it the second
   rule enforced at send, with no override. Put to Alex before changing user-visible approval behaviour.
+
+## Alex's decision and the fix (2026-10-13)
+
+Asked as a policy question (it changes what the Approve button does), Alex chose **"Refuse, like payment"**.
+
+- **Root cause:** the approve route refreshed the payment sentence at send time but never applied the COI post-check
+  contract to the stored draft, so a draft without the exact sentence was sendable.
+- **Fix (`2837845`):** `POST /api/leads/:id/approve` computes `coiTermsFor(storedClassification, storedPricing)`
+  next to the payment terms and, after the payment refresh and before the claim, returns
+  `409 coi_sentence_unverifiable` when either present draft violates `coiViolations`. Nothing is saved on a refusal.
+  None modes (clarification, `no_viable_scope`, residency, graceful decline) are unaffected.
+- **Regression tests (fail before, pass after):** `COI C13` in `src/coi-approve.test.ts` and
+  `src/coi-approve-modes.test.ts` (the approve limiter allows 10 requests per window per process, so 8 + 9 calls are
+  split over two files): missing in compressed, in full, in both; repeated; other COI wording; positive controls for
+  the default and the required sentences; required expected when `coi_required` is true; a pre-COI stored
+  classification; the four none modes; a platform lead; payment still checked first. 5 mutations (check not run,
+  compressed or full unchecked, `coi_required` ignored, none modes ignored) each fail them.
+- **Bounded inventory:** see the table above. The auto-send path is already guarded by `routeLead` (a COI violation
+  sets `verified` false); the edit route nulls the compressed draft; the other sends are not first replies.
+- **Side effects:** a stored draft made before this branch is refused until re-run (nothing is deployed or pending
+  today); `src/payment-terms-approve.test.ts` drafts gained the default sentence.
+- **Results:** full suite 902 pass / 0 fail / 1 skip (903 tests), `tsc` clean, leak check exit 0.
+- **Remaining risk:** the real send path is unexecuted (the alert channel always throws today, so tests stop at the
+  sender); a deliberate manual change to a stored row bypasses nothing new (the route reads the stored text).
