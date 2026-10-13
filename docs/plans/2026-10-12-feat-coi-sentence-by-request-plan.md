@@ -67,10 +67,12 @@ Two sentences, so:
   signal (R2-4).
 - **D3 Generate prompt:** the Quote Terms block (`src/prompts/generate.ts`, beside `paymentLine`) gains one line, from
   `coiLine(coiTerms)`, and the existing "COI in one short paragraph" / voice-doc wording is overridden by one rule:
-  "COI: use the sentence in Quote Terms exactly, once. Write no other COI or insurance sentence." The line is absent
+  "COI: use the sentence in Quote Terms exactly, once. Write no other COI or insurance sentence, and do not restate
+  a venue's COI policy." The line is absent
   in clarification, `no_viable_scope`, residency (`quoteTermsOff`) and graceful decline (R2-1 matrix).
 - **D4 Post-check:** `postCheckDrafts` takes `coiTerms` beside `paymentTerms` and appends `coiViolations` for the full
-  and the compressed draft (R2-2: exact strings, precedence, exemption). **A flag, not a rewrite**: this app does not
+  and the compressed draft (R2-2: exact strings, precedence, exemption). **A failure, not a rewrite**: any COI violation fails the draft's verification (every `postCheckDrafts` violation
+  does: `gate_status` fail, `verified` false, as payment wording does), and this app does not
   silently edit Alex's drafts.
 - **D5 Docs the model reads:** the five doc lines above are reconciled to say the app owns the sentence (one edit
   each, anchored on the line), so the injected context stops teaching "front-load COI" and a different timeline.
@@ -86,7 +88,7 @@ Two sentences, so:
 - **PF-Intel's venue facts reach the generate prompt with a COI line** (`src/pipeline/format-venue-context.ts:36-38`:
   "COI required: Yes" and `coi_details`). That is a venue policy, not the client's reply, and D7 keeps it from
   choosing the sentence. But the model sees it next to the rule "write no other COI or insurance sentence"; D4's
-  `coi_other_wording` flag is what catches a draft that follows the venue line instead. Real-run lead 5 (T4, venue
+  `coi_other_wording` violation (it FAILS the draft) is what catches a draft that follows the venue line instead. Real-run lead 5 (T4, venue
   with a COI policy) is meant to show which wins; if the model follows the venue line, the plan returns to Alex.
 
 ## Revision 2: Codex plan review round 1 (NO-GO; record `docs/reviews/2026-10-12-coi-plan-codex-round1.md`)
@@ -137,9 +139,12 @@ recorded, not changed here. The COI line is the only new line, and it has the st
    The chosen sentence is REMOVED before this scan, so the valid required sentence ("COI", "liability insurance")
    never flags itself. Checked 2026-10-12 (probe): the required sentence with its `$1M/$2M` raises no existing
    post-check price flag when the quoted price is used.
-4. A draft that restates the venue's own COI policy ("the venue requires a COI") also trips `coi_other_wording`.
-   Intended: the app's sentence is the only COI wording, and Alex decides when a flag fires.
-5. Flags, not rewrites. Wired in both pipelines (R2-1), each with its own test.
+4. A draft that restates the venue's own COI policy ("the venue requires a COI") also trips `coi_other_wording`, and
+   a violation FAILS the draft (`finalVerified = verified && violations.length === 0`, `src/run-pipeline.ts`). **Alex
+   decided 2026-10-12: it fails, and the prompt tells the model not to restate a venue's COI policy** (D3). Real-run
+   lead 5 measures how often it does; if it restates often, the question returns to Alex. The earlier T4 set 4
+   draft that said "the venue requires a COI" was scored PASS under the old rules; under this one it would fail.
+5. A violation, not a rewrite: the draft text is never edited. Wired in both pipelines (R2-1), each with its own test.
 
 ### R2-3 `coi_required` compatibility (answers P1-3; supersedes the type line in D2)
 
@@ -205,6 +210,10 @@ What changed, all in this one document (no code):
 | Mutations not mapped to C8-C12 | the mutation map under Acceptance Tests assigns one or more mutations to every C-test |
 | Platform replies | Codex: keep the sentence. Stays (R2-1 table) |
 
+**Revision 3b (after a heads-up on the same day, verified in `src/run-pipeline.ts:290`):** a COI violation FAILS the
+draft, it is not an advisory flag. Wording corrected in D4 and R2-2, and Alex decided that a restated venue policy
+fails and that the prompt says not to restate it (D3, C4). No code or approved sentence changed.
+
 ## Plan Quality Gate
 
 1. **What exactly is changing?** `src/pipeline/coi.ts` (new), `Classification.coi_required`, the classify prompt and
@@ -233,7 +242,8 @@ What changed, all in this one document (no code):
 - **C3** WHEN `quoteTermsOff` is true or the lead is a graceful decline, THE SYSTEM SHALL put no COI line in the
   prompt (the full mode matrix is C8).
 - **C4** THE SYSTEM SHALL carry exactly one COI sentence in the Quote Terms block of a quoted prompt, the one
-  `coiTermsFor` chose (the per-draft post-check contract is C9).
+  `coiTermsFor` chose, followed by the rule including "do not restate a venue's COI policy" (the per-draft post-check
+  contract is C9).
 - **C5** THE SYSTEM SHALL leave every payment-terms test, the three prompt-baseline fixtures' non-COI lines, and the
   verify prompt unchanged (the P8 baseline test is updated for exactly the COI line, as it was for payment).
 - **C6** WHEN the classify prompt receives a lead that says "we will need a certificate of insurance", THE SYSTEM
@@ -266,7 +276,7 @@ defect). Test names are `COI <C-id> ...`.
 | C1 | `coiTermsFor` returns the required sentence when `coi_required` is false |
 | C2 | `coiTermsFor` ignores `coi_required` (always default) |
 | C3 | `coiLine` emits a line for kind `none` |
-| C4 | superseded by C9 (kept only as the prompt-level "one chosen sentence appears in the prompt once") |
+| C4 | the rule line loses "do not restate a venue's COI policy"; a second COI sentence is added to the block |
 | C5 | the P8 / T4 baseline tests: add one extra line to the Quote Terms block |
 | C6 | the validator accepts the string `"yes"` as true |
 | C7 | the example reply loses the default sentence, or carries it twice |
