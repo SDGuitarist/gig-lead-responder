@@ -103,6 +103,81 @@ voice examples), or leave. Nothing was pushed after `3009cb6`.
 **Next phase:** Work (plan step 4 not passed). Do not write a Codex code-review prompt until open decisions 1 and 2
 are answered.
 
+#### Pre-compact save 2026-10-12 22:47 (appended; text above NOT modified, may be stale)
+
+**State (CHECKED this session):** branch `feat/hub-phase0`, base HEAD `2ae6936` (this save commit adds one), **pushed**:
+origin = `2ae6936` at save time (`git fetch`, 0 ahead / 0 behind), branch only, no tags. Suite **849 pass / 0 fail /
+1 skip**, `tsc` clean, leak check exit 0 (all at `2ae6936`). Peer session `gig-lead-responder-73` is live in this repo.
+
+**What was done since the text above was written:**
+- Codex CODE review round 1 on the T4 work = **NO-GO (1 P1, 2 P2), all fixed**; record
+  `docs/reviews/2026-10-12-t4-reference-code-codex-round1.md` (run label A/B not confirmed; run 2 not received).
+  P1 gate (`378b790`), P2 T7 (`4d43084`), P2 T5 (`ffbeba0`, then `2ae6936` pinning EVERY capitalised word after
+  finding that sentence-initial names slipped past the first version).
+- Privacy: the leak check sees only 30-character windows. Short quoted fragments of venue statements in the runs
+  record were reworded to descriptions (`8f7f5c7`). Some fragments are still in already-pushed history; Alex has not
+  decided whether to force-push (I recommended not).
+- Local backup tag `backup/pre-leak-rewrite-2026-10-12` DELETED at Alex's word (CHECKED: no local tag, 0 on remote).
+- Pushed twice at Alex's word ("push it"): `e000182..3009cb6` (after the history rewrite), `3009cb6..2ae6936`.
+
+**Alex's words this session (FROM CONVERSATION, not re-verified):** COI rule: "when I first reply to a gig lead, we
+always state that COI is available upon request. And then if they respond and only if they respond that they require a
+COI on a subsequent reply, then yes, it's okay to say something similar to within a few days." Review scope: "yes,
+narrow". "delete the backup tag, then copy Codex Round Two Prompt to Clipboard." "push it" (twice).
+
+**Open decisions / waiting on Alex:**
+1. **Codex CODE review round 2** on the three fixes: prompt written (narrow, named fixes only, `Prior Codex verdicts`
+   cites the round 1 record). It lives in the session scratchpad
+   (`/private/tmp/claude-501/-Users-alejandroguillen-Projects-gig-lead-responder/d92dc97e-5fe9-4d8a-a27e-41a8b53a7a33/scratchpad/t4-code-r2-prompt.md`,
+   may not survive); regenerate from this section if lost. **Its first gate pins HEAD `2ae6936`; this save commit
+   moves HEAD, so Codex will stop at the gate: edit the "Expected starting HEAD" line to the new HEAD (docs-only
+   difference) before running.** Alex runs it twice; a 2nd NO-GO stops automatic iteration; round 3 needs the literal
+   `Round 3 authorized by Alejandro: YES`; a 3rd NO-GO is the hard cap.
+2. **COI plan** `docs/plans/2026-10-12-feat-coi-sentence-by-request-plan.md` (Revision 0, not built, not reviewed):
+   (a) a FIRST message that already says "we require a COI": timeline sentence (plan default, text-based
+   `coi_required` classifier field) or always "COI available upon request." on the first reply (needs a reply-stage
+   flag, larger)? (b) Alex's yes on the exact words: `COI available upon request.`, the required sentence from
+   `docs/RESPONSE_CRAFT.md:101`, and changing the approved T4 example's "I can send the Del a COI." to the default
+   sentence.
+3. **Force-push** to drop the short venue fragments from pushed history: yes or no (recommend no).
+4. **Classifier band miss** (Alex said "yes" to starting it; NOT started): a 6-day and a 9-day event returned `short`
+   intermittently where Step 5 says urgent; first step is a repeat-run measurement.
+5. T4 smoke test: sets 1-4 recorded; the only literal FAIL left is t2's model-written COI timeline ("within 24 hours"),
+   which the COI plan (item 2) is meant to remove.
+
+**In flight:** nothing running. No uncommitted files (CHECKED `git status`). Subagent reports are all delivered.
+
+**Lines above that are stale (quoted, not fixed):**
+- Update 5: "Nothing was pushed after `3009cb6`." (now pushed to `2ae6936`).
+- Update 3: "local HEAD is 4 commits ahead of origin (`e000182`); the new commits are NOT pushed" (now 0 ahead).
+- Update 4: "delete the tag after Alex confirms" (done) and "A narrow Codex code-review round-1 prompt ... was prepared"
+  (it ran: NO-GO, fixed).
+- Open decisions 2 ("Codex code review ... prompt is drafted") and the older "Prompt for Next Session" below (reads
+  "expect: 0 (pushed 2026-10-12)", "Revision 1c", "the four open decisions"): superseded by this block.
+- The preserved peer save above says "1 commit unpushed" and "set 4 NOT run yet": both superseded.
+
+**Not verified (FROM CONVERSATION):** the content of Alex's words above; the claim that a peer is live (from
+`ListAgents`, earlier today).
+
+**Next action (one):** Alex runs the round 2 prompt (twice) and pastes both verdicts; fix only the named findings
+under the fix contract; do NOT write a round-3 prompt without his literal approval.
+
+##### Prompt for Next Session (pre-compact save)
+```
+Work in /Users/alejandroguillen/Projects/gig-lead-responder.
+FIRST gate (stop and ask Alex if anything differs):
+  pwd; git branch --show-current                    # expect: feat/hub-phase0
+  git rev-parse --short HEAD; git status --short    # expect: 2ae6936 or later (one docs-only save commit); clean
+  git fetch origin; git log --oneline origin/feat/hub-phase0..HEAD | wc -l   # expect: 0 or 1 (the save commit)
+Read: HANDOFF.md newest START HERE (T4 reference-lead) incl. the appended pre-compact block,
+docs/reviews/2026-10-12-t4-reference-code-codex-round1.md, docs/reviews/2026-10-12-t4-reference-local-runs.md,
+docs/plans/2026-10-11-feat-t4-reference-lead-plan.md (Revision 1d), docs/plans/2026-10-12-feat-coi-sentence-by-request-plan.md.
+Do: wait for Alex's Codex round 2 verdicts; record them in docs/reviews/ (verbatim, with your own check of each
+finding); fix only the named findings test-first. Ask Alex the COI questions before any COI code.
+Rules: never commit a venue sentence or a fragment of one (describe, never quote: the leak check misses anything
+under 30 characters); never invent a price; no round 3 without the literal approval; never push tags or --all.
+```
+
 ### Three Questions (T4 reference-lead work phase)
 1. **Hardest implementation decision?** Gating the block on `quoteTermsOff`, which the plan never mentioned: without
    it a T4 clarification lead would get a "price, then payment" reference its own prompt forbids. Chose gate + test +
