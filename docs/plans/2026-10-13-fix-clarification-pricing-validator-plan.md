@@ -1,11 +1,11 @@
 ---
 title: "fix: clarification-mode drafts are rejected for the words 'quote' and 'rate', not for prices"
 date: 2026-10-13
-status: plan, Revision 1 (Codex plan review round 1 NO-GO, 3 P1 / 3 P2, answered in place below; before round 2)
+status: plan, Revision 1b (plan review R1 NO-GO answered in Rev 1; R2 NO-GO, one wording P1, answered in Rev 1b at the cap; Alex chose to fix and build)
 branch: feat/hub-phase0
 ---
 
-# Clarification validator: reject a stated amount, not the words "quote" and "rate"
+# Clarification validator: reject a marked price, not the words "quote" and "rate"
 
 ### Prior Phase Risk
 
@@ -35,7 +35,7 @@ Measured 2026-10-13 (real model, 18 runs, 6 made-up vague leads x 3; the rejecte
 
 The prompt's own rule (`src/prompts/generate.ts`, Clarification Mode HARD CONSTRAINT) is "Do NOT state a price, rate,
 anchor, floor, or package" and the same prompt says "No quote yet". The model echoes the word as a bridge to a quote
-that will follow. The validator rejects the word; it should reject a stated amount.
+that will follow. The validator rejects the word; it should reject a price in a recognisable, currency-marked form (the grammar below).
 
 ## What is true today (read 2026-10-13)
 
@@ -52,7 +52,8 @@ that will follow. The validator rejects the word; it should reject a stated amou
 
 ## The invariant, stated exactly (answers Codex P1-1 and P1-2)
 
-**This validator guarantees one thing: a clarification draft states no AMOUNT and no internal pricing term.**
+**This validator guarantees one thing: a clarification draft contains no text matching the supported price grammar
+(the rows marked "rejected" below) and no internal pricing term.** It does not guarantee "no amount of any kind".
 
 | Class | Rejected | Examples |
 |---|---|---|
@@ -150,6 +151,10 @@ does) and a clarification classification.
 - **V10** (the documented boundary) WHEN a draft contains "around fifteen hundred", "starts low", or "my rate is on
   the higher end", THE SYSTEM SHALL not throw. This pins the limit so changing it is a deliberate edit.
 
+**Revision 1b (after round 2, the cap; Alex: "a"):** the one invariant sentence was broader than the grammar and was
+restated in four places. All four are narrowed in place to "text matching the supported price grammar plus the
+internal pricing terms". No grammar, test, mutation, runner or design changed.
+
 **Mutation map.** Each mutation is applied by a scratch script and the named test run with
 `npm run test:match -- "<name>"`, expected exit 1 (3 would mean the name matched nothing, a test defect):
 
@@ -196,14 +201,16 @@ does) and a clarification classification.
   `generate_calls`, `calls_with_a_stated_amount_or_internal_term`, and the counts by class for the stated classes
   and, separately, the allowed vocabulary classes.
 - **Who:** Claude Code or Alex. **Trigger:** after step 3, before the Codex code review.
-- **Expected (a hypothesis until run):** 0 to 2 of 18 runs end in `GenerationError`; no draft holds a stated amount.
+- **Expected (a hypothesis until run):** 0 to 2 of 18 runs end in `GenerationError`; no draft contains text matching the supported price grammar (unmarked amounts and price
+  vocabulary are outside it and are only counted).
   What this does NOT show: that no price-like text exists the grammar misses; it is 18 runs of one model on made-up
   leads.
 
 ## Feed-Forward
 
 - **Hardest decision:** loosening a safety check, and saying plainly what it then does not guarantee. The invariant is
-  "no stated amount", not "no price vocabulary"; the measurement shows the vocabulary rule cost 17 of 18 drafts.
+  "no text matching the supported price grammar", not "no price vocabulary" and not "no amount of any kind"; the
+  measurement shows the vocabulary rule cost 17 of 18 drafts.
 - **Rejected:** removing the check; a prompt-only fix; a retry loop; a proximity rule; rejecting number words alone.
 - **Least confident:** an unmarked amount ("around fifteen hundred") or a soft statement ("on the higher end") now
   passes. The re-run counts the vocabulary so it is visible, but 18 runs cannot rule it out and nothing

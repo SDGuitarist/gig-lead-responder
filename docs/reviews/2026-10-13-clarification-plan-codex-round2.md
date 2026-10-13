@@ -57,3 +57,21 @@ production code; a bounded inventory of affected invariant claims; no round 3 wi
 ## Per the pre-registered budget
 
 Automatic iteration stops. No round 3 prompt was written. The options and a recommendation are put to Alex.
+
+## Alex's decision and the fix (2026-10-13): "a", accept, fix the wording, build
+
+- **Root cause:** one invariant sentence was written broader than the grammar and restated in the Execution Path
+  expectation and in Feed-Forward.
+- **Fix (Revision 1b, in place):** the bold guarantee now reads "no text matching the supported price grammar ...
+  and no internal pricing term" and says it does not guarantee "no amount of any kind"; the title and Problem say
+  "marked price"; the Execution Path expectation and Feed-Forward say "matching the supported price grammar". No
+  grammar, test, mutation, runner or design changed.
+- **Bounded inventory of the claim** (grep of `no AMOUNT`, `no stated amount`, `states no`, `holds a stated`,
+  `amount of any kind`): line 8 (title), 38 (Problem), 55 (the guarantee), 199 (expected), 206 (Feed-Forward). All
+  five narrowed; the two remaining matches of "amount of any kind" are the explicit negations.
+- **Regression check (a scratch script, deliberately not a permanent test: a test that pins plan prose would break
+  on any legitimate plan edit):** the broad phrases are absent; the 12 supported rejection examples and the 3 V10
+  pass examples are present; the narrow wording is present. Positive controls: reinserting "states no AMOUNT",
+  removing a V10 example, and removing a supported example each fail it.
+- **Remaining risk:** the 18-run re-run and the mutation map remain UNEXECUTED until the code is built.
+
