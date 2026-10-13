@@ -69,6 +69,7 @@ const Anthropic = req("@anthropic-ai/sdk");
 const client = new (Anthropic.default ?? Anthropic)({ apiKey: process.env.ANTHROPIC_API_KEY });
 const { setClaudeRequesterForTests } = await import(join(root, "src/claude.ts"));
 const { runPipeline } = await import(join(root, "src/run-pipeline.ts"));
+const { openingOf } = await import(join(root, "src/draft-opening.ts"));
 
 type Hit = ReturnType<typeof scan>[number];
 type Call = { full_draft: string; compressed_draft: string; fullHits: Hit[]; compressedHits: Hit[]; questions: [number, number]; questionSentences: [string[], string[]] };
@@ -109,10 +110,7 @@ for (const name of names) {
       // judgment, not computed.
       const otherFalse = falseChecks.filter((k) => k !== "competitor_test");
       const implied = g.scene_type === "cinematic" && g.competitor_test === false && emptyTrace === 0 && otherFalse.length <= 2;
-      // The opening: first sentence of the final full draft (a leading salutation line such as "Hi Sam," is skipped).
-      const lines = String(o.drafts.full_draft).split("\n").map((l: string) => l.trim()).filter(Boolean);
-      if (lines.length > 1 && /,$/.test(lines[0]) && lines[0].length <= 40) lines.shift();
-      const opening = (lines[0] ?? "").split(/(?<=[.!?])\s/)[0];
+      const opening = openingOf(String(o.drafts.full_draft)); // first content sentence; src/draft-opening.ts
       r = { ok: true, action: o.classification.action, verified: o.verified, gate_status: g.gate_status, fail_reasons: g.fail_reasons,
         gate_detail: { scene_type: g.scene_type, competitor_test: g.competitor_test, false_checks: falseChecks, empty_traceability: emptyTrace, rule_implied_pass: implied, opening } };
     } catch (e) {
