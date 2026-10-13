@@ -1,7 +1,7 @@
 ---
 title: "COI: the app writes the sentence; 'available upon request' first, a timeline only when the client requires one"
 date: 2026-10-12
-status: plan, Revision 1 (Alex answered both questions 2026-10-12; before plan review round 1)
+status: plan, Revision 2 (Codex plan review round 1 NO-GO, 6 P1 / 3 P2, answered below; before round 2)
 branch: feat/hub-phase0
 ---
 
@@ -54,6 +54,9 @@ Two sentences, so:
 
 ## Decision
 
+> **Revision 2 (below, "Revision 2: Codex plan review round 1") supersedes D1, D3, D4 and the Execution Path where it
+> says so.** D2, D5, D6, D7 stand.
+
 - **D1 Where the sentence is chosen:** `src/pipeline/coi.ts` exports `COI_SENTENCES = { default, required }` and
   `coiSentence(classification)`: `required` when `classification.coi_required === true`, otherwise `default`. Pure,
   no date, no clock (unlike payment, nothing about it changes between draft and send, so there is NO send-time swap).
@@ -86,6 +89,109 @@ Two sentences, so:
   `coi_other_wording` flag is what catches a draft that follows the venue line instead. Real-run lead 5 (T4, venue
   with a COI policy) is meant to show which wins; if the model follows the venue line, the plan returns to Alex.
 
+## Revision 2: Codex plan review round 1 (NO-GO; record `docs/reviews/2026-10-12-coi-plan-codex-round1.md`)
+
+Each finding was checked against the repo before this revision (results in the record). One P1 rests on a premise that
+is not true in this repo (P1-5); it is answered with the facts, and the part of it that IS real is kept.
+
+### R2-1 The COI terms object and the mode matrix (answers P1-1; supersedes D1 and D3)
+
+Mirror `PaymentTerms` exactly: `src/pipeline/coi.ts` exports
+
+- `type CoiTerms = { kind: "none" } | { kind: "sentence"; sentence: string }`
+- `COI_SENTENCES = { default: "COI available upon request.", required: "I carry liability insurance ($1M/$2M) and can provide COI within a few days of booking." }`
+- `coiTermsFor(classification, pricing): CoiTerms`: `none` when `quoteTermsOff(...)` OR
+  `classification.graceful_decline === true`; otherwise `sentence`, `required` iff `classification.coi_required === true`.
+- `coiLine(terms)` (the Quote Terms line, `""` for none), `coiViolations(text, label, terms)` (R2-2).
+
+The same object is computed once per run and passed to BOTH `generateResponse` and `postCheckDrafts`, in
+`runPipeline` (`src/run-pipeline.ts`, beside `paymentTerms`, ~line 262-270) and `runEditPipeline` (~line 339-347).
+No send-time swap (nothing in it depends on a date).
+
+| Response mode | `coiTermsFor` | Why |
+|---|---|---|
+| clarification, `no_viable_scope`, residency (`quoteTermsOff`) | none | no quote, no Quote Terms block |
+| graceful decline | none | the mode forbids a pitch after the exit line (`src/prompts/generate.ts` graceful-decline block) |
+| past date | sentence | still a quoted reply; the payment line also stays (no-date sentence) |
+| large budget gap (two prices) | sentence | still a quote; Quote Terms present |
+| small budget gap / met budget / normal quote | sentence | normal |
+| platform lead (GigSalad, The Bash) | sentence | the COI sentence is not a payment term; a platform reply may state it. **Open for the reviewer: say if a platform reply should omit it.** |
+
+Known and left alone: today the Quote Terms block (so the payment line) is also emitted in graceful decline, which
+the graceful-decline block's "no pitch" contradicts. That is the payment cycle's behaviour, not this plan's; it is
+recorded, not changed here. The COI line is the only new line, and it has the stricter gate above.
+
+### R2-2 The post-check contract (answers P1-2 and P2-1; supersedes D4)
+
+`coiViolations(text, label, terms)`, for `label` in `full`, `compressed`, each run on its own draft:
+
+1. `kind: "none"` returns `[]` (no COI flags when COI is disabled).
+2. Whitespace-collapse the draft (`\s+` to one space, as `paymentViolations` does), then split on the exact chosen
+   sentence. Zero occurrences: `coi_sentence_missing_<label>: must contain exactly once: "<sentence>"`. Two or more:
+   `coi_sentence_repeated_<label>: ...`. (One flag per draft; a pass in one draft and a fail in the other gives one flag.)
+3. Join the remainder with a space and scan it for COI wording: `/\bCOI\b/i`, `/certificate of insurance/i`,
+   `/proof of insurance/i`, `/liability insurance/i`, `/\binsured\b/i`. Any hit:
+   `coi_other_wording_<label>: other COI or insurance wording besides "<sentence>"`.
+   The chosen sentence is REMOVED before this scan, so the valid required sentence ("COI", "liability insurance")
+   never flags itself. Checked 2026-10-12 (probe): the required sentence with its `$1M/$2M` raises no existing
+   post-check price flag when the quoted price is used.
+4. A draft that restates the venue's own COI policy ("the venue requires a COI") also trips `coi_other_wording`.
+   Intended: the app's sentence is the only COI wording, and Alex decides when a flag fires.
+5. Flags, not rewrites. Wired in both pipelines (R2-1), each with its own test.
+
+### R2-3 `coi_required` compatibility (answers P1-3; supersedes the type line in D2)
+
+`coi_required?: boolean` (OPTIONAL, like `price_asked`). The classify validator sets `obj.coi_required === true`
+(only a real `true` counts; absent, `"yes"`, `1`, `null` all become false). `coiTermsFor` reads `=== true`, so a
+stored classification without the field is false. `sanitizeClassification` spreads `...c`, so the field survives
+(asserted by a test, not assumed). Existing fixtures and mocks need no change (optional field); tests below cover
+absent, and a stored-classification edit run.
+
+### R2-4 The boundary lead is observation-only (answers P1-4)
+
+Definition in the classify prompt (D2, tightened): `coi_required` is true only when the lead text says the client or
+the venue requires or needs a certificate of insurance or proof of insurance, or asks for one. A question about
+whether Alex carries insurance is NOT enough: false. Real-run lead 4 ("Do you carry liability insurance?") expects
+**false** and is recorded, never asserted and never used to widen the rule. Anything the runs show that disagrees
+with Alex's trigger returns to Alex.
+
+### R2-5 What the baseline fixtures actually pin (answers P1-5; part of it was a wrong premise)
+
+- **Not true here:** the five docs do NOT sit in the three baseline fixtures. The fixture inputs carry a 28-character
+  stub context (`src/fixtures/prompt-baseline-inputs.json`; no "COI" in it or in any baseline file), and the real docs
+  are read at run time by `selectContext`. Editing the five doc lines therefore changes no baseline.
+- **True and kept:** the new Quote Terms COI line DOES change a baseline-equality assertion, in two tests:
+  `src/payment-terms-prompt.test.ts:18-23` (P8) and `src/t4-reference.test.ts:227-232`. Procedure: both compute the
+  expected prompt from the same functions (`before.replace(OLD_LINE, paymentLine(t))` then the COI line where
+  `coiTermsFor` is not none) and assert the ONLY differences from the `38acd73` baseline files are the payment line and
+  the COI line (a line diff, count 2 for a quoted fixture). The fixture files are provenance and are not regenerated.
+- **Doc-text tests checked:** `src/always-loaded-no-prices.test.ts` allows the `$1M`/`$2M` tokens and does not assert
+  they are present, so removing the RESPONSE_CRAFT line does not break it. The port-manifest doc tests are run after
+  the D5 edits as part of the full suite. `src/example-lines-pass-post-check.test.ts` passes no `coiTerms`, and an
+  absent `coiTerms` runs no COI check (as with `paymentTerms`).
+
+### R2-6 Execution Path prerequisites and privacy (answers P1-6; extends the Execution Path)
+
+- Prerequisites, each CHECKED 2026-10-12: Node, `npm`, `tsx` (the T4 runs used them); `ANTHROPIC_API_KEY` set;
+  `PF_INTEL_API_URL` and `PF_INTEL_SERVER_API_KEY` set in `.env` (lengths checked, values never printed). If PF-Intel is
+  unreachable on the day, lead 5 is recorded as NOT RUN, not substituted.
+- Finding the lead-5 venue: Claude Code calls `lookupVenueContext(<name>)` (`src/venue-lookup.ts`) for the venues in
+  `src/data/venues.ts` until one returns a policy with `coi_required: true`.
+- **Privacy:** the committed runs record names the venue only as "venue A" plus the boolean. It never copies
+  `coi_details`, a venue claim, or a private sentence (the leak check sees only 30-character windows).
+
+### R2-7 Tests (answers P2-1, P2-2, P2-3)
+
+Added to the EARS list below (C8-C12). Verification commands for every step: `npm run test:match -- "<name>"`,
+`npx tsc --noEmit`, `npm test`, `npx tsx scripts/check-venue-history.ts` (exit 0). Real-model classification runs stay
+OBSERVATIONAL; the deterministic tests are the acceptance tests for the classify prompt text and the validator.
+
+### R2-8 Manifest and status (answers P2-3)
+
+No port-manifest row and no `docs/END-TO-END-STATUS.md` row changes. The manifest has no COI requirement row
+(`R339` is a generic non-negotiables row; `END-TO-END-STATUS.md` line 42 is about COI dates on the calendar, a
+different thing). The earlier "one manifest/status note" in the Plan Quality Gate is withdrawn.
+
 ## Plan Quality Gate
 
 1. **What exactly is changing?** `src/pipeline/coi.ts` (new), `Classification.coi_required`, the classify prompt and
@@ -117,6 +223,20 @@ Two sentences, so:
 - **C6** WHEN the classify prompt receives a lead that says "we will need a certificate of insurance", THE SYSTEM
   SHALL return `coi_required` true; a lead that never mentions insurance SHALL return false (real-model runs: 3 each).
 - **C7** THE SYSTEM SHALL carry the default sentence exactly once in `T4_REFERENCE_REPLY` (D6, with Alex's yes).
+- **C8** (mode matrix) WHEN the mode is clarification, `no_viable_scope`, residency or graceful decline, THE SYSTEM
+  SHALL return `{kind:"none"}`, put no COI line in the prompt and raise no COI flag; WHEN it is a normal quote, a
+  past date, a small or large budget gap, or a platform lead, THE SYSTEM SHALL return a sentence (one test per mode).
+- **C9** (post-check contract) THE SYSTEM SHALL return exactly these strings: `coi_sentence_missing_full`,
+  `coi_sentence_missing_compressed`, `coi_sentence_repeated_full`, `coi_sentence_repeated_compressed`,
+  `coi_other_wording_full`, `coi_other_wording_compressed` (prefix match on the flag, one independent test each, plus a
+  case where one draft passes and the other fails), and NO flag for a draft holding the valid required sentence once.
+- **C10** (both pipelines) WHEN `runPipeline` and `runEditPipeline` each produce a draft with a missing COI sentence,
+  THE SYSTEM SHALL add the same flag in both (one test each, with a stubbed generator).
+- **C11** (compatibility) WHEN a classification has no `coi_required`, or a non-boolean one, THE SYSTEM SHALL treat it
+  as false in the validator, in `coiTermsFor` and after `sanitizeClassification`.
+- **C12** (classify text) THE SYSTEM SHALL carry, in the classify prompt, the definition that a requirement or a
+  request for proof of insurance is true and a question whether Alex carries insurance is not, pinned as literal lines
+  (deterministic; the model runs are observation).
 
 Each test gets a named mutation (default and required swapped; line dropped; off-switch removed; each flag's
 condition inverted), run with `npm run test:match -- "<name>"`, expected exit 1.
@@ -146,7 +266,8 @@ condition inverted), run with `npm run test:match -- "<name>"`, expected exit 1.
   2. corporate dinner that says "we will need a certificate of insurance naming the venue": `coi_required` true;
      required sentence, once.
   3. a later reply: "Thanks! One thing, the venue needs proof of insurance before the date.": true; required.
-  4. "Do you carry liability insurance?": true (the boundary case; record what the classifier says).
+  4. "Do you carry liability insurance?": expected **false** under Alex's trigger (the boundary case; recorded, never
+     asserted; see R2-4).
   5. a T4 corporate lead with no COI mention, at a venue whose PF-Intel policy says "COI required: Yes" (Claude Code
      finds one with `lookupVenueContext` first and records which): default sentence; T4 reference block still applies;
      the draft must follow the app's sentence, not the venue line (the Revision 1 risk).
