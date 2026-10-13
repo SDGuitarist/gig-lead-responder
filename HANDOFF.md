@@ -163,6 +163,14 @@ Rules: never invent a price; never commit a venue sentence or a fragment of one 
 run per round; no round 3 without the literal approval; never push tags or --all.
 ```
 
+**Update 10 (session gig-lead-responder-22, COI cycle plan phase):** COI plan (`docs/plans/2026-10-12-feat-coi-sentence-by-request-plan.md`):
+Alex answered both questions (text route; exact words; T4 example change). Codex plan review R1 NO-GO (6 P1/3 P2),
+R2 NO-GO (2 P1/2 P2), R3 (authorized via his "b") **NO-GO class (b): the cap has fired, no round 4.** Records
+`docs/reviews/2026-10-12-coi-plan-codex-round1.md`, `...round2.md`, `...round3.md`. Revision 3b also corrected the
+wording after a heads-up: a COI post-check violation FAILS the draft; Alex decided a restated venue policy fails and
+the prompt tells the model not to restate it. **Open: Alex chooses (accept with the two text fixes, accept as is, or a
+different approach); no COI code written.** Local only (not pushed): `60a6185`..`0a8f8f4` and the round 3 record.
+
 #### Pre-compact save 2026-10-12 22:47 (appended; text above NOT modified, may be stale)
 
 **State (CHECKED this session):** branch `feat/hub-phase0`, base HEAD `2ae6936` (this save commit adds one), **pushed**:
