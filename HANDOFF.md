@@ -7,7 +7,7 @@
 **Phase:** Work, Phase 0 **in progress**. 0.1, 0.2 (code), 0.3 (all but the alert half of `invalid_grant alerts`), 0.4, S1, S1-adv done. **0.5 port: 10 TO PORT, 2 BLOCKED** (venues PORTED 2026-10-11; recount with `docs/END-TO-END-STATUS.md` V1). 0.6 DONE, approximate (calendar, both GigSalad accounts, Yelp numbers from Alex; `docs/research/2026-10-02-booking-hub/baseline.md`). S3 PASSED; G1 FAILED (10-03, repeated 10-09) → redesign plan 1.2. **GigSalad portal reading BUILT.** Module 1 not started.
 
 
-## START HERE — T4 reference-lead cycle (2026-10-12): plan R1-R2 NO-GO then closed by Alex; work steps 1-3 DONE; step 4 smoke test: set 3 has 0 copied windows but t1 fails on one untraceable time; waiting on Alex
+## START HERE — T4 reference-lead cycle COMPLETE (2026-10-12): plan, work, review (R3 NO-GO class (c), residue accepted), compound done; COI, band miss, force-push open
 
 **State:** branch `feat/hub-phase0`, **pushed 2026-10-12 (Alex said push)**; origin = local HEAD (0 ahead). Suite **839 pass / 0 fail / 1 skip**, tsc clean, leak check exit 0. Manifest: 197 present, **171 PORTED,
 35 NOT PORTED, 3 TO PORT** (R006, R398, R403), 406 total (`docs/END-TO-END-STATUS.md` V1).
@@ -100,8 +100,8 @@ voice examples), or leave. Nothing was pushed after `3009cb6`.
    out returning `short` on the real model with the plain `classify` prompt, then fix Step 5 wording and add a
    fixed-date test. Say "go" to start it.
 
-**Next phase:** Work (plan step 4 not passed). Do not write a Codex code-review prompt until open decisions 1 and 2
-are answered.
+**Next phase:** ~~Work~~ **DONE: see Update 9** (smoke test passed in sets 3-4 except the COI item; code review closed at
+the cap; compound written).
 
 **Update 6 (session gig-lead-responder-22, after the pre-compact save below):** **Codex CODE review round 2 = GO,
 "no new defects"** on all three named fixes (run 1 of 2 pasted by Alex, label not confirmed; record
@@ -131,6 +131,37 @@ approach (export markers as constants and import them in T7), (ii) revert T7 to 
 residue with a comment naming the limit. **ANSWERED: Alex chose (iii) ("iii"); the comment is in the test, the T4
 code-review loop is CLOSED; the next phase is Compound.** Nothing pushed after `c2f9aba` (local: `a4999c7`, `8536db1`, `05d25a1`, and
 the round 3 record).
+
+**Update 9 (session gig-lead-responder-22, compound phase):** the code-review loop is CLOSED (R3 NO-GO class (c);
+Alex chose "iii", accept the residue; the limit is a comment in `src/port-manifest.test.ts`). Pushed: origin =
+`9dff893`. **Compound written:** `docs/solutions/architecture/2026-10-12-t4-reference-lead-example-structure-not-copy.md`
+(`b51f35f`); `/update-learnings` ran: `compound-engineering.local.md` replaced, memory pair
+`project_t4-reference-lead.md` + `feedback_dont-promote-one-rerun-to-a-rule.md`, agent-pitfalls builds-hit + log row,
+journal 2026-10-13. Suite 851 pass / 0 fail / 1 skip at `8536db1` (`9dff893` is a comment).
+**This file was edited in place, not replaced** (the update-learnings skill says FULL REPLACE; this file holds earlier
+cycles, so the START HERE block, this Update and the prompt below were changed instead).
+
+**Open, none started, each needs Alex:** (1) COI plan, two answers: a first message that already says "we require a
+COI" (timeline sentence or always the default?) and his yes on the exact words incl. the approved example's "I can
+send the Del a COI."; (2) classifier `timeline_band` intermittent `short` for 6-9 day events: first step a repeat-run
+measurement; (3) force-push to drop short venue fragments from pushed history (recommend no); (4) other earlier items:
+nonprofit prices (Alex's numbers), Saturday/peak-day rule, Module 1 (plan review first), R006/R398/R403 TO PORT.
+
+##### Prompt for Next Session (after compound; supersedes the older prompts in this section)
+```
+Work in /Users/alejandroguillen/Projects/gig-lead-responder.
+FIRST gate (stop and ask Alex if anything differs):
+  pwd; git branch --show-current                  # expect: feat/hub-phase0
+  git rev-parse --short HEAD; git status --short  # expect: 9dff893 or later (docs-only commits); clean
+  git fetch origin; git log --oneline origin/feat/hub-phase0..HEAD | wc -l   # expect: 0-3 (unpushed docs commits)
+Read: HANDOFF.md "START HERE - T4 reference-lead cycle COMPLETE" incl. Update 9,
+docs/solutions/architecture/2026-10-12-t4-reference-lead-example-structure-not-copy.md,
+docs/plans/2026-10-12-feat-coi-sentence-by-request-plan.md, CLAUDE.md.
+Ask Alex which open item to start (COI answers, band-miss measurement, force-push call, or an older item) BEFORE
+touching code. Do not read or enter the Sandbox directory while Autopilot Run 104 is going (Alex, 2026-10-12).
+Rules: never invent a price; never commit a venue sentence or a fragment of one (describe, never quote); one Codex
+run per round; no round 3 without the literal approval; never push tags or --all.
+```
 
 #### Pre-compact save 2026-10-12 22:47 (appended; text above NOT modified, may be stale)
 

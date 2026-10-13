@@ -2,30 +2,34 @@
 
 ## Risk Chain
 
-**Brainstorm risk:** None — **no brainstorm** (skip gate: a measured defect). The same made-up Tom Ham's lead priced
-$895 (5 runs) and $1,200 (2 runs) on 2026-10-11; recorded in END-TO-END-STATUS known risks.
+**Brainstorm risk:** None -- **no brainstorm** (skip gate: Alex's T4 protocol already existed as six TO PORT manifest
+rows R020-R025).
 
-**Plan mitigation:** `docs/plans/2026-10-12-fix-tier-b-venue-rule-conflict-hold-plan.md` (Revisions 1-5b). The app
-decides Tier B from a copied guest count and holds with both rate-card prices where a judgment would decide; never
-writes the tier. Plan review R1-R3 NO-GO (hard cap; round 2's top finding was a duplicate test block from Claude Code's
-own unanchored edit script); Alex: fix and build.
+**Plan mitigation:** `docs/plans/2026-10-11-feat-t4-reference-lead-plan.md` (Revisions 1-1d). One anonymized example
+reply placed before the rules; the order as seven steps; a NO INVENTED FACTS rule; a mechanical copy check (30-character
+windows after cutting mandated text) run on real-model drafts; the bracketed fill-in template deliberately NOT shipped.
+Plan review R1 and R2 NO-GO (R2's finding was introduced by Revision 1's own T5 wording); Alex closed review and built.
 
-**Work risk (from Feed-Forward):** extraction of guest count; then (Revision 5) the corporate call deciding price at
-four venues. Measured: guest count right 15/15 real runs; Revision 5b removed corporate as a decider.
+**Work risk (from Feed-Forward):** whether one example teaches structure or gets copied when the lead sits in the
+example's own setting. Four real-model sets: set 1 and 2 failed (t1), t1 was replaced at Alex's decision, sets 3 and 4
+had 0 copied windows in every T4 draft; the clock-time rule closed set 3's "5:15".
 
-**Review resolution:** code R1 GO both runs (Revision 4 rules); Alex then set one shared rule (Revision 5) and, after a
-heads-up, 5b (under 100 always held); code R2 GO both runs. Real runs pre-registered: 9/9 and 6/6.
+**Review resolution:** code R1 NO-GO (P1 gate still on in large-gap, graceful-decline and past-date modes; P2 T7
+status-only; P2 T5 anonymization), all fixed. R2 run 1 GO, run 2 NO-GO (P2 T7 matched by title prefix: R020 and R025
+had two matching bodies), fixed in `8536db1`. R3 NO-GO class (c): `assertsPositively` accepts a marker in a trailing
+comment on an assert line; **Alex accepted the residue** and the limit is named in the test's comment. Cap fired; no
+round 4.
 
 ## Files to Scrutinize
 
 | File | What changed | Risk area |
 |------|-------------|-----------|
-| `src/data/venues.ts` | `TIER_B_VENUES` (shared / always), `matchTierB`, `tierBPromptLine` | adding a venue changes holds and the prompt line |
-| `src/pipeline/price.ts` | `tierBHold` | any branch that returns null for an under-100 shared lead is a silent price |
-| `src/pipeline/classify.ts`, `src/prompts/classify.ts`, `src/types.ts` | `guest_count`, `event_start_hour`, `normalizeWholeNumber`, `tier_b:` prefix | an odd value must become null, never fail a lead; `event_start_hour` is unread |
-| `src/run-pipeline.ts` | one `tierBHold` call after `t4FallbackHold` | the edit path reuses stored notes |
-| `src/tier-b-hold.test.ts` | B1-B14 | pinned prompt line and dashboard renderer |
+| `src/data/t4-reference.ts` | the T4 block: example reply, seven steps, rule lines | a rewording can reintroduce copying or an invented fact; the example still says "I can send the Del a COI." |
+| `src/prompts/generate.ts` | `buildT4ReferenceSection` gate: quote-off, large gap, graceful decline, past date withhold it | a new response mode with its own mandatory shape must be added to the gate |
+| `src/t4-reference.test.ts` | T1-T6, incl. the structural anonymization pin (every capitalised word) | a lowercase private name or a name inside the approved set would pass |
+| `src/port-manifest.test.ts` | T7 binds R020-R025 to exact titles and a positive assertion | known limit: text scan, a marker in a comment on an assert line passes |
+| `docs/reviews/2026-10-12-t4-reference-local-runs.md` | real-model runs, venue statements described not quoted | the 30-character leak check misses short fragments; never quote a venue claim |
 
 ## Plan Reference
 
-`docs/plans/2026-10-12-fix-tier-b-venue-rule-conflict-hold-plan.md`
+`docs/plans/2026-10-11-feat-t4-reference-lead-plan.md`
