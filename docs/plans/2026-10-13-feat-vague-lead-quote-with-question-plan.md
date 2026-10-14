@@ -1,7 +1,7 @@
 ---
 title: "feat: a vague lead gets the default format quoted with one question, not a no-price clarification"
 date: 2026-10-13
-status: plan, Revision 0 (not yet reviewed; two items of the reference wording are PENDING ALEX, see "Pending Alex")
+status: plan, Revision 0 (not yet reviewed; the reference wording is final except the salutation, which is PENDING ALEX, see "Pending Alex")
 branch: feat/hub-phase0
 ---
 
@@ -26,6 +26,12 @@ risk carried forward: the same model and made-up leads, so every measurement her
 - **The footer.** "Drop the footer from the reference": the reference ends with `Alex Guillen`.
 - **"Send it over".** His Project, asked, said "it" is the date and offered two rewrites (see Pending Alex).
 - **The reference text** is his reply (the Project output he called "the appropriate response") without the footer.
+- **COI: yes.** The reference includes the app's default sentence "COI available upon request.".
+- **The date sentence, his exact words:** "Send me the date once you have it and I'll check my calendar. A 50% deposit
+  holds the date." (The second sentence is the app's payment sentence exactly.)
+- **Volume: no rule added.** Asked whether "no volume commitments" should be an app rule, he answered "no that's not a
+  guarantee". Read as: no new rule is added; the reference describes how the guitar sits, it does not promise a
+  level. If he meant something else, this line is the one to correct.
 
 ## Problem (measured, not assumed)
 
@@ -93,19 +99,36 @@ payment and COI sentences, and the model writes ONE binary question. Nothing in 
 question" or the shape; the verifier and the measurement are the checks, and both are model-dependent. The example
 is a shape, not a source of facts.
 
-## Pending Alex (the reference wording is not final until these are answered)
+## The reference reply (final wording, except the salutation)
 
-1. **COI.** His reply has no COI sentence. A quoted reply carries "COI available upon request." (his 2026-10-12
-   rule); in the T4 reference the example includes it. Default proposed: the reference includes the app's default
-   COI sentence once, as T4 does. His call.
-2. **"Send it over and I'll check it."** "It" is the date (his Project). The two rewrites it offered: (a) "Once you
-   have a date, send it over and I'll check my calendar."; (b) "Send me the date once you have it and I'll check my
-   calendar. A 50% deposit holds it from there." **(b)'s second sentence is not the app's payment sentence**
-   ("A 50% deposit holds the date."): the post-check would fail it and the approve route would refuse (409). A third
-   form that keeps the app's sentence and puts the date first: "Send me the date once you have it and I'll check my
-   calendar. A 50% deposit holds the date." His words; none is chosen.
-3. **"No volume commitments, per your Oct 13 rule"** appears in his Project's notes. It is not in the app's prompts,
-   docs, memory or journals (searched 2026-10-13). If it should be a rule here, it needs his statement of it.
+Alex's reply, footer dropped, with the three answers applied. The price is the placeholder; the payment and COI
+sentences are the app's constants and appear once each; the date sentence is his.
+
+```
+[SALUTATION: PENDING ALEX, see below]
+
+Picture your parents' 30th: toasts done, the guitar soft enough that one of them reaches for the other's hand without deciding to. You're the one making sure thirty years gets celebrated out loud.
+
+The usual mistake is booking by headcount, then nobody can hear the toasts. For parties like this, most families go with solo Spanish guitar: warm covers and standards that sit under the conversation. Bigger crowd or dancing, I add a second musician. Background while people talk, or a dance floor?
+
+Two hours solo is [QUOTED_PRICE]. I bring my own sound and need one outlet and an armless chair, so home, backyard, or restaurant all work. COI available upon request. Send me the date once you have it and I'll check my calendar. A 50% deposit holds the date.
+
+Alex Guillen
+```
+
+Facts: exactly one `?`; no dollar figure; no phone, business name or footer; the payment sentence "A 50% deposit
+holds the date." once (the app's `noDate` sentence); "COI available upon request." once (the app's default). The
+scene ("toasts done ... reaches for the other's hand") is Alex's, written for that lead; the block says not to reuse
+its images.
+
+## Pending Alex
+
+1. **The salutation.** His reply opens "Hi there,". The generate prompt's SALUTATION rule
+   (`src/prompts/generate.ts:98`) says that with no client name the draft must "omit salutation and start directly
+   with the cinematic opening". A reference that shows "Hi there," teaches the opposite of the rule. Options:
+   (a) the reference opens with a name ("Hi Dana,", as T4 does) and the nameless rule stays; (b) the rule changes to
+   allow "Hi there," for a lead with no name (his practice); (c) the reference has no salutation. Default proposed:
+   (a), the smallest change; (b) is a change to every nameless lead and would need its own check. His call.
 
 ## Plan Quality Gate
 
@@ -138,7 +161,7 @@ Names start `Vague Reference V<n>`; file `src/vague-quote-reference.test.ts`.
   only, that the question must be this lead's own and not the example's, and that no sentence of the example may
   appear in the draft.
 - **V5** WHEN the example reply is scanned, THE SYSTEM SHALL carry the app's payment sentence and the default COI
-  sentence (from the code constants) exactly once each, and exactly one question mark.
+  sentence (from the code constants) exactly once each, Alex's date sentence once, and exactly one question mark.
 - **V6** WHEN the classifier prompt is built, THE SYSTEM SHALL contain the new SPECIAL CASE wording naming a default
   format and SHALL NOT contain "format_recommended = \"unresolved\"" in the SPECIAL CASE.
 - **V7** WHEN any prompt of the inventory (C0-C12 of plan 2's hash file, minus the cases the block applies to) is
