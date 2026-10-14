@@ -1,7 +1,7 @@
 ---
 title: "feat: a vague lead gets the default format quoted with one question, not a no-price clarification"
 date: 2026-10-13
-status: plan, Revision 1 (plan review R1 NO-GO, 5 P1 / 1 P2, all accepted and answered below; rewritten in place; the salutation was answered (a) by Alex 2026-10-13; no production code until plan review passes)
+status: plan, Revision 1b (plan review R1 NO-GO, 5 P1 / 1 P2, answered in Revision 1; R2 NO-GO, one P1 and one P2 in the measurement text, answered in Revision 1b at the cap; the salutation was answered (a) by Alex 2026-10-13; Alex chose to fix and build, no round 3)
 branch: feat/hub-phase0
 ---
 
@@ -209,6 +209,10 @@ Names start `Vague Reference V<n>`; file `src/vague-quote-reference.test.ts`. Ha
 The CHANGED cases are C8, C15 and C16; every other case must hash to its pre-change value. The V2 withheld tests are
 the per-condition version of the same facts.
 
+- **V9** WHEN the report computes the COI-sentence denominator, THE SYSTEM SHALL include a returned draft of an
+  ordinary quote (`coiTermsFor` kind `sentence`), and SHALL exclude a graceful decline, a clarification and a
+  residency (kind `none`); and WHEN the arm has other than 5 files and 50 runs, `assessArms` SHALL return VOID (the
+  50-run shape is the invariant of this measurement).
 - **V8 (measurement instrumentation, NOT an acceptance gate)** The copy-check function `sharedWindows(draft,
   example, mandatedSentences)` reports the 30-character windows a draft shares with the example after cutting the
   app-mandated sentences. Deterministic tests of the function: **V8a** a planted 40-character clause shared with the
@@ -222,21 +226,23 @@ made a withholding condition (V2 positive control); `sharedWindows` ignoring the
 
 ## The measurement (pre-registered; descriptive, exploratory)
 
-Arm B only: `--arm B --runs 1`, five processes, the ten leads of plan 2 (v1-v6, h1-h4) plus the made-up reference
-lead r1 ("my parents' 30th ... not sure what kind of music"), so 55 runs. Arm A is the recorded plan 2 arm A (50
-runs, the clarification prompt). **No causal claim**: the classifier route and the prompt shape both differ.
+Arm B only: `--arm B --runs 1`, five processes, the ten leads of plan 2 (v1-v6, h1-h4): **50 runs** (ten leads x
+five processes), the arm shape the report already requires (`ARM_SHAPE`: 5 files, 50 runs). The made-up lead r1,
+the one the reference was written for, is deliberately NOT in the measurement: the example's own lead must not sit
+in the data it is meant to steer. Arm A is the recorded plan 2 arm A (50 runs, the clarification prompt). **No causal
+claim**: the classifier route and the prompt shape both differ.
 
 Formulas (the runner and report gain the fields; denominators fixed in advance):
 
 | Metric | Numerator | Denominator |
 |---|---|---|
-| Classifier distribution | runs with `format_recommended` = `solo`, `duo`, `unresolved`, other | all 55 runs that reached classification (a classification error is its own count) |
-| Returned draft | runs with `ok: true` | all 55 |
+| Classifier distribution | runs with `format_recommended` = `solo`, `duo`, `unresolved`, other | all 50 runs that reached classification (a classification error is its own count) |
+| Returned draft | runs with `ok: true` | all 50 |
 | Quote at the app's price | returned drafts whose `full_draft` contains the dollar figure `$` + `pricing.quote_price` | returned drafts with a resolved format |
 | Verified | returned drafts with `verified: true` | returned drafts |
 | One question | returned drafts with exactly one `?` in `full_draft` | returned drafts |
 | Payment sentence once | returned drafts containing the app's sentence for that lead exactly once | returned drafts with `paymentTermsFor` kind `sentence` |
-| COI sentence once | returned drafts containing the COI sentence for that lead exactly once | returned drafts with `quoteTermsOff` false |
+| COI sentence once | returned drafts containing the COI sentence for that lead exactly once | returned drafts whose computed `coiTermsFor(...).kind` is `sentence` (the runner records the kind; a graceful decline is `quoteTermsOff` false but `none`, so it is excluded) |
 | No footer | returned drafts with no `(619)` and no `Pacific Flow` | returned drafts |
 | Shared windows with the example | per returned draft, the count from `sharedWindows`; report the maximum and the number of drafts above 0 | returned drafts |
 
@@ -250,7 +256,8 @@ the plan; no number is a pass bar, and any difference from arm A is reported as 
    resolved: option (a).)
 1. The hash inventory extended with C13-C17 from the CURRENT code; V2 (withheld cases) and V7's unchanged rows pass.
 2. V1, V3-V6 (failing), then the reference module, the block, and the classifier wording.
-3. The report fields and `sharedWindows` with V8a-c; the mutation map; full suite, `tsc`, leak check.
+3. The runner fields (including the `coiTermsFor` kind), the report formulas and `sharedWindows` with V8a-c and V9;
+   the mutation map; full suite, `tsc`, leak check.
 4. Arm B run, the report, and `docs/reviews/2026-10-13-vague-quote-measurement.md`.
 
 ## Execution Path
@@ -261,7 +268,7 @@ the plan; no number is a pass bar, and any difference from arm A is reported as 
   above; the report prints the formula table's counts and, for the shared-window metric, the maximum and the count.
 - **Command (exact), from the repo root:**
   `OUT=$(mktemp -d /tmp/vague-quote.XXXXXX); echo "$OUT"; for t in 1 2 3 4 5; do npx tsx scripts/clarification-measure.ts --arm B --runs 1 --tag B$t --out "$OUT" --today 2026-10-12 & done; wait`
-  (the ten leads and r1 run in each process; 55 runs in total).
+  (the ten leads run in each process; 50 runs in total).
 - **Prerequisites:** ALREADY HAVE: Node, `npm`, `tsx`, `ANTHROPIC_API_KEY` in `.env`, network (used for the earlier
   measurement runs). MUST OBTAIN: none. NONE other.
 - **Who:** Claude Code or Alex. **Trigger:** after step 3. About 25 minutes; the spend of one arm of plan 2.
