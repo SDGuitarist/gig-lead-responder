@@ -1,7 +1,7 @@
 ---
 title: "fix: the verify gate's opening rule asks a quoted vague lead's reply to cite a detail the lead never gave"
 date: 2026-10-14
-status: plan, Revision 0 (not plan-reviewed; one open decision for Alex)
+status: plan, Revision 0 (not plan-reviewed; D3 decided by Alex 2026-10-14)
 branch: feat/hub-phase0
 ---
 
@@ -63,8 +63,8 @@ changes nothing. This lets one set of drafts be verified under both rules (a pai
 
 D3. **Scope is `one_question` only, by evidence.** The 50 runs are all `one_question` leads. An `assume_and_quote`
 lead that is also `vague` (Vague + Medium/High competition) probably has the same defect; this plan does NOT include
-it because no run covers it. **Decision for Alex:** include `assume_and_quote`+`vague` now (wider, unmeasured) or leave
-it for a measured follow-up (recommended).
+it because no run covers it. **Decision record (Alex, chat answer 2026-10-14): "Leave them out and measure them as a follow-up."**
+The mode is `one_question` only; `assume_and_quote`+`vague` is a separate measured follow-up.
 
 D4. **Not done, and why:** relaxing `scene_type` or `competitor_test`; recomputing `gate_status` in code; editing the
 generate prompt (length 203 words, copying: separate items); touching the three other clarification lines;
@@ -74,7 +74,7 @@ changing the router (it still holds every vague `one_question` lead for Alex).
 
 Snapshots S0-S12 exist (plan 1). **S8 changes by design** (refreshed in a `snapshot refresh:` commit with the prompt
 diff). Added by this plan: **S13** `one_question`+`vague`+`duo` (the duo branch of the mode), **S14**
-`assume_and_quote`+`vague`+`solo` (near-miss: must equal today's text if D3 is "leave"), **S15**
+`assume_and_quote`+`vague`+`solo` (near-miss: must equal today's text, D3 decided "leave"), **S15**
 `one_question`+`clear`+`solo` (near-miss: vagueness clear). S0 (clarification) and S1-S7, S9-S12 must be byte-equal
 outside the voice block (G8 pin unchanged).
 
@@ -138,7 +138,7 @@ specific openings on a fixed made-up lead, each verified twice (20 verifies). Co
 
 ## Work steps (one concern per commit; failing test first)
 
-0. **HARD STOP:** plan review R1 and Alex's D3 decision. No production code before.
+0. **HARD STOP:** plan review R1 (D3 is decided). No production code before.
 1. Snapshots S13-S15 from the CURRENT code; VG2 passes.
 2. VG1, VG3-VG7 failing, then the prompt change and the seam; all pass; S8 refreshed in a `snapshot refresh:` commit.
 3. Runner: store `classification` and `pricing`; the paired re-verify; the controls script (docs/script-only).
