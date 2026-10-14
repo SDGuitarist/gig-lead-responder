@@ -1,6 +1,11 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { compareArms, type ArmManifest } from "./arm-manifest.js";
+import { execFileSync, spawnSync } from "node:child_process";
+import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { assessArms, compareArms, type ArmData, type ArmManifest } from "./arm-manifest.js";
+import { probePromptSha256 } from "./generate-prompt-cases.js";
 
 // Plan docs/plans/2026-10-13-fix-clarification-draft-shape-plan.md, M1-M3. Names start "Arm Manifest M<n>".
 const PRE = "pre".padEnd(64, "0");
@@ -45,5 +50,88 @@ describe("Arm Manifest: compareArms", () => {
   it("Arm Manifest M3 the process tag is not a manifest field: only the result file name differs, still ok", () => {
     const withTags = five("A").map((m, k) => ({ ...m, ...({ tag: `A${k}` } as object) }));
     assert.deepEqual(compareArms(withTags as ArmManifest[], five("B"), expect), { ok: true });
+  });
+});
+
+// Codex code review round 1 (docs/reviews/2026-10-13-clarification-shape-code-codex-round1.md): the comparison is void
+// unless each arm is exactly five result files and 50 runs, every file has a manifest, and a model call was recorded.
+const data = (arm: "A" | "B", over: Partial<ArmData> = {}): ArmData => ({
+  files: Array.from({ length: 5 }, (_, i) => `clarification-${arm}${i + 1}.json`),
+  manifests: five(arm), runs: 50, ...over,
+});
+
+describe("Arm Manifest: assessArms (the planned shape of the measurement)", () => {
+  it("Arm Manifest S1 five files and 50 runs per arm compare ok; differing file names (tags) are ignored", () => {
+    assert.deepEqual(assessArms(data("A"), data("B"), expect), { ok: true });
+    assert.deepEqual(assessArms(data("A", { files: ["a.json", "b.json", "c.json", "d.json", "e.json"] }), data("B"), expect), { ok: true });
+  });
+
+  it("Arm Manifest S2 an incomplete or surplus arm is void and names files or runs", () => {
+    const four = data("B", { files: data("B").files.slice(0, 4), manifests: five("B").slice(0, 4), runs: 40 });
+    const r4 = assessArms(data("A"), four, expect);
+    assert.equal(r4.ok, false);
+    assert.equal((r4 as { field: string }).field, "files");
+    const six = data("A", { files: [...data("A").files, "x.json"], manifests: [...five("A"), manifest("A")], runs: 60 });
+    assert.equal((assessArms(six, data("B"), expect) as { field: string }).field, "files");
+    assert.equal((assessArms(data("A"), data("B", { runs: 49 }), expect) as { field: string }).field, "runs");
+    assert.equal((assessArms(data("A", { runs: 51 }), data("B"), expect) as { field: string }).field, "runs");
+  });
+
+  it("Arm Manifest S3 a result file without a manifest is void and does not throw", () => {
+    const withHole = data("A", { manifests: [...five("A").slice(0, 4), undefined] });
+    const r = assessArms(withHole, data("B"), expect);
+    assert.equal(r.ok, false);
+    assert.equal((r as { field: string }).field, "manifest");
+  });
+
+  it("Arm Manifest S4 an arm that recorded no model call is void", () => {
+    const r = assessArms(data("A"), data("B", { manifests: five("B", { models: [] }) }), expect);
+    assert.equal(r.ok, false);
+    assert.equal((r as { field: string }).field, "models");
+    // Both arms empty: the cross-arm model comparison sees equal values, so only the guard itself can refuse it.
+    const both = assessArms(data("A", { manifests: five("A", { models: [] }) }), data("B", { manifests: five("B", { models: [] }) }), expect);
+    assert.equal(both.ok, false);
+    assert.match((both as { detail: string }).detail, /no model call/);
+  });
+});
+
+describe("Arm Manifest: the report script gates its statistics on the check", () => {
+  const script = "scripts/clarification-arm-report.ts";
+  const head = execFileSync("git", ["rev-parse", "HEAD"], { encoding: "utf-8" }).trim();
+  const parent = execFileSync("git", ["rev-parse", "HEAD~1"], { encoding: "utf-8" }).trim();
+  const pre = (JSON.parse(readFileSync("src/fixtures/generate-prompt-hashes.json", "utf-8")) as Record<string, string>)["C0"];
+  const result = (lead: string) => ({ lead, ok: true, verified: false, words: 100, sentences: 5,
+    gate_detail: { scene_type: "cinematic", competitor_test: false, empty_traceability: 0 } });
+  const leads = ["v1", "v2", "v3", "v4", "v5", "v6", "h1", "h2", "h3", "h4"];
+  const makeArm = (arm: "A" | "B", files: number, over: Partial<ArmManifest> = {}) => {
+    const dir = mkdtempSync(join(tmpdir(), `arm-report-${arm}-`));
+    mkdirSync(dir, { recursive: true });
+    for (let i = 1; i <= files; i++) {
+      const m: ArmManifest = { arm, gitSha: arm === "A" ? parent : head, dirtyPromptFiles: [], promptSha256: arm === "A" ? pre : probePromptSha256(),
+        models: ["claude-sonnet-4-6"], today: "2026-10-12", leadSetSha256: "leads", node: process.version, ...over };
+      writeFileSync(join(dir, `clarification-${arm}${i}.json`), JSON.stringify({ today: m.today, runs: 1, manifest: m, results: leads.map(result) }));
+    }
+    return dir;
+  };
+  const run = (a: string, b: string) => spawnSync("npx", ["tsx", script, a, b], { encoding: "utf-8" });
+
+  it("Arm Manifest R1 a valid pair prints the comparison and every manifest (positive control)", () => {
+    const r = run(makeArm("A", 5), makeArm("B", 5));
+    assert.equal(r.status, 0, r.stderr);
+    assert.match(r.stdout, /MANIFEST CHECK: \{"ok":true\}/);
+    assert.match(r.stdout, /Fisher/);
+    assert.equal((r.stdout.match(/"gitSha"/g) ?? []).length, 10, "all ten manifests are printed");
+  });
+
+  it("Arm Manifest R2 a failed manifest check or an incomplete arm prints no comparative statistic and exits non-zero", () => {
+    for (const [label, a, b] of [
+      ["different model", makeArm("A", 5), makeArm("B", 5, { models: ["other"] })],
+      ["four files", makeArm("A", 5), makeArm("B", 4)],
+    ] as const) {
+      const r = run(a, b);
+      assert.notEqual(r.status, 0, label);
+      assert.match(r.stdout, /COMPARISON VOID/, label);
+      assert.doesNotMatch(r.stdout, /Fisher/, label);
+    }
   });
 });

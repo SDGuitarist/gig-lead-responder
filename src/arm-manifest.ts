@@ -35,12 +35,14 @@ const bad = (field: string, detail: string): ArmComparison => ({ ok: false, fiel
 
 export function compareArms(a: ArmManifest[], b: ArmManifest[], expect: ArmExpectations): ArmComparison {
   if (a.length === 0 || b.length === 0) return bad("manifests", "an arm has no manifest");
+  if ([...a, ...b].some((m) => typeof m !== "object" || m === null)) return bad("manifest", "a result file has no manifest object");
   for (const [label, arm] of [["A", a], ["B", b]] as const) {
     if (arm.some((m) => m.arm !== label)) return bad("arm", `a manifest in arm ${label} carries another arm name`);
     for (const f of FIELDS) {
       if (arm.some((m) => !same(m[f], arm[0][f]))) return bad(f, `arm ${label} manifests differ in ${f}`);
     }
     if (arm[0].dirtyPromptFiles.length > 0) return bad("dirtyPromptFiles", `arm ${label} ran with a dirty prompt tree`);
+    if (arm[0].models.length === 0) return bad("models", `arm ${label} recorded no model call`);
   }
   if (a[0].promptSha256 !== expect.preChangePromptSha256) return bad("promptSha256", "arm A did not use the pre-change prompt");
   if (b[0].promptSha256 === expect.preChangePromptSha256) return bad("promptSha256", "arm B used the pre-change prompt");
@@ -50,4 +52,30 @@ export function compareArms(a: ArmManifest[], b: ArmManifest[], expect: ArmExpec
     if (!same(a[0][f], b[0][f])) return bad(f, `${f} differs between the arms`);
   }
   return { ok: true };
+}
+
+/** One arm as the report reads it from a directory of result files. */
+export interface ArmData {
+  files: string[];
+  /** One entry per file; `undefined` when the file has no manifest object (an earlier-format file). */
+  manifests: Array<ArmManifest | undefined>;
+  /** The total number of run results across the files. */
+  runs: number;
+}
+
+/** The planned shape of one arm: five processes (files) and 50 runs (ten leads x five processes). */
+export const ARM_SHAPE = { files: 5, runs: 50 } as const;
+
+/**
+ * The gate the report puts in front of every comparative statistic: each arm is exactly the planned shape and the
+ * manifests agree (compareArms). Anything else is VOID, so a missing process cannot silently change the estimand.
+ */
+export function assessArms(a: ArmData, b: ArmData, expect: ArmExpectations, shape: { files: number; runs: number } = ARM_SHAPE): ArmComparison {
+  for (const [label, arm] of [["A", a], ["B", b]] as const) {
+    if (arm.files.length !== shape.files || arm.manifests.length !== shape.files) {
+      return bad("files", `arm ${label} has ${arm.files.length} result files, expected ${shape.files}`);
+    }
+    if (arm.runs !== shape.runs) return bad("runs", `arm ${label} has ${arm.runs} runs, expected ${shape.runs}`);
+  }
+  return compareArms(a.manifests as ArmManifest[], b.manifests as ArmManifest[], expect);
 }

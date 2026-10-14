@@ -6,15 +6,15 @@
 import { execSync } from "node:child_process";
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import { compareArms, type ArmManifest } from "../src/arm-manifest.js";
+import { assessArms, type ArmData, type ArmManifest } from "../src/arm-manifest.js";
 import { probePromptSha256 } from "../src/generate-prompt-cases.js";
 
 interface RunResult { lead: string; ok: boolean; error?: string; verified?: boolean; words?: number; sentences?: number;
   gate_detail?: { scene_type: string; competitor_test: boolean; empty_traceability: number } }
 function load(dir: string) {
   const files = readdirSync(dir).filter((f) => /^clarification-.*\.json$/.test(f)).sort();
-  const parsed = files.map((f) => JSON.parse(readFileSync(join(dir, f), "utf-8")) as { manifest: ArmManifest; results: RunResult[] });
-  return { files, manifests: parsed.map((p) => p.manifest), results: parsed.flatMap((p) => p.results) };
+  const parsed = files.map((f) => JSON.parse(readFileSync(join(dir, f), "utf-8")) as { manifest?: ArmManifest; results: RunResult[] });
+  return { files, manifests: parsed.map((p) => p.manifest), results: parsed.flatMap((p) => p.results ?? []) };
 }
 const median = (xs: number[]) => (xs.length === 0 ? NaN : [...xs].sort((a, b) => a - b)[Math.floor((xs.length - 1) / 2)]);
 const wilson = (k: number, n: number) => {
@@ -66,7 +66,7 @@ const [dirA, dirB] = process.argv.slice(2);
 if (!dirA) { console.error("usage: clarification-arm-report.ts <dirA> [<dirB>]"); process.exit(2); }
 const a = load(dirA);
 const sa = summary(`arm in ${dirA} (${a.files.length} files)`, a.results);
-console.log("manifest(s):", JSON.stringify(a.manifests[0]));
+a.files.forEach((f, i) => console.log(`manifest ${f}: ${JSON.stringify(a.manifests[i])}`));
 if (dirB) {
   const b = load(dirB);
   const sb = summary(`arm in ${dirB} (${b.files.length} files)`, b.results);
@@ -74,8 +74,15 @@ if (dirB) {
   const isAncestor = (older: string, newer: string) => {
     try { execSync(`git merge-base --is-ancestor ${older} ${newer}`, { stdio: "ignore" }); return true; } catch { return false; }
   };
-  const cmp = compareArms(a.manifests, b.manifests, { preChangePromptSha256: preHash, currentPromptSha256: probePromptSha256(), isAncestor });
+  const data = (x: ReturnType<typeof load>): ArmData => ({ files: x.files, manifests: x.manifests, runs: x.results.length });
+  const cmp = assessArms(data(a), data(b), { preChangePromptSha256: preHash, currentPromptSha256: probePromptSha256(), isAncestor });
+  b.files.forEach((f, i) => console.log(`manifest ${f}: ${JSON.stringify(b.manifests[i])}`));
   console.log("\nMANIFEST CHECK:", JSON.stringify(cmp));
+  if (!cmp.ok) {
+    // A void comparison prints no comparative statistic: the plan's "the comparison is void" row.
+    console.log(`COMPARISON VOID: ${cmp.field}: ${cmp.detail}`);
+    process.exit(1);
+  }
   const p = fisherLower(sb.unusable, sb.n, sa.unusable, sa.n);
   console.log(`unusable-run rate: A ${pct(sa.unusable / sa.n)}, B ${pct(sb.unusable / sb.n)}, difference ${(100 * (sb.unusable / sb.n - sa.unusable / sa.n)).toFixed(0)} points; one-sided Fisher p (B lower) = ${p.toFixed(3)} (exploratory)`);
 }
