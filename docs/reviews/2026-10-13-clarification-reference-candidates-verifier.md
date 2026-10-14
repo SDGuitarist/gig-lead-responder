@@ -44,3 +44,23 @@ no flagged concerns, no name (the harness set "Maria" for the salutation).
   the pipeline compresses; `competitor_test` was false everywhere.
 - The classification had no flagged concern, so the step 3 / concern traceability path was not exercised.
 - Passing the gate says nothing about whether it sounds like Alex; that is his judgment.
+
+## Addendum: A with one validating sentence, three options (same lead, same gate, 3 runs each)
+
+Candidate A failed only on `validated_them` and `compressed_validation_present`. One sentence naming what the host is
+doing was inserted after "That's the right thing to settle first." and the result run through the same verifier.
+**The sentences are options offered to Alex, not approved wording.**
+
+| Option | Inserted sentence | Words / sentences | Gate | Scene | False checks |
+|---|---|---|---|---|---|
+| A1 | "You're the one making sure their 30th gets more than a playlist." | 89 / 6 | **pass x3** | cinematic x3 | none |
+| A2 | "Asking before you book is how you keep a night like this from being a guess." | 93 / 6 | **pass x3** | cinematic x3 | none |
+| A3 | "Putting live music into their 30th is a smart call." | 87 / 6 | **pass x3** | cinematic x3 | none |
+
+All three: 1 question mark, no match in the price grammar, 0 shared 30-character windows with the T4 example, 0 hard
+fails and 0 warnings from `voice-mechanical.py`. 9 more calls; the same limits apply (one made-up lead, one model,
+compressed = full text, no flagged concern, voice is Alex's judgment).
+
+Reading: the failure of A was exactly the missing client-validating sentence; any of the three fixes it. A3's
+sentence shape echoes one in the approved T4 example ("is a smart call"), which shares no 30-character window but is
+the same move; A1's is close to the example in the voice specification ("You're the one making sure ...").
