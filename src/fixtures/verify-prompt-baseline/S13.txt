@@ -65,7 +65,7 @@ Could another vendor have written this exact opening? If yes → competitor_test
 The opening must contain an insight specific to THIS lead.
 
 ### 6b. Lead-Specificity Check
-This lead is vague and its format was assumed: the form gave no date, venue or guest count, so the opening cannot cite them. The first sentence passes only if it repeats or restates a fact or an uncertainty the lead itself supplied. The minimum anchor is ONE of: the occasion or event type the lead wrote (a birthday, a wedding, a party); the time frame the lead wrote (next month, this winter, spring); the lead's own stated doubt ("not sure what kind of music"); or a format the lead itself named, which shows in the classification's `format_requested` (a lead that wrote "a solo guitarist" supplied that format). Any one is enough. A format that does NOT appear in `format_requested` ("solo guitar", "a duo" chosen by the app) is an assumption, not a fact the lead supplied, and is NOT an anchor. References that could be said to any inquiry do NOT qualify: "your event", "this inquiry", "what you're looking for", "the right fit", "the right music", "what would work best".
+This lead is vague and its format was assumed: the form gave no date, venue or guest count, so the opening cannot cite them. The first sentence passes only if it repeats or restates a fact or an uncertainty the lead itself supplied. The minimum anchor is ONE of: the occasion or event type the lead wrote (a birthday, a wedding, a party); the time frame the lead wrote (next month, this winter, spring); the lead's own stated doubt ("not sure what kind of music"); or a CONCRETE format the lead itself named, which shows in the classification's `format_requested` (a lead that wrote "a solo guitarist" supplied that format; a generic word such as "musician", "live music", "entertainment" or "music" names no format and is NOT an anchor). Any one is enough. A format that does NOT appear in `format_requested` ("solo guitar", "a duo" chosen by the app) is an assumption, not a fact the lead supplied, and is NOT an anchor. References that could be said to any inquiry do NOT qualify: "your event", "this inquiry", "what you're looking for", "the right fit", "the right music", "what would work best".
 - Look at the FIRST sentence of the draft
 - Deletion test: remove the words that came from this lead; if the sentence still works for any inquiry → lead_specific_opening = false
 - Pass: "Your mom's birthday, and you're not sure what kind of music: that is the right place for one question."
@@ -74,6 +74,7 @@ This lead is vague and its format was assumed: the form gave no date, venue or g
 - Fail (generic acknowledgement): "You're looking for the right music for your event."
 - Fail (assumed format only, solo): "A solo guitarist is a lovely way to set the tone."
 - Fail (assumed format only, duo): "A duo is a warm way to fill an evening."
+- Fail (a generic word only, format_requested = "live music"): "Live music is a great idea for your event."
 
 ### 7. Gut Checks (all boolean)
 - can_see_it: Reader can visualize a specific moment
