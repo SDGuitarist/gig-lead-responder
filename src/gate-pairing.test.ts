@@ -32,9 +32,12 @@ describe("Gate Pairing GP2: the paired summary", () => {
     assert.equal(s.pairs, 1); assert.equal(s.excluded, 1); assert.equal(s.runs, 3);
   });
 
-  it("Gate Pairing GP2 the noise floor counts runs where the pipeline and the same-rule replay disagree", () => {
-    const s = summarizePairs([run("a", true, false, false), run("b", true, true, true), run("c", false, true, false)]);
-    assert.deepEqual(s.noise_floor, { compared: 3, pipeline_vs_replay_mode_disagree: 2 });
+  it("Gate Pairing GP2 the noise floor counts runs where two same-rule replays of the same draft disagree (the pipeline verdict is NOT used)", () => {
+    const rep = (pass: boolean) => ({ replay_mode_repeat: v(pass) });
+    const s = summarizePairs([run("a", true, false, false, rep(true)), run("b", true, true, true, rep(true)), run("c", false, true, false, rep(false)), run("d", true, true, true)]);
+    assert.deepEqual(s.noise_floor, { compared: 3, replay_mode_vs_repeat_disagree: 2 });
+    // control: a pipeline-vs-replay disagreement alone adds nothing
+    assert.equal(summarizePairs([run("x", false, true, true, rep(true))]).noise_floor.replay_mode_vs_repeat_disagree, 0);
   });
 });
 

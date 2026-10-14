@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
+import ts from "typescript";
 import { buildVerifyPrompt } from "./prompts/verify.js";
 import { setClaudeRequesterForTests } from "./claude.js";
 import { verifyGate } from "./pipeline/verify.js";
@@ -14,7 +15,7 @@ import { GUT_CHECK_KEYS } from "./types.js";
 // any unrelated edit to buildVerifyPrompt (refresh only in a "snapshot refresh:" commit with the prompt diff).
 const VAGUE_6B = [
   "### 6b. Lead-Specificity Check",
-  "This lead is vague and its format was assumed: the form gave no date, venue or guest count, so the opening cannot cite them. The first sentence passes only if it repeats or restates a fact or an uncertainty the lead itself supplied. The minimum anchor is ONE of: the occasion or event type the lead wrote (a birthday, a wedding, a party); the time frame the lead wrote (next month, this winter, spring); the lead's own stated doubt (\"not sure what kind of music\"); or a format the lead itself named, which shows in the classification's `format_requested` (a lead that wrote \"a solo guitarist\" supplied that format). Any one is enough. A format that does NOT appear in `format_requested` (\"solo guitar\", \"a duo\" chosen by the app) is an assumption, not a fact the lead supplied, and is NOT an anchor. References that could be said to any inquiry do NOT qualify: \"your event\", \"this inquiry\", \"what you're looking for\", \"the right fit\", \"the right music\", \"what would work best\".",
+  "This lead is vague and its format was assumed: the form gave no date, venue or guest count, so the opening cannot cite them. The first sentence passes only if it repeats or restates a fact or an uncertainty the lead itself supplied. The minimum anchor is ONE of: the occasion or event type the lead wrote (a birthday, a wedding, a party); the time frame the lead wrote (next month, this winter, spring); the lead's own stated doubt (\"not sure what kind of music\"); or a CONCRETE format the lead itself named, which shows in the classification's `format_requested` (a lead that wrote \"a solo guitarist\" supplied that format; a generic word such as \"musician\", \"live music\", \"entertainment\" or \"music\" names no format and is NOT an anchor). Any one is enough. A format that does NOT appear in `format_requested` (\"solo guitar\", \"a duo\" chosen by the app) is an assumption, not a fact the lead supplied, and is NOT an anchor. References that could be said to any inquiry do NOT qualify: \"your event\", \"this inquiry\", \"what you're looking for\", \"the right fit\", \"the right music\", \"what would work best\".",
   "- Look at the FIRST sentence of the draft",
   "- Deletion test: remove the words that came from this lead; if the sentence still works for any inquiry → lead_specific_opening = false",
   "- Pass: \"Your mom's birthday, and you're not sure what kind of music: that is the right place for one question.\"",
@@ -23,11 +24,12 @@ const VAGUE_6B = [
   "- Fail (generic acknowledgement): \"You're looking for the right music for your event.\"",
   "- Fail (assumed format only, solo): \"A solo guitarist is a lovely way to set the tone.\"",
   "- Fail (assumed format only, duo): \"A duo is a warm way to fill an evening.\"",
+  "- Fail (a generic word only, format_requested = \"live music\"): \"Live music is a great idea for your event.\"",
   "",
 ].join("\n");
 const VAGUE_LINE = "- lead_specific_opening: Apply section 6b (vague quote mode): the first sentence repeats a fact or an uncertainty this lead supplied, or a format the lead itself named; the format the app assumed does not count, and generic references that fit any inquiry do not count.";
 const PREFIX = "- lead_specific_opening:";
-const MODE_IDS = ["S8", "S13", "S17"];
+const MODE_IDS = ["S8", "S13", "S17", "S18"];
 const VOICE_BLOCK_SHA256 = "a48c4fbed16d76a2c64c6326d912d45c29f5a3aec1c0c47e832149afb8fc89ef";
 
 const ALL = [...VERIFY_CASES, ...VAGUE_GATE_CASES];
@@ -153,7 +155,7 @@ describe("Vague Gate VG8: the anchors and the examples are literal", () => {
   it("Vague Gate VG8 the four anchors, 'Any one is enough' and both assumed-format fail examples are present", () => {
     const sec = sectionOf(form("S8"), "6b");
     for (const needle of ["the occasion or event type the lead wrote", "the time frame the lead wrote", "the lead's own stated doubt",
-      "or a format the lead itself named", "Any one is enough",
+      "or a CONCRETE format the lead itself named", "a generic word such as \"musician\", \"live music\", \"entertainment\" or \"music\" names no format", "Any one is enough",
       "Fail (assumed format only, solo): \"A solo guitarist is a lovely way to set the tone.\"",
       "Fail (assumed format only, duo): \"A duo is a warm way to fill an evening.\""]) assert.ok(sec.includes(needle), needle);
   });
@@ -167,23 +169,52 @@ describe("Vague Gate VG9: the verifier can see that the lead named the format", 
   });
 });
 
+describe("Vague Gate VG11: a generic format_requested word is not a format anchor", () => {
+  it("Vague Gate VG11 S18 (format_requested = live music) is in the mode, the text names the generic words, and S17 differs from S18 only in the field", () => {
+    assert.ok(build("S18").includes("\"format_requested\": \"live music\""));
+    const sec = sectionOf(form("S18"), "6b");
+    assert.equal(sec, VAGUE_6B);
+    for (const w of ["\"musician\"", "\"live music\"", "\"entertainment\"", "\"music\""]) assert.ok(sec.includes(w), w);
+    assert.ok(sec.includes("names no format and is NOT an anchor"));
+    assert.ok(sec.includes("Fail (a generic word only, format_requested = \"live music\")"));
+    // bounded inventory of the accepted anchor: S17 (a concrete named format) and the rejected generic S18 share one text
+    assert.equal(sectionOf(form("S17"), "6b"), sec);
+  });
+});
+
 describe("Vague Gate VG10: production call sites omit the option", () => {
   const walk = (dir: string): string[] => readdirSync(dir).flatMap((n) => {
     const p = join(dir, n);
     return statSync(p).isDirectory() ? (n === "fixtures" ? [] : walk(p)) : p.endsWith(".ts") && !p.endsWith(".test.ts") ? [p] : [];
   });
 
-  it("Vague Gate VG10 exactly three verifyGate call sites in src, each with three arguments and no openingRule", () => {
+  it("Vague Gate VG10 exactly three verifyGate call expressions in src (parsed, not scanned), each with three arguments and no openingRule", () => {
     const calls: string[] = [];
     for (const f of walk("src")) {
-      for (const line of readFileSync(f, "utf-8").split("\n")) {
-        if (/\bverifyGate\(/.test(line) && !/function verifyGate\(/.test(line) && !/^\s*(\/\/|\*)/.test(line)) calls.push(`${f}: ${line.trim()}`);
-      }
+      const sf = ts.createSourceFile(f, readFileSync(f, "utf-8"), ts.ScriptTarget.Latest, true);
+      const visit = (node: ts.Node) => {
+        if (ts.isCallExpression(node) && ts.isIdentifier(node.expression) && node.expression.text === "verifyGate") {
+          const where = `${f}:${sf.getLineAndCharacterOfPosition(node.getStart()).line + 1}`;
+          assert.equal(node.arguments.length, 3, `${where} passes ${node.arguments.length} arguments`);
+          assert.ok(!node.getText().includes("openingRule"), `${where} mentions openingRule`);
+          calls.push(where);
+        }
+        ts.forEachChild(node, visit);
+      };
+      visit(sf);
     }
     assert.equal(calls.length, 3, calls.join("\n"));
-    for (const c of calls) {
-      assert.ok(/verifyGate\(drafts, classification, pricing\)/.test(c), c);
-      assert.ok(!c.includes("openingRule"), c);
-    }
+  });
+
+  it("Vague Gate VG10 control: the parser finds a multiline call and ignores a string and a comment", () => {
+    const src = 'const a = "verifyGate(x, y, z, { openingRule: 1 })"; // verifyGate(a, b, c, d)\nawait verifyGate(\n  drafts,\n  c,\n  p,\n  { openingRule: "default" },\n);';
+    const sf = ts.createSourceFile("x.ts", src, ts.ScriptTarget.Latest, true);
+    const found: number[] = [];
+    const visit = (n: ts.Node) => {
+      if (ts.isCallExpression(n) && ts.isIdentifier(n.expression) && n.expression.text === "verifyGate") found.push(n.arguments.length);
+      ts.forEachChild(n, visit);
+    };
+    visit(sf);
+    assert.deepEqual(found, [4]);
   });
 });

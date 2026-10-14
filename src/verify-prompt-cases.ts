@@ -52,6 +52,8 @@ export const VAGUE_GATE_CASES: VerifyCase[] = [
     classification: base({ action: "one_question", vagueness: "vague", format_recommended: "mariachi_full", format_requested: "mariachi" }) },
   { id: "S17", what: "vague-quote mode with a format the lead named (format_requested set)", pricing: none,
     classification: base({ action: "one_question", vagueness: "vague", format_recommended: "solo", format_requested: "a solo guitarist" }) },
+  { id: "S18", what: "vague-quote mode with a generic format_requested word (not a format anchor)", pricing: none,
+    classification: base({ action: "one_question", vagueness: "vague", format_recommended: "solo", format_requested: "live music" }) },
 ];
 
 /**

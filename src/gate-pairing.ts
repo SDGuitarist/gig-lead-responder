@@ -26,7 +26,10 @@ export function verdictOf(g: GateResult): Verdict {
   };
 }
 
-export interface PairedRecord { pipeline: Verdict; replay_mode?: Verdict; replay_default?: Verdict; replay_error?: string }
+// `pipeline` is the verdict of the pipeline's own gate on the RAW drafts (before post-check); the replays verify the
+// post-check-cleaned final drafts, so `pipeline` is context, NOT a same-input noise floor (Codex R1 P1-1). The noise floor is
+// `replay_mode` against `replay_mode_repeat`: the same cleaned draft, the same rule, two fresh calls.
+export interface PairedRecord { pipeline: Verdict; replay_mode?: Verdict; replay_mode_repeat?: Verdict; replay_default?: Verdict; replay_error?: string }
 export interface PairedRun { lead: string; paired?: PairedRecord; gate_detail?: { opening?: string } }
 
 /** P(X >= k) for X ~ Binomial(n, 0.5): the exact one-sided sign test on the discordant pairs. */
@@ -50,8 +53,9 @@ export function summarizePairs(runs: PairedRun[]) {
     else if (m && d) bothPass++;
     else bothFail++;
   }
-  // The verifier's noise floor: the pipeline's own call and the replay under the SAME rule on the SAME draft.
-  const noise = usable.filter((r) => r.paired!.pipeline.pass !== r.paired!.replay_mode!.pass).length;
+  // The verifier's noise floor: two replays under the SAME rule on the SAME final draft.
+  const repeated = usable.filter((r) => r.paired!.replay_mode_repeat);
+  const noise = repeated.filter((r) => r.paired!.replay_mode_repeat!.pass !== r.paired!.replay_mode!.pass).length;
   return {
     runs: runs.length,
     pairs: usable.length,
@@ -60,7 +64,7 @@ export function summarizePairs(runs: PairedRun[]) {
     default_pass: usable.filter((r) => r.paired!.replay_default!.pass).length,
     newly_verified: b, newly_failed: c, both_pass: bothPass, both_fail: bothFail,
     sign_test_p_one_sided: signTestUpper(b, b + c),
-    noise_floor: { compared: usable.length, pipeline_vs_replay_mode_disagree: noise },
+    noise_floor: { compared: repeated.length, replay_mode_vs_repeat_disagree: noise },
     newly_verified_openings: newlyVerified,
   };
 }

@@ -50,7 +50,7 @@ This lead is vague: the form gave no date, venue, guest count or format, so the 
  * named it (format_requested). Pinned by src/vague-gate-prompt.test.ts (VG1-VG10).
  */
 const VAGUE_QUOTE_LEAD_SPECIFICITY = `### 6b. Lead-Specificity Check
-This lead is vague and its format was assumed: the form gave no date, venue or guest count, so the opening cannot cite them. The first sentence passes only if it repeats or restates a fact or an uncertainty the lead itself supplied. The minimum anchor is ONE of: the occasion or event type the lead wrote (a birthday, a wedding, a party); the time frame the lead wrote (next month, this winter, spring); the lead's own stated doubt ("not sure what kind of music"); or a format the lead itself named, which shows in the classification's \`format_requested\` (a lead that wrote "a solo guitarist" supplied that format). Any one is enough. A format that does NOT appear in \`format_requested\` ("solo guitar", "a duo" chosen by the app) is an assumption, not a fact the lead supplied, and is NOT an anchor. References that could be said to any inquiry do NOT qualify: "your event", "this inquiry", "what you're looking for", "the right fit", "the right music", "what would work best".
+This lead is vague and its format was assumed: the form gave no date, venue or guest count, so the opening cannot cite them. The first sentence passes only if it repeats or restates a fact or an uncertainty the lead itself supplied. The minimum anchor is ONE of: the occasion or event type the lead wrote (a birthday, a wedding, a party); the time frame the lead wrote (next month, this winter, spring); the lead's own stated doubt ("not sure what kind of music"); or a CONCRETE format the lead itself named, which shows in the classification's \`format_requested\` (a lead that wrote "a solo guitarist" supplied that format; a generic word such as "musician", "live music", "entertainment" or "music" names no format and is NOT an anchor). Any one is enough. A format that does NOT appear in \`format_requested\` ("solo guitar", "a duo" chosen by the app) is an assumption, not a fact the lead supplied, and is NOT an anchor. References that could be said to any inquiry do NOT qualify: "your event", "this inquiry", "what you're looking for", "the right fit", "the right music", "what would work best".
 - Look at the FIRST sentence of the draft
 - Deletion test: remove the words that came from this lead; if the sentence still works for any inquiry → lead_specific_opening = false
 - Pass: "Your mom's birthday, and you're not sure what kind of music: that is the right place for one question."
@@ -59,6 +59,7 @@ This lead is vague and its format was assumed: the form gave no date, venue or g
 - Fail (generic acknowledgement): "You're looking for the right music for your event."
 - Fail (assumed format only, solo): "A solo guitarist is a lovely way to set the tone."
 - Fail (assumed format only, duo): "A duo is a warm way to fill an evening."
+- Fail (a generic word only, format_requested = "live music"): "Live music is a great idea for your event."
 `;
 
 /** Measurement seam, never passed by production: "default" ignores vague-quote mode so one draft can be verified under both rules. */

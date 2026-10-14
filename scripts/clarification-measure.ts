@@ -158,11 +158,12 @@ for (const name of names) {
       };
       let pairedRecord: Record<string, unknown> | undefined;
       if (paired) {
-        // The replays verify o.drafts (the post-check-cleaned drafts), a fresh call each; a VerificationError is recorded,
+        // `pipeline` is the gate on the RAW drafts; the replays verify o.drafts (the post-check-cleaned final drafts), a fresh call each; a VerificationError is recorded,
         // not thrown, and the run is excluded from the pairs by gate-pairing.ts.
         pairedRecord = { pipeline: verdictOf(g) };
         try {
           pairedRecord.replay_mode = verdictOf(await verifyGate(o.drafts, o.classification, o.pricing));
+          pairedRecord.replay_mode_repeat = verdictOf(await verifyGate(o.drafts, o.classification, o.pricing)); // the noise floor
           pairedRecord.replay_default = verdictOf(await verifyGate(o.drafts, o.classification, o.pricing, { openingRule: "default" }));
         } catch (e) { pairedRecord.replay_error = String(e).slice(0, 200); }
       }

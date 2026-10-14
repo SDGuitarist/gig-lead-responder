@@ -96,6 +96,7 @@ For each of the 50 runs the runner records, for the SAME final draft pair (full 
 |---|---|---|
 | `pipeline` | the gate verdict `runPipeline` already produced (new rule, in the rewrite loop; the final attempt's verdict) | gate_status, fail_reasons, `lead_specific_opening`, scene_type, competitor_test, false_checks |
 | `replay_mode` | `verifyGate(finalDrafts, classification, pricing)`, a fresh call | same fields, new rule |
+| `replay_mode_repeat` | a second `verifyGate(finalDrafts, classification, pricing)` call on the same cleaned draft | the noise floor: same draft, same rule |
 | `replay_default` | `verifyGate(finalDrafts, classification, pricing, { openingRule: "default" })`, a fresh call | same fields, today's strict rule |
 | `replay_error` | a thrown `VerificationError` (the validator's own two attempts) | recorded; the run is excluded from the pairs and counted |
 
@@ -105,9 +106,12 @@ uses `replay_mode.pass` and `replay_default.pass` ONLY; post-check results, whic
 opening rule, are NOT part of it and are recorded separately. A run with a `replay_error` is excluded from both
 counts and reported. `classification` and `pricing` are stored per run (`o.classification`, `o.pricing`). The replays are gate-only: the
 deterministic post-check is independent of the opening rule and is recorded as it already is. The comparison uses
-`replay_mode` against `replay_default` (same time, same function, only the prompt differs). `pipeline` against
-`replay_mode` is the verifier's own noise floor on identical input and prompt: the number of runs where they differ
-is reported next to the result, so a gain smaller than the noise floor is not read as an effect. This is a paired,
+`replay_mode` against `replay_default` (same time, same function, only the prompt differs). **The noise floor** is
+`replay_mode` against a second same-rule call, `replay_mode_repeat`, on the same cleaned draft: the number of runs where
+they differ is reported next to the result, so a gain smaller than the noise floor is not read as an effect. The
+`pipeline` verdict is the pipeline's own gate on the RAW drafts (before the post-check) and is recorded as context only:
+the replays verify the post-check-cleaned final drafts, so it is not a same-input comparison (Codex code review R1 P1-1).
+This is a paired,
 observational comparison of one model's two stochastic verdicts, not a deterministic or causal measurement.
 
 ## The snapshot inventory
@@ -182,8 +186,8 @@ lines moved into the mode; the assumed-format sentence removed; the duo fail exa
 ## Decision table for the measurement (pre-registered; descriptive, derived)
 
 Arm: 5 processes x 10 leads (the route plan's 50 runs), the real pipeline on the NEW prompt, each final draft
-re-verified under both rules (the table above); plus the controls: 5 planted generic and 5 planted specific openings
-on a fixed made-up lead, each verified twice (20 verifies). The five texts per kind are the unit; repeats are not
+re-verified under both rules (the table above); plus the controls: 6 planted generic and 5 planted specific openings
+on a fixed made-up lead, each verified twice (22 verifies). The five texts per kind are the unit; repeats are not
 independent. The rules are asymmetric by cost: a false pass is the harm (a generic opener reaching the sending path),
 a false fail only loses gain. Counts only; the table is a reading guide set before the run, not a pass bar.
 
@@ -192,7 +196,7 @@ a false fail only loses gain. Counts only; the table is a reading guide set befo
 | ANY planted generic text (solo or duo) passes `lead_specific_opening` in EITHER of its two verifies | a generic opening was accepted once: the harm direction is a false pass, so one observation is a control defect | STOP; revert the prompt change; return to Alex |
 | 2 or more planted specific texts fail it in AT LEAST ONE verify | the new rule is too tight (the cost is lost gain, so one miss on one text is tolerated) | STOP; return to Alex |
 | controls ok AND `replay_mode` verified exceeds `replay_default` verified: b newly verified, c newly failed, b > c with exact one-sided sign-test p < 0.05, AND every newly verified opening passes a manual deletion test | the scoped rule moved the gate and holds | proceed to code review, compound |
-| controls ok AND the sign test does not reach p < 0.05, or b is within the `pipeline` vs `replay_mode` disagreement count | not distinguishable from verifier noise or the rule is not the main cause | STOP; record the other failures; return to Alex |
+| controls ok AND the sign test does not reach p < 0.05, or b is within the `replay_mode` vs `replay_mode_repeat` disagreement count | not distinguishable from verifier noise or the rule is not the main cause | STOP; record the other failures; return to Alex |
 | a newly verified draft has a generic opening | the verifier did not follow the text | STOP; a failure of this plan |
 
 Why the sign test: the 50 pairs are the same drafts under two prompts; only discordant pairs carry information, and an
