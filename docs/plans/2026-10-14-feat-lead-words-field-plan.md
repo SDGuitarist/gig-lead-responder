@@ -1,7 +1,7 @@
 ---
 title: "feat: a classifier field for what the lead actually wrote, for the drafter and the verifier"
 date: 2026-10-14
-status: plan, Revision 1 (plan review R1 NO-GO, 5 P1 / 2 P2, answered here; D5 decided by Alex 2026-10-14)
+status: plan, Revision 1b (plan review R1 NO-GO 5 P1 / 2 P2, R2 NO-GO 3 P1 / 2 P2, both answered; D5 decided by Alex 2026-10-14; Alex chose "Fix the 5, then authorize round 3")
 branch: feat/hub-phase0
 ---
 
@@ -58,11 +58,28 @@ month", doubt "not sure what kind of music"). **Two boundaries, one accessor** (
    whitespace including line breaks collapsed to one space, trimmed, lowercased. The kept value is the model's trimmed
    phrase, unchanged. A phrase the lead did not write lexically cannot survive.
 
-**Guarantee, stated narrowly (answers R1 P1-2): the check is LEXICAL copying, not semantic truth.** One bounded negation
-guard is added for `occasion` and `time_frame` only: when the word immediately before the matched span in the lead is
-"not", "no", "never" or ends in "n't", the phrase becomes null ("this is not a wedding" does not yield "a wedding").
-`doubt` is exempt (its phrases start with "not sure", "no idea"). Anything subtler ("we used to want a band") is an
-unmeasured limitation, listed in the plan's risks.
+3. **`sanitizeClassification` is the serialization boundary** (answers R2 P1-1): both prompts serialize its result, so it
+   sets `lead_words: leadWordsOf(c)` with each phrase truncated to its cap. A malformed stored value therefore reaches
+   a prompt only as the all-null object. LW14 is an end-to-end test (below), not an accessor test.
+
+**Guarantee, stated narrowly (answers R1 P1-2): the check is LEXICAL copying, not semantic truth.** Two bounded guards:
+
+- **Negation guard, `occasion` and `time_frame` only (answers R2 P1-2).** Work on the normal form. A TOKEN is a maximal run
+  of letters, digits and apostrophes; every other character (spaces, line breaks, punctuation, quotes, parentheses) only
+  separates tokens. The "word immediately before the span" is the last token that ends before the span's first
+  character, skipping separators. The phrase becomes null when that token is `not`, `no`, `never` or `without`, or ends
+  in `n't` as a WHOLE token (`isn't`, `don't`, `can't`, `wasn't`). `no` inside `know` or `not` inside `nothing` is not
+  a token match. Cases pinned by LW11: "this is not a wedding", "(not a wedding)", "NOT, a wedding" (comma between),
+  "isn't a wedding", "know a wedding" (kept), "nothing a wedding" (kept).
+- **Doubt shape guard, `doubt` only.** A `doubt` is kept only when its normal form contains one of a bounded list of
+  doubt markers: `not sure`, `unsure`, `no idea`, `not certain`, `don't know`, `do not know`, `haven't decided`, `have not
+  decided`, `undecided`, `not decided`, `still deciding`, `wondering`, `any ideas`, `any suggestions`, `open to`, or a
+  question word (`what`, `which`, `how`) followed within 6 tokens by `music`, `kind`, `type`, `format`, `band` or
+  `guitar`. A `doubt` that fails the shape, or that equals the `occasion` or `time_frame` value, becomes null (so an
+  occasion phrase cannot enter through `doubt` and bypass the negation guard). A doubt in other words is null, a stated
+  limit: the verifier then falls back to the classification text.
+
+Anything subtler ("we used to want a band") is an unmeasured limitation, listed in the plan's risks.
 
 D2. **The drafter sees them** (`src/prompts/generate.ts`): when `action === "one_question"`, `vagueness === "vague"` and at
 least one `lead_words` value is non-null (read through `leadWordsOf`), a new section "WHAT THE LEAD WROTE" is inserted
@@ -89,20 +106,36 @@ D5. **Decision record (Alex, chat answer 2026-10-14: "recommended")**: (a) D2 an
 (`unresolved`) AND the vague-quote mode (both rely on the same anchor); (b) the field is model-extracted and verified in
 code against the lead text (not a code-only extractor over a fixed vocabulary).
 
+## The classification-to-prompt surface (bounded inventory; answers R2 P1-1)
+
+Every place a classification becomes prompt text, read 2026-10-14 (`rg sanitizeClassification src`):
+`src/prompts/generate.ts:63` (the `lead_classification` block), `src/prompts/verify.ts:95` (the `lead_classification`
+block) and `:114` (flagged concerns only), and `src/run-pipeline.ts:117` (a belt-and-suspenders call before the
+builders). All go through `sanitizeClassification`, which this plan makes set `lead_words` from `leadWordsOf`. The
+new generate section and the verify 6b selection read through `leadWordsOf` directly. The leads store persists the
+classification JSON and re-reads it into those same builders (`runEditPipeline`); it never builds prompt text itself.
+No logger or SSE event serializes the classification into a prompt. A new consumer must use `leadWordsOf`; LW14 is the
+guard for the serialization path, and the mutation map has a row for `sanitizeClassification` serializing the raw field.
+
 ## The classifier regression and the grounding check (pre-registered)
 
 The classifier prompt gains the field in its output schema and one instruction paragraph. Because that edit has moved
 ordinary leads before:
 
-1. **Regression (executable; answers R1 P1-3):** `scripts/classifier-regression.ts --tag before|after --runs 5` on the 7
-   recorded leads. Unit of comparison: for each of the 7 leads and each of the 8 fields the script already compares
-   (`action`, `vagueness`, `competition_level`, `format_recommended`, `duration_hours`, `rate_card_tier`,
-   `stealth_premium`, `quote_price`), the MODAL value over the 5 runs and the number of runs that differ from that modal
-   value. **Stop rule, computed by `--compare` and enforced by its exit status (exit 1):** the modal value of any
-   (lead, field) changes, OR the number of runs differing from the modal value rises by 2 or more. The comparator is a
-   new `before` run on the pre-change tree at step 1 (not the old record: the model varies by day), compared with the
-   `after` run. The new `lead_words` key is excluded. Any exit 1 STOPS the cycle (revert the prompt; the code-only
-   extractor, D5(b), would need Alex's re-approval).
+1. **Regression (executable; answers R1 P1-3 and R2 P1-3):** `scripts/classifier-regression.ts --tag before|after
+   --runs 5` on the 7 recorded leads. The script writes `{ results: { <lead>: [ { <field>: value, ... } x 5 ] } }`; the
+   comparison reads `results[lead][i][field]` for the 8 fields it already compares (`action`, `vagueness`,
+   `competition_level`, `format_recommended`, `duration_hours`, `rate_card_tier`, `stealth_premium`, `quote_price`), and no
+   other. Per (lead, field): the value of each of the 5 rows is its JSON string; a row recorded as an error
+   (`{ action: "ERROR", error }`, or a missing row) counts as the value `__error__` for EVERY field. **Counts per value;
+   the mode is the value with the highest count, a tie broken by the lexicographically smallest value string**
+   (deterministic, so 2/2/1 has one mode). **`--compare` exits 1 when, for any (lead, field): (i) the mode differs between
+   before and after; or (ii) the after file's runs off its own mode exceed the before file's runs off its own mode by 2
+   or more; or (iii) the after file has any more `__error__` rows than the before file.** Exit 0 otherwise. The
+   comparator is a new `before` run on the pre-change tree at step 1 (the model varies by day), compared with the
+   `after` run; the new `lead_words` key is excluded. Any exit 1 STOPS the cycle (revert the prompt; D5(b) code-only would
+   need Alex's re-approval). LW13 pins (i), (ii), (iii), a 2/2/1 tie that does not change the tie-broken mode (exit 0),
+   a tie whose smallest-value mode flips (exit 1), a missing row and a malformed file (exit 2, not 0).
 2. **Grounding:** the 10 made-up vague leads (v1-v6, h1-h4) x 5 runs: counts of non-null `occasion`, `time_frame`, `doubt`,
    and of values that failed the substring check (the model invented or paraphrased). Descriptive; a high
    fabrication-rate (more than 1 in 5 non-null values failing the substring check) means the instruction is not followed
@@ -118,7 +151,7 @@ ordinary leads before:
    `lead_words` (byte-equal, pinned); pricing, router, payment, COI, the voice block; `runEditPipeline` on a stored
    classification without the field.
 3. **How will we know it worked?** EARS below; the regression with its exit status; the grounding counts; then the arm
-   (plain counts) and the four-cell controls on the new prompts, judged by the decision table with the openings read.
+   (plain counts) and the five-cell controls on the new prompts, judged by the decision table with the openings read.
    Observational: 50 runs, one model, made-up leads.
 4. **Most likely way this plan is wrong?** (a) The classifier prompt edit shifts an ordinary field (the regression is
    there for that; it did once). (b) The model copies a phrase but the drafter still opens with an invented scene because
@@ -164,13 +197,19 @@ File `src/lead-words.test.ts`; names start `Lead Words LW<n>`.
 - **LW12** (order) WHEN the generate prompt is built with a non-null phrase, THE SYSTEM SHALL place "WHAT THE LEAD WROTE"
   after the `lead_classification` block and before `## VOICE EXAMPLES`, `## REFERENCE LEAD` and `## STEP 1`, SHALL contain
   the precedence sentence, and SHALL withhold it for all-null, `quote`, `clear` and `assume_and_quote` (each on its own).
+- **LW14** (end to end; answers R2 P1-1) WHEN a classification whose `lead_words` is a string, an array, an object with a
+  numeric member or an object with an 81-character member goes through `buildGeneratePrompt` and `buildVerifyPrompt`
+  (the builders `runEditPipeline` uses), THE SYSTEM SHALL produce prompts byte-equal to the same classification with
+  `lead_words` all null, and SHALL NOT contain the malformed text; positive control: the same classification with a valid
+  phrase contains it, wrapped.
 - **LW13** (regression gate) WHEN `scripts/classifier-regression.ts --compare` is given a before and an after file in
   which the modal value of one (lead, field) differs, or one lead's differing-run count rises by 2, THE SYSTEM SHALL
   exit 1; with identical files it SHALL exit 0.
 
 Mutation map (each run): the substring check removed; the 80-character cap removed; the section applied to `quote`; the
 section gate drops `vagueness`; the verify sentence applied when all null; the generate section unwrapped; the
-normalizer not called in `validateClassification`; `leadWordsOf` dropped from a consumer; the negation guard
+normalizer not called in `validateClassification`; `leadWordsOf` dropped from a consumer; `sanitizeClassification` serializing the raw field; the doubt-shape guard
+removed; the tie-break removed; the negation guard
 removed; accent folding removed; the `--compare` exit status ignored.
 
 ## Decision table for the measurement (pre-registered; descriptive)
@@ -178,7 +217,10 @@ removed; accent folding removed; the `--compare` exit status ignored.
 Arm: 5 processes x 10 leads (v1-v6, h1-h4), the real pipeline on the NEW prompts, **plain counts, no `--paired`** (answers
 R1 P1-4: the previous arm's drafts do not hold the new section, so a paired comparison with them is not valid; the
 arm records the pipeline's own gate verdict, the opening of each final draft and the classification with `lead_words`).
-Controls, a four-cell matrix, each text verified twice under the REAL classification shape:
+Controls, a five-cell matrix, each text verified twice. **Every planted classification goes through `verifyGate`, whose
+prompt is built by `buildVerifyPrompt` and `sanitizeClassification` (the production path for stored classifications
+too; answers R2 P2-5); cell E additionally asserts `leadWordsOf` returns all-null for its two malformed values before
+any model call:**
 
 | Cell | `lead_words` | Opening | Must | Texts |
 |---|---|---|---|---|
@@ -186,18 +228,19 @@ Controls, a four-cell matrix, each text verified twice under the REAL classifica
 | B | all null | app label ("A private celebration with live music ...") | fail | 2 |
 | C | a valid phrase | quotes it | pass | 3 |
 | D | a valid phrase | generic or app label | fail | 3 |
+| E | MALFORMED stored value (`"a wedding"` as a string; `["a wedding"]` as an array) | generic | fail | 2 |
 
 | Observation | Meaning | Action |
 |---|---|---|
 | the regression `--compare` exits 1 | the classifier edit has side effects | STOP; revert; D5(b) needs Alex's re-approval |
 | more than 1 in 5 non-null phrases fail `groundLeadWords` (counted before the check) | the instruction is not followed | STOP; return to Alex |
-| ANY text in cells A, B or D passes `lead_specific_opening` in EITHER verify | a false pass (the harm direction) | STOP; return to Alex |
+| ANY text in cells A, B, D or E passes `lead_specific_opening` in EITHER verify | a false pass (the harm direction) | STOP; return to Alex |
 | 2 or more cell C texts fail it in AT LEAST ONE verify | the rule is too tight with a phrase available | STOP; return to Alex |
 | controls ok AND opening-false is 20 or more of 50 | the drafter does not use the phrases | STOP; the generate section is the next plan |
 | controls ok AND opening-false below 20 of 50 | descriptive: record verified, opening-false, the openings read | record; compare with 9-11 of 50 verified and 32 of 50 opening-false |
 
 The 1 in 5 and 20 of 50 are reading guides fixed before the run, not derived tests (20 of 50 is about two thirds of the
-previous 32; 1 in 5 is one failure per five phrases). Cell sizes are small by construction (10 texts); the stop rules are
+previous 32; 1 in 5 is one failure per five phrases). Cell sizes are small by construction (12 texts, 24 verifies); the stop rules are
 asymmetric by cost: a false pass is the harm, a false fail only loses gain.
 
 **Sending boundary:** passing this measurement does not make any draft sendable. The router still holds every vague
@@ -231,22 +274,22 @@ asymmetric by cost: a false pass is the harm, a false fail only loses gain.
 ## Execution Path
 
 - **Target:** Alex's MacBook, `scripts/classifier-regression.ts`, a new `scripts/lead-words-grounding.ts`,
-  `scripts/clarification-measure.ts --arm B --probe C8`, `scripts/vague-gate-controls.ts` (extended to the four-cell matrix
+  `scripts/clarification-measure.ts --arm B --probe C8`, `scripts/vague-gate-controls.ts` (extended to the five-cell matrix
   with a `lead_words` variant per cell), real model, scratch databases, nothing sent.
 - **Mechanism:** the committed scripts call the real pipeline functions with the real model; the regression and the grounding
   script call `classifyLead` only; the arm runs `runPipeline` for the 10 made-up leads and records the classification
   (with `lead_words`), the draft and the verdicts; the controls verify planted openings.
 - **Command (exact), from the repo root:**
-  `OUT=$(mktemp -d /tmp/lead-words.XXXXXX); npx tsx scripts/classifier-regression.ts --tag after --runs 5 --out "$OUT"; npx tsx scripts/classifier-regression.ts --compare <before.json> "$OUT"/<after.json>; echo compare-exit=$?; npx tsx scripts/lead-words-grounding.ts --runs 5 --out "$OUT"; pids=""; for t in 1 2 3 4 5; do npx tsx scripts/clarification-measure.ts --arm B --probe C8 --runs 1 --tag B$t --out "$OUT" --today 2026-10-12 > "$OUT/log-B$t.txt" 2>&1 & pids="$pids $!"; done; for p in $pids; do wait $p || echo "JOB $p FAILED"; done; grep -c "usage limits" "$OUT"/log-B*.txt; ls "$OUT"/clarification-B*.json | wc -l; npx tsx scripts/vague-gate-controls.ts --out "$OUT"; echo controls-exit=$?`
-  (the `before` regression runs once on the pre-change tree at step 1). **Before recording any result:** a
-  `JOB ... FAILED` line, a non-zero `usage limits` count, a result-file count other than 5, `compare-exit` other than 0 or
-  `controls-exit` other than 0 voids the run (it is rerun or stopped by the table, not interpreted).
+  `OUT=$(mktemp -d /tmp/lead-words.XXXXXX); npx tsx scripts/classifier-regression.ts --tag after --runs 5 --out "$OUT"; npx tsx scripts/classifier-regression.ts --compare <before.json> "$OUT"/<after.json>; CMP=$?; npx tsx scripts/lead-words-grounding.ts --runs 5 --out "$OUT"; pids=""; for t in 1 2 3 4 5; do npx tsx scripts/clarification-measure.ts --arm B --probe C8 --runs 1 --tag B$t --out "$OUT" --today 2026-10-12 > "$OUT/log-B$t.txt" 2>&1 & pids="$pids $!"; done; FAILED=0; for p in $pids; do wait $p || FAILED=$((FAILED+1)); done; LIMITS=$(cat "$OUT"/log-B*.txt | grep -c "usage limits"); FILES=$(ls "$OUT"/clarification-B*.json | wc -l | tr -d ' '); npx tsx scripts/vague-gate-controls.ts --out "$OUT"; CTL=$?; if [ "$FAILED" = 0 ] && [ "$LIMITS" = 0 ] && [ "$FILES" = 5 ] && [ "$CMP" = 0 ] && [ "$CTL" = 0 ]; then echo RESULT=PASS; else echo "RESULT=VOID failed=$FAILED limits=$LIMITS files=$FILES compare=$CMP controls=$CTL"; fi`
+  (the `before` regression runs once on the pre-change tree at step 1). **One line decides:** `RESULT=PASS` or
+  `RESULT=VOID ...`. A VOID run is rerun or stopped by the table, never interpreted. (A `compare` of 1 is the stop rule
+  firing, which is a recorded STOP, not a void: the script prints it as `compare=1`.)
 - **Prerequisites:** ALREADY HAVE: Node, `npm`, `tsx`, `ANTHROPIC_API_KEY` in `.env`, network, a raised API spend limit.
   MUST OBTAIN: none.
 - **Output:** result files and a regression comparison, recorded in `docs/reviews/2026-10-14-lead-words-measurement.md`.
 - **Who:** Claude Code or Alex. **Trigger:** after step 6, on Alex's "go". **Spend:** two regressions of 35
   classifications each, 50 grounding classifications, the arm (50 pipelines: 1 classification and up to 3 generate and 3
-  verify calls each, so at most about 350 calls) and the controls (14 texts x 2 verifies = 28 calls); no `--paired`
+  verify calls each, so at most about 350 calls) and the controls (12 texts x 2 verifies = 24 calls); no `--paired`
   replays.
 - **Expected (a hypothesis until run):** the opening check stops being the main failure; `sounds_like_alex` (12) and
   `can_see_it` (9) remain. What this does NOT show: that quoted vague drafts are good enough to send.
