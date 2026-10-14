@@ -1,4 +1,5 @@
 import type { Classification } from "../types.js";
+import { leadWordsOf } from "../lead-words.js";
 
 const MAX_FIELD_LENGTH = 200;
 
@@ -22,6 +23,9 @@ export function sanitizeClassification(c: Classification): Classification {
     ...c,
     client_first_name: c.client_first_name ? truncate(c.client_first_name) : c.client_first_name,
     format_requested: truncate(c.format_requested),
+    // Absent stays absent (a stored classification, every prompt for a lead without the field is unchanged); a present
+    // value is read through the accessor, so a malformed stored value reaches a prompt only as the all-null object.
+    ...(c.lead_words === undefined ? {} : { lead_words: leadWordsOf(c) }),
     stealth_premium_signals: c.stealth_premium_signals
       ? truncateArray(c.stealth_premium_signals)
       : c.stealth_premium_signals,

@@ -115,6 +115,10 @@ export interface Classification {
   residency_tier?: ResidencyTier | null;
   residency_cadence?: ResidencyCadence | null;
   price_asked?: boolean;
+  // The lead's own phrases (plan 2026-10-14-feat-lead-words-field-plan.md): copied by the classifier, kept only when they
+  // are a lexical substring of the lead (src/lead-words.ts). Optional: a stored classification may lack it; consumers read
+  // it only through leadWordsOf().
+  lead_words?: { occasion: string | null; time_frame: string | null; doubt: string | null };
   // COI plan (2026-10-12): the client or venue says a certificate of insurance is REQUIRED (or asks for one). Only a
   // real true counts (normalizeCoiRequired); absent is false. Not PF-Intel's vendor_policies.coi_required (the venue's).
   coi_required?: boolean;
