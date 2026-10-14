@@ -1,7 +1,7 @@
 ---
 title: "feat: a classifier field for what the lead actually wrote, for the drafter and the verifier"
 date: 2026-10-14
-status: plan, Revision 0 (not plan-reviewed; D5 open for Alex)
+status: plan, Revision 0 (not plan-reviewed; D5 decided by Alex 2026-10-14)
 branch: feat/hub-phase0
 ---
 
@@ -65,10 +65,9 @@ D4. **Scope fence.** Not changed: pricing, router (every vague `one_question` le
 sentences, the voice block, the vague-quote reference block text, `GUT_CHECK_*`, the gate rule, `assume_and_quote` and
 non-solo/duo formats (D3 of the previous plan, still Alex's decision).
 
-D5. **OPEN, Alex:** (a) apply D2 and D3 to clarification mode (`unresolved`) as well as the vague-quote mode
-(recommended: both rely on the same anchor and plan 1's text asks for the same thing), or only the vague-quote mode;
-(b) model-extracted + code-verified (recommended; coverage across phrasings) versus a code-only extractor over a fixed
-vocabulary (no classifier prompt edit, no regression, but misses most phrasings).
+D5. **Decision record (Alex, chat answer 2026-10-14: "recommended")**: (a) D2 and D3 apply to clarification mode
+(`unresolved`) AND the vague-quote mode (both rely on the same anchor); (b) the field is model-extracted and verified in
+code against the lead text (not a code-only extractor over a fixed vocabulary).
 
 ## The classifier regression and the grounding check (pre-registered)
 
@@ -164,7 +163,7 @@ section.
 
 ## Work steps (one concern per commit; failing test first)
 
-0. **HARD STOP:** Alex's D5 answers and a Codex plan review. No production code before.
+0. **HARD STOP:** a Codex plan review (D5 is decided). No production code before.
 1. `before` regression and snapshots of the unaffected cases from the CURRENT code.
 2. LW1, LW8 failing; `normalizeLeadWords`, the field, `sanitize`; pass.
 3. LW2, LW6; the classifier prompt edit; `snapshot refresh:` of the pinned hash; the `after` regression and the record.
