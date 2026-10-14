@@ -244,7 +244,10 @@ describe("Vague Reference V10: the review's four findings", () => {
 
   it("Vague Reference V10c the setup sentence is allowed word for word and the shared-window check cuts it", () => {
     assert.ok(VAGUE_QUOTE_REFERENCE_REPLY.includes(VAGUE_QUOTE_SETUP_SENTENCE));
-    assert.ok(promptWith().includes("you may use the example's own setup sentence word for word"), "the block permits exactly that sentence");
+    const permission = promptWith().split("\n").find((l) => l.startsWith("5. ")) ?? "";
+    assert.ok(permission.includes("you may use the example's own setup sentence word for word ONLY when it is compatible with this lead"), "the permission is conditional");
+    assert.ok(permission.includes("does not contradict the venue or setup facts the lead gave"), "names the contradiction case");
+    assert.ok(permission.includes("otherwise write the setup need from this lead"), "gives the fallback");
     const draft = `Hi Sam. A quiet evening, one guitar, one question. ${VAGUE_QUOTE_SETUP_SENTENCE} Alex Guillen`;
     assert.equal(sharedWindows(draft, VAGUE_QUOTE_REFERENCE_REPLY, [VAGUE_QUOTE_SETUP_SENTENCE]), 0);
     // negative control: another clause of the example is still counted, setup sentence cut or not
