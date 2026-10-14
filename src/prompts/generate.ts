@@ -6,6 +6,7 @@ import { coiLine, coiTermsFor } from "../pipeline/coi.js";
 import { SETUP_SPACE } from "../data/setup-space.js";
 import { VOICE_REFERENCES } from "../data/voice-references.js";
 import { buildT4ReferenceBlock } from "../data/t4-reference.js";
+import { buildVagueQuoteReferenceBlock } from "../data/vague-quote-reference.js";
 import { withoutHoldNotes, CONCERN_4PIECE_ALT, CONCERN_FULL_ENSEMBLE, GUT_CHECK_KEYS, GUT_CHECK_THRESHOLD, GUT_CHECK_TOTAL, type Classification, type Format, type PricingResult, type ResidencyQuote } from "../types.js";
 import { sanitizeClassification, wrapUntrustedData, wrapVoiceReference } from "../utils/sanitize.js";
 
@@ -81,7 +82,7 @@ ${context}
 ${buildVoiceRulesBlock(classification, pricing)}
 
 ${buildVoiceExamplesBlock()}
-${buildT4ReferenceSection(classification, pricing)}
+${buildT4ReferenceSection(classification, pricing)}${buildVagueQuoteReferenceSection(classification, pricing, paymentTerms)}
 ## STEP 1: REASON (mandatory before any prose)
 
 Before writing a single word of the draft, you MUST fill the "reasoning" block in the output JSON. This is your thinking space — every field must be populated.
@@ -221,6 +222,34 @@ function buildT4ReferenceSection(classification: Classification, pricing: Pricin
   if (classification.past_date_detected === true) return "";
   const block = buildT4ReferenceBlock(classification);
   return block ? `\n${block}\n` : "";
+}
+
+/**
+ * The vague-lead reference (plan 2026-10-13-feat-vague-lead-quote-with-question, Revision 1b, D2), with its own
+ * blank-line padding, or "" so every other prompt stays byte-identical. It is shown only for a vague `one_question`
+ * lead whose default format (solo or duo) is quoted from the table, and is withheld wherever the example's fixed shape or
+ * its payment and COI sentences would contradict the response mode:
+ *   - no quote terms at all (`quoteTermsOff`: clarification, no_viable_scope, residency), a large budget gap, a graceful
+ *     decline, a past date: the same four T4 withholds;
+ *   - payment that is not a dated sentence (GigSalad, The Bash, an unknown platform): the example states one;
+ *   - a nonprofit buyer (its own price block), cultural context or sourced delivery (its own voice and claims);
+ *   - a T4 lead (it already has the T4 reference; two shapes contradict).
+ * Not withheld: `coi_required` and the dated payment sentences. As in T4, the block says those sentences come from the
+ * Quote Terms section, copied exactly.
+ */
+function buildVagueQuoteReferenceSection(classification: Classification, pricing: PricingResult, paymentTerms: PaymentTerms): string {
+  if (classification.action !== "one_question" || classification.vagueness !== "vague") return "";
+  if (classification.format_recommended !== "solo" && classification.format_recommended !== "duo") return "";
+  if (quoteTermsOff(classification, pricing)) return "";
+  if (pricing.budget.tier === "large") return "";
+  if (classification.graceful_decline === true) return "";
+  if (classification.past_date_detected === true) return "";
+  if (paymentTerms.kind !== "sentence") return "";
+  if (classification.nonprofit_buyer === true) return "";
+  if (classification.cultural_context_active === true) return "";
+  if (classification.delivery_mode === "alex_sources" || classification.delivery_mode === "hybrid") return "";
+  if (classification.rate_card_tier === "T4") return "";
+  return `\n${buildVagueQuoteReferenceBlock(classification)}\n`;
 }
 
 function buildVoiceExamplesBlock(): string {
