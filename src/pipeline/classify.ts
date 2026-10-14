@@ -239,10 +239,28 @@ export async function classifyLead(rawText: string, today: string): Promise<Clas
     result.client_first_name = null;
   }
 
-  // Clarification-first leads may intentionally defer format selection.
-  if (result.action === "one_question" && result.vagueness === "vague" && result.format_recommended === "unresolved") {
-    return result;
-  }
+  // A vague lead that names no format gets the default format and is quoted with one question; an explicit ensemble
+  // request stays `unresolved` (clarification mode). Plan docs/plans/2026-10-13-feat-vague-lead-quote-with-question-plan.md.
+  return defaultVagueFormat(result, rawText);
+}
 
-  return result;
+// Whole words that name an ensemble the default cannot answer ("Latin band", "a trio", "a group"). "players" is NOT one:
+// "not sure how many players" is a lead that has not chosen, not a lead asking for a band; and "a group of 30 guests" is a
+// guest count, so "group" counts only when it is not followed by "of".
+const ENSEMBLE_WORDS = /\b(?:band|bands|ensemble|orchestra|trio|quartet|quintet|sextet|group(?!\s+of\b))\b/i;
+// A dinner, a cocktail hour or dancing is the existing format routing's duo setting (src/prompts/classify.ts).
+const DUO_SETTING = /\b(?:dinner|cocktail|cocktails|dancing|dance floor|dance)\b/i;
+
+/**
+ * The default format for a vague lead (Alex's own rule: "default to solo guitar, quote that default"). Applies only to
+ * `one_question` + `vague` + `unresolved`, and only when neither the lead text nor `format_requested` names an
+ * ensemble. Everything else is returned untouched, so no ordinary lead is affected. The classifier PROMPT is left alone on
+ * purpose: editing its SPECIAL CASE paragraph moved a hotel wedding's format and a mariachi lead's action in the
+ * before/after regression (docs/reviews/2026-10-13-classifier-regression-after.md).
+ */
+export function defaultVagueFormat(classification: Classification, rawText: string): Classification {
+  if (classification.action !== "one_question" || classification.vagueness !== "vague") return classification;
+  if (classification.format_recommended !== "unresolved") return classification;
+  if (ENSEMBLE_WORDS.test(rawText) || ENSEMBLE_WORDS.test(classification.format_requested ?? "")) return classification;
+  return { ...classification, format_recommended: DUO_SETTING.test(rawText) ? "duo" : "solo" };
 }

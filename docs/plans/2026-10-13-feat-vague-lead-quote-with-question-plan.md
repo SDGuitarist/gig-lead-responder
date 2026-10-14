@@ -1,7 +1,7 @@
 ---
 title: "feat: a vague lead gets the default format quoted with one question, not a no-price clarification"
 date: 2026-10-13
-status: plan, Revision 1b (plan review R1 NO-GO, 5 P1 / 1 P2, answered in Revision 1; R2 NO-GO, one P1 and one P2 in the measurement text, answered in Revision 1b at the cap; the salutation was answered (a) by Alex 2026-10-13; Alex chose to fix and build, no round 3)
+status: plan, Revision 2 (D1's MECHANISM changed after the classifier regression, see "Decision record" and D1; this revision has NOT had a Codex plan review: Codex code review reads it with the code). Earlier: Revision 1b (plan review R1 NO-GO, 5 P1 / 1 P2, answered in Revision 1; R2 NO-GO, one P1 and one P2 in the measurement text, answered in Revision 1b at the cap; the salutation was answered (a) by Alex 2026-10-13; Alex chose to fix and build, no round 3)
 branch: feat/hub-phase0
 ---
 
@@ -31,6 +31,11 @@ forward: one model and made-up leads, so every measurement here is exploratory a
 - **The salutation: option (a).** The reference opens with a name ("Hi Dana,", as the T4 reference does) and the
   generate prompt's nameless-lead rule ("omit salutation") stays unchanged. He answered "a" to (a) a name in the
   reference, nameless rule stays; (b) change the rule to "Hi there,"; (c) no salutation in the reference.
+- **The mechanism (Revision 2, after the classifier regression).** The first D1 edited the classifier prompt's SPECIAL
+  CASE. The before/after regression on ordinary leads (`docs/reviews/2026-10-13-classifier-regression-after.md`) showed
+  it moved the hotel wedding (`flamenco_duo` 7 of 15 to 14 of 15, a $100 price change, p = 0.007) and made a mariachi
+  lead a "quote" 4 of 15 times (p = 0.05). Alex was shown that and chose **"A deterministic default in code"**: the
+  classifier prompt is left untouched and a tested step after classification sets the default format.
 - **Volume: no rule added.** Asked whether "no volume commitments" should be an app rule, he answered "no that's not a
   guarantee". Read as: no new rule is added; the reference describes how the guitar sits, it does not promise a
   level. If he meant something else, this line is the one to correct.
@@ -80,17 +85,23 @@ false check; `docs/reviews/2026-10-13-clarification-alex-reference-reply-vs-app.
 
 ## Decision
 
-D1. **The route and the "Latin band" boundary** (answers R1 item 2). In `src/prompts/classify.ts` the SPECIAL CASE
-is split on what the client asked for:
+D1. **The route and the "Latin band" boundary, in code** (answers R1 item 2; mechanism changed in Revision 2). The
+classifier prompt (`src/prompts/classify.ts`) is NOT edited: it keeps returning `unresolved` for a vague request.
+A new pure function `defaultVagueFormat(classification, rawText)` in `src/pipeline/classify.ts`, called at the end of
+`classifyLead`, sets the default when ALL hold: `action === "one_question"`, `vagueness === "vague"`,
+`format_recommended === "unresolved"`, and neither the lead text nor `format_requested` names an explicit ensemble:
 
-| The lead asks for | `format_requested` | `format_recommended` | Hard gate | Router | Price |
-|---|---|---|---|---|---|
-| a CATEGORY with no format named ("music", "entertainment", "live music", "Latin music", "Spanish guitar", "not sure what kind of music") | the words used | **solo**, or **duo** when the lead names a dinner, cocktail or dancing setting (the existing format routing) | passes | holds (vague + `one_question`) | the table's price for that format |
-| an ENSEMBLE or band format it cannot default ("Latin band", "a band", "a trio", "a quartet", "an orchestra") | the ensemble words | **unresolved** (as today) | the listed band formats still decline; "Latin band" passes | holds | none (clarification mode, as today) |
+| The lead asks for | `format_recommended` after `classifyLead` | Hard gate | Router | Price |
+|---|---|---|---|---|
+| a CATEGORY with no format named ("music", "entertainment", "live music", "Latin music", "Spanish guitar", "not sure what kind of music or how many players") | **solo**, or **duo** when the text names a dinner, cocktail or dancing setting | passes | holds (vague + `one_question`) | the table's price for that format |
+| an ENSEMBLE ("Latin band", "a band", "a trio", "a quartet", "a quintet", "an orchestra", "an ensemble", "a group") | **unresolved** (unchanged) | the listed band formats still decline; "Latin band" passes | holds | none (clarification mode, as today) |
 
-So clarification mode stays live for the explicit-ensemble case and is no longer used for a category-only request.
-The default is Alex's own ("default to solo guitar"). Exact wording goes through plan review; the boundary words are
-fixed here.
+The ensemble test is a word match on `band`, `ensemble`, `orchestra`, `trio`, `quartet`, `quintet`, `sextet`, `group`
+(whole words, case-insensitive); "players" is NOT one (a lead that says "how many players" is unsure, not asking for
+a band). A lead that names a band as one option ("a band or maybe just a guitarist") stays `unresolved` (the
+conservative side; a documented boundary). The default is Alex's own ("default to solo guitar"). Clarification mode
+stays live for the ensemble case and is no longer used for a category-only request. The function changes nothing for
+a lead whose action is not `one_question`, whose format is already resolved, or whose vagueness is not `vague`.
 
 D2. **The reference block and its gate** (answers R1 items 1 and 5). A new module `src/data/vague-quote-reference.ts`
 mirrors the T4 reference: one reply, `[QUOTED_PRICE]` as the price, wired only into `buildGeneratePrompt`. The block
@@ -176,21 +187,27 @@ Decision rule, fixed before the run: a value for L1, L5, L6 or L7 that did not a
 changed, is a defect of the classifier wording and the wording is reverted or narrowed before anything else is built
 on it; L2-L4 staying `unresolved` is "the wording did not take", reported as such. The classifier is a model, so one
 different run out of five at baseline (L1) is variation, not a finding. Observational: 5 runs per lead, one model.
+**Outcome of the first attempt (Revision 1b's prompt wording):** the rule fired: L1 and L7 moved
+(`docs/reviews/2026-10-13-classifier-regression-after.md`); the wording was rejected and Revision 2 moved the default
+into code. The same regression is the check for the code default; with the prompt untouched (V6b) L1, L5, L6 and L7
+can differ from the baseline only by the model's own run-to-run variation.
 
 ## Plan Quality Gate
 
-1. **What exactly is changing?** The classifier prompt's SPECIAL CASE (split by D1); a new reference module and its
-   block in the generate prompt (gated by D2); tests; runner and report fields; one measurement.
+1. **What exactly is changing?** A deterministic default step after classification (D1); a new reference module and its
+   block in the generate prompt (gated by D2); tests; runner and report fields; one measurement. The classifier
+   PROMPT is not changed.
 2. **What must not change?** The price table and `lookupPrice`; the payment and COI sentences and their checks;
-   clarification mode's code and its explicit-ensemble use; the verify prompt and the validators; the router; the
+   the classifier prompt (V6b); clarification mode's code and its explicit-ensemble use; the verify prompt and the validators; the router; the
    generate prompt for every lead the block does not apply to (SHA-256 pins, V7); the T4 reference and its
    withholding; the SALUTATION rule (until Alex says otherwise).
 3. **How will we know it worked?** EARS below with a mutation each; the classifier regression above (ordinary leads
    before and after); plus a descriptive arm B (below). It is
    **descriptive, not causal**: arm A (the clarification prompt of plan 2) and arm B differ in the classifier's route
    AND in the prompt shape, so no difference is attributed to either change alone.
-4. **Most likely way this plan is wrong?** The classifier still says `unresolved` for some category-only leads (it is
-   a model reading a prompt), so some replies stay no-price; the measurement counts it. Second: the model copies the
+4. **Most likely way this plan is wrong?** The word match defaults a lead that is not really category-only (a lead
+   that says "a duo" is `duo` already, but "a small group" is `unresolved`), or misses an ensemble phrase, so a band
+   request is quoted as a solo; V6 pins the listed words, the regression and arm B read the cases. Second: the model copies the
    example's sentences or its question; V8's instrumentation reports shared windows and the questions are read.
 5. **How will a human RUN this, and when?** Claude Code (or Alex) on the MacBook after the code steps and before the
    Codex code review: the Execution Path command.
@@ -213,8 +230,13 @@ Names start `Vague Reference V<n>`; file `src/vague-quote-reference.test.ts`. Ha
   sentence of the example may appear (the exemption of D3).
 - **V5** WHEN the example reply is scanned, THE SYSTEM SHALL carry the app's `noDate` payment sentence and the default
   COI sentence (from the code constants) exactly once each, Alex's date sentence once, and exactly one question mark.
-- **V6** WHEN the classifier prompt is built, THE SYSTEM SHALL contain the D1 split: the category-only case names the
-  default (`solo`, or `duo` for a dinner/cocktail/dance setting) and the ensemble case keeps `unresolved`.
+- **V6** WHEN `defaultVagueFormat` gets a vague `one_question` + `unresolved` classification, THE SYSTEM SHALL return
+  `solo` for category-only text (incl. "not sure what kind of music or how many players"), `duo` when the text names a
+  dinner, cocktail hour or dancing, and `unresolved` unchanged for each ensemble word (each its own test:
+  "Latin band", "a band", "a trio", "a quartet", "an orchestra", "an ensemble", "a group"); and SHALL return the input
+  unchanged when the action is not `one_question`, the format is already resolved (incl. `mariachi_full`), or the
+  vagueness is `clear`. **V6b (classifier prompt untouched)** `src/prompts/classify.ts` SHALL be byte-equal to its
+  pre-change SHA-256 (the regression's guarantee that no ordinary lead can drift through the prompt).
 - **V7 (hash inventory)** WHEN the generate prompt is built for the cases below, THE SYSTEM SHALL equal the stored
   pre-change SHA-256 for the UNCHANGED cases and DIFFER from it for the CHANGED cases:
 
@@ -277,8 +299,9 @@ the plan; no number is a pass bar, and any difference from arm A is reported as 
 0. **HARD STOP.** Plan review R2 (or its closing decision by Alex). No production code before. (The salutation is
    resolved: option (a).)
 1. The hash inventory extended with C13-C17 from the CURRENT code; V2 (withheld cases) and V7's unchanged rows pass.
-2. V1, V3-V6 (failing), then the reference module and the block; THEN the classifier wording, with the classifier
-   regression run before (done, recorded) and after it, and the decision rule applied before step 3.
+2. V1, V3-V6 (failing), then the reference module and the block; THEN `defaultVagueFormat` (V6, V6b), with the
+   classifier regression run before (done, recorded), after the first (rejected) prompt-wording attempt (recorded),
+   and again after the code default; the decision rule is applied before step 3.
 3. The runner fields (including the `coiTermsFor` kind), the report formulas and `sharedWindows` with V8a-c and V9;
    the mutation map; full suite, `tsc`, leak check.
 4. Arm B run, the report, and `docs/reviews/2026-10-13-vague-quote-measurement.md`.

@@ -1,7 +1,7 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { buildGeneratePrompt } from "./prompts/generate.js";
-import { buildClassifyPrompt } from "./prompts/classify.js";
+import { defaultVagueFormat } from "./pipeline/classify.js";
 import { NO_DATE_TERMS, type PaymentTerms } from "./pipeline/payment-terms.js";
 import { COI_SENTENCES } from "./pipeline/coi.js";
 import { PAYMENT_SENTENCES } from "./pipeline/payment-terms.js";
@@ -13,6 +13,8 @@ import type { Classification, PricingResult } from "./types.js";
 // Plan docs/plans/2026-10-13-feat-vague-lead-quote-with-question-plan.md (Revision 1b), V1-V7. Names start
 // "Vague Reference V<n>". The block is a reference for a vague lead whose default format is quoted with one question.
 const MARKER = "REFERENCE LEAD: VAGUE REQUEST";
+// SHA-256 of src/prompts/classify.ts at 73fd38e (before the vague-lead route). Refresh only in a "snapshot refresh:" commit.
+const CLASSIFY_PROMPT_SHA256 = "eb8c9b545d4e15ad2b782a86fd3c1d99744b04f2f66eaabfc0f30887a7c49d7d";
 const c8 = GENERATE_CASES.find((c) => c.id === "C8");
 assert.ok(c8);
 
@@ -98,21 +100,49 @@ describe("Vague Reference V3 / V4 / V5: the example and the rules", () => {
   });
 });
 
-describe("Vague Reference V6: the classifier splits a category-only request from an explicit ensemble", () => {
-  const prompt = buildClassifyPrompt("2026-10-12");
-  const special = prompt.slice(prompt.indexOf("SPECIAL CASE"), prompt.indexOf("### Step 2.75"));
+describe("Vague Reference V6: a category-only vague lead gets the default format in code; an ensemble keeps unresolved", () => {
+  const vague = (over: Partial<Classification> = {}) =>
+    ({ ...c8.classification, action: "one_question", vagueness: "vague", format_recommended: "unresolved", ...over }) as Classification;
 
-  it("Vague Reference V6 a category-only request defaults to solo or duo and is told NOT to use unresolved", () => {
-    assert.match(special, /CATEGORY-ONLY/);
-    assert.match(special, /format_recommended = "solo"/);
-    assert.match(special, /duo/);
-    assert.match(special, /Do NOT use "unresolved"/);
+  it("Vague Reference V6 category-only text defaults to solo (incl. the 'how many players' lead)", () => {
+    for (const text of ["Hi, we want live music for my parents' 30th anniversary in the spring. Not sure what kind of music would work or how many players. Any ideas?",
+      "We have a group of 30 friends and want some live music.", "Live music for a group of family members, any ideas?",
+      "Looking for some live music for a party.", "Need entertainment for an event next month.", "Do you play Latin music?", "Spanish guitar for a birthday?"]) {
+      assert.equal(defaultVagueFormat(vague(), text).format_recommended, "solo", text);
+    }
   });
 
-  it("Vague Reference V6 an explicit ensemble keeps unresolved", () => {
-    assert.match(special, /EXPLICIT ENSEMBLE/);
-    assert.match(special, /"Latin band"/);
-    assert.match(special, /format_recommended = "unresolved"/);
+  it("Vague Reference V6 a dinner, cocktail hour or dancing setting defaults to duo", () => {
+    for (const text of ["Music for a dinner party, not sure what.", "Something for the cocktail hour at our wedding.", "We want live music and dancing."]) {
+      assert.equal(defaultVagueFormat(vague(), text).format_recommended, "duo", text);
+    }
+  });
+
+  for (const ensemble of ["Latin band", "a band", "a trio", "a quartet", "an orchestra", "an ensemble", "a group"]) {
+    it(`Vague Reference V6 "${ensemble}" stays unresolved`, () => {
+      assert.equal(defaultVagueFormat(vague(), `Looking for ${ensemble} for our company party.`).format_recommended, "unresolved");
+      assert.equal(defaultVagueFormat(vague({ format_requested: ensemble }), "Live music please.").format_recommended, "unresolved");
+    });
+  }
+
+  it("Vague Reference V6 the input is returned unchanged for a quote, a resolved format or a clear lead (overshoot controls)", () => {
+    const text = "Looking for live music.";
+    assert.equal(defaultVagueFormat(vague({ action: "quote" }), text).format_recommended, "unresolved");
+    assert.equal(defaultVagueFormat(vague({ format_recommended: "mariachi_full" }), text).format_recommended, "mariachi_full");
+    assert.equal(defaultVagueFormat(vague({ format_recommended: "flamenco_duo" }), text).format_recommended, "flamenco_duo");
+    assert.equal(defaultVagueFormat(vague({ vagueness: "clear" }), text).format_recommended, "unresolved");
+    assert.equal(defaultVagueFormat(vague({ action: "assume_and_quote" }), text).format_recommended, "unresolved");
+  });
+
+  it("Vague Reference V6 the action and vagueness are left as the classifier set them", () => {
+    const out = defaultVagueFormat(vague(), "Looking for live music.");
+    assert.equal(out.action, "one_question");
+    assert.equal(out.vagueness, "vague");
+  });
+
+  it("Vague Reference V6b the classifier prompt is untouched (no ordinary lead can drift through it)", () => {
+    const sha = sha256(readFileSync("src/prompts/classify.ts", "utf-8"));
+    assert.equal(sha, CLASSIFY_PROMPT_SHA256);
   });
 });
 
