@@ -280,6 +280,19 @@ no); (6) older items (nonprofit prices, Saturday/peak-day rule, Module 1 plan re
 not read or enter the Sandbox directory while Autopilot Run 104 runs. A legitimate edit to the generate prompt or
 the verify prompt's voice references needs a `snapshot refresh:` commit.
 
+**Update 18 (session gig-lead-responder-22, clarification internal terms, compound):** the `anchor`/`floor` cycle is
+complete. Code `7598b81` (the internal-term alternative narrowed to pricing compounds; Alex's decision 2026-10-13
+"Pricing-noun compounds only"; V4a/V4b amended), replay `6bafe0c`. Plan review R1/R2 NO-GO (answered, Alex fixed and
+built); code review R1 GO, no findings. Offline replay over 816 stored drafts: old alternative 4 matches, new 0, no
+pricing compound present. Suite 997 pass / 0 fail / 1 skip. Compound:
+`docs/solutions/architecture/2026-10-13-internal-pricing-terms-are-rejected-as-compounds-not-as-words.md`;
+`/update-learnings` ran. **Open, in order:** (1) the reference reply for the structural-scene failures (10 of 43 and
+11 of 44 drafts): it needs Alex's EXACT words for one sample clarification reply, shown to him in chat for his yes,
+with a T4-style copy check; (2) a fresh clarification measurement to confirm the no-draft rate with the narrowed
+pattern (unexecuted); (3) the "exactly one question" rule (12 of 122 runs); (4) the classifier `timeline_band` miss;
+(5) Alex's force-push call (I recommend no); (6) older items (nonprofit prices, Saturday/peak-day rule, Module 1
+plan review, R006/R398/R403 TO PORT). Do not read or enter the Sandbox directory while Autopilot Run 104 runs.
+
 #### Pre-compact save 2026-10-12 22:47 (appended; text above NOT modified, may be stale)
 
 **State (CHECKED this session):** branch `feat/hub-phase0`, base HEAD `2ae6936` (this save commit adds one), **pushed**:

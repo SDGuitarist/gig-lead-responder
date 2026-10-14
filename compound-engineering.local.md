@@ -2,33 +2,29 @@
 
 ## Risk Chain
 
-**Brainstorm risk:** None -- **no brainstorm** (skip gate: the measured remainder after the verify-gate fix, 13 of 33
-clarification drafts failing a hard condition, `docs/reviews/2026-10-13-clarification-gate-rerun.md`).
+**Brainstorm risk:** None -- **no brainstorm** (skip gate: 4 real rejections of ordinary prose, each read in
+context, named as an open risk by the first validator plan's review).
 
-**Plan mitigation:** `docs/plans/2026-10-13-fix-clarification-draft-shape-plan.md` (Revision 1b). In clarification mode
-only: steps 1-3 reshaped (step 3 kept as one bundled sentence so concern traceability is still requested), 70 to 100
-words and 4 to 6 sentences, `price` dropped from the compressed retain list. Plan review R1 NO-GO (2 P1, 3 P2, 1 P3),
-R2 NO-GO (3 P2) at the cap; Alex chose to fix and build.
+**Plan mitigation:** `docs/plans/2026-10-13-fix-clarification-internal-terms-plan.md` (Revision 1b). `anchor` and
+`floor` are rejected as pricing compounds, not as words; `investment` unchanged; no possessive form. Alex's decision
+2026-10-13 ("Pricing-noun compounds only") is recorded in the plan; V4a/V4b were amended by it. Plan review R1 NO-GO
+(4 P1, 2 P2), R2 NO-GO (1 P2 mutation isolation) at the cap; Alex chose to fix and build.
 
-**Work risk (from Feed-Forward):** that a shorter-reply instruction is followed at all (the prompt already said
-100-125 words and 1 of 33 drafts complied).
+**Work risk (from Feed-Forward):** that the two compound forms cover how the model would leak the terms; none has
+been observed (0 pricing compounds in 816 stored drafts).
 
-**Review resolution:** code review R1 NO-GO (2 P1, 1 P2, all in the report path: a failed manifest check still
-printed a statistic; incomplete arms accepted; one manifest printed), fixed and reproduced first; R2 GO. Measurement
-(50 runs per arm, exploratory): unusable 38% -> 34% (p 0.42, power about 55-60% for 15 points), verified 16% -> 25%,
-sentences 8 -> 5, competitor-test failures 4 -> 1, structural scene 10 -> 11. The pre-registered stop row fired.
+**Review resolution:** code review R1 GO, no findings (997 pass / 0 fail / 1 skip). Replay over 816 stored drafts:
+old alternative 4 matches, new 0.
 
 ## Files to Scrutinize
 
 | File | What changed | Risk area |
 |------|-------------|-----------|
-| `src/prompts/generate.ts` | three spans scoped by `clarificationMode` (steps 1-3, word count, compressed "Must retain") | the hash fixture goes stale on ANY unrelated edit to this prompt; step 3 must stay requested (concern traceability) |
-| `src/generate-prompt-cases.ts`, `src/fixtures/generate-prompt-hashes.json` | 13 cases, `removeSpans`, `spansOf`, SHA-256 pins | refresh only in a `snapshot refresh:` commit with the prompt diff |
-| `src/clarification-shape-prompt.test.ts` | P1-P8 and the extractor controls | the span anchors (`1. **`, `4. **`, `- Word count:`, `- Must retain:`) must stay unique |
-| `src/arm-manifest.ts`, `scripts/clarification-arm-report.ts` | `compareArms`, `assessArms`, a gated, aggregate-only report | residual: a duplicated result file or a partial lead set totalling 50 still passes |
-| `scripts/clarification-measure.ts` | `--arm`, manifest, counts, held-out h1-h4 | `dirtyPromptFiles` covers `src/prompts` and `src/pipeline` only |
-| `src/pipeline/generate.ts` | NOT changed | the internal terms `anchor` / `floor` still reject ordinary prose (4 of 172 runs) |
+| `src/pipeline/generate.ts` | `PRICE_STATEMENT_PATTERN`: two compound alternatives plus `investment`; the pattern is now exported | a bare `the floor is firm` passes by decision; "price anchors the conversation" and "floor number" are accepted false rejects |
+| `src/clarification-validator.test.ts` | V4a/V4b amended; V12, twelve V13 one-sentence tests, V14, V16 | each mutation row must fail exactly its own token test |
+| `scripts/clarification-validator-replay.ts`, `src/clarification-replay.test.ts` | offline replay, exit 2 on empty input | corpus is session-local; stored drafts came from the old validator and mixed prompts |
+| `src/prompts/generate.ts` | NOT changed | the prompt still says "Do NOT state a price, rate, anchor, floor, or package" |
 
 ## Plan Reference
 
-`docs/plans/2026-10-13-fix-clarification-draft-shape-plan.md`
+`docs/plans/2026-10-13-fix-clarification-internal-terms-plan.md`
