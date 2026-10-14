@@ -71,3 +71,21 @@ export function removeSpans(prompt: string): string {
   });
   return out.join("\n");
 }
+
+/** The text of the three spans (same anchors as removeSpans; throws unless each is found exactly once). */
+export function spansOf(prompt: string): { steps: string; words: string; retain: string } {
+  const lines = prompt.split("\n");
+  const only = (re: RegExp, label: string) => {
+    const at = lines.flatMap((l, i) => (re.test(l) ? [i] : []));
+    if (at.length !== 1) throw new Error(`span anchor ${label}: found ${at.length} lines, expected 1`);
+    return at[0];
+  };
+  const from = only(/^1\. \*\*/, "steps start");
+  const to = only(/^4\. \*\*/, "steps end");
+  if (to <= from) throw new Error("span anchor steps: end is before start");
+  return {
+    steps: lines.slice(from, to).join("\n"),
+    words: lines[only(/^- Word count:/, "words")],
+    retain: lines[only(/^- Must retain:/, "retain")],
+  };
+}

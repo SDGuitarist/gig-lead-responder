@@ -105,9 +105,9 @@ If the lead involves a memorial, tribute, celebration of life, or grief context:
 - Step 1 becomes "Calibration + validation" (not "Cinematic hook + validation"). Open with language that names the person or moment being honored and acknowledges the weight of the request. Do NOT open with a visual scene. The FORCING RULE still applies: your first sentence must contain a concrete detail. The Scene Test does not apply to the opening.
 - All other steps (2-5) apply unchanged.
 
-1. **Cinematic hook + validation** — Opens with a story moment (the reader SEEs it), then the client sees themselves acknowledged
-2. **Differentiator + Named Fear** — Name what typically goes wrong with this type of booking, then show why you're different. This is not a feature list. It is one specific failure mode — the thing a lesser vendor does that this client is right to worry about — followed by the one behavior that makes you different. The fear must be named explicitly, not implied. Example: "A guitarist who shows up, plays their set at whatever volume they feel like, and never once adjusts for the room — that's the version of background music no one remembers fondly. What I do is different: I read the room in real time..."
-3. **Fear/concern resolution** — Every explicit AND inferred question answered (use absences from reasoning)
+1. **Cinematic hook + validation** — Opens with a story moment (the reader SEEs it), then the client sees themselves acknowledged${clarificationMode ? ". In clarification mode the opening sentence repeats a fact or an uncertainty the lead supplied (the occasion, the time frame, or their own doubt) and then shows the moment; it does not build a scene from nothing" : ""}
+${clarificationMode ? `2. **Differentiator + Named Fear (clarification mode: ONE sentence)** — ONE sentence that names the specific thing that goes wrong when a format is chosen blind, and the one thing Alex does instead. It is one failure mode, said plainly: no "most vendors" contrast, no list, no second sentence of explanation` : `2. **Differentiator + Named Fear** — Name what typically goes wrong with this type of booking, then show why you're different. This is not a feature list. It is one specific failure mode — the thing a lesser vendor does that this client is right to worry about — followed by the one behavior that makes you different. The fear must be named explicitly, not implied. Example: "A guitarist who shows up, plays their set at whatever volume they feel like, and never once adjusts for the room — that's the version of background music no one remembers fondly. What I do is different: I read the room in real time..."`}
+${clarificationMode ? "3. **Fear/concern resolution (clarification mode: ONE bundled sentence)** — ONE sentence that answers every flagged concern together, bundled the way the Type 3 rule bundles them, with no explanation beyond it; it is the sentence the concern traceability check will find" : "3. **Fear/concern resolution** — Every explicit AND inferred question answered (use absences from reasoning)"}
 4. **Recommendation + price** — Format recommendation, quote price, positioning${clarificationMode ? " (SKIP in clarification mode)" : residency && !residencyStatesPrice(classification, residency) ? " (residency: the programming idea and cadence, NO price)" : ""}
 5. **CTA** — Clear next step (${classification.close_type} close)${clarificationMode ? " and the CTA is the single binary clarifying question" : ""}
 
@@ -304,13 +304,13 @@ ${setupSpace ? `- Space and setup time for this format: ${setupSpace}. Use it on
 
 ### Full Draft
 - All 5 steps naturally woven (no visible structure/labels)
-- Word count: ${classification.cultural_context_active ? "145-165" : classification.tier === "premium" ? "125-145" : "100-125"} words (before contact block)
+- Word count: ${clarificationMode ? "70 to 100 words, 4 to 6 sentences" : `${classification.cultural_context_active ? "145-165" : classification.tier === "premium" ? "125-145" : "100-125"} words`} (before contact block)
 - One continuous movement — no bullet points, no headers
 
 ### Compressed Draft
 - Send-ready for ${classification.lead_source_column === "P" ? (classification.platform === "gigsalad" ? "GigSalad messaging system" : classification.platform === "thebash" ? "The Bash messaging system" : "platform messaging system") : "direct reply"}
 - Target: ${compressedTarget.target} words (max ${compressedTarget.max})
-- Must retain: wedge, validation sentence, at least one fear resolution (explicit or inferred), ${pricing.residency && !residencyStatesPrice(classification, pricing.residency) ? "" : "price, "}close${classification.delivery_mode === "alex_sources" || classification.delivery_mode === "hybrid" ? ", one sentence of curation credibility (sourced integrity)" : ""}${classification.platform === "gigsalad" ? "" : ", contact block"}
+- Must retain: wedge, validation sentence, at least one fear resolution (explicit or inferred), ${clarificationMode || (pricing.residency && !residencyStatesPrice(classification, pricing.residency)) ? "" : "price, "}close${classification.delivery_mode === "alex_sources" || classification.delivery_mode === "hybrid" ? ", one sentence of curation credibility (sourced integrity)" : ""}${classification.platform === "gigsalad" ? "" : ", contact block"}
 - Trim: extended scene painting, logistics detail, secondary concerns
 - Compression removes detail, not voice. All VOICE RULES apply to both drafts.
 
