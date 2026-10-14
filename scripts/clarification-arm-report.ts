@@ -11,7 +11,7 @@ import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { assessArms, type ArmData, type ArmManifest } from "../src/arm-manifest.js";
 import { probePromptSha256 } from "../src/generate-prompt-cases.js";
-import { summarizeRoute, type RouteRun } from "../src/route-metrics.js";
+import { summarizeOpening, summarizeRoute, type RouteRun } from "../src/route-metrics.js";
 import { summarizePairs, type PairedRun } from "../src/gate-pairing.js";
 
 interface RunResult { lead: string; ok: boolean; error?: string; verified?: boolean; words?: number; sentences?: number;
@@ -72,8 +72,8 @@ function summary(label: string, results: RunResult[]) {
   {
     // Lead-words plan: how often the opening check is still the failure, and what the classifier kept per run.
     const returned = results.filter((r) => r.ok);
-    const openingFalse = returned.filter((r) => ((r as unknown as { gate_detail?: { false_checks?: string[] } }).gate_detail?.false_checks ?? []).includes("lead_specific_opening")).length;
-    console.log(`lead_specific_opening false: ${openingFalse} of ${returned.length} returned drafts`);
+    const o = summarizeOpening(results as unknown as Array<{ ok: boolean; gate_detail?: { false_checks?: string[] } }>);
+    console.log(`lead_specific_opening false: ${o.opening_false} of ${o.runs} runs (${o.returned} returned a draft, ${o.no_draft} none)`);
     const withWords = returned.map((r) => (r as unknown as { route?: { lead_words?: Record<string, string | null> | null } }).route?.lead_words ?? null);
     if (withWords.some((w) => w !== null)) {
       const kept = (k: string) => withWords.filter((w) => w && typeof w[k] === "string").length;

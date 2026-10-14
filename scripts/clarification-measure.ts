@@ -76,6 +76,7 @@ const { coiTermsFor } = await import(join(root, "src/pipeline/coi.ts"));
 const { sharedWindows } = await import(join(root, "src/route-metrics.ts"));
 const { VAGUE_QUOTE_REFERENCE_REPLY, VAGUE_QUOTE_SETUP_SENTENCE } = await import(join(root, "src/data/vague-quote-reference.ts"));
 const { PipelineStageError } = await import(join(root, "src/errors.ts"));
+const { leadWordsOf } = await import(join(root, "src/lead-words.ts"));
 const { verifyGate } = await import(join(root, "src/pipeline/verify.ts"));
 const { verdictOf } = await import(join(root, "src/gate-pairing.ts"));
 const models = new Set<string>();
@@ -136,7 +137,7 @@ for (const name of names) {
       route = {
         action: o.classification.action, format_recommended: o.classification.format_recommended, quote_price: price,
         question_count: (text.match(/\?/g) ?? []).length,
-        lead_words: o.classification.lead_words ?? null, // the lead's own phrases after the code check (lead_words plan)
+        lead_words: leadWordsOf(o.classification), // read through the accessor (Codex code R1 P2-3): the phrases after the code check
         price_figure_present: price !== null && (text.includes(`$${price}`) || text.includes(`$${price.toLocaleString("en-US")}`)),
         payment_kind: terms.kind, payment_sentence_count: occurrences(paymentSentence),
         coi_kind: coi.kind, coi_sentence_count: occurrences(coiSentence),

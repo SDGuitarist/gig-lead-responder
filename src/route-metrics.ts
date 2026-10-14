@@ -75,3 +75,13 @@ export function sharedWindows(draft: string, example: string, mandatedSentences:
   for (let i = 0; i + size <= d.length; i++) if (e.includes(d.slice(i, i + size))) n++;
   return n;
 }
+
+/**
+ * The opening check over ALL runs (plan docs/plans/2026-10-14-feat-lead-words-field-plan.md, decision table: "opening-false
+ * is N of 50"): a run with no draft is in the denominator and is not counted as opening-false (Codex code review R1 P1-1).
+ */
+export function summarizeOpening(runs: Array<{ ok: boolean; gate_detail?: { false_checks?: string[] } }>) {
+  const returned = runs.filter((r) => r.ok);
+  const falseCount = returned.filter((r) => (r.gate_detail?.false_checks ?? []).includes("lead_specific_opening")).length;
+  return { runs: runs.length, returned: returned.length, no_draft: runs.length - returned.length, opening_false: falseCount };
+}

@@ -5,6 +5,7 @@ import { sanitizeClassification } from "./utils/sanitize.js";
 import { buildGeneratePrompt } from "./prompts/generate.js";
 import { buildVerifyPrompt } from "./prompts/verify.js";
 import { GENERATE_CASES } from "./generate-prompt-cases.js";
+import ts from "typescript";
 import { classifyLead } from "./pipeline/classify.js";
 import { setClaudeRequesterForTests } from "./claude.js";
 import { buildClassifyPrompt } from "./prompts/classify.js";
@@ -201,5 +202,74 @@ describe("Lead Words LW5: the verifier sentence", () => {
     const opening = (p: string) => p.split("\n").find((l) => l.startsWith("- lead_specific_opening:"));
     assert.equal(opening(withNull), opening(absent));
     assert.ok(!sectionOf(withNull, "6b").includes("lead_words"), "no lead_words sentence when all null");
+  });
+});
+
+describe("Lead Words LW15: the measurement seam and the raw-consumer inventory (Codex code R1)", () => {
+  const c8 = GENERATE_CASES.find((c) => c.id === "C8");
+  assert.ok(c8);
+  const fake = (leadWords: unknown, over: Record<string, unknown> = {}) => async () => ({
+    id: "m", type: "message", role: "assistant", model: "t", stop_reason: "end_turn", stop_sequence: null,
+    usage: { input_tokens: 1, output_tokens: 1 },
+    content: [{ type: "text", text: JSON.stringify({ ...c8.classification, lead_words: leadWords, ...over }) }] });
+  const lead = "Hi, my mom's 60th birthday is next month. Not sure what kind of music would work.";
+
+  it("Lead Words LW15 groundingRun runs the production classifyLead: a copied phrase is returned and kept, a paraphrase is returned and dropped", async () => {
+    const { groundingRun } = await import("./lead-words-measure.js");
+    const r = await groundingRun(lead, "2026-10-12", fake({ occasion: "my mom's 60th birthday", time_frame: "this spring", doubt: null }));
+    assert.deepEqual(r.returned, { occasion: "my mom's 60th birthday", time_frame: "this spring", doubt: null });
+    assert.deepEqual(r.kept, { occasion: "my mom's 60th birthday", time_frame: null, doubt: null });
+  });
+
+  it("Lead Words LW15 the production validation applies: a classification the validator rejects is an error, not a measurement", async () => {
+    const { groundingRun } = await import("./lead-words-measure.js");
+    // validateClassification throws on a missing format_recommended; callClaude retries once, then the call rejects
+    await assert.rejects(groundingRun(lead, "2026-10-12", fake({ occasion: "my mom's 60th birthday" }, { format_recommended: "" })));
+  });
+
+  it("Lead Words LW15 the requester is restored after a run (no leak into other tests)", async () => {
+    const { groundingRun } = await import("./lead-words-measure.js");
+    await groundingRun(lead, "2026-10-12", fake(NONE));
+    assert.deepEqual((await groundingRun(lead, "2026-10-12", fake({ occasion: "my mom's 60th birthday" }))).returned,
+      { occasion: "my mom's 60th birthday", time_frame: null, doubt: null });
+  });
+
+  it("Lead Words LW15 summarizeOpening counts over ALL runs: a no-draft run stays in the denominator (the plan's 20 of 50)", async () => {
+    const { summarizeOpening } = await import("./route-metrics.js");
+    const runs = [
+      ...Array.from({ length: 30 }, () => ({ ok: true, gate_detail: { false_checks: ["lead_specific_opening"] } })),
+      ...Array.from({ length: 10 }, () => ({ ok: true, gate_detail: { false_checks: [] as string[] } })),
+      ...Array.from({ length: 10 }, () => ({ ok: false })),
+    ];
+    assert.deepEqual(summarizeOpening(runs), { runs: 50, returned: 40, no_draft: 10, opening_false: 30 });
+    // positive control: the returned-draft numbers are unchanged by the no-draft runs
+    assert.equal(summarizeOpening(runs.filter((r) => r.ok)).opening_false, 30);
+  });
+
+  it("Lead Words LW15 raw reads of .lead_words outside the accessor are an allowlist, and a new consumer fails the test", async () => {
+    const { readFileSync, readdirSync, statSync } = await import("node:fs");
+    const { join } = await import("node:path");
+    const walk = (dir: string): string[] => readdirSync(dir).flatMap((n) => {
+      const p = join(dir, n);
+      return statSync(p).isDirectory() ? (n === "fixtures" || n === "node_modules" ? [] : walk(p)) : p.endsWith(".ts") && !p.endsWith(".test.ts") ? [p] : [];
+    });
+    const found: Record<string, number> = {};
+    for (const f of [...walk("src"), ...walk("scripts")]) {
+      const sf = ts.createSourceFile(f, readFileSync(f, "utf-8"), ts.ScriptTarget.Latest, true);
+      const visit = (n: ts.Node) => {
+        if (ts.isPropertyAccessExpression(n) && n.name.text === "lead_words") found[f] = (found[f] ?? 0) + 1;
+        ts.forEachChild(n, visit);
+      };
+      visit(sf);
+    }
+    // The accessor itself; the producer in classifyLead/validateClassification (assignments); the measurement seam reading
+    // the production result; sanitize's presence check; the report reading an already-coerced stored record.
+    assert.deepEqual(found, {
+      "src/lead-words.ts": 1,
+      "src/pipeline/classify.ts": 4,   // validateClassification (assign + read) and classifyLead (assign + read)
+      "src/lead-words-measure.ts": 2,  // the production result, and the model's raw JSON before the code check (intentional)
+      "src/utils/sanitize.ts": 1,
+      "scripts/clarification-arm-report.ts": 1,
+    });
   });
 });

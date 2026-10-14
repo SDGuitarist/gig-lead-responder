@@ -3,7 +3,8 @@
 // per key how many phrases the model returned, how many survived the code check, and how many were dropped.
 //   npx tsx scripts/lead-words-grounding.ts [--runs 5] [--out <dir>] [--today 2026-10-12]
 // Exit 0 when the fabrication rate (dropped / returned) is at most 1 in 5, 1 when it is higher (the plan's STOP row),
-// 2 when ANTHROPIC_API_KEY is missing, 3 when any classification errored. Real model calls; CHANGES NO APP STATE.
+// 2 when ANTHROPIC_API_KEY is missing, 3 when any classification errored. Runs the production classifyLead
+// (src/lead-words-measure.ts), not a bare model call. Real model calls; CHANGES NO APP STATE.
 import { mkdirSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { tmpdir } from "node:os";
@@ -21,10 +22,9 @@ const req = createRequire(join(root, "package.json"));
 req("dotenv").config({ path: join(root, ".env"), quiet: true });
 if (!process.env.ANTHROPIC_API_KEY) { console.error("ANTHROPIC_API_KEY is not set (.env)"); process.exit(2); }
 
-const { callClaude } = await import(join(root, "src/claude.ts"));
-const { buildClassifyPrompt } = await import(join(root, "src/prompts/classify.ts"));
-const { wrapUntrustedData } = await import(join(root, "src/utils/sanitize.ts"));
-const { coerceLeadWords, groundLeadWords } = await import(join(root, "src/lead-words.ts"));
+const Anthropic = req("@anthropic-ai/sdk");
+const client = new (Anthropic.default ?? Anthropic)({ apiKey: process.env.ANTHROPIC_API_KEY });
+const { groundingRun } = await import(join(root, "src/lead-words-measure.ts"));
 
 const KEYS = ["occasion", "time_frame", "doubt"] as const;
 const stats = Object.fromEntries(KEYS.map((k) => [k, { returned: 0, kept: 0, dropped: 0 }])) as Record<(typeof KEYS)[number], { returned: number; kept: number; dropped: number }>;
@@ -34,11 +34,9 @@ for (const [name, text] of Object.entries(LEADS)) {
   perLead[name] = [];
   for (let i = 0; i < runs; i++) {
     try {
-      // The raw model output for the field (before code), so a dropped phrase is counted; the real classifyLead then
-      // grounds it. callClaude with no validator returns the parsed object.
-      const raw = await callClaude(buildClassifyPrompt(today), `Classify this lead:\n\n${wrapUntrustedData("lead_email", text)}`, undefined, (x: unknown) => x);
-      const returned = coerceLeadWords((raw as { lead_words?: unknown }).lead_words);
-      const kept = groundLeadWords(returned, text);
+      // The PRODUCTION classifyLead (validateClassification, coerce, ground); the seam only records what the model
+      // returned for lead_words before the code check, so a dropped phrase is counted.
+      const { returned, kept } = await groundingRun(text, today, (request: unknown) => client.messages.create(request));
       for (const k of KEYS) {
         if (returned[k] !== null) { stats[k].returned++; if (kept[k] !== null) stats[k].kept++; else stats[k].dropped++; }
       }
