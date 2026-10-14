@@ -29,7 +29,7 @@ review R2 NO-GO (2 NO-GOs, no round 3). Code is NOT yet code-reviewed and the re
 | 10 | mode applied to `assume_and_quote` | VG2 S14, VG4 |
 | 11 | a production call site passes `openingRule` | VG10 |
 
-All 11 killed. **The plan said each row fails "exactly its own test"; that is not what happened:** rows 7-9 edit the same
+All 11 killed (rows 12-15 were added after Codex code R1 and are in `2026-10-14-vague-gate-code-codex-round1.md`). **The plan said each row fails "exactly its own test"; that is not what happened:** rows 7-9 edit the same
 text that VG1, VG2b, VG7 and VG9 each pin, and rows 1-3 and 10 also trip VG4's positive control. The map shows every
 mutant caught, not one-to-one isolation. A mutant that wrongly passes nothing was not found.
 
@@ -40,7 +40,7 @@ mutant caught, not one-to-one isolation. A mutant that wrongly passes nothing wa
 ## Not done, and why
 
 - **The arm and the controls were not run** (real API spend; Alex's "go").
-- **The replays verify `o.drafts`, the post-check-cleaned drafts**, not the raw drafts the pipeline's own gate saw; a
-  difference is possible (em-dash cleaning) and counts in the noise floor (`pipeline` vs `replay_mode`).
+- **The replays verify `o.drafts`, the post-check-cleaned drafts**, not the raw drafts the pipeline's own gate saw; the
+  noise floor is therefore `replay_mode` vs `replay_mode_repeat`, NOT the pipeline verdict (corrected after Codex code R1).
 - **The verifier sees only the classification JSON, not the raw lead text**; "the lead wrote a birthday" can only be
   judged from what the classification holds. The planted controls test this directly.
