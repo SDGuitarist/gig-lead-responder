@@ -1,3 +1,4 @@
+import { coerceLeadWords, groundLeadWords } from "../lead-words.js";
 import { callClaude } from "../claude.js";
 import { ClassificationError } from "../errors.js";
 import { buildClassifyPrompt } from "../prompts/classify.js";
@@ -199,6 +200,7 @@ const validateClassification = (raw: unknown): Classification => {
   obj.nonprofit_buyer = normalizeNonprofitBuyer(obj.nonprofit_buyer);
   obj.np_tier = normalizeNpTier(obj.np_tier, obj.nonprofit_buyer as boolean);
   obj.organization_name = normalizeOrganizationName(obj.organization_name, obj.nonprofit_buyer as boolean, obj.venue_name);
+  obj.lead_words = coerceLeadWords(obj.lead_words); // shape only; the lexical check needs the lead text (classifyLead)
   obj.graceful_decline = normalizeGracefulDecline(obj.graceful_decline);
   obj.coi_required = normalizeCoiRequired(obj.coi_required);
   obj.delivery_mode = deliveryModeFor(obj.format_recommended);
@@ -238,6 +240,9 @@ export async function classifyLead(rawText: string, today: string): Promise<Clas
   if (result.client_first_name === undefined) {
     result.client_first_name = null;
   }
+
+  // The lead's own phrases: kept only when they are a lexical substring of the lead (src/lead-words.ts).
+  result.lead_words = groundLeadWords(coerceLeadWords(result.lead_words), rawText);
 
   // A vague lead that names no format gets the default format and is quoted with one question; an explicit ensemble
   // request stays `unresolved` (clarification mode). Plan docs/plans/2026-10-13-feat-vague-lead-quote-with-question-plan.md.

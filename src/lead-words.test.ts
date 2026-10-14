@@ -5,11 +5,14 @@ import { sanitizeClassification } from "./utils/sanitize.js";
 import { buildGeneratePrompt } from "./prompts/generate.js";
 import { buildVerifyPrompt } from "./prompts/verify.js";
 import { GENERATE_CASES } from "./generate-prompt-cases.js";
+import { classifyLead } from "./pipeline/classify.js";
+import { setClaudeRequesterForTests } from "./claude.js";
+import { buildClassifyPrompt } from "./prompts/classify.js";
 import { VAGUE_GATE_CASES } from "./verify-prompt-cases.js";
 import type { Classification, PricingResult } from "./types.js";
 
 // Plan docs/plans/2026-10-14-feat-lead-words-field-plan.md (Revision 1c). Names start "Lead Words LW<n>".
-const NONE = { occasion: null, time_frame: null, doubt: null };
+const NONE: { occasion: string | null; time_frame: string | null; doubt: string | null } = { occasion: null, time_frame: null, doubt: null };
 
 describe("Lead Words LW1/LW10: the shape boundary never throws", () => {
   it("Lead Words LW10 a non-object, array, null, string or missing value is all-null", () => {
@@ -101,5 +104,33 @@ describe("Lead Words LW14/LW8: a malformed stored value reaches a prompt only as
     // positive control: a valid phrase is present, so the comparison above is not vacuous
     assert.ok(generate(cls({ occasion: "my mom's 60th birthday", time_frame: null, doubt: null })).includes("my mom's 60th birthday"));
     assert.ok(verify({ occasion: "my mom's 60th birthday", time_frame: null, doubt: null }).includes("my mom's 60th birthday"));
+  });
+});
+
+describe("Lead Words LW2/LW6: the classifier path", () => {
+  const c8 = GENERATE_CASES.find((c) => c.id === "C8");
+  assert.ok(c8);
+  const respond = (body: unknown) =>
+    setClaudeRequesterForTests((async () => ({ id: "m", type: "message", role: "assistant", model: "t", stop_reason: "end_turn",
+      stop_sequence: null, usage: { input_tokens: 1, output_tokens: 1 }, content: [{ type: "text", text: JSON.stringify(body) }] })) as never);
+  const lead = "Hi, my mom's 60th birthday is next month. Not sure what kind of music would work.";
+
+  it("Lead Words LW2 classifyLead keeps a verbatim phrase, nulls a paraphrase, and a missing field is all-null", async () => {
+    try {
+      respond({ ...c8.classification, lead_words: { occasion: "my mom's 60th birthday", time_frame: "this spring", doubt: "Not sure what kind of music" } });
+      const r = await classifyLead(lead, "2026-10-12");
+      assert.deepEqual(r.lead_words, { occasion: "my mom's 60th birthday", time_frame: null, doubt: "Not sure what kind of music" });
+      respond({ ...c8.classification });
+      assert.deepEqual((await classifyLead(lead, "2026-10-12")).lead_words, NONE);
+      respond({ ...c8.classification, lead_words: "my mom's 60th birthday" });
+      assert.deepEqual((await classifyLead(lead, "2026-10-12")).lead_words, NONE);
+    } finally { setClaudeRequesterForTests(); }
+  });
+
+  it("Lead Words LW6 the classifier prompt documents the field and has the schema line", () => {
+    const prompt = buildClassifyPrompt("2026-10-12");
+    assert.ok(prompt.includes('"lead_words": { "occasion": string | null, "time_frame": string | null, "doubt": string | null }'));
+    assert.ok(prompt.includes("lead_words (every lead): short phrases COPIED from the lead's own message"));
+    assert.ok(prompt.includes("code discards any phrase that is not in the lead"));
   });
 });
