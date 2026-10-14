@@ -83,6 +83,20 @@ false check; `docs/reviews/2026-10-13-clarification-alex-reference-reply-vs-app.
   `src/prompts/generate.ts:205-223`) withholds its block for `quoteTermsOff`, a large budget gap, a graceful decline
   and a past date, and tells the model the payment and COI sentences come from Quote Terms, not from the example.
 
+## Revision 2b (2026-10-14, Codex code review round 1; Alex's answers)
+
+- **Stored leads (finding 1):** `defaultVagueFormat` runs in `classifyLead` only. A classification stored BEFORE this
+  change keeps its `unresolved` format and its unresolved pricing, and `runEditPipeline` (no raw lead text) re-runs that
+  same clarification route; a fresh run of the lead gets the new route. Alex chose "document the limit, pin with a
+  test" (V10a). Nothing stored has been sent.
+- **Copying (finding 3):** Alex chose "accept your own words". The block now allows his setup sentence word for word
+  (`VAGUE_QUOTE_SETUP_SENTENCE`), and `sharedWindows` cuts it like the Quote Terms; every other example sentence stays
+  forbidden and is counted (V10c). No runtime rejection (it would end in no draft). The earlier 44-of-50 figure was
+  measured BEFORE this change and counted the setup sentence; it is not comparable to a later run.
+- **Route metrics (finding 2):** a run with no route is "no classification" only when the runner saw a `classify`
+  stage error; other stages are "classified, failed later", and an unknown stage is its own count (V10b).
+- **Benign "group" (finding 4):** stays `unresolved`, the conservative side (V10d).
+
 ## Decision
 
 D1. **The route and the "Latin band" boundary, in code** (answers R1 item 2; mechanism changed in Revision 2). The
