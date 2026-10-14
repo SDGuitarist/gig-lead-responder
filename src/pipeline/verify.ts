@@ -1,6 +1,6 @@
 import { callClaude } from "../claude.js";
 import { VerificationError } from "../errors.js";
-import { buildVerifyPrompt } from "../prompts/verify.js";
+import { buildVerifyPrompt, type VerifyPromptOptions } from "../prompts/verify.js";
 import { wrapModelText } from "../utils/sanitize.js";
 import { generateResponse, type PositiveSignals } from "./generate.js";
 import { GUT_CHECK_KEYS, type Classification, type Drafts, type GateResult, type PricingResult } from "../types.js";
@@ -69,8 +69,9 @@ export async function verifyGate(
   drafts: Drafts,
   classification: Classification,
   pricing: PricingResult,
+  options?: VerifyPromptOptions, // measurement only: no production call passes it (src/vague-gate-prompt.test.ts VG10)
 ): Promise<GateResult> {
-  const systemPrompt = buildVerifyPrompt(classification, pricing);
+  const systemPrompt = buildVerifyPrompt(classification, pricing, options);
   // Drafts are model output: wrapped and escaped so they can't pose as instructions.
   const userMessage = `Evaluate this draft:\n\n## FULL DRAFT\n${wrapModelText("full_draft", drafts.full_draft)}\n\n## COMPRESSED DRAFT\n${wrapModelText("compressed_draft", drafts.compressed_draft)}`;
 

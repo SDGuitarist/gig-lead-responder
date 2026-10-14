@@ -43,6 +43,27 @@ This lead is vague: the form gave no date, venue, guest count or format, so the 
 - Fail (generic acknowledgement): "You're looking for the right music for your event."
 `;
 
+/**
+ * Vague-quote mode (plan docs/plans/2026-10-14-fix-vague-quote-gate-opening-plan.md, Revision 1b): a vague one_question
+ * lead whose format the app defaulted (solo or duo) is quoted, so it is not clarification mode, but it still has no
+ * detail to cite. Same fact-or-doubt test as clarification mode; the assumed format is not an anchor unless the lead
+ * named it (format_requested). Pinned by src/vague-gate-prompt.test.ts (VG1-VG10).
+ */
+const VAGUE_QUOTE_LEAD_SPECIFICITY = `### 6b. Lead-Specificity Check
+This lead is vague and its format was assumed: the form gave no date, venue or guest count, so the opening cannot cite them. The first sentence passes only if it repeats or restates a fact or an uncertainty the lead itself supplied. The minimum anchor is ONE of: the occasion or event type the lead wrote (a birthday, a wedding, a party); the time frame the lead wrote (next month, this winter, spring); the lead's own stated doubt ("not sure what kind of music"); or a format the lead itself named, which shows in the classification's \`format_requested\` (a lead that wrote "a solo guitarist" supplied that format). Any one is enough. A format that does NOT appear in \`format_requested\` ("solo guitar", "a duo" chosen by the app) is an assumption, not a fact the lead supplied, and is NOT an anchor. References that could be said to any inquiry do NOT qualify: "your event", "this inquiry", "what you're looking for", "the right fit", "the right music", "what would work best".
+- Look at the FIRST sentence of the draft
+- Deletion test: remove the words that came from this lead; if the sentence still works for any inquiry → lead_specific_opening = false
+- Pass: "Your mom's birthday, and you're not sure what kind of music: that is the right place for one question."
+- Pass (a format the lead named, format_requested = "a solo guitarist"): "A solo guitarist for your mom's birthday: that is a clear ask, and one question settles the rest."
+- Fail (compliment): "What a wonderful way to celebrate!"
+- Fail (generic acknowledgement): "You're looking for the right music for your event."
+- Fail (assumed format only, solo): "A solo guitarist is a lovely way to set the tone."
+- Fail (assumed format only, duo): "A duo is a warm way to fill an evening."
+`;
+
+/** Measurement seam, never passed by production: "default" ignores vague-quote mode so one draft can be verified under both rules. */
+export interface VerifyPromptOptions { openingRule?: "default" }
+
 function residencyPriceRule(classification: Classification, q: ResidencyQuote): string {
   return residencyStatesPrice(classification, q)
     ? q.series
@@ -54,10 +75,14 @@ function residencyPriceRule(classification: Classification, q: ResidencyQuote): 
 export function buildVerifyPrompt(
   classificationIn: Classification,
   pricing: Pick<PricingResult, "budget" | "residency">,
+  options: VerifyPromptOptions = {},
 ): string {
   const classification = withoutHoldNotes(classificationIn);
   const budget = pricing.budget;
   const clarificationMode = classification.action === "one_question" && classification.format_recommended === "unresolved";
+  const vagueQuoteMode = options.openingRule !== "default" && classification.action === "one_question"
+    && classification.vagueness === "vague"
+    && (classification.format_recommended === "solo" || classification.format_recommended === "duo");
   const voiceReferences = VOICE_REFERENCES
     .filter((reference) => reference.active && (reference.name === "Patterson" || reference.name === "Sparse Cocktail"))
     .map((reference, index) => `Reference: ${reference.name}\n${wrapVoiceReference(index + 1, reference.type, reference.text)}`)
@@ -99,7 +124,7 @@ structural = AUTOMATIC FAIL
 Could another vendor have written this exact opening? If yes → competitor_test = true → FAIL.
 The opening must contain an insight specific to THIS lead.
 
-${clarificationMode ? CLARIFICATION_LEAD_SPECIFICITY : DEFAULT_LEAD_SPECIFICITY}
+${clarificationMode ? CLARIFICATION_LEAD_SPECIFICITY : vagueQuoteMode ? VAGUE_QUOTE_LEAD_SPECIFICITY : DEFAULT_LEAD_SPECIFICITY}
 ### 7. Gut Checks (all boolean)
 - can_see_it: Reader can visualize a specific moment
 - validated_them: Draft validates the person, not just the event
@@ -110,7 +135,7 @@ ${clarificationMode ? CLARIFICATION_LEAD_SPECIFICITY : DEFAULT_LEAD_SPECIFICITY}
 - best_line_present: There's a genuinely strong line
 - prose_flows: Reads as one continuous movement, not assembled sections
 - competitor_test: false means PASS (no competitor would write this)
-- lead_specific_opening: ${clarificationMode ? "Apply section 6b (clarification mode): the first sentence repeats a fact or an uncertainty this lead supplied; generic references that fit any inquiry do not count." : "First sentence references a concrete detail from the classification (not generic)"}
+- lead_specific_opening: ${clarificationMode ? "Apply section 6b (clarification mode): the first sentence repeats a fact or an uncertainty this lead supplied; generic references that fit any inquiry do not count." : vagueQuoteMode ? "Apply section 6b (vague quote mode): the first sentence repeats a fact or an uncertainty this lead supplied, or a format the lead itself named; the format the app assumed does not count, and generic references that fit any inquiry do not count." : "First sentence references a concrete detail from the classification (not generic)"}
 - budget_acknowledged: ${clarificationMode ? "Always true — clarification mode does not quote yet." : pricing.residency ? "Always true — residency pricing is Alex's call (every residency is held)." : buildBudgetInstruction(budget, classification)}
 - past_date_acknowledged: ${buildPastDateInstruction(classification)}
 - mariachi_pricing_format: ${buildMariachiPricingInstruction(classification)}

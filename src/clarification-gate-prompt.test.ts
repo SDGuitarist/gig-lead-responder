@@ -63,7 +63,9 @@ describe("Clarification Gate G0: the section extractor", () => {
 });
 
 describe("Clarification Gate G2: every non-clarification mode is byte-equal to its snapshot outside the voice-reference block", () => {
-  for (const id of ["S1", "S2", "S3", "S4", "S5", "S6", "S7", "S8", "S9", "S10", "S11", "S12"]) {
+  // S8 (one_question + vague + solo) became the vague-quote mode in plan 2026-10-14-fix-vague-quote-gate-opening-plan.md:
+  // its text is pinned by src/vague-gate-prompt.test.ts (VG1, VG7), against the retained S8-pre-vague-gate snapshot.
+  for (const id of ["S1", "S2", "S3", "S4", "S5", "S6", "S7", "S9", "S10", "S11", "S12"]) {
     it(`Clarification Gate G2 ${id} (${caseOf(id).what}) is byte-equal to its snapshot outside the voice block`, () => {
       const prompt = promptOf(id);
       assert.equal(prompt, snapshotOf(id));
@@ -118,8 +120,8 @@ describe("Clarification Gate G5 / G7: the scope is the mode, not a keyword", () 
     assert.equal(lineOf(nearMiss), lineOf(snapshotOf("S9")));
   });
 
-  it("Clarification Gate G7 one_question with a resolved format (S8) and quote with an unresolved format (S9) do not use the definition", () => {
-    for (const id of ["S8", "S9"]) {
+  it("Clarification Gate G7 quote with an unresolved format (S9) does not use the definition (S8 is the vague-quote mode: VG1)", () => {
+    for (const id of ["S9"]) {
       assert.ok(!sectionOf(promptOf(id), "6b").includes("This lead is vague"), id);
       assert.notEqual(lineOf(promptOf(id)), CLARIFICATION_OPENING_LINE, id);
     }
