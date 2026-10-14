@@ -1,6 +1,6 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { openingOf } from "./draft-opening.js";
+import { openingOf, sentenceCount, wordCount } from "./draft-opening.js";
 
 // Codex code review round 1, P2-2 (docs/reviews/2026-10-13-clarification-gate-code-codex-round1.md): the runner's
 // `opening` is the first CONTENT sentence of a draft, with a leading salutation removed whether it shares the line
@@ -31,5 +31,24 @@ describe("Draft Opening: the first content sentence", () => {
   it("Draft Opening O5 an empty draft is an empty opening", () => {
     assert.equal(openingOf(""), "");
     assert.equal(openingOf("  \n "), "");
+  });
+});
+
+describe("Draft Opening: counts for the shape measurement", () => {
+  it("Draft Opening O6 sentences and words exclude the salutation and the sign-off", () => {
+    const d = "Hi Sarah,\n\nA good night is coming. It runs 2.5 hours! Which do you prefer: quiet or featured?\n\nAlex Guillen";
+    assert.equal(sentenceCount(d), 3);
+    assert.equal(wordCount(d), 16);
+  });
+
+  it("Draft Opening O7 a decimal or an abbreviation without a following space is not a break; empty is zero", () => {
+    assert.equal(sentenceCount("It is 3.5 hours.\nAlex Guillen"), 1);
+    assert.equal(sentenceCount(""), 0);
+    assert.equal(wordCount(""), 0);
+  });
+
+  it("Draft Opening O8 a draft without a sign-off keeps its last sentence (positive control)", () => {
+    assert.equal(sentenceCount("One. Two. Three"), 3);
+    assert.equal(wordCount("One. Two. Three"), 3);
   });
 });

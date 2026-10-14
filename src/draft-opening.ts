@@ -14,3 +14,18 @@ export function openingOf(draft: string): string {
   const first = body.split("\n").map((l) => l.trim()).find(Boolean) ?? "";
   return first.split(/(?<=[.!?])\s/)[0];
 }
+
+/** The draft without a leading salutation and without the trailing "Alex Guillen" sign-off. */
+function contentOf(draft: string): string {
+  return String(draft).replace(SALUTATION, "").replace(/\s*\n\s*Alex\s*Guillen\s*$/i, "").trim();
+}
+
+/** Words of the draft body (salutation and sign-off excluded). */
+export function wordCount(draft: string): number {
+  return contentOf(draft).split(/\s+/).filter(Boolean).length;
+}
+
+/** Sentences of the draft body: segments that end at `.`, `!` or `?` followed by whitespace (a decimal such as 3.5 is not a break). */
+export function sentenceCount(draft: string): number {
+  return contentOf(draft).split(/(?<=[.!?])\s+/).map((x) => x.trim()).filter(Boolean).length;
+}
