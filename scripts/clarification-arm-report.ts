@@ -69,6 +69,17 @@ function summary(label: string, results: RunResult[]) {
   if (results.some((r) => (r as unknown as PairedRun).paired)) {
     console.log("paired gate comparison (same drafts, new vs default opening rule; descriptive):", JSON.stringify(summarizePairs(results as unknown as PairedRun[])));
   }
+  {
+    // Lead-words plan: how often the opening check is still the failure, and what the classifier kept per run.
+    const returned = results.filter((r) => r.ok);
+    const openingFalse = returned.filter((r) => ((r as unknown as { gate_detail?: { false_checks?: string[] } }).gate_detail?.false_checks ?? []).includes("lead_specific_opening")).length;
+    console.log(`lead_specific_opening false: ${openingFalse} of ${returned.length} returned drafts`);
+    const withWords = returned.map((r) => (r as unknown as { route?: { lead_words?: Record<string, string | null> | null } }).route?.lead_words ?? null);
+    if (withWords.some((w) => w !== null)) {
+      const kept = (k: string) => withWords.filter((w) => w && typeof w[k] === "string").length;
+      console.log(`lead_words kept (runs with a phrase): occasion ${kept("occasion")}, time_frame ${kept("time_frame")}, doubt ${kept("doubt")}, none ${withWords.filter((w) => w && !["occasion", "time_frame", "doubt"].some((k) => typeof w[k] === "string")).length} of ${returned.length}`);
+    }
+  }
   console.log("per lead (unusable/runs): " + [...byLead].sort().map(([l, b]) => `${l} ${b.unusable}/${b.n}`).join("  "));
   return { n, unusable };
 }

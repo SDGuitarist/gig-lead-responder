@@ -1,6 +1,7 @@
-// Planted-opening controls for the vague-quote verify gate (plan docs/plans/2026-10-14-fix-vague-quote-gate-opening-plan.md,
-// "Decision table"): 6 generic and 5 specific openings, each verified twice under the NEW rule on a fixed made-up vague
-// lead with a defaulted solo/duo format. A real model call; nothing sent; no app state touched.
+// Planted-opening controls for the scoped opening rule, FIVE-cell matrix (plan
+// docs/plans/2026-10-14-feat-lead-words-field-plan.md, "Decision table"): each text verified twice on a fixed made-up vague
+// lead. Cell A all-null + generic, B all-null + app label, C valid phrases + an opening that quotes them, D valid phrases +
+// generic or app label, E a MALFORMED stored `lead_words` + generic. Real model calls; nothing sent; no app state touched.
 //   npx tsx scripts/vague-gate-controls.ts [--out <dir>]
 // Stop rules (asymmetric by cost): ANY generic text passing lead_specific_opening in EITHER verify is a control defect;
 // 2 or more specific texts failing it in AT LEAST ONE verify means the rule is too tight. Exit 0 only for clean controls;
@@ -26,31 +27,38 @@ const { VAGUE_GATE_CASES } = await import(join(root, "src/verify-prompt-cases.ts
 const { evaluateControls } = await import(join(root, "src/gate-controls.ts"));
 setClaudeRequesterForTests((async (request: unknown) => client.messages.create(request)) as never);
 
-// Fixed made-up lead: vague, category-only, "my mom's birthday", format defaulted to solo (S13 is the duo case).
+const { leadWordsOf } = await import(join(root, "src/lead-words.ts"));
+// Fixed made-up lead: vague, category-only, "my mom's 60th birthday next month", format defaulted to duo (S13). Every
+// planted classification goes through verifyGate -> buildVerifyPrompt -> sanitizeClassification: the production path,
+// the one a stored classification takes too.
 const base = VAGUE_GATE_CASES.find((c: { id: string }) => c.id === "S13");
-const CASES: Record<string, { classification: unknown; pricing: unknown }> = {
-  // a generic format_requested word is NOT a format the lead named (Codex R1 P1-3)
-  generic_word: { classification: { ...base.classification, format_recommended: "solo", format_requested: "live music" }, pricing: base.pricing },
-  solo: { classification: { ...base.classification, format_recommended: "solo", flagged_concerns: ["vague format request"] }, pricing: base.pricing },
-  duo: { classification: base.classification, pricing: base.pricing },
-};
+const VALID = { occasion: "my mom's 60th birthday", time_frame: "next month", doubt: "not sure what kind of music" };
+const NULLS = { occasion: null, time_frame: null, doubt: null };
+const withWords = (lead_words: unknown) => ({ classification: { ...base.classification, lead_words }, pricing: base.pricing });
 const BODY = "Two hours solo is $700. I bring my own sound and need one outlet and an armless chair, so home, backyard, or restaurant all work. COI available upon request. Send me the date once you have it and I'll check my calendar. A 50% deposit holds the date.\n\nAlex Guillen";
-const TEXTS: Array<{ id: string; kind: "generic" | "specific"; format: "solo" | "duo" | "generic_word"; opening: string }> = [
-  { id: "g1", kind: "generic", format: "solo", opening: "What a wonderful way to celebrate!" },
-  { id: "g2", kind: "generic", format: "solo", opening: "You're looking for the right music for your event." },
-  { id: "g3", kind: "generic", format: "solo", opening: "A solo guitarist is a lovely way to set the tone." },
-  { id: "g4", kind: "generic", format: "duo", opening: "A duo is a warm way to fill an evening." },
-  { id: "g5", kind: "generic", format: "duo", opening: "Thanks for reaching out about live music for your upcoming event." },
-  { id: "g6", kind: "generic", format: "generic_word", opening: "Live music is a great idea for your event." },
-  { id: "s1", kind: "specific", format: "solo", opening: "Your mom's birthday, and you're not sure what kind of music: that is the right place for one question." },
-  { id: "s2", kind: "specific", format: "solo", opening: "You said live music next month and haven't picked a format yet, which is the right moment for one question." },
-  { id: "s3", kind: "specific", format: "solo", opening: "A birthday this spring and no idea yet what kind of music fits: that is exactly where one question helps." },
-  { id: "s4", kind: "specific", format: "duo", opening: "You said a dinner party and you're unsure what music to pick, so here is one simple question." },
-  { id: "s5", kind: "specific", format: "duo", opening: "Your wedding is still taking shape and you wrote that you're not sure what music would work: one question first." },
+type Cell = "A" | "B" | "C" | "D" | "E";
+const TEXTS: Array<{ id: string; cell: Cell; kind: "generic" | "specific"; words: unknown; opening: string }> = [
+  { id: "A1", cell: "A", kind: "generic", words: NULLS, opening: "What a wonderful way to celebrate!" },
+  { id: "A2", cell: "A", kind: "generic", words: NULLS, opening: "You're looking for the right music for your event." },
+  { id: "B1", cell: "B", kind: "generic", words: NULLS, opening: "A private celebration with live music already in the room, and the conversation riding it by the second song." },
+  { id: "B2", cell: "B", kind: "generic", words: NULLS, opening: "Spring private event, no venue yet, and the guitar is already the one thing you've decided on." },
+  { id: "C1", cell: "C", kind: "specific", words: VALID, opening: "Your mom's 60th birthday is next month, and you're not sure what kind of music: that is exactly where one question helps." },
+  { id: "C2", cell: "C", kind: "specific", words: VALID, opening: "A 60th birthday for your mom next month, and not sure what kind of music would work: one question settles it." },
+  { id: "C3", cell: "C", kind: "specific", words: VALID, opening: "Next month is your mom's 60th birthday, and you said you're not sure what kind of music: here is one simple question." },
+  { id: "D1", cell: "D", kind: "generic", words: VALID, opening: "What a wonderful way to celebrate!" },
+  { id: "D2", cell: "D", kind: "generic", words: VALID, opening: "A private celebration with live music already in the room, and the conversation riding it by the second song." },
+  { id: "D3", cell: "D", kind: "generic", words: VALID, opening: "A solo guitarist is a lovely way to set the tone." },
+  { id: "E1", cell: "E", kind: "generic", words: "my mom's 60th birthday", opening: "What a wonderful way to celebrate!" },
+  { id: "E2", cell: "E", kind: "generic", words: ["my mom's 60th birthday"], opening: "A private celebration with live music already in the room, and the conversation riding it by the second song." },
 ];
-const results: Array<{ id: string; kind: string; verifies: Array<boolean | null>; error?: string }> = [];
+// Cell E: the malformed stored values must read as all-null BEFORE any model call.
+for (const t of TEXTS.filter((x) => x.cell === "E")) {
+  const read = leadWordsOf(withWords(t.words).classification);
+  if (JSON.stringify(read) !== JSON.stringify(NULLS)) { console.error(`${t.id}: leadWordsOf did not read the malformed value as all-null`); process.exit(2); }
+}
+const results: Array<{ id: string; kind: "generic" | "specific"; cell: string; verifies: Array<boolean | null>; error?: string }> = [];
 for (const t of TEXTS) {
-  const c = CASES[t.format];
+  const c = withWords(t.words);
   const full = `${t.opening} Does it sound more like background while people talk, or a dance floor?\n\n${BODY}`;
   const drafts = { full_draft: full, compressed_draft: `${t.opening} Background while people talk, or a dance floor? Two hours solo is $700.`, compressed_word_count: 25 };
   const verifies: Array<boolean | null> = [];
@@ -61,10 +69,10 @@ for (const t of TEXTS) {
       verifies.push((g.gut_checks as unknown as Record<string, boolean>).lead_specific_opening ?? null);
     } catch (e) { verifies.push(null); error = String(e).slice(0, 160); }
   }
-  results.push({ id: t.id, kind: t.kind, verifies, ...(error ? { error } : {}) });
-  console.log(`${t.id} ${t.kind} ${t.format}: lead_specific_opening ${JSON.stringify(verifies)}${error ? " ERROR " + error : ""}`);
+  results.push({ id: t.id, kind: t.kind, cell: t.cell, verifies, ...(error ? { error } : {}) });
+  console.log(`${t.id} cell ${t.cell} (${t.kind}): lead_specific_opening ${JSON.stringify(verifies)}${error ? " ERROR " + error : ""}`);
 }
-const decision = evaluateControls(results as Array<{ id: string; kind: "generic" | "specific"; verifies: Array<boolean | null> }>);
+const decision = evaluateControls(results);
 console.log(JSON.stringify(decision));
 writeFileSync(join(out, "vague-gate-controls.json"), JSON.stringify({ results, decision }, null, 2));
 process.exit(decision.exitCode); // 0 only for clean controls: a stop condition or a verifier error exits 1

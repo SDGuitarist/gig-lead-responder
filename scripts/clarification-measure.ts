@@ -42,21 +42,8 @@ if (!process.env.ANTHROPIC_API_KEY) {
   process.exit(2);
 }
 
-// The vague leads: made up, no venue, no private data.
-export const LEADS: Record<string, string> = {
-  v1: "Hi, I'm looking for live music for an event sometime next month. I'm not sure what kind of music or how many musicians would work. What do you suggest?",
-  v2: "Hi Alex, we are thinking about some live music for a gathering this winter. Not sure yet what we need or what would suit it. Could we talk?",
-  v3: "Hi, do you play weddings? Looking for some music. How much?",
-  v4: "Need live music for a party. Not sure what's best.",
-  v5: "Hello, planning an event in the spring and want some live entertainment. What options do you have and what do they cost?",
-  v6: "Hi Alex, looking for a musician for my mom's birthday. Not sure what type of music or how long. Thoughts?",
-  // Held out for plan 2 (docs/plans/2026-10-13-fix-clarification-draft-shape-plan.md): written before the change, and
-  // their per-run drafts are not read before it is committed.
-  h1: "Hi there! My husband's 40th is coming up in the summer and I'd love some live music for it. Not sure what would work. Any ideas?",
-  h2: "Looking for a musician for our company holiday gathering. Haven't decided on the vibe yet. What do you recommend?",
-  h3: "Hello, we want live music at our anniversary dinner. We don't really know what to ask for. What are the options?",
-  h4: "Hi, I run a small art gallery and we're thinking about live music at an opening this fall. Not sure if that's even doable. Thoughts?",
-};
+import { LEADS } from "./measure-leads.js";
+export { LEADS };
 
 // What to look for. "stated" classes are an amount; "word" classes are vocabulary the validator deliberately allows.
 const NUM = "(?:a|an|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety|hundred|thousand|grand)";
@@ -149,6 +136,7 @@ for (const name of names) {
       route = {
         action: o.classification.action, format_recommended: o.classification.format_recommended, quote_price: price,
         question_count: (text.match(/\?/g) ?? []).length,
+        lead_words: o.classification.lead_words ?? null, // the lead's own phrases after the code check (lead_words plan)
         price_figure_present: price !== null && (text.includes(`$${price}`) || text.includes(`$${price.toLocaleString("en-US")}`)),
         payment_kind: terms.kind, payment_sentence_count: occurrences(paymentSentence),
         coi_kind: coi.kind, coi_sentence_count: occurrences(coiSentence),
