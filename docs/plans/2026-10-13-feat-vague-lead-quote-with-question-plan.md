@@ -1,7 +1,7 @@
 ---
 title: "feat: a vague lead gets the default format quoted with one question, not a no-price clarification"
 date: 2026-10-13
-status: plan, Revision 1 (plan review R1 NO-GO, 5 P1 / 1 P2, all accepted and answered below; rewritten in place; HARD STOP: no production code until Alex resolves the salutation)
+status: plan, Revision 1 (plan review R1 NO-GO, 5 P1 / 1 P2, all accepted and answered below; rewritten in place; the salutation was answered (a) by Alex 2026-10-13; no production code until plan review passes)
 branch: feat/hub-phase0
 ---
 
@@ -28,6 +28,9 @@ forward: one model and made-up leads, so every measurement here is exploratory a
 - **COI: yes.** The reference includes the app's default sentence "COI available upon request.".
 - **The date sentence, his exact words:** "Send me the date once you have it and I'll check my calendar. A 50% deposit
   holds the date." (The second sentence is the app's payment sentence exactly.)
+- **The salutation: option (a).** The reference opens with a name ("Hi Dana,", as the T4 reference does) and the
+  generate prompt's nameless-lead rule ("omit salutation") stays unchanged. He answered "a" to (a) a name in the
+  reference, nameless rule stays; (b) change the rule to "Hi there,"; (c) no salutation in the reference.
 - **Volume: no rule added.** Asked whether "no volume commitments" should be an app rule, he answered "no that's not a
   guarantee". Read as: no new rule is added; the reference describes how the guitar sits, it does not promise a
   level. If he meant something else, this line is the one to correct.
@@ -125,13 +128,14 @@ the app's payment and COI sentences, and the model writes ONE binary question. F
 mode is unchanged. Nothing in code enforces "exactly one question" or the shape; the verifier and the measurement are
 the checks, and both are model-dependent. The example is a shape, not a source of facts.
 
-## The reference reply (final wording, except the salutation)
+## The reference reply (final wording)
 
-Alex's reply, footer dropped, with his three answers applied. The price is the placeholder; the payment and COI
-sentences are the app's constants and appear once each; the date sentence is his.
+Alex's reply, footer dropped, with his answers applied (COI, the date sentence, the salutation). The price is the
+placeholder; the payment and COI sentences are the app's constants and appear once each; the date sentence is his.
+"Dana" is a placeholder first name, as in T4; the salutation exists only because the example's lead has a name.
 
 ```
-[SALUTATION: PENDING ALEX, see below]
+Hi Dana,
 
 Picture your parents' 30th: toasts done, the guitar soft enough that one of them reaches for the other's hand without deciding to. You're the one making sure thirty years gets celebrated out loud.
 
@@ -142,17 +146,15 @@ Two hours solo is [QUOTED_PRICE]. I bring my own sound and need one outlet and a
 Alex Guillen
 ```
 
-## Pending Alex (HARD STOP)
+## Resolved: the salutation
 
-**The salutation.** His reply opens "Hi there,". The generate prompt's SALUTATION rule
-(`src/prompts/generate.ts:98`) says that with no client name the draft must "omit salutation and start directly
-with the cinematic opening". A reference that shows "Hi there," teaches the opposite of the rule. Options:
-(a) the reference opens with a name ("Hi Dana,", as T4 does) and the nameless rule stays; (b) the rule changes to
-allow "Hi there," for a lead with no name (his practice); (c) the reference has no salutation.
+**Alex chose (a)** (2026-10-13). His reply had opened "Hi there,", which the generate prompt's SALUTATION rule
+(`src/prompts/generate.ts:98`: no client name, "omit salutation and start directly with the cinematic opening")
+contradicts. The reference now opens "Hi Dana,", the SALUTATION rule is unchanged, and a nameless lead still gets no
+salutation. (b), changing the rule for every nameless lead, was not chosen and would need its own plan.
 
-**Stop condition (R1 item 3):** NO reference module, prompt wiring, classifier wording change or other production
-code until Alex answers and plan review passes. The current rule (nameless leads omit a salutation) is preserved
-unless Alex explicitly changes it. Plan documents and tests-as-specifications may be revised in the meantime.
+**Stop condition kept (R1 item 3), narrowed:** no production code until plan review passes (the salutation no
+longer blocks it). Plan documents and tests-as-specifications may be revised in the meantime.
 
 ## Plan Quality Gate
 
@@ -244,7 +246,8 @@ the plan; no number is a pass bar, and any difference from arm A is reported as 
 
 ## Work steps (one concern per commit; failing test first)
 
-0. **HARD STOP.** Alex resolves the salutation; plan review R2 (or its closing decision). No production code before.
+0. **HARD STOP.** Plan review R2 (or its closing decision by Alex). No production code before. (The salutation is
+   resolved: option (a).)
 1. The hash inventory extended with C13-C17 from the CURRENT code; V2 (withheld cases) and V7's unchanged rows pass.
 2. V1, V3-V6 (failing), then the reference module, the block, and the classifier wording.
 3. The report fields and `sharedWindows` with V8a-c; the mutation map; full suite, `tsc`, leak check.
