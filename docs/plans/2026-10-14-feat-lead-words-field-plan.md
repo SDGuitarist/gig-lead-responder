@@ -1,7 +1,7 @@
 ---
 title: "feat: a classifier field for what the lead actually wrote, for the drafter and the verifier"
 date: 2026-10-14
-status: plan, Revision 1b (plan review R1 NO-GO 5 P1 / 2 P2, R2 NO-GO 3 P1 / 2 P2, both answered; D5 decided by Alex 2026-10-14; Alex chose "Fix the 5, then authorize round 3")
+status: plan, Revision 1c (plan review R1 NO-GO 5 P1 / 2 P2, R2 NO-GO 3 P1 / 2 P2, R3 (b) one finding; all answered; D5 decided by Alex 2026-10-14; the cap fired at R3 and Alex chose "Accept the plan, fix the one line, build")
 branch: feat/hub-phase0
 ---
 
@@ -280,7 +280,7 @@ asymmetric by cost: a false pass is the harm, a false fail only loses gain.
   script call `classifyLead` only; the arm runs `runPipeline` for the 10 made-up leads and records the classification
   (with `lead_words`), the draft and the verdicts; the controls verify planted openings.
 - **Command (exact), from the repo root:**
-  `OUT=$(mktemp -d /tmp/lead-words.XXXXXX); npx tsx scripts/classifier-regression.ts --tag after --runs 5 --out "$OUT"; npx tsx scripts/classifier-regression.ts --compare <before.json> "$OUT"/<after.json>; CMP=$?; npx tsx scripts/lead-words-grounding.ts --runs 5 --out "$OUT"; pids=""; for t in 1 2 3 4 5; do npx tsx scripts/clarification-measure.ts --arm B --probe C8 --runs 1 --tag B$t --out "$OUT" --today 2026-10-12 > "$OUT/log-B$t.txt" 2>&1 & pids="$pids $!"; done; FAILED=0; for p in $pids; do wait $p || FAILED=$((FAILED+1)); done; LIMITS=$(cat "$OUT"/log-B*.txt | grep -c "usage limits"); FILES=$(ls "$OUT"/clarification-B*.json | wc -l | tr -d ' '); npx tsx scripts/vague-gate-controls.ts --out "$OUT"; CTL=$?; if [ "$FAILED" = 0 ] && [ "$LIMITS" = 0 ] && [ "$FILES" = 5 ] && [ "$CMP" = 0 ] && [ "$CTL" = 0 ]; then echo RESULT=PASS; else echo "RESULT=VOID failed=$FAILED limits=$LIMITS files=$FILES compare=$CMP controls=$CTL"; fi`
+  `OUT=$(mktemp -d /tmp/lead-words.XXXXXX); npx tsx scripts/classifier-regression.ts --tag after --runs 5 --out "$OUT"; AFT=$?; npx tsx scripts/classifier-regression.ts --compare <before.json> "$OUT"/<after.json>; CMP=$?; npx tsx scripts/lead-words-grounding.ts --runs 5 --out "$OUT"; GRD=$?; pids=""; for t in 1 2 3 4 5; do npx tsx scripts/clarification-measure.ts --arm B --probe C8 --runs 1 --tag B$t --out "$OUT" --today 2026-10-12 > "$OUT/log-B$t.txt" 2>&1 & pids="$pids $!"; done; FAILED=0; for p in $pids; do wait $p || FAILED=$((FAILED+1)); done; LIMITS=$(cat "$OUT"/log-B*.txt | grep -c "usage limits"); FILES=$(ls "$OUT"/clarification-B*.json | wc -l | tr -d ' '); npx tsx scripts/vague-gate-controls.ts --out "$OUT"; CTL=$?; if [ "$FAILED" = 0 ] && [ "$LIMITS" = 0 ] && [ "$FILES" = 5 ] && [ "$AFT" = 0 ] && [ "$GRD" = 0 ] && [ "$CMP" = 0 ] && [ "$CTL" = 0 ]; then echo RESULT=PASS; else echo "RESULT=VOID failed=$FAILED limits=$LIMITS files=$FILES after=$AFT grounding=$GRD compare=$CMP controls=$CTL"; fi`
   (the `before` regression runs once on the pre-change tree at step 1). **One line decides:** `RESULT=PASS` or
   `RESULT=VOID ...`. A VOID run is rerun or stopped by the table, never interpreted. (A `compare` of 1 is the stop rule
   firing, which is a recorded STOP, not a void: the script prints it as `compare=1`.)

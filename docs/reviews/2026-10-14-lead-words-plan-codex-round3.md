@@ -12,3 +12,10 @@ otherwise specified and that the residue lands in one file, the plan.
 
 **THE CAP HAS FIRED.** No round 4. Claude Code stops automatic fixing and reviewing and escalates to Alejandro with
 options: (i) a different approach, (ii) revert to the prior state, (iii) accept the original condition.
+
+## Alex's decision (chat, 2026-10-14): "Accept the plan, fix the one line, build"
+
+The Execution Path command now captures `AFT` (the `after` regression) and `GRD` (the grounding script) and the line is
+`RESULT=PASS` only when `FAILED`, `LIMITS`, `FILES`, `AFT`, `GRD`, `CMP` and `CTL` are all clean. No fourth review
+(the cap fired). The `before` regression is real API spend and is run at the measurement stage on a worktree of the
+pre-change commit, not at build step 1: it needs Alex's "go" like the rest of the spend.
