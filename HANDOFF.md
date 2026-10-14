@@ -263,6 +263,23 @@ classifier `timeline_band` miss; (4) Alex's force-push call (I recommend no); (5
 Saturday/peak-day rule, Module 1 plan review, R006/R398/R403 TO PORT). Do not read or enter the Sandbox directory while
 Autopilot Run 104 runs. A legitimate edit to the verify prompt's voice references needs a `snapshot refresh:` commit.
 
+**Update 17 (session gig-lead-responder-22, clarification draft shape, compound):** plan 2 is built, measured and
+reviewed. Change `f762e23` (clarification-mode generate prompt: steps 1-3 reshaped, 70 to 100 words, no price in the
+compressed retain list); tooling `arm-manifest`, `assessArms`, a gated aggregate report, held-out leads h1-h4. Plan
+review R1/R2 NO-GO (answered, Alex fixed and built); code review R1 NO-GO (2 P1 / 1 P2, all the report path, fixed
+and reproduced), R2 GO. **Measurement (50 runs per arm, exploratory, power about 55-60% for 15 points): unusable
+38% -> 34% (p 0.42), verified 16% -> 25%, sentences 8 -> 5, competitor failures 4 -> 1, structural scene 10 -> 11.**
+The pre-registered stop row fired. Suite 980 pass / 0 fail / 1 skip. Compound:
+`docs/solutions/architecture/2026-10-13-a-shorter-instruction-shortens-the-reply-not-the-scene-two-arm-measurement.md`;
+`/update-learnings` ran. **Open, in order (Alex chose "both" at the measurement):** (1) a SMALL cycle for the
+validator's internal terms: `anchor` (the verb) and `floor` (a dance floor) rejected ordinary prose in 4 of 172
+runs; (2) plan the reference reply for the structural-scene failures: it needs Alex's EXACT words for one sample
+clarification reply (show him the words in chat and get his yes; T4-style copy check); (3) the "exactly one
+question" rule (12 of 122 runs); (4) the classifier `timeline_band` miss; (5) Alex's force-push call (I recommend
+no); (6) older items (nonprofit prices, Saturday/peak-day rule, Module 1 plan review, R006/R398/R403 TO PORT). Do
+not read or enter the Sandbox directory while Autopilot Run 104 runs. A legitimate edit to the generate prompt or
+the verify prompt's voice references needs a `snapshot refresh:` commit.
+
 #### Pre-compact save 2026-10-12 22:47 (appended; text above NOT modified, may be stale)
 
 **State (CHECKED this session):** branch `feat/hub-phase0`, base HEAD `2ae6936` (this save commit adds one), **pushed**:
