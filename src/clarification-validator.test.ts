@@ -77,9 +77,50 @@ describe("Clarification V3 / V4: dollar figures and the internal terms are rejec
     for (const s of ["It starts at $1200.", "About $ 850 for that.", "Roughly $1,200 all in."]) await rejects(s);
   });
 
-  it("Clarification V4a 'anchor' is rejected", async () => { await rejects("The anchor for this is a conversation."); });
-  it("Clarification V4b 'floor' is rejected", async () => { await rejects("Our floor is a firm number."); });
+  // Plan docs/plans/2026-10-13-fix-clarification-internal-terms-plan.md (Revision 1b): "anchor" and "floor" are rejected
+  // as PRICING COMPOUNDS, not as words (Alex's decision, 2026-10-13: "Pricing-noun compounds only"). V4a and V4b were
+  // amended with it: the bare sentences they used to reject state no price and now return the drafts.
+  it("Clarification V4a 'anchor price' is rejected; the bare 'anchor' sentence now returns the drafts", async () => {
+    await rejects("My anchor price is a conversation.");
+    await passes("The anchor for this is a conversation.");
+  });
+  it("Clarification V4b 'floor price' is rejected; the bare 'floor' sentence now returns the drafts", async () => {
+    await rejects("Our floor price is a firm number.");
+    await passes("Our floor is a firm number.");
+  });
   it("Clarification V4c 'investment' is rejected", async () => { await rejects("It is a modest investment for the night."); });
+});
+
+describe("Clarification V12 / V13 / V14 / V16: the internal terms are rejected as pricing compounds, not as words", () => {
+  it("Clarification V12 ordinary uses of anchor (the verb) and floor (a noun) return the drafts", async () => {
+    for (const s of ["Pick a format that can anchor the room.", "The art anchors the evening.", "A solo guitar disappears on a dance floor.",
+      "We could play on the ground floor.", "Nothing sits on the floor.", "My floor plan is simple.", "My anchor is my family.",
+      "Our floor is upstairs.", "Our floor is crowded tonight."]) {
+      await passes(s);
+    }
+  });
+
+  // One test per sentence, named by its token, so a mutation of one token fails exactly its own test.
+  const alt1: Array<[string, string]> = [
+    ["anchor-price", "The anchor price is firm."], ["floor-rate", "A floor rate applies."], ["anchor-quote", "An anchor quote helps."],
+    ["floor-figure", "A floor figure is shared."], ["anchor-prices", "Anchor prices vary."], ["floor-rates", "Floor rates apply."],
+  ];
+  const alt2: Array<[string, string]> = [
+    ["price-floor", "The price floor is firm."], ["rate-anchor", "A rate anchor helps."], ["pricing-anchor", "Pricing anchor first."],
+    ["quote-floor", "A quote floor applies."], ["price-floors", "Price floors differ."], ["rate-anchors", "Rate anchors help."],
+  ];
+  for (const [token, sentence] of alt1) it(`Clarification V13a ${token} is rejected`, async () => { await rejects(sentence); });
+  for (const [token, sentence] of alt2) it(`Clarification V13b ${token} is rejected`, async () => { await rejects(sentence); });
+
+  it("Clarification V14 'investment' and a number-marked floor are still rejected (the narrowing opened neither)", async () => {
+    await rejects("It is a modest investment for the night.");
+    await rejects("There is a floor of four hundred dollars.");
+  });
+
+  it("Clarification V16 a bare anchor or floor with no pricing noun passes (the documented boundary)", async () => {
+    await passes("The floor is firm.");
+    await passes("Our anchor sits at the center.");
+  });
 });
 
 describe("Clarification V5: an amount with a currency marker is rejected", () => {

@@ -41,7 +41,13 @@ const PRICE_STATEMENT_PATTERN = new RegExp([
   // long run of "a a a ..." (2 s on 50k characters, found while preparing code review).
   String.raw`\b${NUMBER_WORD}(?:[\s-]+${NUMBER_WORD}){0,5}\s+(?:dollars?|bucks)\b`,
   String.raw`\b\d+(?:\.\d+)?\s?k\b`, // 1.5k, 2k
-  String.raw`\banchor\b|\bfloor\b|\binvestment\b`, // the internal pricing terms, unchanged
+  // The internal pricing terms (plan docs/plans/2026-10-13-fix-clarification-internal-terms-plan.md, Rev 1b; Alex's
+  // decision 2026-10-13: "Pricing-noun compounds only"). `anchor` and `floor` are rejected as the app's pricing nouns, not
+  // as words: the verb "anchor the room" and "a dance floor" are ordinary prose (4 of 172 real runs were rejected for
+  // them). A bare "the floor is firm" passes by decision (V16); `investment` is rejected as before.
+  String.raw`\b(?:anchor|floor)\s+(?:prices?|rates?|numbers?|figures?|amounts?|quotes?|pricing)\b`, // anchor price, floor rates
+  String.raw`\b(?:prices?|rates?|quotes?|pricing)\s+(?:anchor|floor)s?\b`, // price floor, rate anchors
+  String.raw`\binvestment\b`,
 ].join("|"), "i");
 
 const RESERVE_MAX_CHARS = 240;
