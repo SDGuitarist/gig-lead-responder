@@ -7,7 +7,7 @@ import { COI_SENTENCES } from "./pipeline/coi.js";
 import { PAYMENT_SENTENCES } from "./pipeline/payment-terms.js";
 import { GENERATE_CASES, generatePromptOf, sha256 } from "./generate-prompt-cases.js";
 import { readFileSync } from "node:fs";
-import { VAGUE_QUOTE_REFERENCE_REPLY } from "./data/vague-quote-reference.js";
+import { VAGUE_QUOTE_REFERENCE_REPLY, VAGUE_QUOTE_SETUP_SENTENCE } from "./data/vague-quote-reference.js";
 import { sharedWindows, summarizeRoute, type RouteRecord } from "./route-metrics.js";
 import type { Classification, PricingResult } from "./types.js";
 
@@ -204,7 +204,7 @@ describe("Vague Reference V9: the report's formulas and denominators", () => {
       { ok: true, verified: true, route: route() },
       { ok: true, verified: false, route: route({ question_count: 2, price_figure_present: false, footer: true, shared_windows: 3 }) },
       { ok: true, verified: false, route: route({ format_recommended: "unresolved", quote_price: null, price_figure_present: false, payment_kind: "none", coi_kind: "none" }) },
-      { ok: false },
+      { ok: false, error_stage: "classify" },
     ]);
     assert.equal(s.runs, 4);
     assert.deepEqual(s.returned, { num: 3, den: 4 });
@@ -215,5 +215,48 @@ describe("Vague Reference V9: the report's formulas and denominators", () => {
     assert.deepEqual(s.payment_sentence_once, { num: 2, den: 2 });        // payment kind "sentence" only
     assert.deepEqual(s.no_footer, { num: 2, den: 3 });
     assert.deepEqual(s.shared_windows, { max: 3, drafts_above_zero: 1, of: 3 });
+  });
+});
+
+// Codex code review round 1 (docs/reviews/2026-10-13-vague-quote-code-codex-round1.md), findings 1-4.
+describe("Vague Reference V10: the review's four findings", () => {
+  const vague = (over: Partial<Classification> = {}) =>
+    ({ ...c8.classification, action: "one_question", vagueness: "vague", format_recommended: "unresolved", ...over }) as Classification;
+
+  it("Vague Reference V10a a classification stored before the default keeps the clarification route (documented limit)", () => {
+    // runEditPipeline reuses a stored classification and its stored pricing and has no lead text, so the ensemble test
+    // cannot be rerun; a stored unresolved lead stays in clarification mode and its edit re-runs that same route.
+    const stored = promptWith({ format_recommended: "unresolved" }, NO_DATE_TERMS, { quote_price: undefined as never });
+    assert.ok(!has(stored), "no vague reference block for a stored unresolved classification");
+    assert.ok(has(promptWith({ format_recommended: "solo" })), "positive control: the same lead with the default applied");
+  });
+
+  it("Vague Reference V10b a failure after classification is not counted as a classification failure", () => {
+    const s = summarizeRoute([
+      { ok: false, error_stage: "generate" },
+      { ok: false, error_stage: "verify" },
+      { ok: false, error_stage: "classify" },
+      { ok: false, error_stage: "unknown" },
+      { ok: false },
+    ]);
+    assert.deepEqual(s.classifier_distribution, { "classified, failed later": 2, "no classification": 1, "failed, stage unknown": 2 });
+  });
+
+  it("Vague Reference V10c the setup sentence is allowed word for word and the shared-window check cuts it", () => {
+    assert.ok(VAGUE_QUOTE_REFERENCE_REPLY.includes(VAGUE_QUOTE_SETUP_SENTENCE));
+    assert.ok(promptWith().includes("you may use the example's own setup sentence word for word"), "the block permits exactly that sentence");
+    const draft = `Hi Sam. A quiet evening, one guitar, one question. ${VAGUE_QUOTE_SETUP_SENTENCE} Alex Guillen`;
+    assert.equal(sharedWindows(draft, VAGUE_QUOTE_REFERENCE_REPLY, [VAGUE_QUOTE_SETUP_SENTENCE]), 0);
+    // negative control: another clause of the example is still counted, setup sentence cut or not
+    const copied = `${draft} The usual mistake is booking by headcount, then nobody can hear the toasts.`;
+    assert.ok(sharedWindows(copied, VAGUE_QUOTE_REFERENCE_REPLY, [VAGUE_QUOTE_SETUP_SENTENCE]) > 0);
+  });
+
+  it("Vague Reference V10d benign 'group' wording stays unresolved: the documented conservative boundary", () => {
+    for (const text of ["The bride's group will be there, we want some live music.", "Our group needs music for Saturday."]) {
+      assert.equal(defaultVagueFormat(vague(), text).format_recommended, "unresolved", text);
+    }
+    // positive control: "a group of N" is a guest count, not an ensemble
+    assert.equal(defaultVagueFormat(vague(), "A group of 40 guests, some live music please.").format_recommended, "solo");
   });
 });

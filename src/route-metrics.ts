@@ -24,6 +24,8 @@ export interface RouteRun {
   ok: boolean;
   verified?: boolean;
   route?: RouteRecord;
+  /** Set by the runner on ok:false: the pipeline stage that threw ("classify", "generate", ...), or "unknown". */
+  error_stage?: string;
 }
 
 const ratio = (num: number, den: number) => ({ num, den });
@@ -32,7 +34,12 @@ export function summarizeRoute(runs: RouteRun[]) {
   const returned = runs.filter((r) => r.ok && r.route);
   const distribution: Record<string, number> = {};
   for (const r of runs) {
-    const k = r.route ? r.route.format_recommended : "no classification";
+    // A run with no route is not automatically a classification failure: a draft that fails in generate or verify was
+    // classified first (Codex R1 finding 2). An error with no known stage is its own count, not a guess.
+    const k = r.route ? r.route.format_recommended
+      : r.error_stage === "classify" ? "no classification"
+      : r.error_stage && r.error_stage !== "unknown" ? "classified, failed later"
+      : "failed, stage unknown";
     distribution[k] = (distribution[k] ?? 0) + 1;
   }
   const resolved = returned.filter((r) => r.route!.format_recommended !== "unresolved");

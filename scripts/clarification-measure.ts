@@ -84,7 +84,8 @@ const { probePromptSha256 } = await import(join(root, "src/generate-prompt-cases
 const { paymentTermsFor } = await import(join(root, "src/pipeline/payment-terms.ts"));
 const { coiTermsFor } = await import(join(root, "src/pipeline/coi.ts"));
 const { sharedWindows } = await import(join(root, "src/route-metrics.ts"));
-const { VAGUE_QUOTE_REFERENCE_REPLY } = await import(join(root, "src/data/vague-quote-reference.ts"));
+const { VAGUE_QUOTE_REFERENCE_REPLY, VAGUE_QUOTE_SETUP_SENTENCE } = await import(join(root, "src/data/vague-quote-reference.ts"));
+const { PipelineStageError } = await import(join(root, "src/errors.ts"));
 const models = new Set<string>();
 
 type Hit = ReturnType<typeof scan>[number];
@@ -109,7 +110,7 @@ setClaudeRequesterForTests((async (request: unknown) => {
   return res;
 }) as never);
 
-type RunResult = { lead: string; run: number; ok: boolean; error?: string; action?: string; verified?: boolean; gate_status?: string; fail_reasons?: string[]; words?: number; sentences?: number; route?: Record<string, unknown>; gate_detail?: { scene_type: string; competitor_test: boolean; false_checks: string[]; empty_traceability: number; rule_implied_pass: boolean; opening: string }; seconds: number; calls: Call[] };
+type RunResult = { lead: string; run: number; ok: boolean; error?: string; error_stage?: string; action?: string; verified?: boolean; gate_status?: string; fail_reasons?: string[]; words?: number; sentences?: number; route?: Record<string, unknown>; gate_detail?: { scene_type: string; competitor_test: boolean; false_checks: string[]; empty_traceability: number; rule_implied_pass: boolean; opening: string }; seconds: number; calls: Call[] };
 const results: RunResult[] = [];
 const names = Object.keys(LEADS).filter((n) => only.length === 0 || only.includes(n));
 for (const name of names) {
@@ -148,12 +149,12 @@ for (const name of names) {
         coi_kind: coi.kind, coi_sentence_count: occurrences(coiSentence),
         footer: /\(\d{3}\)\s?\d{3}|Pacific Flow/.test(text),
         shared_windows: sharedWindows(text, VAGUE_QUOTE_REFERENCE_REPLY,
-          [paymentSentence, coiSentence, "Send me the date once you have it and I'll check my calendar."].filter(Boolean)),
+          [paymentSentence, coiSentence, "Send me the date once you have it and I'll check my calendar.", VAGUE_QUOTE_SETUP_SENTENCE].filter(Boolean)),
       };
       r = { ok: true, action: o.classification.action, verified: o.verified, gate_status: g.gate_status, fail_reasons: g.fail_reasons, words, sentences, route,
         gate_detail: { scene_type: g.scene_type, competitor_test: g.competitor_test, false_checks: falseChecks, empty_traceability: emptyTrace, rule_implied_pass: implied, opening } };
     } catch (e) {
-      r = { ok: false, error: String(e).slice(0, 200) };
+      r = { ok: false, error: String(e).slice(0, 200), error_stage: e instanceof PipelineStageError ? String((e as { stage?: string }).stage ?? "unknown") : "unknown" };
     }
     results.push({ lead: name, run, ...r, seconds: Math.round((Date.now() - t0) / 1000), calls });
     console.log(`${name} run${run}: ${r.ok ? `draft (${r.action}) verified=${r.verified} gate=${r.gate_status}` : "ERROR " + r.error} [${calls.length} generate call(s)]`);
