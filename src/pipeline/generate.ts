@@ -33,7 +33,7 @@ const SIGN_OFF = `\nAlex Guillen`;
 // words "quote" and "rate" ("Before I quote, one question" failed 17 of 18 real drafts), and an amount with no
 // currency marker ("around fifteen hundred") is outside the grammar by decision, pinned by the V10 tests.
 const NUMBER_WORD = "(?:a|an|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety|hundred|thousand|grand)";
-const PRICE_STATEMENT_PATTERN = new RegExp([
+export const PRICE_STATEMENT_PATTERN = new RegExp([
   String.raw`\$\s?\d[\d,]*(?:\.\d+)?`, // $1200, $ 850, $1,200, $1.2k: the whole figure, so the error names it
   String.raw`\b\d[\d,]*(?:\.\d+)?\s?(?:dollars?|bucks|usd)\b`, // 800 dollars, 1,500 bucks, 950 USD
   String.raw`\busd\s?\d`, // USD 900
