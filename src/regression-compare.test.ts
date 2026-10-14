@@ -1,5 +1,9 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
+import { mkdtempSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { compareRegression, ERROR_VALUE } from "./regression-compare.js";
 
 // Plan docs/plans/2026-10-14-feat-lead-words-field-plan.md (Revision 1c), LW13: the regression stop rule.
@@ -36,6 +40,25 @@ describe("Lead Words LW13: the classifier regression gate", () => {
     const r = compareRegression(tie, flip);
     assert.equal(r.stop, true);
     assert.ok(r.reasons.some((x) => x.includes("format_recommended: mode duo -> solo")), r.reasons.join(";"));
+  });
+
+  it("Lead Words LW13 the tie-break is the smallest value, not the first seen (the mutant without it must die)", () => {
+    // before: solo, solo, duo, duo, trio: a 2/2/1 tie whose FIRST value is "solo" but whose smallest is "duo"
+    const before = file(five([{ format_recommended: "solo" }, { format_recommended: "solo" }, { format_recommended: "duo" }, { format_recommended: "duo" }, { format_recommended: "trio" }]));
+    const after = file(five([{ format_recommended: "duo" }, { format_recommended: "duo" }, { format_recommended: "duo" }, { format_recommended: "solo" }, { format_recommended: "trio" }]));
+    const r = compareRegression(before, after);
+    assert.equal(r.reasons.filter((x) => x.includes("format_recommended: mode")).length, 0, `the mode is duo on both sides: ${r.reasons.join(";")}`);
+  });
+
+  it("Lead Words LW13 the script exits 0 for no stop, 1 for a stop and 2 for a malformed file (real process)", () => {
+    const dir = mkdtempSync(join(tmpdir(), "regcmp-"));
+    const w = (name: string, body: unknown) => { const p = join(dir, name); writeFileSync(p, typeof body === "string" ? body : JSON.stringify(body)); return p; };
+    const run = (b: string, a: string) => spawnSync("npx", ["tsx", "scripts/classifier-regression.ts", "--compare", b, a], { encoding: "utf-8" }).status;
+    const same = w("same.json", base);
+    const changed = w("changed.json", file(five([{ action: "one_question" }, { action: "one_question" }, { action: "one_question" }, {}, {}])));
+    assert.equal(run(same, same), 0);
+    assert.equal(run(same, changed), 1);
+    assert.equal(run(same, w("bad.json", "{not json")), 2);
   });
 
   it("Lead Words LW13 an error row or a missing row counts as __error__ and stops when new", () => {
