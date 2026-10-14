@@ -48,3 +48,20 @@ SPECIAL CASE (a vague request that names no format; plan 2026-10-13-feat-vague-l
 - CATEGORY-ONLY request: the client names no format ("music", "live music", "entertainment", "Latin music", "Spanish guitar", "not sure what kind of music"). Set action = "one_question" and format_recommended = "solo" (Alex alone), or "duo" when the lead names a dinner, cocktail hour or dancing. Do NOT use "unresolved" for a category-only request: the reply quotes the default and asks one binary question.
 - EXPLICIT ENSEMBLE request: the client names a band or ensemble the default cannot answer ("Latin band", "a band", "a trio", "a quartet", "an orchestra"). Set action = "one_question" and format_recommended = "unresolved". This means: do NOT force a quote yet. Ask one binary clarifying question first.
 ```
+
+## Addendum: the deterministic default in code (Alex's choice), same leads, 5 runs, the real classifier
+
+`defaultVagueFormat` (`src/pipeline/classify.ts`, commit `9ca8a5c`) with `src/prompts/classify.ts` byte-equal to its
+pre-change SHA-256 (V6b). The script calls `classifyLead`, so this is the end-to-end behaviour.
+
+| Lead | Before (old wording, 5 + 10 same-day) | With the code default (5 runs) |
+|---|---|---|
+| L1 hotel wedding | `duo` 8, `flamenco_duo` 7 of 15 | `flamenco_duo` x3, `duo` x2: inside the old distribution |
+| L2, L3, L4 | `unresolved`, no price, 5 of 5 each | **`solo`, $595, 5 of 5 each** (the intended change) |
+| L5 memorial | quote, solo, $595 x5 | unchanged x5 |
+| L6 "a Latin band" | `unresolved` x5 | **unchanged x5** (the ensemble boundary held) |
+| L7 mariachi quinceanera | `one_question` / `mariachi_full` / $1,900, 15 of 15 | **`one_question` / `mariachi_full` / $1,900 x5** (no `quote`) |
+
+By the plan's pre-registered rule no ordinary lead shows a value outside its baseline and no modal value moved.
+Limits: 5 runs per lead and one model; L1's old distribution is itself two-valued, so a 3/2 split is the baseline
+behaviour and not evidence either way.
