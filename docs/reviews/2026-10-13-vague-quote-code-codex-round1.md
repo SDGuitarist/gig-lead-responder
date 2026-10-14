@@ -20,3 +20,18 @@ regression stayed inside the baseline; worktree clean at the expected HEAD.
 
 ## Where this stands
 Iteration cap: 0 fix attempts so far. Round counter: 1 Codex review. A NO-GO in round 2 stops automatic iteration.
+
+## Fixes applied (iteration 1; Alex's answers: "Accept your own words", "Document the limit, pin with a test")
+
+| Finding | Root cause | Fix | Test (failed first / control) |
+|---|---|---|---|
+| 1 | the edit path has no raw lead text and a stored unresolved price | documented limit in plan Revision 2b; no code change | V10a (stored unresolved keeps clarification; the same lead with the default applied gets the block) |
+| 2 | `summarizeRoute` read "no route" as "no classification" | runner records `error_stage` (the PipelineStageError stage or "unknown"); distribution has three failure labels | V10b (verified to fail on the old function: 1 of 2 failed) |
+| 3 | the block asked for a setup sentence and showed one; the check counted it | `VAGUE_QUOTE_SETUP_SENTENCE` allowed verbatim in the block; cut by `sharedWindows` in the runner; every other sentence stays forbidden | V10c (positive: setup cut gives 0; negative: another clause still counts; block text pinned) |
+| 4 | no test for benign "group" | tests only; boundary documented (conservative side) | V10d (with a "group of 40" positive control) |
+
+**My own error, caught by the suite:** running `scripts/snapshot-verify-prompts.ts` to look at its output rewrote
+`src/fixtures/verify-prompt-baseline/S0.txt`, which `git add -A src` then committed; G6 failed. I also regenerated the
+generate-prompt hashes, which broke V7 (it expects C8/C15/C16 to differ from the stored pre-block hash). Both were
+restored from the prior commit. No snapshot or hash changes ship in this round. Suite after: 1061 pass / 0 fail / 1
+skip; `tsc` clean; leak check exit 0.

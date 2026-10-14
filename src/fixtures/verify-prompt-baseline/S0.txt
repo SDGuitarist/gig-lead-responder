@@ -67,12 +67,11 @@ Could another vendor have written this exact opening? If yes → competitor_test
 The opening must contain an insight specific to THIS lead.
 
 ### 6b. Lead-Specificity Check
-This lead is vague: the form gave no date, venue, guest count or format, so the opening cannot cite them. The first sentence passes only if it repeats or restates a fact or an uncertainty the lead itself supplied: the occasion or event type the lead wrote (a birthday, a wedding, a party), the time frame the lead wrote (next month, this winter, spring), or the lead's own stated doubt ("not sure what kind of music"). References that could be said to any inquiry do NOT qualify: "your event", "this inquiry", "what you're looking for", "the right fit", "the right music", "what would work best".
+Does the opening sentence reference a CONCRETE DETAIL from the classification? This is different from the Competitor Test: competitor_test asks "could another vendor write this?" (voice/insight), while lead-specificity asks "does the opening reference a factual detail from this specific lead?" (grounding).
 - Look at the FIRST sentence of the draft
-- Deletion test: remove the words that came from this lead; if the sentence still works for any inquiry → lead_specific_opening = false
-- Pass: "You said live music next month and haven't picked a format yet, which is the right moment for one question."
-- Fail (compliment): "What a wonderful way to celebrate!"
-- Fail (generic acknowledgement): "You're looking for the right music for your event."
+- Check if it mentions a specific detail from the classification: event type, date, venue, format, cultural context, or any other concrete fact
+- Generic openings like "What a beautiful event" or "Congratulations on your upcoming celebration" → lead_specific_opening = false
+- Specific openings like "A mariachi serenata at sunset for your parents' 50th anniversary" → lead_specific_opening = true
 
 ### 7. Gut Checks (all boolean)
 - can_see_it: Reader can visualize a specific moment
@@ -84,7 +83,7 @@ This lead is vague: the form gave no date, venue, guest count or format, so the 
 - best_line_present: There's a genuinely strong line
 - prose_flows: Reads as one continuous movement, not assembled sections
 - competitor_test: false means PASS (no competitor would write this)
-- lead_specific_opening: Apply section 6b (clarification mode): the first sentence repeats a fact or an uncertainty this lead supplied; generic references that fit any inquiry do not count.
+- lead_specific_opening: First sentence references a concrete detail from the classification (not generic)
 - budget_acknowledged: Always true — clarification mode does not quote yet.
 - past_date_acknowledged: Always true — no past date detected.
 - mariachi_pricing_format: Always true — no dual-format context.
