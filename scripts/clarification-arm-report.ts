@@ -3,6 +3,9 @@
 //   npx tsx scripts/clarification-arm-report.ts <dirA> [<dirB>]
 // One directory = the arm's own summary. Two = both, with the manifest check (compareArms), the primary estimand
 // (the unusable-run rate over ALL runs) and a one-sided Fisher exact test (exploratory).
+// The comparison is VOID (no statistic, exit 1) unless each arm is exactly five result files and 50 runs with a
+// manifest each. Residual, by design not detected: one result file copied under a second name, or a partial lead set
+// run enough times to total 50 (the lead-set hash is compared between arms, not pinned to the planned ten leads).
 import { execSync } from "node:child_process";
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
