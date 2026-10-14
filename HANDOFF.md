@@ -293,6 +293,17 @@ pattern (unexecuted); (3) the "exactly one question" rule (12 of 122 runs); (4) 
 (5) Alex's force-push call (I recommend no); (6) older items (nonprofit prices, Saturday/peak-day rule, Module 1
 plan review, R006/R398/R403 TO PORT). Do not read or enter the Sandbox directory while Autopilot Run 104 runs.
 
+**Update 20 (session gig-lead-responder-22, vague-lead route: COMPOUND DONE, 2026-10-14):** arm B ran (attempt 1 void
+on the API spend limit; rerun 50/50; final-prompt arm on `2aa57e1`), Codex code review R1 and R2 both NO-GO and fixed
+(no round 3, Alex's choice), pushed to origin at `ac8685d`, then `78a54e0` (false-check read) and the solution doc
+`docs/solutions/architecture/2026-10-14-vague-lead-quote-route-default-in-code-and-the-gate-it-left-behind.md` are
+local. **Open, top item:** the verify gate's opening rule fails 33 of 40 unverified vague-lead drafts (17 on it alone):
+the route moved the lead out of clarification mode, so the plan-1 relaxed rule no longer applies. It needs its own plan
+(`src/prompts/verify.ts`) and a measured arm; the router still holds every vague lead for Alex. Also open: length
+(median 203 vs about 100), copying (30 of 50 clause windows), "exactly one question" (33 of 50), the conditional
+setup sentence is unmeasured (no contradicting lead), stored pre-change leads keep the old route. Earlier items from
+Update 18 still stand. Next: Alex decides whether to plan the verify-gate change; push the 2 local commits on "push".
+
 **Update 19 (session gig-lead-responder-22, vague-lead route: MID-PHASE, pre-compact save 2026-10-13):** the route
 change is BUILT and TESTED; arm B (the real-model measurement), the Codex code review and the compound are NOT done.
 

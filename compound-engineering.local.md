@@ -2,29 +2,31 @@
 
 ## Risk Chain
 
-**Brainstorm risk:** None -- **no brainstorm** (skip gate: 4 real rejections of ordinary prose, each read in
-context, named as an open risk by the first validator plan's review).
+**Brainstorm risk:** None -- **no brainstorm** (the route came from Alex's own reply to a vague lead and the
+measurement that showed the clarification route was the wall).
 
-**Plan mitigation:** `docs/plans/2026-10-13-fix-clarification-internal-terms-plan.md` (Revision 1b). `anchor` and
-`floor` are rejected as pricing compounds, not as words; `investment` unchanged; no possessive form. Alex's decision
-2026-10-13 ("Pricing-noun compounds only") is recorded in the plan; V4a/V4b were amended by it. Plan review R1 NO-GO
-(4 P1, 2 P2), R2 NO-GO (1 P2 mutation isolation) at the cap; Alex chose to fix and build.
+**Plan mitigation:** `docs/plans/2026-10-13-feat-vague-lead-quote-with-question-plan.md` (Revision 2b). The default
+format lives in code (`defaultVagueFormat`), the classifier PROMPT is pinned by SHA-256; a reference block shows
+Alex's reply for ORDER. Plan review R1 NO-GO (5 P1, 1 P2), R2 NO-GO (1 P1, 1 P2) at the cap; **Revision 2 (code
+default) had no plan review**.
 
-**Work risk (from Feed-Forward):** that the two compound forms cover how the model would leak the terms; none has
-been observed (0 pricing compounds in 816 stored drafts).
+**Work risk (from Feed-Forward):** that the verify-gate opening rule is the whole reason 40 of 50 drafts failed; I read
+counts and two reasons and have not run the verifier with the rule changed.
 
-**Review resolution:** code review R1 GO, no findings (997 pass / 0 fail / 1 skip). Replay over 816 stored drafts:
-old alternative 4 matches, new 0.
+**Review resolution:** code review R1 NO-GO (3 P1, 1 P2), R2 NO-GO (1 P1), all four fixed or documented; no round 3
+(Alex's choice). 1061 pass / 0 fail / 1 skip. Final-prompt arm: verified 10 of 50, copying 30 of 50, 17 of 40
+unverified fail the opening check alone.
 
 ## Files to Scrutinize
 
 | File | What changed | Risk area |
 |------|-------------|-----------|
-| `src/pipeline/generate.ts` | `PRICE_STATEMENT_PATTERN`: two compound alternatives plus `investment`; the pattern is now exported | a bare `the floor is firm` passes by decision; "price anchors the conversation" and "floor number" are accepted false rejects |
-| `src/clarification-validator.test.ts` | V4a/V4b amended; V12, twelve V13 one-sentence tests, V14, V16 | each mutation row must fail exactly its own token test |
-| `scripts/clarification-validator-replay.ts`, `src/clarification-replay.test.ts` | offline replay, exit 2 on empty input | corpus is session-local; stored drafts came from the old validator and mixed prompts |
-| `src/prompts/generate.ts` | NOT changed | the prompt still says "Do NOT state a price, rate, anchor, floor, or package" |
+| `src/pipeline/classify.ts` | `defaultVagueFormat` after the classifier | ensemble word match (a miss or a false "group" changes the route); stored leads keep their old route |
+| `src/prompts/generate.ts` | `buildVagueQuoteReferenceSection` gate | withheld cases; COI deliberately not withheld |
+| `src/data/vague-quote-reference.ts` | Alex's reply, conditional setup sentence | copying (30 of 50 windows); the "compatible" judgment is unmeasured |
+| `src/prompts/verify.ts` | NOT changed | the strict opening rule applies again to a quoted vague lead |
+| `src/route-metrics.ts`, `scripts/clarification-measure.ts` | formulas, `error_stage` | a failed run is not a classification failure |
 
 ## Plan Reference
 
-`docs/plans/2026-10-13-fix-clarification-internal-terms-plan.md`
+`docs/plans/2026-10-13-feat-vague-lead-quote-with-question-plan.md`
