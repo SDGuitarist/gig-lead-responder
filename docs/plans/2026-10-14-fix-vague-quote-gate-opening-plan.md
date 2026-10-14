@@ -150,6 +150,9 @@ specific openings on a fixed made-up lead, each verified twice (20 verifies). Co
 
 - **Target:** Alex's MacBook, `scripts/clarification-measure.ts --arm B --probe C8` (extended in step 3) and
   `scripts/vague-gate-controls.ts`, real model, scratch databases, nothing sent.
+- **Mechanism:** the committed runner wraps the real model call, runs `runPipeline` for the ten made-up vague leads on
+  the new prompt, re-verifies each final draft with `buildVerifyPrompt(..., { openingRule: "default" })`, and records
+  both verdicts, `classification` and `pricing` per run; the controls script verifies planted openings.
 - **Command (exact), from the repo root:**
   `OUT=$(mktemp -d /tmp/vague-gate.XXXXXX); for t in 1 2 3 4 5; do npx tsx scripts/clarification-measure.ts --arm B --probe C8 --runs 1 --tag B$t --out "$OUT" --today 2026-10-12 & done; wait; npx tsx scripts/vague-gate-controls.ts --out "$OUT"`
 - **Prerequisites:** ALREADY HAVE: Node, `npm`, `tsx`, `ANTHROPIC_API_KEY` in `.env`, network, a raised API spend
