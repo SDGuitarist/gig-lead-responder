@@ -85,6 +85,6 @@ NO-GO. No production code was written.
 | 3 salutation vs work order | Work step 2 builds the module before Alex answers; `src/prompts/generate.ts:98` omits the salutation with no client name. | **Valid.** |
 | 4 metrics | No numerator or denominator was written for price, verified, question count. | **Valid.** |
 | 5 gate against other modes | The plan's predicate did not name platform payment, nonprofit, cultural or sourced modes. | **Valid.** |
-| 6 V7/V8 | My own base cases use `lead_source_column: "P"`, so the "changed" case C8 would NOT get the block (an unknown-platform lead): the changed cases must be built as direct (`D`) leads. | **Valid, and the impact is larger than the finding states.** |
+| 6 V7/V8 | V7 as written omitted the case that matters most. (My first reading here, that C8 is an unknown-platform lead and would be withheld, was WRONG: the block's payment condition reads the `paymentTerms` argument, and the hash inventory passes the fixed `noDate` sentence for every non-GigSalad case, so C8 IS changed. Corrected in the plan's V7 table; found on re-reading `src/generate-prompt-cases.ts:20-30`.) | **Valid.** |
 
 All six accepted; item 7 is a confirmation, not a defect.
