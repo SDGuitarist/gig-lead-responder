@@ -8,7 +8,8 @@ import { GENERATE_CASES } from "./generate-prompt-cases.js";
 import { classifyLead } from "./pipeline/classify.js";
 import { setClaudeRequesterForTests } from "./claude.js";
 import { buildClassifyPrompt } from "./prompts/classify.js";
-import { VAGUE_GATE_CASES } from "./verify-prompt-cases.js";
+import { VAGUE_GATE_CASES, sectionOf } from "./verify-prompt-cases.js";
+import { NO_DATE_TERMS } from "./pipeline/payment-terms.js";
 import type { Classification, PricingResult } from "./types.js";
 
 // Plan docs/plans/2026-10-14-feat-lead-words-field-plan.md (Revision 1c). Names start "Lead Words LW<n>".
@@ -132,5 +133,73 @@ describe("Lead Words LW2/LW6: the classifier path", () => {
     assert.ok(prompt.includes('"lead_words": { "occasion": string | null, "time_frame": string | null, "doubt": string | null }'));
     assert.ok(prompt.includes("lead_words (every lead): short phrases COPIED from the lead's own message"));
     assert.ok(prompt.includes("code discards any phrase that is not in the lead"));
+  });
+});
+
+describe("Lead Words LW4/LW12: the drafter section", () => {
+  const c8 = GENERATE_CASES.find((c) => c.id === "C8");
+  assert.ok(c8);
+  const MARK = "## WHAT THE LEAD WROTE";
+  const gen = (over: Partial<Classification>, words?: unknown) =>
+    buildGeneratePrompt({ ...c8.classification, ...over, ...(words === undefined ? {} : { lead_words: words }) } as unknown as Classification, c8.pricing as PricingResult, "ctx", NO_DATE_TERMS);
+  const W = { occasion: "my mom's 60th birthday", time_frame: null, doubt: "not sure what kind of music" };
+  const scoped = { action: "one_question", vagueness: "vague" } as Partial<Classification>;
+
+  it("Lead Words LW4 a vague one_question lead with a phrase gets the section, with only the non-null phrases, wrapped", () => {
+    const p = gen(scoped, W);
+    assert.equal(p.split(MARK).length - 1, 1);
+    assert.ok(p.includes("my mom's 60th birthday") && p.includes("not sure what kind of music"));
+    const block = p.slice(p.indexOf(MARK)).split("\n## ")[0];
+    assert.ok(!block.includes("time_frame"), "a null phrase is not listed");
+    assert.ok(p.slice(p.indexOf(MARK)).includes("<lead_words"), "wrapped as untrusted data");
+  });
+
+  it("Lead Words LW4 each withheld case on its own: all null, quote, clear, assume_and_quote, missing field", () => {
+    assert.ok(!gen(scoped, NONE).includes(MARK));
+    assert.ok(!gen(scoped).includes(MARK));
+    assert.ok(!gen({ ...scoped, action: "quote" }, W).includes(MARK));
+    assert.ok(!gen({ ...scoped, vagueness: "clear" }, W).includes(MARK));
+    assert.ok(!gen({ ...scoped, action: "assume_and_quote" }, W).includes(MARK));
+    assert.ok(gen({ ...scoped, format_recommended: "unresolved" }, W).includes(MARK), "clarification mode is in scope (Alex's D5a)");
+  });
+
+  it("Lead Words LW12 the section sits after the classification block and before the voice examples, reference blocks and STEP 1, with the precedence sentence", () => {
+    const p = gen(scoped, W);
+    const at = p.indexOf(MARK);
+    assert.ok(p.indexOf('lead_classification') < at, "after the classification block");
+    for (const later of ["## VOICE EXAMPLES", "## REFERENCE LEAD", "## STEP 1", "## INJECTED CONTEXT"]) {
+      const i = p.indexOf(later);
+      if (i !== -1) assert.ok(at < i, `before ${later}`);
+    }
+    assert.ok(p.includes("This sentence overrides the order of any reference below for the FIRST sentence"));
+    assert.ok(p.includes("REFERENCE LEAD: VAGUE REQUEST"), "positive control: the vague-quote reference block is present and later");
+  });
+});
+
+describe("Lead Words LW5: the verifier sentence", () => {
+  const sec = (cls: Classification) => buildVerifyPrompt(cls, { budget: { tier: "none" } });
+  const base = VAGUE_GATE_CASES.find((c) => c.id === "S13");
+  assert.ok(base);
+  const SENT = "`lead_words` in the classification holds phrases the lead itself wrote";
+  const W = { occasion: "my mom's 60th birthday", time_frame: null, doubt: null };
+
+  it("Lead Words LW5 the sentence is in the two scoped modes with a phrase, and only there", () => {
+    const vq = { ...base.classification } as Classification;                                    // vague-quote mode
+    const clar = { ...base.classification, format_recommended: "unresolved" } as Classification; // clarification mode
+    assert.ok(sec({ ...vq, lead_words: W } as Classification).includes(SENT));
+    assert.ok(sec({ ...clar, lead_words: W } as Classification).includes(SENT));
+    assert.ok(!sec({ ...vq, lead_words: NONE } as Classification).includes(SENT), "all null: today's text");
+    assert.ok(!sec(vq).includes(SENT), "absent: today's text");
+    assert.ok(!sec({ ...vq, action: "quote", vagueness: "clear", lead_words: W } as Classification).includes(SENT), "not a scoped mode");
+  });
+
+  it("Lead Words LW5 all-null and absent give the same 6b text and opening line (the lower-confidence fallback is today's text)", () => {
+    const vq = { ...base.classification } as Classification;
+    const withNull = sec({ ...vq, lead_words: NONE } as Classification);
+    const absent = sec(vq);
+    assert.equal(sectionOf(withNull, "6b"), sectionOf(absent, "6b"));
+    const opening = (p: string) => p.split("\n").find((l) => l.startsWith("- lead_specific_opening:"));
+    assert.equal(opening(withNull), opening(absent));
+    assert.ok(!sectionOf(withNull, "6b").includes("lead_words"), "no lead_words sentence when all null");
   });
 });

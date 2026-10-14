@@ -2,6 +2,7 @@ import { VOICE_REFERENCES } from "../data/voice-references.js";
 import { residencyStatesPrice } from "../pipeline/price.js";
 import { CONCERN_4PIECE_ALT, CONCERN_FULL_ENSEMBLE, GUT_CHECK_THRESHOLD, GUT_CHECK_TOTAL, withoutHoldNotes, type Classification, type PricingResult, type ResidencyQuote } from "../types.js";
 import { sanitizeClassification, wrapUntrustedData, wrapVoiceReference } from "../utils/sanitize.js";
+import { hasLeadWords, leadWordsOf } from "../lead-words.js";
 
 /**
  * Builds the verification gate prompt.
@@ -62,6 +63,13 @@ This lead is vague and its format was assumed: the form gave no date, venue or g
 - Fail (a generic word only, format_requested = "live music"): "Live music is a great idea for your event."
 `;
 
+/**
+ * Added to the two scoped 6b texts (clarification and vague-quote mode) when `lead_words` holds a phrase (plan
+ * docs/plans/2026-10-14-feat-lead-words-field-plan.md, D3). With all three null the texts are unchanged, a
+ * lower-confidence fallback that cannot identify the lead's own words.
+ */
+const LEAD_WORDS_SENTENCE = "- `lead_words` in the classification holds phrases the lead itself wrote. When it holds a phrase, the first sentence passes only if it repeats or restates one of them (or a format the lead named); the occasion label or event type the app assigned is NOT a phrase the lead wrote.\n";
+
 /** Measurement seam, never passed by production: "default" ignores vague-quote mode so one draft can be verified under both rules. */
 export interface VerifyPromptOptions { openingRule?: "default" }
 
@@ -84,6 +92,8 @@ export function buildVerifyPrompt(
   const vagueQuoteMode = options.openingRule !== "default" && classification.action === "one_question"
     && classification.vagueness === "vague"
     && (classification.format_recommended === "solo" || classification.format_recommended === "duo");
+  // The lead's own phrases sharpen the scoped opening rules only; every other mode, and a lead with no phrase, is unchanged.
+  const leadWordsSentence = (clarificationMode || vagueQuoteMode) && hasLeadWords(leadWordsOf(classification)) ? LEAD_WORDS_SENTENCE : "";
   const voiceReferences = VOICE_REFERENCES
     .filter((reference) => reference.active && (reference.name === "Patterson" || reference.name === "Sparse Cocktail"))
     .map((reference, index) => `Reference: ${reference.name}\n${wrapVoiceReference(index + 1, reference.type, reference.text)}`)
@@ -125,7 +135,7 @@ structural = AUTOMATIC FAIL
 Could another vendor have written this exact opening? If yes → competitor_test = true → FAIL.
 The opening must contain an insight specific to THIS lead.
 
-${clarificationMode ? CLARIFICATION_LEAD_SPECIFICITY : vagueQuoteMode ? VAGUE_QUOTE_LEAD_SPECIFICITY : DEFAULT_LEAD_SPECIFICITY}
+${clarificationMode ? CLARIFICATION_LEAD_SPECIFICITY + leadWordsSentence : vagueQuoteMode ? VAGUE_QUOTE_LEAD_SPECIFICITY + leadWordsSentence : DEFAULT_LEAD_SPECIFICITY}
 ### 7. Gut Checks (all boolean)
 - can_see_it: Reader can visualize a specific moment
 - validated_them: Draft validates the person, not just the event
