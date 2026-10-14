@@ -24,7 +24,8 @@ risk carried forward: the same model and made-up leads, so every measurement her
   quote that default." He then answered **yes** to: "a vague, low-competition lead gets an assumed default format, its
   price and terms from the app, and one binary question (your shape)".
 - **The footer.** "Drop the footer from the reference": the reference ends with `Alex Guillen`.
-- **"Send it over".** His Project, asked, said "it" is the date and offered two rewrites (see Pending Alex).
+- **"Send it over".** His Project, asked, said "it" is the date and offered two rewrites; he chose his own wording
+  (below).
 - **The reference text** is his reply (the Project output he called "the appropriate response") without the footer.
 - **COI: yes.** The reference includes the app's default sentence "COI available upon request.".
 - **The date sentence, his exact words:** "Send me the date once you have it and I'll check my calendar. A 50% deposit
