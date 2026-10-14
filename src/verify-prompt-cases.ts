@@ -38,6 +38,22 @@ export const VERIFY_CASES: VerifyCase[] = [
     classification: base({ flagged_concerns: [CONCERN_4PIECE_ALT] }) },
 ];
 
+// Plan docs/plans/2026-10-14-fix-vague-quote-gate-opening-plan.md (Revision 1b), S13-S17: the vague-quote mode and its
+// near-misses. A SEPARATE list: src/generate-prompt-cases.ts derives its C0-C12 cases from VERIFY_CASES by id, and its
+// C13-C17 are different cases.
+export const VAGUE_GATE_CASES: VerifyCase[] = [
+  { id: "S13", what: "vague-quote mode: one_question + vague + duo", pricing: none,
+    classification: base({ action: "one_question", vagueness: "vague", format_recommended: "duo", format_requested: "" }) },
+  { id: "S14", what: "near-miss: assume_and_quote + vague + solo (D3: out of scope)", pricing: none,
+    classification: base({ action: "assume_and_quote", vagueness: "vague", format_recommended: "solo", format_requested: "" }) },
+  { id: "S15", what: "near-miss: one_question + clear + solo", pricing: none,
+    classification: base({ action: "one_question", vagueness: "clear", format_recommended: "solo" }) },
+  { id: "S16", what: "near-miss: one_question + vague + a resolved non-solo/duo format", pricing: none,
+    classification: base({ action: "one_question", vagueness: "vague", format_recommended: "mariachi_full", format_requested: "mariachi" }) },
+  { id: "S17", what: "vague-quote mode with a format the lead named (format_requested set)", pricing: none,
+    classification: base({ action: "one_question", vagueness: "vague", format_recommended: "solo", format_requested: "a solo guitarist" }) },
+];
+
 /**
  * The body of one section of the verify prompt, by its id (`6b`, `7a`, `8`, `9`). A section starts at the line
  * `### <id>.` and runs up to, and excluding, the next line that starts with `### ` or `## `, or the end of the
