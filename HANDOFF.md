@@ -293,6 +293,87 @@ pattern (unexecuted); (3) the "exactly one question" rule (12 of 122 runs); (4) 
 (5) Alex's force-push call (I recommend no); (6) older items (nonprofit prices, Saturday/peak-day rule, Module 1
 plan review, R006/R398/R403 TO PORT). Do not read or enter the Sandbox directory while Autopilot Run 104 runs.
 
+**Update 19 (session gig-lead-responder-22, vague-lead route: MID-PHASE, pre-compact save 2026-10-13):** the route
+change is BUILT and TESTED; arm B (the real-model measurement), the Codex code review and the compound are NOT done.
+
+**State (CHECKED this session):** branch `feat/hub-phase0`, base HEAD `19bff9e` (this save commit adds one), **20 commits
+unpushed** (origin = `3952397`), working tree clean. `npm test` **1057 pass / 0 fail / 1 skip**, `tsc` clean, leak check
+exit 0. Nothing is running; arm B has NOT been started.
+
+**Plan:** `docs/plans/2026-10-13-feat-vague-lead-quote-with-question-plan.md`, **Revision 2**. Plan review R1 NO-GO (5 P1,
+1 P2), R2 NO-GO (1 P1, 1 P2) at the cap, Alex chose "Accept, fix the 2 items, build". **Revision 2 changed D1's
+mechanism after the classifier regression and has NOT had a Codex plan review**: say so in the code-review prompt.
+
+**Alex's decisions this stretch (FROM CONVERSATION, quoted):** route "yes" (a vague low-competition lead gets an assumed
+default format, its price and terms from the app, and one binary question: his Claude.ai Project's shape); footer
+"Drop the footer from the reference"; COI "1 yes" (the reference carries "COI available upon request."); the date
+sentence "Send me the date once you have it and I'll check my calendar. A 50% deposit holds the date."; volume "no
+that's not a guarantee" (read as: NO new volume rule; correct me if wrong); salutation "a" (the reference opens "Hi
+Dana,", the nameless-lead "omit salutation" rule is unchanged); and, after the classifier regression, "A
+deterministic default in code (Recommended)" (the classifier PROMPT stays untouched).
+
+**What was built (CHECKED):**
+- `defaultVagueFormat` in `src/pipeline/classify.ts`, called at the end of `classifyLead`: a vague `one_question` +
+  `unresolved` lead with no ensemble word (`band`, `ensemble`, `orchestra`, `trio`, `quartet`, `quintet`, `sextet`,
+  `group` not followed by "of"; "players" is NOT one) gets `solo`, or `duo` for dinner/cocktail/dancing. `classify.ts`
+  prompt pinned by SHA-256 (V6b).
+- `src/data/vague-quote-reference.ts` (Alex's reply, footer dropped, `[QUOTED_PRICE]`, the app's payment and COI
+  constants) and `buildVagueQuoteReferenceSection` in `src/prompts/generate.ts`, gated like T4 plus: payment kind must be
+  `sentence`, not nonprofit, not cultural/sourced, not T4; `coi_required` is NOT withheld.
+- Tests `src/vague-quote-reference.test.ts` (V1-V9), hash inventory C13-C17 (`snapshot refresh:` commit `504d15e`),
+  `src/route-metrics.ts` (pre-registered formulas, `sharedWindows`), runner/report fields, manifest `probeCase`
+  (`--probe C8` for this experiment), mutation map 14 rows each killed.
+- Records: `docs/reviews/2026-10-13-clarification-reference-candidates-verifier.md`,
+  `...-clarification-alex-reference-reply-vs-app.md`, `...-vague-quote-plan-codex-round1.md`, `...round2.md`,
+  `...-classifier-regression-baseline.md`, `...-classifier-regression-after.md`.
+
+**Results (CHECKED, observational, one model):** Alex's own reply through the real gate as a quote: footer: fail x3
+(`sounds_like_alex`); footer dropped: pass x3. Price is the app's: T2D $700 / $650 direct, T2P $595 / $550 platform.
+**Classifier regression** (7 leads, 5 runs): at baseline L2-L4 (three of the four registered test leads) ALREADY get no
+price 5 of 5; the prompt-wording attempt moved L1 `flamenco_duo` 7/15 -> 14/15 (p 0.007) and L7 `quote` 0/15 -> 4/15
+(p 0.05), so it was rejected and `classify.ts` restored; the code default moved L2-L4 to `solo` $595 x5 each and left
+L1, L5, L6 ("Latin band" stays `unresolved`) and L7 inside their baselines.
+
+**Open decisions / next action for Alex (in order):**
+1. **Say "go" for arm B**: 5 processes x the 10 vague leads = 50 real runs, about 25 minutes, the spend of one arm of
+   plan 2. Command (plan, Execution Path): `OUT=$(mktemp -d /tmp/vague-quote.XXXXXX); for t in 1 2 3 4 5; do npx tsx
+   scripts/clarification-measure.ts --arm B --probe C8 --runs 1 --tag B$t --out "$OUT" --today 2026-10-12 & done; wait`
+   then `npx tsx scripts/clarification-arm-report.ts <armA dir> "$OUT" --pre-hash <fixture C8> ...` (descriptive; no causal
+   claim). Then record `docs/reviews/2026-10-13-vague-quote-measurement.md`.
+2. Codex CODE review round 1 (prompt not yet written), then compound + `/update-learnings`, then push (say "push").
+3. Still open from earlier: fresh no-draft measurement for the narrowed anchor/floor pattern (unexecuted); the "exactly
+   one question" rule (12 of 122 runs); the classifier `timeline_band` miss; Alex's force-push call (I recommend no);
+   older items (nonprofit prices, Saturday/peak-day rule, Module 1 plan review, R006/R398/R403 TO PORT).
+
+**Not done / at risk:** compound docs, memory, journal and pitfalls rows for THIS cycle are not written. Peer sessions
+have uncommitted changes in `~/.claude` and `~/Documents/dev-notes` (not touched; stage only own hunks by blob). Do not
+read or enter the Sandbox directory while Autopilot Run 104 runs. Note a wrong claim I made and corrected: I first
+called C8 "unchanged" in the V7 table because I read `lead_source_column`; the gate reads the `paymentTerms` argument
+(C8 is CHANGED).
+
+**Three Questions (work phase):**
+1. **Hardest implementation decision?** Moving the default format out of the classifier prompt into a tested function
+   after a before/after regression showed the wording edit shifted ordinary leads.
+2. **What did you consider changing but leave alone?** Deleting clarification mode (it still serves an explicit
+   ensemble), changing the SALUTATION rule, a code check forcing exactly one question (it ends in no draft).
+3. **Least confident about going into review?** The ensemble word match (a false match or a miss changes the route),
+   that the block's example is not copied (arm B reports shared windows), and that Revision 2 had no plan review.
+
+##### Prompt for Next Session (after the pre-compact save; supersedes the earlier prompts in this section)
+```
+Work in /Users/alejandroguillen/Projects/gig-lead-responder.
+FIRST gate (stop and ask Alex if anything differs):
+  pwd; git branch --show-current                  # expect: feat/hub-phase0
+  git rev-parse --short HEAD; git status --short  # expect: 19bff9e or later (this save commit adds one); clean
+  git fetch origin; git log --oneline origin/feat/hub-phase0..HEAD | wc -l   # expect: about 21 (unpushed)
+Read: HANDOFF.md "Update 19", docs/plans/2026-10-13-feat-vague-lead-quote-with-question-plan.md (Revision 2),
+docs/reviews/2026-10-13-classifier-regression-after.md, CLAUDE.md.
+Do: ask Alex for "go" on arm B; do not run it without it (real API spend). Then the Codex code review prompt (say
+Revision 2 had no plan review), compound, push when he says so.
+Rules: never invent a price; never commit a venue sentence; one Codex run per round; no round 3 without the literal
+approval; the classifier PROMPT stays untouched (V6b); do not read or enter the Sandbox directory.
+```
+
 #### Pre-compact save 2026-10-12 22:47 (appended; text above NOT modified, may be stale)
 
 **State (CHECKED this session):** branch `feat/hub-phase0`, base HEAD `2ae6936` (this save commit adds one), **pushed**:
