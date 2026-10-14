@@ -2,7 +2,7 @@
 // "Classifier regression"). The vague-lead route edits one paragraph of the classifier prompt; unit tests can pin the
 // words but not how the model reads them, so this runs a fixed set of ordinary and boundary leads through the REAL
 // classifier N times and records what it decides, to be compared before and after the edit.
-//   npx tsx scripts/classifier-regression.ts --tag before|after [--runs 5] [--out <dir>] [--today 2026-10-12]
+//   npx tsx scripts/classifier-regression.ts --tag before|after [--runs 5] [--out <dir>] [--today 2026-10-12] [--only L1_wedding_rich,L7_quinceanera_mariachi]
 //   npx tsx scripts/classifier-regression.ts --compare <before.json> <after.json>
 // Needs ANTHROPIC_API_KEY (.env) for a run. CHANGES NO APP STATE: classification and a price-table lookup only.
 import { createRequire } from "node:module";
@@ -81,7 +81,8 @@ const { classifyLead } = await import(join(root, "src/pipeline/classify.ts"));
 const { lookupPrice } = await import(join(root, "src/pipeline/price.ts"));
 
 const results: Record<string, Array<Record<string, unknown>>> = {};
-for (const [name, raw] of Object.entries(LEADS)) {
+const only = arg("--only", "").split(",").map((x) => x.trim()).filter(Boolean);
+for (const [name, raw] of Object.entries(LEADS).filter(([n]) => only.length === 0 || only.includes(n))) {
   const text = raw.startsWith("@file:") ? readFileSync(join(root, raw.slice(6)), "utf-8").trim() : raw;
   results[name] = [];
   const batch = await Promise.all(Array.from({ length: runs }, () => classifyLead(text, today).catch((e: unknown) => ({ error: String(e).slice(0, 120) }))));
