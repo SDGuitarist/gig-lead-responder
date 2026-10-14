@@ -46,26 +46,20 @@ Lead Source: The Bash`,
 };
 
 if (process.argv.includes("--compare")) {
+  // The stop rule lives in src/regression-compare.ts (LW13): exit 0 = no stop, 1 = a stop (see the printed reasons),
+  // 2 = a file that is not a regression file (a void, never read as a pass).
   const i = process.argv.indexOf("--compare");
-  const [b, a] = [process.argv[i + 1], process.argv[i + 2]].map((p) => JSON.parse(readFileSync(p, "utf-8")) as { results: Record<string, Array<Record<string, unknown>>> });
-  const FIELDS = ["action", "vagueness", "competition_level", "format_recommended", "duration_hours", "rate_card_tier", "stealth_premium", "quote_price"];
-  const dist = (rows: Array<Record<string, unknown>>, f: string) => {
-    const m = new Map<string, number>();
-    for (const r of rows) m.set(String(r[f]), (m.get(String(r[f])) ?? 0) + 1);
-    return [...m].sort((x, y) => y[1] - x[1]);
-  };
-  let differences = 0;
-  for (const lead of Object.keys(b.results)) {
-    console.log(`\n== ${lead}`);
-    for (const f of FIELDS) {
-      const db = dist(b.results[lead], f), da = dist(a.results[lead] ?? [], f);
-      const same = JSON.stringify(db.map((x) => x[0])) === JSON.stringify(da.map((x) => x[0]));
-      if (!same) differences++;
-      console.log(`  ${f.padEnd(20)} before ${db.map(([v, n]) => `${v} x${n}`).join(", ")} | after ${da.map(([v, n]) => `${v} x${n}`).join(", ")} ${same ? "" : "  <-- DIFFERS"}`);
-    }
+  const { compareRegression } = await import(join(root, "src/regression-compare.ts"));
+  try {
+    const [b, a] = [process.argv[i + 1], process.argv[i + 2]].map((p) => JSON.parse(readFileSync(p, "utf-8")) as unknown);
+    const verdict = compareRegression(b, a);
+    for (const l of verdict.lines) console.log(l);
+    console.log(verdict.stop ? `\nSTOP: ${verdict.reasons.length} reason(s):\n  ${verdict.reasons.join("\n  ")}` : "\nno stop: every mode is unchanged, no lead has 2+ more runs off its mode, no new error rows");
+    process.exit(verdict.stop ? 1 : 0);
+  } catch (e) {
+    console.error(`VOID: ${String(e).slice(0, 200)}`);
+    process.exit(2);
   }
-  console.log(`\nfields whose set of values differs between before and after: ${differences}`);
-  process.exit(0);
 }
 
 const tag = arg("--tag", "run");
