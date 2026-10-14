@@ -14,3 +14,12 @@ the literal `Round 3 authorized by Alejandro: YES`.
 | P2-4 | VG4's spy proves `verifyGate` without options, not that every production call site omits the option | CONFIRMED: `grep verifyGate src` is not in the plan as a bounded inventory | valid |
 
 Counters: plan fix attempts so far 1 (Revision 1); Codex plan reviews 2 (R1 NO-GO, R2 NO-GO).
+
+## Answers (plan Revision 1b; Alex chose "Accept, fix the 4, build"; no round 3)
+
+| # | Answer |
+|---|---|
+| P1-1 | `pass` = `gate.gate_status === "pass"` is the recorded value; the comparison uses `replay_mode.pass` and `replay_default.pass` only; a `replay_error` run is excluded and reported; post-check excluded on purpose |
+| P1-2 | the vague-quote text gains a fourth anchor, "a format the lead itself named" (visible in `format_requested`); an app-chosen format is not an anchor; S17 and VG9 added |
+| P1-3 | asymmetric rules: ANY generic text passing in EITHER verify is a control defect and stops; 2 or more specific texts failing in at least one verify stops |
+| P2-4 | VG10: a bounded call-site inventory (three sites, three arguments, none with `openingRule`) plus a spy through `runWithVerification` |

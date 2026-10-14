@@ -1,7 +1,7 @@
 ---
 title: "fix: the verify gate's opening rule asks a quoted vague lead's reply to cite a detail the lead never gave"
 date: 2026-10-14
-status: plan, Revision 1 (plan review R1 NO-GO, 5 P1 / 3 P2, answered here; D3 decided by Alex 2026-10-14)
+status: plan, Revision 1b (plan review R1 NO-GO 5 P1 / 3 P2, R2 NO-GO 3 P1 / 1 P2 at the cap, both answered; D3 decided by Alex 2026-10-14; Alex chose "Accept, fix the 4, build")
 branch: feat/hub-phase0
 ---
 
@@ -58,9 +58,10 @@ every other mode are unchanged byte-for-byte. The text (review may change the wo
 > This lead is vague and its format was assumed: the form gave no date, venue or guest count, so the opening cannot cite
 > them. The first sentence passes only if it repeats or restates a fact or an uncertainty the lead itself supplied. The
 > minimum anchor is ONE of: the occasion or event type the lead wrote (a birthday, a wedding, a party); the time frame
-> the lead wrote (next month, this winter, spring); or the lead's own stated doubt ("not sure what kind of music"). Any
-> one is enough, even when the classification holds a real format. The assumed format ("solo guitar", "a duo") is NOT a
-> fact the lead supplied unless the classification's `format_requested` shows the lead named it. References that could
+> the lead wrote (next month, this winter, spring); the lead's own stated doubt ("not sure what kind of music"); or a
+> format the lead itself named, which shows in the classification's `format_requested` (a lead that wrote "a solo
+> guitarist" supplied that format). Any one is enough. A format that does NOT appear in `format_requested` ("solo
+> guitar", "a duo" chosen by the app) is an assumption, not a fact the lead supplied, and is NOT an anchor. References that could
 > be said to any inquiry do NOT qualify: "your event", "this inquiry", "what you're looking for", "the right fit",
 > "the right music", "what would work best". Deletion test: remove the words that came from this lead; if the sentence
 > still works for any inquiry, lead_specific_opening = false.
@@ -69,6 +70,7 @@ every other mode are unchanged byte-for-byte. The text (review may change the wo
 > Fail (generic acknowledgement): "You're looking for the right music for your event."
 > Fail (assumed format only, solo): "A solo guitarist is a lovely way to set the tone."
 > Fail (assumed format only, duo): "A duo is a warm way to fill an evening."
+> Pass (format the lead named, `format_requested` = "a solo guitarist"): "A solo guitarist for your mom's birthday: that is a clear ask, and one question settles the rest."
 
 D2. **A measurement seam, not a production switch** (answers R1 P1-1, P2-6). `buildVerifyPrompt(classification,
 pricing, options?)` gains an optional third argument `{ openingRule?: "default" }`; when `"default"` the vague-quote
@@ -97,7 +99,11 @@ For each of the 50 runs the runner records, for the SAME final draft pair (full 
 | `replay_default` | `verifyGate(finalDrafts, classification, pricing, { openingRule: "default" })`, a fresh call | same fields, today's strict rule |
 | `replay_error` | a thrown `VerificationError` (the validator's own two attempts) | recorded; the run is excluded from the pairs and counted |
 
-`classification` and `pricing` are stored per run (`o.classification`, `o.pricing`). The replays are gate-only: the
+Each recorded verdict also carries `pass` = `gate.gate_status === "pass"` (the gate's own rule: the verifier's
+status, the value the rewrite loop tests; `verified` in a pipeline result is the same value). The paired comparison
+uses `replay_mode.pass` and `replay_default.pass` ONLY; post-check results, which are deterministic and independent of the
+opening rule, are NOT part of it and are recorded separately. A run with a `replay_error` is excluded from both
+counts and reported. `classification` and `pricing` are stored per run (`o.classification`, `o.pricing`). The replays are gate-only: the
 deterministic post-check is independent of the opening rule and is recorded as it already is. The comparison uses
 `replay_mode` against `replay_default` (same time, same function, only the prompt differs). `pipeline` against
 `replay_mode` is the verifier's own noise floor on identical input and prompt: the number of runs where they differ
@@ -111,13 +117,15 @@ Snapshots S0-S12 exist (plan 1). Before S8 changes, **its current text is copied
 so VG4 compares the seam against an artifact that survives S8's refresh. **S8 changes by design** (refreshed in a
 `snapshot refresh:` commit with the prompt diff). Added: **S13** `one_question`+`vague`+`duo` (the duo branch);
 **S14** `assume_and_quote`+`vague`+`solo` (near-miss, today's text, D3); **S15** `one_question`+`clear`+`solo`
-(near-miss); **S16** `one_question`+`vague`+`mariachi_full` (a resolved non-solo/duo format, today's text). S0
+(near-miss); **S16** `one_question`+`vague`+`mariachi_full` (a resolved non-solo/duo format, today's text); **S17**
+`one_question`+`vague`+`solo` with `format_requested` = "a solo guitarist" (a classifier-supplied format: the vague-quote
+text, whose fourth anchor is the format the lead named). S0
 (clarification), S1-S7, S9-S12 and S14-S16 must be byte-equal outside the voice block (G8 pin unchanged).
 
 ## Plan Quality Gate
 
 1. **What exactly is changing?** Two spans of `src/prompts/verify.ts` for `vagueQuoteMode` plus the optional third
-   argument and its pass-through in `verifyGate`; snapshots S13-S16, a retained S8-pre fixture and S8 refreshed; a new
+   argument and its pass-through in `verifyGate`; snapshots S13-S17, a retained S8-pre fixture and S8 refreshed; a new
    `src/vague-gate-prompt.test.ts`; the runner stores `classification` and `pricing` and records the two replays; a
    controls script.
 2. **What must not change?** Every other mode's verify prompt (G2 pattern); clarification mode's text; section 8 and 9;
@@ -140,9 +148,10 @@ File `src/vague-gate-prompt.test.ts`; names start `Vague Gate VG<n>`; reuse `sec
 `src/clarification-gate-prompt.test.ts`.
 
 - **VG1** WHEN the classification is `one_question`, `vague`, format `solo` or `duo`, THE SYSTEM SHALL include as
-  section 6b and as the `lead_specific_opening` line exactly the vague-quote definition, with all five literal
-  examples and the sentence "The assumed format ... is NOT a fact the lead supplied".
-- **VG2** WHEN the classification is S0-S7, S9-S12 or S14-S16, THE SYSTEM SHALL return a prompt byte-equal to its
+  section 6b and as the `lead_specific_opening` line exactly the vague-quote definition, with all six literal
+  examples (including the pass example for a format the lead named) and the sentence "is an assumption, not a fact the
+  lead supplied".
+- **VG2** WHEN the classification is S0-S7, S9-S12 or S14-S16 (S17 is VG9), THE SYSTEM SHALL return a prompt byte-equal to its
   snapshot outside the voice block, and SHALL NOT contain "its format was assumed".
 - **VG3** WHEN the prompt is built for S8 or S13, THE SYSTEM SHALL keep `preempted_questions`, `budget_acknowledged`
   and `genre_default_stated` equal to the quote-mode text (the three lines are not the clarification lines).
@@ -153,25 +162,35 @@ File `src/vague-gate-prompt.test.ts`; names start `Vague Gate VG<n>`; reuse `sec
 - **VG5** WHEN the clarification prompt (S0) is built, THE SYSTEM SHALL still equal plan 1's text.
 - **VG6** WHEN any case's prompt is built, THE SYSTEM SHALL carry a voice block whose SHA-256 equals the pinned value.
 - **VG7** The change is exactly the two spans: S8-pre with the two spans replaced equals the new S8.
-- **VG8** WHEN the new text is read, THE SYSTEM SHALL carry the minimum-anchor sentence (the three anchors, "Any one is
+- **VG8** WHEN the new text is read, THE SYSTEM SHALL carry the minimum-anchor sentence (the four anchors, "Any one is
   enough") and both assumed-format fail examples (solo and duo), each literal.
+- **VG9** WHEN the classification is S17 (`format_requested` = "a solo guitarist"), THE SYSTEM SHALL build the vague-quote
+  text and the serialized classification in the prompt SHALL contain that `format_requested` (the verifier can see
+  that the lead named the format); WHEN it is S8 (`format_requested` empty), the same text applies and the format
+  anchor has nothing to match.
+- **VG10** (bounded call-site inventory) WHEN the source tree outside tests and the measurement scripts is scanned for
+  `verifyGate(`, THE SYSTEM SHALL find exactly three call sites (`src/run-pipeline.ts` edit path,
+  `src/pipeline/verify.ts` twice in `runWithVerification`), each passing three arguments and none containing
+  `openingRule`; and a spy on the model call SHALL show `runWithVerification` building the same system prompt as the
+  two-argument `buildVerifyPrompt`.
 
 Mutation map (each run, each must fail exactly its own test): mode predicate drops `vagueness`; mode drops the
 format clause; mode widened to any resolved format; the seam ignored; the `verifyGate` pass-through dropped; the three
-lines moved into the mode; the assumed-format sentence removed; the duo fail example removed; the mode applied to
-`assume_and_quote`.
+lines moved into the mode; the assumed-format sentence removed; the duo fail example removed; the format anchor removed; the mode applied to
+`assume_and_quote`; a production call site passing `openingRule`.
 
 ## Decision table for the measurement (pre-registered; descriptive, derived)
 
 Arm: 5 processes x 10 leads (the route plan's 50 runs), the real pipeline on the NEW prompt, each final draft
 re-verified under both rules (the table above); plus the controls: 5 planted generic and 5 planted specific openings
 on a fixed made-up lead, each verified twice (20 verifies). The five texts per kind are the unit; repeats are not
-independent. Counts only; the table is a reading guide set before the run, not a pass bar.
+independent. The rules are asymmetric by cost: a false pass is the harm (a generic opener reaching the sending path),
+a false fail only loses gain. Counts only; the table is a reading guide set before the run, not a pass bar.
 
 | Observation | Meaning | Action |
 |---|---|---|
-| a planted generic text (solo or duo) passes `lead_specific_opening` in BOTH its verifies | the new rule is loose | STOP; revert the prompt change; return to Alex |
-| 2 or more planted specific texts fail it in BOTH verifies | the new rule is too tight | STOP; return to Alex |
+| ANY planted generic text (solo or duo) passes `lead_specific_opening` in EITHER of its two verifies | a generic opening was accepted once: the harm direction is a false pass, so one observation is a control defect | STOP; revert the prompt change; return to Alex |
+| 2 or more planted specific texts fail it in AT LEAST ONE verify | the new rule is too tight (the cost is lost gain, so one miss on one text is tolerated) | STOP; return to Alex |
 | controls ok AND `replay_mode` verified exceeds `replay_default` verified: b newly verified, c newly failed, b > c with exact one-sided sign-test p < 0.05, AND every newly verified opening passes a manual deletion test | the scoped rule moved the gate and holds | proceed to code review, compound |
 | controls ok AND the sign test does not reach p < 0.05, or b is within the `pipeline` vs `replay_mode` disagreement count | not distinguishable from verifier noise or the rule is not the main cause | STOP; record the other failures; return to Alex |
 | a newly verified draft has a generic opening | the verifier did not follow the text | STOP; a failure of this plan |
@@ -195,7 +214,7 @@ is held for him) and his own read. This plan changes what the verifier asks of a
 | The seam, VG4 | `npm run test:match -- "Vague Gate VG4"` | pass, exit 0 |
 | Clarification unchanged, VG5; voice block, VG6; exactly two spans, VG7 | `npm run test:match -- "Vague Gate VG5"` ; `VG6` ; `VG7` | pass, exit 0 |
 | Plan 1's suite unchanged | `npm run test:match -- "Clarification Gate"` | all pass, exit 0 |
-| Mutation map | the nine rows, each applied by hand and `npm run test:match -- "Vague Gate"` | each fails exactly its own VG, exit 1 per row |
+| Mutation map | the eleven rows, each applied by hand and `npm run test:match -- "Vague Gate"` | each fails exactly its own VG, exit 1 per row |
 | Full suite | `npm test` | all pass, 0 fail (the sandbox of a reviewer may block localhost sockets: `listen EPERM` is a sandbox limit, recorded as UNEXECUTED, never as a pass) |
 | Types | `npx tsc --noEmit` | clean, exit 0 |
 | Leak check | `npx tsx scripts/check-venue-history.ts; echo $?` | exit 0 |
