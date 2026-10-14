@@ -11,7 +11,10 @@ import { GENERATE_CASES, generatePromptOf, removeSpans, sha256, spansOf } from "
 const hashes = JSON.parse(readFileSync("src/fixtures/generate-prompt-hashes.json", "utf-8")) as Record<string, string>;
 
 describe("Clarification Shape P4 / P5: nothing outside the three spans changes", () => {
-  for (const c of GENERATE_CASES.filter((x) => x.id !== "C0")) {
+  // C8, C15 and C16 are the cases the vague-lead reference block (plan 2026-10-13-feat-vague-lead-quote-with-question)
+  // is MEANT to change; src/vague-quote-reference.test.ts (V7) asserts that they differ. C0 is pinned by P5 below.
+  const CHANGED_BY_THE_VAGUE_ROUTE = new Set(["C8", "C15", "C16"]);
+  for (const c of GENERATE_CASES.filter((x) => x.id !== "C0" && !CHANGED_BY_THE_VAGUE_ROUTE.has(x.id))) {
     it(`Clarification Shape P4 ${c.id} (${c.what}) hashes to its pre-change value`, () => {
       assert.equal(sha256(generatePromptOf(c.id)), hashes[c.id]);
     });

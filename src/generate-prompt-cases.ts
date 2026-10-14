@@ -17,17 +17,37 @@ export interface GenerateCase {
 
 export const GENERATE_CONTEXT = "ctx";
 
-export const GENERATE_CASES: GenerateCase[] = VERIFY_CASES.map((c) => ({
+const pricingFor = (c: { classification: Classification; pricing: { budget: PricingResult["budget"]; residency?: PricingResult["residency"] } }): PricingResult => ({
+  format: c.classification.format_recommended, duration_hours: 2, tier_key: "T2P", anchor: 500, floor: 400,
+  quote_price: 500, competition_position: "at anchor", budget: c.pricing.budget,
+  ...(c.pricing.residency ? { residency: c.pricing.residency } : {}),
+} as PricingResult);
+
+const BASE_CASES: GenerateCase[] = VERIFY_CASES.map((c) => ({
   id: `C${c.id.slice(1)}`,
   what: c.what,
   classification: c.classification,
-  pricing: {
-    format: c.classification.format_recommended, duration_hours: 2, tier_key: "T2P", anchor: 500, floor: 400,
-    quote_price: 500, competition_position: "at anchor", budget: c.pricing.budget,
-    ...(c.pricing.residency ? { residency: c.pricing.residency } : {}),
-  } as PricingResult,
+  pricing: pricingFor(c),
   terms: c.classification.platform === "gigsalad" ? { kind: "platform" } : NO_DATE_TERMS,
 }));
+
+// Plan docs/plans/2026-10-13-feat-vague-lead-quote-with-question-plan.md (Revision 1b), V7: C8's classification (one_question,
+// vague, solo) with the variants that decide whether the vague-lead reference block is shown. The block's payment
+// condition reads the paymentTerms ARGUMENT, so each variant sets it explicitly.
+const C8 = VERIFY_CASES.find((c) => c.id === "S8");
+if (!C8) throw new Error("verify case S8 not found");
+const variant = (id: string, what: string, over: Partial<Classification>, terms: PaymentTerms): GenerateCase => ({
+  id, what, classification: { ...C8.classification, ...over } as Classification, pricing: pricingFor({ ...C8, classification: { ...C8.classification, ...over } as Classification }), terms,
+});
+
+export const GENERATE_CASES: GenerateCase[] = [
+  ...BASE_CASES,
+  variant("C13", "one_question, vague, solo, GigSalad (platform payment)", { platform: "gigsalad" }, { kind: "platform" }),
+  variant("C14", "one_question, vague, solo, unknown-platform payment", {}, { kind: "unknown_platform" }),
+  variant("C15", "one_question, vague, duo", { format_recommended: "duo" }, NO_DATE_TERMS),
+  variant("C16", "one_question, vague, solo, coi_required", { coi_required: true }, NO_DATE_TERMS),
+  variant("C17", "one_question, vague, solo, nonprofit buyer", { nonprofit_buyer: true }, NO_DATE_TERMS),
+];
 
 export function generatePromptOf(id: string): string {
   const c = GENERATE_CASES.find((x) => x.id === id);
