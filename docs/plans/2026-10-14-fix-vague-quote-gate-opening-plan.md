@@ -241,7 +241,7 @@ is held for him) and his own read. This plan changes what the verifier asks of a
   and records `pipeline`, `replay_mode`, `replay_default`, `classification` and `pricing` per run; the controls script
   verifies the planted openings.
 - **Command (exact), from the repo root:**
-  `OUT=$(mktemp -d /tmp/vague-gate.XXXXXX); for t in 1 2 3 4 5; do npx tsx scripts/clarification-measure.ts --arm B --probe C8 --runs 1 --tag B$t --out "$OUT" --today 2026-10-12 & done; wait; npx tsx scripts/vague-gate-controls.ts --out "$OUT"`
+  `OUT=$(mktemp -d /tmp/vague-gate.XXXXXX); for t in 1 2 3 4 5; do npx tsx scripts/clarification-measure.ts --arm B --probe C8 --paired --runs 1 --tag B$t --out "$OUT" --today 2026-10-12 & done; wait; npx tsx scripts/vague-gate-controls.ts --out "$OUT"`
 - **Prerequisites:** ALREADY HAVE: Node, `npm`, `tsx`, `ANTHROPIC_API_KEY` in `.env`, network, a raised API spend
   limit (it voided the first route arm). MUST OBTAIN: none.
 - **Output:** five result files with all three verdicts per run, the controls file; recorded in the review doc.

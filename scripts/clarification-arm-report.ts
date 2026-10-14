@@ -12,6 +12,7 @@ import { join } from "node:path";
 import { assessArms, type ArmData, type ArmManifest } from "../src/arm-manifest.js";
 import { probePromptSha256 } from "../src/generate-prompt-cases.js";
 import { summarizeRoute, type RouteRun } from "../src/route-metrics.js";
+import { summarizePairs, type PairedRun } from "../src/gate-pairing.js";
 
 interface RunResult { lead: string; ok: boolean; error?: string; verified?: boolean; words?: number; sentences?: number;
   gate_detail?: { scene_type: string; competitor_test: boolean; empty_traceability: number } }
@@ -64,6 +65,9 @@ function summary(label: string, results: RunResult[]) {
   }
   if (results.some((r) => (r as unknown as RouteRun).route)) {
     console.log("route metrics (numerator/denominator; descriptive, no pass bar):", JSON.stringify(summarizeRoute(results as unknown as RouteRun[])));
+  }
+  if (results.some((r) => (r as unknown as PairedRun).paired)) {
+    console.log("paired gate comparison (same drafts, new vs default opening rule; descriptive):", JSON.stringify(summarizePairs(results as unknown as PairedRun[])));
   }
   console.log("per lead (unusable/runs): " + [...byLead].sort().map(([l, b]) => `${l} ${b.unusable}/${b.n}`).join("  "));
   return { n, unusable };

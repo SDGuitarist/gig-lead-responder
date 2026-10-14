@@ -28,6 +28,9 @@ const tag = arg("--tag", "run");
 const today = arg("--today", "2026-10-12");
 const arm = arg("--arm", "none");
 const probeCase = arg("--probe", "C0");
+// --paired: also verify each final draft under the new opening rule and under today's strict one (plan
+// docs/plans/2026-10-14-fix-vague-quote-gate-opening-plan.md, "The paired measurement"); stores classification and pricing.
+const paired = process.argv.includes("--paired");
 const out = arg("--out", join(tmpdir(), "clarification-measure"));
 mkdirSync(out, { recursive: true });
 
@@ -86,6 +89,8 @@ const { coiTermsFor } = await import(join(root, "src/pipeline/coi.ts"));
 const { sharedWindows } = await import(join(root, "src/route-metrics.ts"));
 const { VAGUE_QUOTE_REFERENCE_REPLY, VAGUE_QUOTE_SETUP_SENTENCE } = await import(join(root, "src/data/vague-quote-reference.ts"));
 const { PipelineStageError } = await import(join(root, "src/errors.ts"));
+const { verifyGate } = await import(join(root, "src/pipeline/verify.ts"));
+const { verdictOf } = await import(join(root, "src/gate-pairing.ts"));
 const models = new Set<string>();
 
 type Hit = ReturnType<typeof scan>[number];
@@ -110,7 +115,7 @@ setClaudeRequesterForTests((async (request: unknown) => {
   return res;
 }) as never);
 
-type RunResult = { lead: string; run: number; ok: boolean; error?: string; error_stage?: string; action?: string; verified?: boolean; gate_status?: string; fail_reasons?: string[]; words?: number; sentences?: number; route?: Record<string, unknown>; gate_detail?: { scene_type: string; competitor_test: boolean; false_checks: string[]; empty_traceability: number; rule_implied_pass: boolean; opening: string }; seconds: number; calls: Call[] };
+type RunResult = { lead: string; run: number; ok: boolean; error?: string; error_stage?: string; action?: string; verified?: boolean; gate_status?: string; fail_reasons?: string[]; words?: number; sentences?: number; route?: Record<string, unknown>; paired?: Record<string, unknown>; classification?: unknown; pricing?: unknown; gate_detail?: { scene_type: string; competitor_test: boolean; false_checks: string[]; empty_traceability: number; rule_implied_pass: boolean; opening: string }; seconds: number; calls: Call[] };
 const results: RunResult[] = [];
 const names = Object.keys(LEADS).filter((n) => only.length === 0 || only.includes(n));
 for (const name of names) {
@@ -151,8 +156,19 @@ for (const name of names) {
         shared_windows: sharedWindows(text, VAGUE_QUOTE_REFERENCE_REPLY,
           [paymentSentence, coiSentence, "Send me the date once you have it and I'll check my calendar.", VAGUE_QUOTE_SETUP_SENTENCE].filter(Boolean)),
       };
+      let pairedRecord: Record<string, unknown> | undefined;
+      if (paired) {
+        // The replays verify o.drafts (the post-check-cleaned drafts), a fresh call each; a VerificationError is recorded,
+        // not thrown, and the run is excluded from the pairs by gate-pairing.ts.
+        pairedRecord = { pipeline: verdictOf(g) };
+        try {
+          pairedRecord.replay_mode = verdictOf(await verifyGate(o.drafts, o.classification, o.pricing));
+          pairedRecord.replay_default = verdictOf(await verifyGate(o.drafts, o.classification, o.pricing, { openingRule: "default" }));
+        } catch (e) { pairedRecord.replay_error = String(e).slice(0, 200); }
+      }
       r = { ok: true, action: o.classification.action, verified: o.verified, gate_status: g.gate_status, fail_reasons: g.fail_reasons, words, sentences, route,
-        gate_detail: { scene_type: g.scene_type, competitor_test: g.competitor_test, false_checks: falseChecks, empty_traceability: emptyTrace, rule_implied_pass: implied, opening } };
+        gate_detail: { scene_type: g.scene_type, competitor_test: g.competitor_test, false_checks: falseChecks, empty_traceability: emptyTrace, rule_implied_pass: implied, opening },
+        ...(paired ? { paired: pairedRecord, classification: o.classification, pricing: o.pricing } : {}) };
     } catch (e) {
       r = { ok: false, error: String(e).slice(0, 200), error_stage: e instanceof PipelineStageError ? String((e as { stage?: string }).stage ?? "unknown") : "unknown" };
     }
