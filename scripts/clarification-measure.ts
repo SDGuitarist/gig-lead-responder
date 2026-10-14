@@ -1,7 +1,7 @@
 // Measures the clarification-mode generation failure (docs/plans/2026-10-13-fix-clarification-pricing-validator-plan.md).
 // CHANGES NO APP STATE: a real model call, a scratch DATABASE_PATH, nothing sent, data/leads.db untouched.
 //
-//   npx tsx scripts/clarification-measure.ts [--runs 3] [--leads v1,v2,...] [--out <dir>] [--tag <name>] [--today 2026-10-12] [--arm A|B]
+//   npx tsx scripts/clarification-measure.ts [--runs 3] [--leads v1,v2,...] [--out <dir>] [--tag <name>] [--today 2026-10-12] [--arm A|B] [--probe C0]
 //
 // Records, per run: whether a draft came back, `verified`, the gate status and fail reasons; per generate call: the
 // question sentences of both drafts.
@@ -27,6 +27,7 @@ const only = arg("--leads", "").split(",").map((s) => s.trim()).filter(Boolean);
 const tag = arg("--tag", "run");
 const today = arg("--today", "2026-10-12");
 const arm = arg("--arm", "none");
+const probeCase = arg("--probe", "C0");
 const out = arg("--out", join(tmpdir(), "clarification-measure"));
 mkdirSync(out, { recursive: true });
 
@@ -142,7 +143,8 @@ const manifest = {
   arm,
   gitSha: git("rev-parse HEAD"),
   dirtyPromptFiles: git("status --porcelain -- src/prompts src/pipeline").split("\n").filter(Boolean),
-  promptSha256: probePromptSha256(),
+  probeCase,
+  promptSha256: probePromptSha256(probeCase),
   models: [...models].sort(),
   today,
   leadSetSha256: createHash("sha256").update(names.map((n) => `${n}\n${LEADS[n]}`).join("\n---\n")).digest("hex"),

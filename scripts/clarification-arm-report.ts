@@ -65,7 +65,7 @@ function summary(label: string, results: RunResult[]) {
   return { n, unusable };
 }
 
-const [dirA, dirB] = process.argv.slice(2);
+const [dirA, dirB] = process.argv.slice(2).filter((x, i, all) => !x.startsWith("--") && !(i > 0 && all[i - 1].startsWith("--")));
 if (!dirA) { console.error("usage: clarification-arm-report.ts <dirA> [<dirB>]"); process.exit(2); }
 const a = load(dirA);
 const sa = summary(`arm in ${dirA} (${a.files.length} files)`, a.results);
@@ -73,12 +73,18 @@ a.files.forEach((f, i) => console.log(`manifest ${f}: ${JSON.stringify(a.manifes
 if (dirB) {
   const b = load(dirB);
   const sb = summary(`arm in ${dirB} (${b.files.length} files)`, b.results);
-  const preHash = (JSON.parse(readFileSync("src/fixtures/generate-prompt-hashes.json", "utf-8")) as Record<string, string>)["C0"];
+  // The probe case the experiment changes (the manifest's `probeCase`, C0 for the earlier experiments). The two hashes
+  // can be given explicitly (--pre-hash, --current-hash): the tests do, so they do not depend on the prompt's state.
+  const flag = (name: string) => { const i = process.argv.indexOf(name); return i > 0 ? process.argv[i + 1] : undefined; };
+  const probeCase = a.manifests[0]?.probeCase ?? "C0";
+  const fixture = JSON.parse(readFileSync("src/fixtures/generate-prompt-hashes.json", "utf-8")) as Record<string, string>;
+  const preHash = flag("--pre-hash") ?? fixture[probeCase];
+  const currentHash = flag("--current-hash") ?? probePromptSha256(probeCase);
   const isAncestor = (older: string, newer: string) => {
     try { execSync(`git merge-base --is-ancestor ${older} ${newer}`, { stdio: "ignore" }); return true; } catch { return false; }
   };
   const data = (x: ReturnType<typeof load>): ArmData => ({ files: x.files, manifests: x.manifests, runs: x.results.length });
-  const cmp = assessArms(data(a), data(b), { preChangePromptSha256: preHash, currentPromptSha256: probePromptSha256(), isAncestor });
+  const cmp = assessArms(data(a), data(b), { preChangePromptSha256: preHash, currentPromptSha256: currentHash, isAncestor });
   b.files.forEach((f, i) => console.log(`manifest ${f}: ${JSON.stringify(b.manifests[i])}`));
   console.log("\nMANIFEST CHECK:", JSON.stringify(cmp));
   if (!cmp.ok) {

@@ -57,9 +57,13 @@ export function generatePromptOf(id: string): string {
 
 export const sha256 = (text: string) => createHash("sha256").update(text).digest("hex");
 
-/** SHA-256 of the clarification-mode (C0) generate prompt: the prompt identity recorded in an arm manifest. */
-export function probePromptSha256(): string {
-  return sha256(generatePromptOf("C0"));
+/**
+ * SHA-256 of the generate prompt for one probe case: the prompt identity recorded in an arm manifest. The probe must be
+ * a case the experiment CHANGES (C0 for the clarification-shape change, C8 for the vague-lead route); the default
+ * keeps the earlier arms' manifests readable.
+ */
+export function probePromptSha256(caseId: string = "C0"): string {
+  return sha256(generatePromptOf(caseId));
 }
 
 /**

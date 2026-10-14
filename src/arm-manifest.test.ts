@@ -1,11 +1,10 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { execFileSync, spawnSync } from "node:child_process";
-import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { assessArms, compareArms, type ArmData, type ArmManifest } from "./arm-manifest.js";
-import { probePromptSha256 } from "./generate-prompt-cases.js";
 
 // Plan docs/plans/2026-10-13-fix-clarification-draft-shape-plan.md, M1-M3. Names start "Arm Manifest M<n>".
 const PRE = "pre".padEnd(64, "0");
@@ -99,7 +98,9 @@ describe("Arm Manifest: the report script gates its statistics on the check", ()
   const script = "scripts/clarification-arm-report.ts";
   const head = execFileSync("git", ["rev-parse", "HEAD"], { encoding: "utf-8" }).trim();
   const parent = execFileSync("git", ["rev-parse", "HEAD~1"], { encoding: "utf-8" }).trim();
-  const pre = (JSON.parse(readFileSync("src/fixtures/generate-prompt-hashes.json", "utf-8")) as Record<string, string>)["C0"];
+  // Explicit hashes, passed as --pre-hash / --current-hash: the test must not depend on the prompt's current state.
+  const pre = "a".repeat(64);
+  const post = "b".repeat(64);
   const result = (lead: string) => ({ lead, ok: true, verified: false, words: 100, sentences: 5,
     gate_detail: { scene_type: "cinematic", competitor_test: false, empty_traceability: 0 } });
   const leads = ["v1", "v2", "v3", "v4", "v5", "v6", "h1", "h2", "h3", "h4"];
@@ -107,13 +108,13 @@ describe("Arm Manifest: the report script gates its statistics on the check", ()
     const dir = mkdtempSync(join(tmpdir(), `arm-report-${arm}-`));
     mkdirSync(dir, { recursive: true });
     for (let i = 1; i <= files; i++) {
-      const m: ArmManifest = { arm, gitSha: arm === "A" ? parent : head, dirtyPromptFiles: [], promptSha256: arm === "A" ? pre : probePromptSha256(),
+      const m: ArmManifest = { arm, gitSha: arm === "A" ? parent : head, dirtyPromptFiles: [], promptSha256: arm === "A" ? pre : post,
         models: ["claude-sonnet-4-6"], today: "2026-10-12", leadSetSha256: "leads", node: process.version, ...over };
       writeFileSync(join(dir, `clarification-${arm}${i}.json`), JSON.stringify({ today: m.today, runs: 1, manifest: m, results: leads.map(result) }));
     }
     return dir;
   };
-  const run = (a: string, b: string) => spawnSync("npx", ["tsx", script, a, b], { encoding: "utf-8" });
+  const run = (a: string, b: string) => spawnSync("npx", ["tsx", script, a, b, "--pre-hash", pre, "--current-hash", post], { encoding: "utf-8" });
 
   it("Arm Manifest R1 a valid pair prints the comparison and every manifest (positive control)", () => {
     const r = run(makeArm("A", 5), makeArm("B", 5));

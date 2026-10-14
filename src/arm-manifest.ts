@@ -9,7 +9,9 @@ export interface ArmManifest {
   gitSha: string;
   /** `git status --porcelain` lines under src/prompts and src/pipeline at run time; must be empty. */
   dirtyPromptFiles: string[];
-  /** SHA-256 of the clarification-mode generate prompt for the fixed probe (src/generate-prompt-cases.ts). */
+  /** The generate-prompt case the hash below is of (src/generate-prompt-cases.ts); absent in the first two experiments (C0). */
+  probeCase?: string;
+  /** SHA-256 of the generate prompt for the probe case. */
   promptSha256: string;
   /** The distinct `request.model` values the run's calls carried. */
   models: string[];
@@ -29,7 +31,7 @@ export interface ArmExpectations {
 
 export type ArmComparison = { ok: true } | { ok: false; field: string; detail: string };
 
-const FIELDS: Array<keyof ArmManifest> = ["gitSha", "dirtyPromptFiles", "promptSha256", "models", "today", "leadSetSha256", "node"];
+const FIELDS: Array<keyof ArmManifest> = ["gitSha", "dirtyPromptFiles", "probeCase", "promptSha256", "models", "today", "leadSetSha256", "node"];
 const same = (x: unknown, y: unknown) => JSON.stringify(x) === JSON.stringify(y);
 const bad = (field: string, detail: string): ArmComparison => ({ ok: false, field, detail });
 
