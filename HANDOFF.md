@@ -293,6 +293,16 @@ pattern (unexecuted); (3) the "exactly one question" rule (12 of 122 runs); (4) 
 (5) Alex's force-push call (I recommend no); (6) older items (nonprofit prices, Saturday/peak-day rule, Module 1
 plan review, R006/R398/R403 TO PORT). Do not read or enter the Sandbox directory while Autopilot Run 104 runs.
 
+**Update 21 (session gig-lead-responder-22, vague-gate plan BUILT, 2026-10-14):** the verify-gate opening rule for a
+quoted vague lead is planned (`docs/plans/2026-10-14-fix-vague-quote-gate-opening-plan.md`, Revision 1b; plan review R1
+and R2 both NO-GO, accepted without a round 3) and built (`vagueQuoteMode`, the `openingRule` seam, snapshots S13-S18, tests
+VG1-VG11, GP, GC); Codex code review R1 and R2 both NO-GO (R1: 3 P1 / 1 P2 fixed; R2: one P2, fixed in the parsed
+VG10 guard), no round 3 (Alex's choice). Suite 1108 pass / 0 fail / 1 skip. **NOT run: the paired arm and the planted
+controls (API spend, Alex's "go")** -- command in the plan's Execution Path (`--paired`, then `vague-gate-controls.ts`).
+**Named risk:** the verifier sees only the classification, not the lead's words; the controls test it. Decision table:
+a generic planted opening passing in either verify, or 2+ specific ones failing, STOPS. Local only: ~15 commits
+unpushed since `ac8685d`. Earlier open items from Update 20 stand.
+
 **Update 20 (session gig-lead-responder-22, vague-lead route: COMPOUND DONE, 2026-10-14):** arm B ran (attempt 1 void
 on the API spend limit; rerun 50/50; final-prompt arm on `2aa57e1`), Codex code review R1 and R2 both NO-GO and fixed
 (no round 3, Alex's choice), pushed to origin at `ac8685d`, then `78a54e0` (false-check read) and the solution doc

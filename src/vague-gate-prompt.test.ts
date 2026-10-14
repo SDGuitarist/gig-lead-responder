@@ -188,33 +188,58 @@ describe("Vague Gate VG10: production call sites omit the option", () => {
     return statSync(p).isDirectory() ? (n === "fixtures" ? [] : walk(p)) : p.endsWith(".ts") && !p.endsWith(".test.ts") ? [p] : [];
   });
 
-  it("Vague Gate VG10 exactly three verifyGate call expressions in src (parsed, not scanned), each with three arguments and no openingRule", () => {
-    const calls: string[] = [];
-    for (const f of walk("src")) {
-      const sf = ts.createSourceFile(f, readFileSync(f, "utf-8"), ts.ScriptTarget.Latest, true);
-      const visit = (node: ts.Node) => {
-        if (ts.isCallExpression(node) && ts.isIdentifier(node.expression) && node.expression.text === "verifyGate") {
-          const where = `${f}:${sf.getLineAndCharacterOfPosition(node.getStart()).line + 1}`;
-          assert.equal(node.arguments.length, 3, `${where} passes ${node.arguments.length} arguments`);
-          assert.ok(!node.getText().includes("openingRule"), `${where} mentions openingRule`);
-          calls.push(where);
+  // Every use of the identifier `verifyGate` in a source file, classified. Allowed: the declaration, a plain import
+  // specifier (no `as` alias), and a direct call. Anything else (an alias, a re-export, an assignment, passing it as an
+  // argument) is a use this guard cannot reason about, so it FAILS. Bounded limit, stated: a NEW module that wraps the
+  // gate by calling a DIFFERENT function (not `verifyGate`) is not seen; the three direct calls are the inventory.
+  const classify = (text: string, fileName: string) => {
+    const sf = ts.createSourceFile(fileName, text, ts.ScriptTarget.Latest, true);
+    const calls: Array<{ where: string; args: number; mentionsOpeningRule: boolean }> = [];
+    const other: string[] = [];
+    const visit = (node: ts.Node) => {
+      if (ts.isIdentifier(node) && node.text === "verifyGate") {
+        const parent = node.parent;
+        const where = `${fileName}:${sf.getLineAndCharacterOfPosition(node.getStart()).line + 1}`;
+        if (ts.isCallExpression(parent) && parent.expression === node) {
+          calls.push({ where, args: parent.arguments.length, mentionsOpeningRule: parent.getText().includes("openingRule") });
+        } else if (ts.isFunctionDeclaration(parent) && parent.name === node) {
+          // the declaration
+        } else if (ts.isImportSpecifier(parent) && !parent.propertyName && parent.name === node) {
+          // a plain import
+        } else {
+          other.push(`${where} (${ts.SyntaxKind[parent.kind]})`);
         }
-        ts.forEachChild(node, visit);
-      };
-      visit(sf);
+      }
+      ts.forEachChild(node, visit);
+    };
+    visit(sf);
+    return { calls, other };
+  };
+
+  it("Vague Gate VG10 exactly three verifyGate calls in src (parsed), three arguments, no openingRule, and no alias, re-export or other use", () => {
+    const calls: string[] = [];
+    const other: string[] = [];
+    for (const f of walk("src")) {
+      const r = classify(readFileSync(f, "utf-8"), f);
+      for (const c of r.calls) {
+        assert.equal(c.args, 3, `${c.where} passes ${c.args} arguments`);
+        assert.ok(!c.mentionsOpeningRule, `${c.where} mentions openingRule`);
+        calls.push(c.where);
+      }
+      other.push(...r.other);
     }
+    assert.deepEqual(other, [], "an alias, re-export or other use of verifyGate in production source");
     assert.equal(calls.length, 3, calls.join("\n"));
   });
 
-  it("Vague Gate VG10 control: the parser finds a multiline call and ignores a string and a comment", () => {
-    const src = 'const a = "verifyGate(x, y, z, { openingRule: 1 })"; // verifyGate(a, b, c, d)\nawait verifyGate(\n  drafts,\n  c,\n  p,\n  { openingRule: "default" },\n);';
-    const sf = ts.createSourceFile("x.ts", src, ts.ScriptTarget.Latest, true);
-    const found: number[] = [];
-    const visit = (n: ts.Node) => {
-      if (ts.isCallExpression(n) && ts.isIdentifier(n.expression) && n.expression.text === "verifyGate") found.push(n.arguments.length);
-      ts.forEachChild(n, visit);
-    };
-    visit(sf);
-    assert.deepEqual(found, [4]);
+  it("Vague Gate VG10 control: the guard finds a multiline call, ignores a string and a comment, and flags an alias, a re-export and an assignment", () => {
+    const direct = classify('const a = "verifyGate(x, y, z, { openingRule: 1 })"; // verifyGate(a, b, c, d)\nawait verifyGate(\n  drafts,\n  c,\n  p,\n  { openingRule: "default" },\n);', "x.ts");
+    assert.deepEqual(direct.calls.map((c) => c.args), [4]);
+    assert.deepEqual(direct.other, []);
+    const alias = classify('import { verifyGate as vg } from "./pipeline/verify.js";\nexport { verifyGate } from "./pipeline/verify.js";\nconst f = verifyGate;', "y.ts");
+    assert.equal(alias.other.length, 3, alias.other.join(", "));
+    // positive control: the real declaration and the real import are allowed
+    const real = classify('export async function verifyGate(a: number) { return a; }\nimport { verifyGate } from "./v.js";', "z.ts");
+    assert.deepEqual(real.other, []);
   });
 });

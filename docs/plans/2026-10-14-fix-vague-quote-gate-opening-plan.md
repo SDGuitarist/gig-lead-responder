@@ -141,7 +141,12 @@ text, whose fourth anchor is the format the lead named). S0
    (solo and duo) and a mechanical list of newly verified openings catch exactly that. (b) 17 is not the ceiling:
    16 more fail on the opening plus other checks (`can_see_it`, `sounds_like_alex`); the gain may be small and the
    gate may still fail most drafts: the table reports it as that, without a pass. (c) The verifier ignores the scoped
-   text, as plan 1's Feed-Forward feared. (d) Verifier noise is as large as the gain: the noise floor is printed.
+   text, as plan 1's Feed-Forward feared. (d) Verifier noise is as large as the gain: the noise floor is printed. (e) **The verifier never sees the lead's own
+   words:** `verifyGate` sends the classification JSON and the draft, not the raw message, so "the lead wrote a
+   birthday" can only be judged from classification fields; the planted specific openings (s1-s5) cite facts the
+   classification does not hold, so they test this directly. If two or more fail, the candidate follow-ups are showing
+   the raw lead text (wrapped as untrusted), a classifier field for the occasion and time frame, or dropping the
+   "the lead wrote it" anchor; each is its own plan.
 5. **How will a human RUN this, and when?** Claude Code (or Alex) on the MacBook, after the code and its Codex code
    review, with the command in the Execution Path. Alex reads
    `docs/reviews/2026-10-14-vague-gate-measurement.md`.
@@ -172,11 +177,14 @@ File `src/vague-gate-prompt.test.ts`; names start `Vague Gate VG<n>`; reuse `sec
   text and the serialized classification in the prompt SHALL contain that `format_requested` (the verifier can see
   that the lead named the format); WHEN it is S8 (`format_requested` empty), the same text applies and the format
   anchor has nothing to match.
-- **VG10** (bounded call-site inventory) WHEN the source tree outside tests and the measurement scripts is scanned for
-  `verifyGate(`, THE SYSTEM SHALL find exactly three call sites (`src/run-pipeline.ts` edit path,
-  `src/pipeline/verify.ts` twice in `runWithVerification`), each passing three arguments and none containing
-  `openingRule`; and a spy on the model call SHALL show `runWithVerification` building the same system prompt as the
-  two-argument `buildVerifyPrompt`.
+- **VG10** (bounded call-site inventory; Codex code R2 P2-4) WHEN the source tree outside tests and the measurement
+  scripts is PARSED (TypeScript compiler API) for the identifier `verifyGate`, THE SYSTEM SHALL find exactly three call
+  expressions (`src/run-pipeline.ts` edit path, `src/pipeline/verify.ts` twice in `runWithVerification`), each passing
+  three arguments and none containing `openingRule`, and SHALL find no other use except the function declaration and a
+  plain import: an `as` alias, a re-export, an assignment or passing it as a value FAILS the test. **Stated limit:** a
+  new module that wraps the gate through a DIFFERENT function name is not seen by this guard (the three direct calls are
+  the inventory); the spy in VG4 shows `runWithVerification` builds the same system prompt as the two-argument
+  `buildVerifyPrompt`.
 
 Mutation map (each run, each must fail exactly its own test): mode predicate drops `vagueness`; mode drops the
 format clause; mode widened to any resolved format; the seam ignored; the `verifyGate` pass-through dropped; the three
