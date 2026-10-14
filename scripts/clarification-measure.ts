@@ -1,7 +1,7 @@
 // Measures the clarification-mode generation failure (docs/plans/2026-10-13-fix-clarification-pricing-validator-plan.md).
 // CHANGES NO APP STATE: a real model call, a scratch DATABASE_PATH, nothing sent, data/leads.db untouched.
 //
-//   npx tsx scripts/clarification-measure.ts [--runs 3] [--leads v1,v2,...] [--out <dir>] [--tag <name>] [--today 2026-10-12]
+//   npx tsx scripts/clarification-measure.ts [--runs 3] [--leads v1,v2,...] [--out <dir>] [--tag <name>] [--today 2026-10-12] [--arm A|B]
 //
 // Records, per run: whether a draft came back, `verified`, the gate status and fail reasons; per generate call: the
 // question sentences of both drafts.
@@ -9,6 +9,8 @@
 // logs every generate response (the pipeline throws a rejected draft away), then scans each draft for price-like text.
 // The scan is OBSERVATIONAL evidence of what the model wrote on these runs, not proof that the validator catches
 // every price. Output: <out>/clarification-<tag>.json and a summary table on stdout.
+import { execSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import { createRequire } from "node:module";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -24,6 +26,7 @@ const runs = Math.max(1, parseInt(arg("--runs", "3"), 10) || 3);
 const only = arg("--leads", "").split(",").map((s) => s.trim()).filter(Boolean);
 const tag = arg("--tag", "run");
 const today = arg("--today", "2026-10-12");
+const arm = arg("--arm", "none");
 const out = arg("--out", join(tmpdir(), "clarification-measure"));
 mkdirSync(out, { recursive: true });
 
@@ -43,6 +46,12 @@ export const LEADS: Record<string, string> = {
   v4: "Need live music for a party. Not sure what's best.",
   v5: "Hello, planning an event in the spring and want some live entertainment. What options do you have and what do they cost?",
   v6: "Hi Alex, looking for a musician for my mom's birthday. Not sure what type of music or how long. Thoughts?",
+  // Held out for plan 2 (docs/plans/2026-10-13-fix-clarification-draft-shape-plan.md): written before the change, and
+  // their per-run drafts are not read before it is committed.
+  h1: "Hi there! My husband's 40th is coming up in the summer and I'd love some live music for it. Not sure what would work. Any ideas?",
+  h2: "Looking for a musician for our company holiday gathering. Haven't decided on the vibe yet. What do you recommend?",
+  h3: "Hello, we want live music at our anniversary dinner. We don't really know what to ask for. What are the options?",
+  h4: "Hi, I run a small art gallery and we're thinking about live music at an opening this fall. Not sure if that's even doable. Thoughts?",
 };
 
 // What to look for. "stated" classes are an amount; "word" classes are vocabulary the validator deliberately allows.
@@ -69,7 +78,9 @@ const Anthropic = req("@anthropic-ai/sdk");
 const client = new (Anthropic.default ?? Anthropic)({ apiKey: process.env.ANTHROPIC_API_KEY });
 const { setClaudeRequesterForTests } = await import(join(root, "src/claude.ts"));
 const { runPipeline } = await import(join(root, "src/run-pipeline.ts"));
-const { openingOf } = await import(join(root, "src/draft-opening.ts"));
+const { openingOf, sentenceCount, wordCount } = await import(join(root, "src/draft-opening.ts"));
+const { probePromptSha256 } = await import(join(root, "src/generate-prompt-cases.ts"));
+const models = new Set<string>();
 
 type Hit = ReturnType<typeof scan>[number];
 type Call = { full_draft: string; compressed_draft: string; fullHits: Hit[]; compressedHits: Hit[]; questions: [number, number]; questionSentences: [string[], string[]] };
@@ -77,6 +88,8 @@ type Call = { full_draft: string; compressed_draft: string; fullHits: Hit[]; com
 const questionSentences = (t: string) => (t.match(/[^.!?\n]*\?/g) ?? []).map((s) => s.trim());
 let calls: Call[] = [];
 setClaudeRequesterForTests((async (request: unknown) => {
+  const model = (request as { model?: unknown }).model;
+  if (typeof model === "string") models.add(model);
   const res = await client.messages.create(request);
   const text = (res.content ?? []).map((c: { text?: string }) => c.text ?? "").join("");
   let parsed: { full_draft?: unknown; compressed_draft?: unknown } | null = null;
@@ -91,7 +104,7 @@ setClaudeRequesterForTests((async (request: unknown) => {
   return res;
 }) as never);
 
-type RunResult = { lead: string; run: number; ok: boolean; error?: string; action?: string; verified?: boolean; gate_status?: string; fail_reasons?: string[]; gate_detail?: { scene_type: string; competitor_test: boolean; false_checks: string[]; empty_traceability: number; rule_implied_pass: boolean; opening: string }; seconds: number; calls: Call[] };
+type RunResult = { lead: string; run: number; ok: boolean; error?: string; action?: string; verified?: boolean; gate_status?: string; fail_reasons?: string[]; words?: number; sentences?: number; gate_detail?: { scene_type: string; competitor_test: boolean; false_checks: string[]; empty_traceability: number; rule_implied_pass: boolean; opening: string }; seconds: number; calls: Call[] };
 const results: RunResult[] = [];
 const names = Object.keys(LEADS).filter((n) => only.length === 0 || only.includes(n));
 for (const name of names) {
@@ -111,7 +124,9 @@ for (const name of names) {
       const otherFalse = falseChecks.filter((k) => k !== "competitor_test");
       const implied = g.scene_type === "cinematic" && g.competitor_test === false && emptyTrace === 0 && otherFalse.length <= 2;
       const opening = openingOf(String(o.drafts.full_draft)); // first content sentence; src/draft-opening.ts
-      r = { ok: true, action: o.classification.action, verified: o.verified, gate_status: g.gate_status, fail_reasons: g.fail_reasons,
+      const words = wordCount(String(o.drafts.full_draft));
+      const sentences = sentenceCount(String(o.drafts.full_draft));
+      r = { ok: true, action: o.classification.action, verified: o.verified, gate_status: g.gate_status, fail_reasons: g.fail_reasons, words, sentences,
         gate_detail: { scene_type: g.scene_type, competitor_test: g.competitor_test, false_checks: falseChecks, empty_traceability: emptyTrace, rule_implied_pass: implied, opening } };
     } catch (e) {
       r = { ok: false, error: String(e).slice(0, 200) };
@@ -120,7 +135,20 @@ for (const name of names) {
     console.log(`${name} run${run}: ${r.ok ? `draft (${r.action}) verified=${r.verified} gate=${r.gate_status}` : "ERROR " + r.error} [${calls.length} generate call(s)]`);
   }
 }
-writeFileSync(join(out, `clarification-${tag}.json`), JSON.stringify({ today, runs, results }, null, 2));
+// The arm manifest (src/arm-manifest.ts): the identity of the code, the prompt, the model and the lead set. The tag is
+// NOT in it; it is in the file name.
+const git = (cmd: string) => { try { return execSync(`git ${cmd}`, { cwd: root, encoding: "utf-8" }).trim(); } catch { return "unknown"; } };
+const manifest = {
+  arm,
+  gitSha: git("rev-parse HEAD"),
+  dirtyPromptFiles: git("status --porcelain -- src/prompts src/pipeline").split("\n").filter(Boolean),
+  promptSha256: probePromptSha256(),
+  models: [...models].sort(),
+  today,
+  leadSetSha256: createHash("sha256").update(names.map((n) => `${n}\n${LEADS[n]}`).join("\n---\n")).digest("hex"),
+  node: process.version,
+};
+writeFileSync(join(out, `clarification-${tag}.json`), JSON.stringify({ today, runs, manifest, results }, null, 2));
 
 // Summary
 const allCalls = results.flatMap((r) => r.calls);
