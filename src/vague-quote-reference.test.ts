@@ -8,6 +8,7 @@ import { PAYMENT_SENTENCES } from "./pipeline/payment-terms.js";
 import { GENERATE_CASES, generatePromptOf, sha256 } from "./generate-prompt-cases.js";
 import { readFileSync } from "node:fs";
 import { VAGUE_QUOTE_REFERENCE_REPLY } from "./data/vague-quote-reference.js";
+import { sharedWindows, summarizeRoute, type RouteRecord } from "./route-metrics.js";
 import type { Classification, PricingResult } from "./types.js";
 
 // Plan docs/plans/2026-10-13-feat-vague-lead-quote-with-question-plan.md (Revision 1b), V1-V7. Names start
@@ -84,8 +85,13 @@ describe("Vague Reference V3 / V4 / V5: the example and the rules", () => {
     const b = block();
     assert.match(b, /Quote Terms section/);
     assert.match(b, /copy(?:ied)? (?:them )?exactly/i);
-    assert.match(b, /this lead's own/i);
-    assert.match(b, /not the example's/i);
+    const step4 = b.split("\n").find((l) => l.startsWith("4. ")) ?? "";
+    const question = b.split("\n").find((l) => l.startsWith("THE QUESTION:")) ?? "";
+    for (const [label, line] of [["step 4", step4], ["THE QUESTION paragraph", question]] as const) {
+      assert.match(line, /this lead's own/i, label);
+      assert.match(line, /not the example's/i, label);
+    }
+    assert.match(question, /exactly one question mark/);
     assert.match(b, /No other sentence of the example may appear/);
   });
 
@@ -157,4 +163,57 @@ describe("Vague Reference V7: only the cases the block is meant to change change
       else assert.equal(now, hashes[c.id]);
     });
   }
+});
+
+describe("Vague Reference V8: the shared-window instrumentation (not an acceptance gate)", () => {
+  const mandated = [PAYMENT_SENTENCES.noDate, COI_SENTENCES.default, "Send me the date once you have it and I'll check my calendar."];
+
+  it("Vague Reference V8a a planted 40-character clause shared with the example is found", () => {
+    const planted = "the usual mistake is booking by headcount";
+    assert.ok(planted.length >= 40);
+    assert.ok(sharedWindows(`Hi Sam, here is my take. ${planted}, so listen first. Alex Guillen`, VAGUE_QUOTE_REFERENCE_REPLY, mandated) > 0);
+  });
+
+  it("Vague Reference V8b unrelated text shares nothing", () => {
+    assert.equal(sharedWindows("A spring evening on a patio, two hours, one guitar, a question about the music. Alex Guillen", VAGUE_QUOTE_REFERENCE_REPLY, mandated), 0);
+  });
+
+  it("Vague Reference V8c the app-mandated sentences alone share nothing (positive control: the cut works)", () => {
+    assert.equal(sharedWindows(mandated.join(" "), VAGUE_QUOTE_REFERENCE_REPLY, mandated), 0);
+    // without the cut the same text WOULD share windows with the example, so the control is not vacuous
+    assert.ok(sharedWindows(mandated.join(" "), VAGUE_QUOTE_REFERENCE_REPLY, []) > 0);
+  });
+});
+
+describe("Vague Reference V9: the report's formulas and denominators", () => {
+  const route = (over: Partial<RouteRecord> = {}): RouteRecord => ({ action: "one_question", format_recommended: "solo", quote_price: 700,
+    question_count: 1, price_figure_present: true, payment_kind: "sentence", payment_sentence_count: 1, coi_kind: "sentence",
+    coi_sentence_count: 1, footer: false, shared_windows: 0, ...over });
+
+  it("Vague Reference V9 the COI denominator counts a quote and excludes a graceful decline, a clarification and a residency (kind none)", () => {
+    const s = summarizeRoute([
+      { ok: true, verified: true, route: route() },
+      { ok: true, verified: true, route: route({ coi_kind: "none", coi_sentence_count: 0 }) },
+      { ok: true, verified: false, route: route({ coi_sentence_count: 0 }) },
+    ]);
+    assert.deepEqual(s.coi_sentence_once, { num: 1, den: 2 });
+  });
+
+  it("Vague Reference V9 each formula uses its own denominator", () => {
+    const s = summarizeRoute([
+      { ok: true, verified: true, route: route() },
+      { ok: true, verified: false, route: route({ question_count: 2, price_figure_present: false, footer: true, shared_windows: 3 }) },
+      { ok: true, verified: false, route: route({ format_recommended: "unresolved", quote_price: null, price_figure_present: false, payment_kind: "none", coi_kind: "none" }) },
+      { ok: false },
+    ]);
+    assert.equal(s.runs, 4);
+    assert.deepEqual(s.returned, { num: 3, den: 4 });
+    assert.deepEqual(s.classifier_distribution, { solo: 2, unresolved: 1, "no classification": 1 });
+    assert.deepEqual(s.quote_at_app_price, { num: 1, den: 2 });          // resolved-format returned drafts only
+    assert.deepEqual(s.verified, { num: 1, den: 3 });
+    assert.deepEqual(s.exactly_one_question, { num: 2, den: 3 });
+    assert.deepEqual(s.payment_sentence_once, { num: 2, den: 2 });        // payment kind "sentence" only
+    assert.deepEqual(s.no_footer, { num: 2, den: 3 });
+    assert.deepEqual(s.shared_windows, { max: 3, drafts_above_zero: 1, of: 3 });
+  });
 });

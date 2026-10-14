@@ -11,6 +11,7 @@ import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { assessArms, type ArmData, type ArmManifest } from "../src/arm-manifest.js";
 import { probePromptSha256 } from "../src/generate-prompt-cases.js";
+import { summarizeRoute, type RouteRun } from "../src/route-metrics.js";
 
 interface RunResult { lead: string; ok: boolean; error?: string; verified?: boolean; words?: number; sentences?: number;
   gate_detail?: { scene_type: string; competitor_test: boolean; empty_traceability: number } }
@@ -60,6 +61,9 @@ function summary(label: string, results: RunResult[]) {
     b.n++;
     if (!r.ok || (r.gate_detail && (r.gate_detail.scene_type !== "cinematic" || r.gate_detail.competitor_test))) b.unusable++;
     byLead.set(r.lead, b);
+  }
+  if (results.some((r) => (r as unknown as RouteRun).route)) {
+    console.log("route metrics (numerator/denominator; descriptive, no pass bar):", JSON.stringify(summarizeRoute(results as unknown as RouteRun[])));
   }
   console.log("per lead (unusable/runs): " + [...byLead].sort().map(([l, b]) => `${l} ${b.unusable}/${b.n}`).join("  "));
   return { n, unusable };

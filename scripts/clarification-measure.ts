@@ -81,6 +81,10 @@ const { setClaudeRequesterForTests } = await import(join(root, "src/claude.ts"))
 const { runPipeline } = await import(join(root, "src/run-pipeline.ts"));
 const { openingOf, sentenceCount, wordCount } = await import(join(root, "src/draft-opening.ts"));
 const { probePromptSha256 } = await import(join(root, "src/generate-prompt-cases.ts"));
+const { paymentTermsFor } = await import(join(root, "src/pipeline/payment-terms.ts"));
+const { coiTermsFor } = await import(join(root, "src/pipeline/coi.ts"));
+const { sharedWindows } = await import(join(root, "src/route-metrics.ts"));
+const { VAGUE_QUOTE_REFERENCE_REPLY } = await import(join(root, "src/data/vague-quote-reference.ts"));
 const models = new Set<string>();
 
 type Hit = ReturnType<typeof scan>[number];
@@ -105,7 +109,7 @@ setClaudeRequesterForTests((async (request: unknown) => {
   return res;
 }) as never);
 
-type RunResult = { lead: string; run: number; ok: boolean; error?: string; action?: string; verified?: boolean; gate_status?: string; fail_reasons?: string[]; words?: number; sentences?: number; gate_detail?: { scene_type: string; competitor_test: boolean; false_checks: string[]; empty_traceability: number; rule_implied_pass: boolean; opening: string }; seconds: number; calls: Call[] };
+type RunResult = { lead: string; run: number; ok: boolean; error?: string; action?: string; verified?: boolean; gate_status?: string; fail_reasons?: string[]; words?: number; sentences?: number; route?: Record<string, unknown>; gate_detail?: { scene_type: string; competitor_test: boolean; false_checks: string[]; empty_traceability: number; rule_implied_pass: boolean; opening: string }; seconds: number; calls: Call[] };
 const results: RunResult[] = [];
 const names = Object.keys(LEADS).filter((n) => only.length === 0 || only.includes(n));
 for (const name of names) {
@@ -113,6 +117,7 @@ for (const name of names) {
     calls = [];
     const t0 = Date.now();
     let r: Omit<RunResult, "calls" | "seconds" | "lead" | "run">;
+    let route: Record<string, unknown> | undefined;
     try {
       const o = await runPipeline(LEADS[name], undefined, undefined, undefined, today);
       const g = o.gate;
@@ -127,7 +132,25 @@ for (const name of names) {
       const opening = openingOf(String(o.drafts.full_draft)); // first content sentence; src/draft-opening.ts
       const words = wordCount(String(o.drafts.full_draft));
       const sentences = sentenceCount(String(o.drafts.full_draft));
-      r = { ok: true, action: o.classification.action, verified: o.verified, gate_status: g.gate_status, fail_reasons: g.fail_reasons, words, sentences,
+      // The vague-lead route record (plan docs/plans/2026-10-13-feat-vague-lead-quote-with-question-plan.md, formulas).
+      const text = String(o.drafts.full_draft);
+      const terms = paymentTermsFor(o.classification, o.pricing, today);
+      const coi = coiTermsFor(o.classification, o.pricing);
+      const paymentSentence = terms.kind === "sentence" ? terms.sentence : "";
+      const coiSentence = coi.kind === "sentence" ? coi.sentence : "";
+      const occurrences = (needle: string) => (needle ? text.split(needle).length - 1 : 0);
+      const price = o.pricing.format === "unresolved" ? null : Number(o.pricing.quote_price);
+      route = {
+        action: o.classification.action, format_recommended: o.classification.format_recommended, quote_price: price,
+        question_count: (text.match(/\?/g) ?? []).length,
+        price_figure_present: price !== null && (text.includes(`$${price}`) || text.includes(`$${price.toLocaleString("en-US")}`)),
+        payment_kind: terms.kind, payment_sentence_count: occurrences(paymentSentence),
+        coi_kind: coi.kind, coi_sentence_count: occurrences(coiSentence),
+        footer: /\(\d{3}\)\s?\d{3}|Pacific Flow/.test(text),
+        shared_windows: sharedWindows(text, VAGUE_QUOTE_REFERENCE_REPLY,
+          [paymentSentence, coiSentence, "Send me the date once you have it and I'll check my calendar."].filter(Boolean)),
+      };
+      r = { ok: true, action: o.classification.action, verified: o.verified, gate_status: g.gate_status, fail_reasons: g.fail_reasons, words, sentences, route,
         gate_detail: { scene_type: g.scene_type, competitor_test: g.competitor_test, false_checks: falseChecks, empty_traceability: emptyTrace, rule_implied_pass: implied, opening } };
     } catch (e) {
       r = { ok: false, error: String(e).slice(0, 200) };
