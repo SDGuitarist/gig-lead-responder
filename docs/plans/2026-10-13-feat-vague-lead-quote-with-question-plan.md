@@ -106,6 +106,7 @@ is included only when ALL hold; otherwise it is withheld (each a test, V2):
 | `paymentTermsFor(...).kind === "sentence"` | the example shows a payment sentence; `platform` and `unknown_platform` leads state none, so the example would contradict them |
 | `nonprofit_buyer !== true` | NP2 has its own price block and in-kind line |
 | `cultural_context_active !== true` and `delivery_mode` not `alex_sources`/`hybrid` | the example is Alex's own solo Spanish guitar; a sourced or cultural format has its own voice and claims |
+| `rate_card_tier !== "T4"` | a T4 lead already gets the T4 reference; two reference blocks in one prompt contradict (found while building) |
 
 **Not a withholding condition:** `coi_required` and the date-based payment sentence variants. As in T4, the block
 says the example's payment and COI sentences are the DEFAULT ones for a lead with no date and no COI requirement,
@@ -156,6 +157,26 @@ salutation. (b), changing the rule for every nameless lead, was not chosen and w
 **Stop condition kept (R1 item 3), narrowed:** no production code until plan review passes (the salutation no
 longer blocks it). Plan documents and tests-as-specifications may be revised in the meantime.
 
+## Classifier regression (added after Alex's heads-up, 2026-10-13)
+
+The classifier wording is the one change a unit test cannot check: the tests pin the words, not how the model reads
+them, and the vague-lead measurement alone could not see an ordinary lead being misclassified. So the classifier is
+run on a fixed set of ordinary and boundary leads BEFORE and AFTER the edit (`scripts/classifier-regression.ts`, the
+real classifier, 5 runs per lead, the price from `lookupPrice`):
+
+| Lead | Before (recorded, `docs/reviews/2026-10-13-classifier-regression-baseline.md`) | After must be |
+|---|---|---|
+| L1 wedding at a hotel (rich) | quote, `duo` x4 / `flamenco_duo` x1 | no value outside those two; the modal value unchanged |
+| L5 memorial | quote, solo, $595 | unchanged |
+| L7 mariachi quinceanera | one_question, `mariachi_full`, $1,900 | unchanged |
+| L6 "a Latin band" | one_question, `unresolved` | unchanged (the explicit-ensemble boundary) |
+| L2, L3, L4 (sparse birthday, price shopper, corporate filler) | one_question, `unresolved`, no price | **moved**: `solo` or `duo` with the table's price (the intended change) |
+
+Decision rule, fixed before the run: a value for L1, L5, L6 or L7 that did not appear before, or a modal value that
+changed, is a defect of the classifier wording and the wording is reverted or narrowed before anything else is built
+on it; L2-L4 staying `unresolved` is "the wording did not take", reported as such. The classifier is a model, so one
+different run out of five at baseline (L1) is variation, not a finding. Observational: 5 runs per lead, one model.
+
 ## Plan Quality Gate
 
 1. **What exactly is changing?** The classifier prompt's SPECIAL CASE (split by D1); a new reference module and its
@@ -164,7 +185,8 @@ longer blocks it). Plan documents and tests-as-specifications may be revised in 
    clarification mode's code and its explicit-ensemble use; the verify prompt and the validators; the router; the
    generate prompt for every lead the block does not apply to (SHA-256 pins, V7); the T4 reference and its
    withholding; the SALUTATION rule (until Alex says otherwise).
-3. **How will we know it worked?** EARS below with a mutation each; plus a descriptive arm B (below). It is
+3. **How will we know it worked?** EARS below with a mutation each; the classifier regression above (ordinary leads
+   before and after); plus a descriptive arm B (below). It is
    **descriptive, not causal**: arm A (the clarification prompt of plan 2) and arm B differ in the classifier's route
    AND in the prompt shape, so no difference is attributed to either change alone.
 4. **Most likely way this plan is wrong?** The classifier still says `unresolved` for some category-only leads (it is
@@ -255,7 +277,8 @@ the plan; no number is a pass bar, and any difference from arm A is reported as 
 0. **HARD STOP.** Plan review R2 (or its closing decision by Alex). No production code before. (The salutation is
    resolved: option (a).)
 1. The hash inventory extended with C13-C17 from the CURRENT code; V2 (withheld cases) and V7's unchanged rows pass.
-2. V1, V3-V6 (failing), then the reference module, the block, and the classifier wording.
+2. V1, V3-V6 (failing), then the reference module and the block; THEN the classifier wording, with the classifier
+   regression run before (done, recorded) and after it, and the decision rule applied before step 3.
 3. The runner fields (including the `coiTermsFor` kind), the report formulas and `sharedWindows` with V8a-c and V9;
    the mutation map; full suite, `tsc`, leak check.
 4. Arm B run, the report, and `docs/reviews/2026-10-13-vague-quote-measurement.md`.
