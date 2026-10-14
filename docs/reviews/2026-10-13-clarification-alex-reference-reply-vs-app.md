@@ -46,3 +46,38 @@ Its reasons: the business name and phone in the sign-off block (x3, "draft must 
 3. The price: $700 or the table's $595; which tier does this lead get?
 4. COI: does the reference include "COI available upon request."?
 5. What does "Send it over and I'll check it." mean?
+
+## Addendum: Alex's answers and two checks (same day)
+
+**Alex's answers (chat, 2026-10-13).**
+
+1. On the route: he pasted the full transcript of running the same lead through his **Claude.ai Project version** of
+   the responder, which produced this reply. Its classification read "Competition: Low ... Vagueness: Vague -> ONE
+   binary question", "Sparse type: 4", and its summary says "The system says to ask one binary question, default to
+   solo guitar, and quote that default". So the Project's rule for a vague, low-competition lead is: ONE binary
+   question AND a quote of the default format. The app today asks one question and states no price.
+2. On the footer: **"Drop the footer from the reference."** The reference ends with "Alex Guillen" (the app's
+   name-only sign-off stands).
+
+**Resolved by the Project transcript and one check.**
+
+| Open question | Resolution |
+|---|---|
+| Price: $700 or $595? | **Not a discrepancy.** `lookupPrice` for a solo, two-hour private lead returns **T2D $700 anchor / $650 floor** for a direct lead (`lead_source_column` D) and **T2P $595 / $550** for a platform lead (P). My earlier test classification was a platform lead. The Project's own note says "If this came from GigSalad or The Bash, the price drops to $595 (T2P)". |
+| What does "Send it over and I'll check it." mean? | Not stated by Alex. In the Project's concern table it maps to "Date unknown / what holds it", so **"it" is probably the date**, which the deposit sentence just before it makes easy to misread as the deposit. Inferred, NOT confirmed. |
+
+**Through the real verify gate without the footer** (3 runs, as `assume_and_quote`, solo, $700 anchor / $650
+floor): **pass, pass, pass**, scene cinematic x3, competitor false x3, no false check. With the footer it failed 3
+of 3 on `sounds_like_alex`. So the footer was the only cause; "most families go with ..." did not fail without it
+(it was a second reason in 2 of 3 runs with the footer, where the verifier was already failing the draft).
+`voice-mechanical.py` on the footer-less text: 0 hard fails, 0 warnings.
+
+## Still open for Alex
+
+1. **COI:** the reply has no COI sentence. For a quoted reply the app adds "COI available upon request." (his own
+   2026-10-12 rule). Does the reference include it?
+2. **"Send it over and I'll check it."**: confirm "it" is the date, and whether he wants the wording changed.
+3. **The change itself:** a vague, low-competition lead currently gets a no-price question (`one_question`,
+   clarification mode, `src/prompts/classify.ts:67`). His Project does what his reply does. Is the app to follow the
+   Project? That is a change to the classifier rule, the generate prompt, the validator and the verify prompt.
+4. **"No volume commitments, per your Oct 13 rule"** appears in the Project's notes. Is that rule in the app?
