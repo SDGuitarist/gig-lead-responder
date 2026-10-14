@@ -1,7 +1,7 @@
 ---
 title: "fix: the clarification validator rejects the ordinary words 'anchor' and 'floor'"
 date: 2026-10-13
-status: plan, Revision 1 (plan review R1 NO-GO, 4 P1 / 2 P2, all accepted and answered below; rewritten in place; the weakening of the bare-word guarantee APPROVED by Alex 2026-10-13)
+status: plan, Revision 1b (plan review R1 NO-GO, 4 P1 / 2 P2, answered in Revision 1; R2 NO-GO, one P2 mutation-isolation defect, answered in Revision 1b at the cap; the weakening of the bare-word guarantee APPROVED by Alex 2026-10-13; Alex chose to fix and build, no round 3)
 branch: feat/hub-phase0
 ---
 
@@ -74,11 +74,13 @@ keep `\binvestment\b` unchanged:
 
 | Alternative | Rejects | Passes (examples) |
 |---|---|---|
-| `\b(?:anchor|floor)s?\s+(?:prices?|rates?|numbers?|figures?|amounts?|quotes?|pricing)\b` | "anchor price", "floor rates", "anchor quote" | "the floor plan", "a dance floor", "to anchor the room" |
+| `\b(?:anchor|floor)\s+(?:prices?|rates?|numbers?|figures?|amounts?|quotes?|pricing)\b` | "anchor price", "floor rates", "anchor quote" | "the floor plan", "a dance floor", "to anchor the room" |
 | `\b(?:prices?|rates?|quotes?|pricing)\s+(?:anchor|floor)s?\b` | "price floor", "rate anchors", "quote floors" | "to anchor the room", "the ground floor" |
 
-There is no possessive alternative (the decision record). Each alternative is a fixed literal sequence with one
-optional `s`: bounded, no nested quantifier.
+There is no possessive alternative (the decision record). Alternative 1 has no `s?` after `anchor|floor` (round 2: a plural internal term before a pricing noun, "anchors
+price", is not a natural form and the `s?` was dead weight; the plural of the pricing noun is the `s?` inside
+`prices?`/`rates?`). Alternative 2 keeps `s?` after `anchor|floor` ("price floors", "rate anchors"). Each alternative is
+a fixed literal sequence with optional `s`: bounded, no nested quantifier.
 
 D2. Tests V4a and V4b are amended with the approved decision: V4a rejects "My anchor price is a conversation."; V4b
 rejects "Our floor price is a firm number."; and "The anchor for this is a conversation." and "Our floor is a firm
@@ -102,7 +104,7 @@ plan 2's change, arm B after).
 ## Plan Quality Gate
 
 1. **What exactly is changing?** One regex alternative in `src/pipeline/generate.ts` (and its comment); tests V4a and
-   V4b amended and V12, V13a, V13a-pl, V13b, V13b-pl, V14, V16 added in `src/clarification-validator.test.ts`; a
+   V4b amended and V12, V13 (twelve sentence tests), V14, V16 added in `src/clarification-validator.test.ts`; a
    replay script `scripts/clarification-validator-replay.ts`.
 2. **What must not change?** The number grammar (V3, V5-V7, V11); the "exactly one question" rule; the bare words
    quote and rate (V1, V2, V10); the error message shape (V7); `investment` (V4c); the generate prompt; the verify
@@ -130,26 +132,43 @@ a stubbed model, as V1-V11 do).
 - **V12** WHEN a draft uses `anchor` as a verb or `floor` as an ordinary noun ("to anchor the room", "the art anchors
   the evening", "a dance floor", "the ground floor", "on the floor", "my floor plan", "My anchor is my family.",
   "Our floor is upstairs.", "Our floor is crowded tonight."), THE SYSTEM SHALL return the drafts.
-- **V13a** WHEN a draft contains `anchor`/`floor` followed by a pricing noun, singular ("The anchor price is firm.",
-  "A floor rate applies.", "An anchor quote helps."), THE SYSTEM SHALL throw and name the matched text.
-  **V13a-pl** the same for the plural ("Anchor prices vary.", "Floor rates apply.").
-- **V13b** WHEN a draft contains a pricing noun followed by `anchor`/`floor` ("The price floor is firm.", "A rate
-  anchor helps.", "Pricing anchor first."), THE SYSTEM SHALL throw. **V13b-pl** the plural ("Price floors differ.",
-  "Rate anchors help.", "Quote floors vary.").
+- **V13 (one test per sentence, table driven; each name carries its token)** WHEN a draft contains one of the
+  following, THE SYSTEM SHALL throw and name the matched text. Alternative 1 (`anchor|floor` + pricing noun), one
+  test each: "The anchor price is firm." (V13a anchor-price), "A floor rate applies." (V13a floor-rate), "An anchor
+  quote helps." (V13a anchor-quote), "A floor figure is shared." (V13a floor-figure), "Anchor prices vary." (V13a
+  anchor-prices: the `s` of `prices?`), "Floor rates apply." (V13a floor-rates). Alternative 2 (pricing noun +
+  `anchor|floor`), one test each: "The price floor is firm." (V13b price-floor), "A rate anchor helps." (V13b
+  rate-anchor), "Pricing anchor first." (V13b pricing-anchor), "A quote floor applies." (V13b quote-floor), "Price
+  floors differ." (V13b price-floors: the `s?` after `floor`), "Rate anchors help." (V13b rate-anchors). The test
+  name is `Clarification V13a <anchor|floor>-<noun>` or `Clarification V13b <noun>-<anchor|floor>[s]`, so
+  `npm run test:match -- "Clarification V13b quote-floor"` runs exactly one.
 - **V14** WHEN a draft contains `investment`, THE SYSTEM SHALL throw (V4c, unchanged); WHEN it contains "a floor of
   four hundred dollars", THE SYSTEM SHALL throw through the number alternative (a positive control that the narrowing
   did not open that case).
 - **V16 (the documented boundary)** WHEN a draft contains "The floor is firm." or "Our anchor sits at the center.",
   THE SYSTEM SHALL return the drafts.
 
-Mutation map (each must fail the named tests; the per-alternative tests make the isolation real): alternative 1
-removed (V13a, V13a-pl, V4a, V4b); alternative 2 removed (V13b, V13b-pl); the plural `s?` removed from alternative 1
-(V13a-pl); from alternative 2 (V13b-pl); the bare `\banchor\b|\bfloor\b` restored (V12, V16, V4a, V4b); `investment`
-removed (V14); `quote` removed from the noun list of alternative 2 (V13b-pl).
+Mutation map (each mutation names the exact test or tests it must fail; because V13 is one test per sentence, a token
+mutation fails the test of its own token and the others stay green):
+
+| Mutation | Must fail |
+|---|---|
+| alternative 1 removed | all six V13a, V4a, V4b |
+| alternative 2 removed | all six V13b |
+| `quote` removed from alternative 1's noun list | V13a anchor-quote |
+| `figure` removed from alternative 1's noun list | V13a floor-figure |
+| the `s` of `prices?` removed (`price`) | V13a anchor-prices |
+| `quote` removed from alternative 2's noun list | V13b quote-floor |
+| `pricing` removed from alternative 2's noun list | V13b pricing-anchor |
+| the `s?` after `anchor|floor` removed from alternative 2 | V13b price-floors, V13b rate-anchors |
+| the bare `\banchor\b|\bfloor\b` restored | V12, V16, V4a, V4b |
+| `investment` removed | V14 |
+
+A mutation not in the table is not claimed. The table is checked by running each row; the record lists the result.
 
 ## Work steps (one concern per commit; failing test first)
 
-1. V4a and V4b (amended) and V12, V13a/V13a-pl/V13b/V13b-pl, V14, V16 first; confirm V12, V16 and the amended V4a/V4b
+1. V4a and V4b (amended) and V12, the twelve V13 sentence tests, V14, V16 first; confirm V12, V16 and the amended V4a/V4b
    pass-cases fail on today's code, V13a/V13b and V14 behave as listed (the compounds are caught by the bare word).
 2. The alternatives and their comment.
 3. The mutation map; full suite, `tsc`, leak check.
