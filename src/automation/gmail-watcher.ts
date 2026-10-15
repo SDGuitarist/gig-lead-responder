@@ -106,7 +106,7 @@ export function fetchedMessageId(requested: string, got: string | null | undefin
   return got;
 }
 
-async function fetchMessage(
+export async function fetchMessage(
   gmail: gmail_v1.Gmail,
   messageId: string
 ): Promise<GmailMessage> {
