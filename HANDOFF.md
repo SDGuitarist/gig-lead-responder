@@ -294,7 +294,7 @@ pattern (unexecuted); (3) the "exactly one question" rule (12 of 122 runs); (4) 
 plan review, R006/R398/R403 TO PORT). Do not read or enter the Sandbox directory while Autopilot Run 104 runs.
 
 **Update 22 (session gig-lead-responder-22, lead_words BUILT, MEASURED, STOPPED, REVERTED, COMPOUND DONE, 2026-10-14):**
-State: branch `feat/hub-phase0`, **pushed** (origin = `25c7e94` plus this save commit). Suite 1143 pass / 0 fail / 1 skip,
+State: branch `feat/hub-phase0`, **pushed** (origin = local = `69e54ad`, 0 unpushed, worktree clean; this save commit adds one). Suite 1143 pass / 0 fail / 1 skip,
 tsc clean, leak check exit 0. The `lead_words` field is built and INERT: `src/prompts/classify.ts` is back to its
 73fd38e bytes (SHA-256 eb8c9b54, the original pin), so the model is not asked for it and every classification reads
 all-null, which equals today's text (LW5). Why: the real-model measurement hit two pre-registered stops and a rerun
@@ -315,7 +315,19 @@ Three Questions: 1. Hardest: reverting rather than planning a fix, because a pri
 and the controls could not clear the arm. 2. Left alone: the inert code (a later route can use it; LW5 pins today's
 text). 3. Least confident: that the lead's words can reach both stages without a classifier-prompt paragraph; B2 shows
 the verifier's anchors may pass an opening that cites nothing.
-Prompt for next session: `Read HANDOFF.md Update 22 and docs/solutions/architecture/2026-10-14-lead-words-field-measured-stopped-and-reverted-and-the-gate-scoping-that-did-not-help.md. pwd, branch feat/hub-phase0, expect 25c7e94 or later. Plan the next route for the lead's words only if Alex asks. Do NOT edit src/prompts/classify.ts without the regression gate (npx tsx scripts/classifier-regression.ts --compare). Do NOT read the Sandbox directory.`
+After the compound (same session, all pushed): **`docs/END-TO-END-STATUS.md` refreshed** (`a6ca1de`): new "Draft-quality
+work inside Phase 0" section, COI and vague-hold notes under Module 1, critical-path item 2b; the Phase 0 and spike rows
+were NOT re-verified (still dated 10-09/10-11). V1 port count re-run: 197 / 171 / 35 / 3 (unchanged). **Todos filed
+(`todos/`, `69e54ad`):** 087 (p2: define and score "draft quality done enough" before Module 1; Alex sets the bar),
+088 (p3: make "status file in the same commit" checked), 089 (p2: L1 wedding $1,495 or $1,595 by run; 8 duo / 7
+flamenco_duo over 15 runs on the UNCHANGED prompt; money, Alex decides the rule), 090 (p2: verifier passes control B2;
+FIRST check whether 95f3dda passes it too), 091 (p2: a route for the lead's own words; options code-side extractor,
+separate extraction call, accept), 092 (p3: exactly one question 38 of 50, median 197 words, 40 of 50 drafts share
+windows), 093 (p3: assume_and_quote and non-solo/duo formats). Suggested order: 090, then 091; 089 is independent and
+must precede the 20-lead ramp. A second session (`ea02da41`) was active in this repo late in the session; nothing of its
+was uncommitted when checked. Standing constraint from Alex: do not read or go into the Sandbox directory (Autopilot Run
+104). Unrelated: `~/.claude/docs/agent-pitfalls.md` carries a peer's uncommitted hunk (my row is committed, `600a68b`).
+Prompt for next session: `Read HANDOFF.md Update 22 and docs/solutions/architecture/2026-10-14-lead-words-field-measured-stopped-and-reverted-and-the-gate-scoping-that-did-not-help.md. pwd, branch feat/hub-phase0, expect 69e54ad or later (this save commit adds one), git status clean. Plan the next route for the lead's words only if Alex asks. Do NOT edit src/prompts/classify.ts without the regression gate (npx tsx scripts/classifier-regression.ts --compare). Do NOT read the Sandbox directory.`
 
 **Update 21 (session gig-lead-responder-22, vague-gate plan BUILT, 2026-10-14):** the verify-gate opening rule for a
 quoted vague lead is planned (`docs/plans/2026-10-14-fix-vague-quote-gate-opening-plan.md`, Revision 1b; plan review R1
