@@ -181,8 +181,6 @@ np_tier (a nonprofit buyer only, else null):
 - "NP3": institutional fundraiser: a large institution's event (hospital, university, museum, national charity gala).
 - unsure, or anything else: null.
 
-lead_words (every lead): short phrases COPIED from the lead's own message, exactly as written, never paraphrased and never your own labels. occasion: what the event is, in the lead's words (e.g. "my mom's 60th birthday"); time_frame: when it is, in the lead's words (e.g. "next month", "this spring"); doubt: the lead's own stated uncertainty (e.g. "not sure what kind of music"). Each is null when the lead did not write it. At most 80 characters each; code discards any phrase that is not in the lead.
-
 organization_name (a nonprofit buyer only, else null): the paying organization's name as the lead writes it, without a leading "the" (e.g. "Example Arts Foundation"). null when the lead does not name it; never guess one. Never the venue or the place the event is held.
 
 ## ENGAGEMENT TYPE
@@ -231,7 +229,6 @@ Return ONLY this JSON object (no markdown fences, no explanation):
   "nonprofit_buyer": boolean,
   "np_tier": "NP1" | "NP2" | "NP3" | null,
   "organization_name": string | null,
-  "lead_words": { "occasion": string | null, "time_frame": string | null, "doubt": string | null },
   "stealth_premium_signals": string[],
   "tier": "premium" | "standard" | "qualification",
   "rate_card_tier": "T1" | "T2" | "T3" | "T4",

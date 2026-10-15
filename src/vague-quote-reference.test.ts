@@ -14,10 +14,11 @@ import type { Classification, PricingResult } from "./types.js";
 // Plan docs/plans/2026-10-13-feat-vague-lead-quote-with-question-plan.md (Revision 1b), V1-V7. Names start
 // "Vague Reference V<n>". The block is a reference for a vague lead whose default format is quoted with one question.
 const MARKER = "REFERENCE LEAD: VAGUE REQUEST";
-// SHA-256 of src/prompts/classify.ts. It was pinned at 73fd38e (before the vague-lead route, eb8c9b54...) to prove the route
-// left the classifier alone; the lead_words plan (docs/plans/2026-10-14-feat-lead-words-field-plan.md) edits it ON PURPOSE:
-// one schema line and one paragraph, re-pinned here in a "snapshot refresh:" commit with the prompt diff.
-const CLASSIFY_PROMPT_SHA256 = "d6a9583b56f67a638b5e5c52c4e2f4c843053c04996f990005b6ffe5458fee91";
+// SHA-256 of src/prompts/classify.ts at 73fd38e (before the vague-lead route). The lead_words plan re-pinned it ON PURPOSE
+// (d6a9583b...) and the measurement stopped it (docs/reviews/2026-10-14-lead-words-measurement.md): the edit moved L1's
+// format and price 15 of 15, so the classifier prompt was reverted byte for byte to this hash. Refresh only in a
+// "snapshot refresh:" commit.
+const CLASSIFY_PROMPT_SHA256 = "eb8c9b545d4e15ad2b782a86fd3c1d99744b04f2f66eaabfc0f30887a7c49d7d";
 const c8 = GENERATE_CASES.find((c) => c.id === "C8");
 assert.ok(c8);
 

@@ -63,3 +63,12 @@ edit it returned flamenco_duo 15 of 15; with a split near one half, 15 of 15 on 
 chance. B2 is deterministic: it passes every time. Not shown: why (the prompt edit moving L1 is shown by the counts, but
 which sentence of the classifier paragraph does it is not isolated), and whether B2 would also have passed on the
 pre-change verifier (cell B is new in this plan; the earlier plan's controls did not plant this text).
+
+## Decision and revert (Alex: "Revert the classifier prompt edit (Recommended)")
+
+`src/prompts/classify.ts` restored byte for byte from 95f3dda (SHA-256 eb8c9b54..., the original pin, proving the revert is
+exact); `CLASSIFY_PROMPT_SHA256` back to that value; LW6 now asserts the prompt does NOT mention `lead_words`. The field,
+the drafter section and the verifier sentences stay in the code but receive no phrases (all-null equals today's text,
+LW5), so the pipeline's behavior is that of 95f3dda. Full suite 1143 pass / 0 fail / 1 skip; tsc clean; leak check 0.
+Open: a better route for the lead's own words (not a classifier-prompt paragraph) and the verifier anchor B2 passes
+through are separate plans, Alex's call.

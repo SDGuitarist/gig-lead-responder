@@ -129,11 +129,10 @@ describe("Lead Words LW2/LW6: the classifier path", () => {
     } finally { setClaudeRequesterForTests(); }
   });
 
-  it("Lead Words LW6 the classifier prompt documents the field and has the schema line", () => {
+  it("Lead Words LW6 the classifier prompt does NOT carry the field (reverted after the measurement stops: L1 format and price moved 15 of 15)", () => {
     const prompt = buildClassifyPrompt("2026-10-12");
-    assert.ok(prompt.includes('"lead_words": { "occasion": string | null, "time_frame": string | null, "doubt": string | null }'));
-    assert.ok(prompt.includes("lead_words (every lead): short phrases COPIED from the lead's own message"));
-    assert.ok(prompt.includes("code discards any phrase that is not in the lead"));
+    assert.ok(!prompt.includes("lead_words"), "the field is inert: the model is not asked for it, so every classification reads all-null");
+    assert.ok(!prompt.includes("COPIED from the lead's own message"));
   });
 });
 
