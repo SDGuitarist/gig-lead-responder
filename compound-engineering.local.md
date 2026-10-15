@@ -2,31 +2,30 @@
 
 ## Risk Chain
 
-**Brainstorm risk:** None -- **no brainstorm** (the route came from Alex's own reply to a vague lead and the
-measurement that showed the clarification route was the wall).
+**Brainstorm risk:** None -- no brainstorm (the plan came from the measured verify-gate failure and Alex's rule that
+the drafter never sees the lead text).
 
-**Plan mitigation:** `docs/plans/2026-10-13-feat-vague-lead-quote-with-question-plan.md` (Revision 2b). The default
-format lives in code (`defaultVagueFormat`), the classifier PROMPT is pinned by SHA-256; a reference block shows
-Alex's reply for ORDER. Plan review R1 NO-GO (5 P1, 1 P2), R2 NO-GO (1 P1, 1 P2) at the cap; **Revision 2 (code
-default) had no plan review**.
+**Plan mitigation:** `docs/plans/2026-10-14-feat-lead-words-field-plan.md` (Revision 1c): a `lead_words` classifier field,
+copied lexically and checked in code; a pre-registered regression gate, grounding count, arm and five-cell controls.
+Plan review R1 NO-GO (5 P1/2 P2), R2 NO-GO (3 P1/2 P2), R3 (b) at the cap; Alex accepted, fixed one line, built.
 
-**Work risk (from Feed-Forward):** that the verify-gate opening rule is the whole reason 40 of 50 drafts failed; I read
-counts and two reasons and have not run the verifier with the rule changed.
+**Work risk (from Feed-Forward):** that the drafter would use the phrases against the reference block's scene-first
+order; only the arm could show it.
 
-**Review resolution:** code review R1 NO-GO (3 P1, 1 P2), R2 NO-GO (1 P1), all four fixed or documented; no round 3
-(Alex's choice). 1061 pass / 0 fail / 1 skip. Final-prompt arm: verified 10 of 50, copying 30 of 50, 17 of 40
-unverified fail the opening check alone.
+**Review resolution:** code review R1 NO-GO (2 P1/1 P2), R2 NO-GO (1 P1/1 P2), R3 (b) (1 finding); all six were in the
+measurement tooling, none in the product path; all fixed with failing-first tests (Alex: no further round). The
+real-model measurement then STOPPED twice (L1 format/price moved 15 of 15; control B2 passed a generic opening 6 of 6);
+the classifier prompt edit was reverted byte for byte (SHA-256 eb8c9b54). 1143 pass / 0 fail / 1 skip.
 
 ## Files to Scrutinize
 
 | File | What changed | Risk area |
 |------|-------------|-----------|
-| `src/pipeline/classify.ts` | `defaultVagueFormat` after the classifier | ensemble word match (a miss or a false "group" changes the route); stored leads keep their old route |
-| `src/prompts/generate.ts` | `buildVagueQuoteReferenceSection` gate | withheld cases; COI deliberately not withheld |
-| `src/data/vague-quote-reference.ts` | Alex's reply, conditional setup sentence | copying (30 of 50 windows); the "compatible" judgment is unmeasured |
-| `src/prompts/verify.ts` | NOT changed | the strict opening rule applies again to a quoted vague lead |
-| `src/route-metrics.ts`, `scripts/clarification-measure.ts` | formulas, `error_stage` | a failed run is not a classification failure |
+| `src/prompts/classify.ts` | restored to 73fd38e bytes (pin eb8c9b54...) | must stay unedited until the next route is measured against the regression gate |
+| `src/lead-words.ts`, `src/utils/sanitize.ts`, `src/pipeline/classify.ts` | the field, its coercion and grounding; INERT (the model is not asked) | a stored classification with the field is still honored; all-null equals today's text (LW5) |
+| `src/prompts/verify.ts` | `vagueQuoteMode`, lead-specificity anchors, the lead_words sentence | control B2 ("Spring private event ... the guitar is already the one thing you've decided on") passes with all-null words |
+| `src/lead-words-measure.ts`, `src/lead-words.test.ts` | the seam calls production `classifyLead`, `stripCodeFences`, `content[0]` | a seam must equal production exactly or its numbers mean nothing |
 
 ## Plan Reference
 
-`docs/plans/2026-10-13-feat-vague-lead-quote-with-question-plan.md`
+`docs/plans/2026-10-14-feat-lead-words-field-plan.md`

@@ -293,6 +293,30 @@ pattern (unexecuted); (3) the "exactly one question" rule (12 of 122 runs); (4) 
 (5) Alex's force-push call (I recommend no); (6) older items (nonprofit prices, Saturday/peak-day rule, Module 1
 plan review, R006/R398/R403 TO PORT). Do not read or enter the Sandbox directory while Autopilot Run 104 runs.
 
+**Update 22 (session gig-lead-responder-22, lead_words BUILT, MEASURED, STOPPED, REVERTED, COMPOUND DONE, 2026-10-14):**
+State: branch `feat/hub-phase0`, **pushed** (origin = `25c7e94` plus this save commit). Suite 1143 pass / 0 fail / 1 skip,
+tsc clean, leak check exit 0. The `lead_words` field is built and INERT: `src/prompts/classify.ts` is back to its
+73fd38e bytes (SHA-256 eb8c9b54, the original pin), so the model is not asked for it and every classification reads
+all-null, which equals today's text (LW5). Why: the real-model measurement hit two pre-registered stops and a rerun
+reproduced both: (1) L1 wedding `format_recommended`/`quote_price` moved (before 8 duo / 7 flamenco_duo over 15 runs,
+after 15 of 15 flamenco_duo, price 1495 to 1595); (2) control B2 (all-null words, "Spring private event, no venue yet, and
+the guitar is already the one thing you've decided on.") passed `lead_specific_opening` 6 of 6 verifies. Arm (informational,
+controls not ok): verified 20 of 50 (was 9 to 11), opening-false 10 of 50 (was 32), copying 40 drafts above zero windows.
+Code review: R1 NO-GO 2 P1/1 P2, R2 NO-GO 1 P1/1 P2, R3 (b) 1 finding, all in the measurement tooling, all fixed
+(Alex: "Fix it, no more review"). Records: `docs/reviews/2026-10-14-lead-words-code-codex-round1..3.md`,
+`...-lead-words-measurement.md`. Solution doc: `docs/solutions/architecture/2026-10-14-lead-words-field-measured-stopped-and-reverted-and-the-gate-scoping-that-did-not-help.md`.
+**Open decisions for Alex:** (1) a new route for the lead's own words (not a classifier-prompt paragraph; options: a
+code-side extractor, or a small separate extraction call), measured against the regression gate first; (2) the verifier
+anchor B2 passes through (a separate plan; cell B is new, so whether the old verifier also passed it is unknown); (3) the
+carried items: `assume_and_quote` and non-solo/duo formats under the same rule, "exactly one question", length (median
+~197 words vs ~100), copying. **Next phase:** plan (Alex picks 1 or 2) or park. Nothing is sent; the router still holds
+every vague `one_question` lead.
+Three Questions: 1. Hardest: reverting rather than planning a fix, because a price shift on a rich wedding is the harm
+and the controls could not clear the arm. 2. Left alone: the inert code (a later route can use it; LW5 pins today's
+text). 3. Least confident: that the lead's words can reach both stages without a classifier-prompt paragraph; B2 shows
+the verifier's anchors may pass an opening that cites nothing.
+Prompt for next session: `Read HANDOFF.md Update 22 and docs/solutions/architecture/2026-10-14-lead-words-field-measured-stopped-and-reverted-and-the-gate-scoping-that-did-not-help.md. pwd, branch feat/hub-phase0, expect 25c7e94 or later. Plan the next route for the lead's words only if Alex asks. Do NOT edit src/prompts/classify.ts without the regression gate (npx tsx scripts/classifier-regression.ts --compare). Do NOT read the Sandbox directory.`
+
 **Update 21 (session gig-lead-responder-22, vague-gate plan BUILT, 2026-10-14):** the verify-gate opening rule for a
 quoted vague lead is planned (`docs/plans/2026-10-14-fix-vague-quote-gate-opening-plan.md`, Revision 1b; plan review R1
 and R2 both NO-GO, accepted without a round 3) and built (`vagueQuoteMode`, the `openingRule` seam, snapshots S13-S18, tests
