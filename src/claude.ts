@@ -1,4 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
+import { appendFileSync, mkdirSync } from "node:fs";
+import { dirname } from "node:path";
 
 type ClaudeMessageRequest = Anthropic.MessageCreateParamsNonStreaming;
 type ClaudeMessageResponse = Anthropic.Message;
@@ -17,7 +19,30 @@ function getClient(): Anthropic {
   return client;
 }
 
-const defaultClaudeRequester: ClaudeRequester = (request) => getClient().messages.create(request);
+// One line per real API call: when, which model, how many tokens. Nothing from the prompt or the reply is written.
+// logs/ is gitignored. scripts/usage-report.ts adds the lines up. Logging never throws and never runs under tests.
+const USAGE_LOG_PATH = process.env.USAGE_LOG_PATH || "logs/usage.jsonl";
+
+function logUsage(model: string, usage: Anthropic.Message["usage"] | undefined): void {
+  if (process.env.NODE_TEST_CONTEXT || !usage) return;
+  try {
+    mkdirSync(dirname(USAGE_LOG_PATH), { recursive: true });
+    appendFileSync(USAGE_LOG_PATH, JSON.stringify({
+      ts: new Date().toISOString(),
+      model,
+      input_tokens: usage.input_tokens,
+      output_tokens: usage.output_tokens,
+      cache_creation_input_tokens: usage.cache_creation_input_tokens ?? 0,
+      cache_read_input_tokens: usage.cache_read_input_tokens ?? 0,
+    }) + "\n");
+  } catch { /* a full disk must not fail a lead */ }
+}
+
+const defaultClaudeRequester: ClaudeRequester = async (request) => {
+  const response = await getClient().messages.create(request);
+  logUsage(request.model, response.usage);
+  return response;
+};
 let requestClaudeMessage: ClaudeRequester = defaultClaudeRequester;
 
 export function setClaudeRequesterForTests(requester?: ClaudeRequester): void {
