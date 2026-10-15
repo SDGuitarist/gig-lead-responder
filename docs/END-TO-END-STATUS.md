@@ -4,6 +4,10 @@
 Session" point here). **Trigger to update:** any checklist row changes state. Update it in the same commit as the
 work, never later. **Owner:** whichever session changes the row.
 **Last verified against sources:** 2026-10-09 (`f789b53`..`67360be`), by the price-block session.
+**Refreshed 2026-10-14** (`33daaee`, the lead_words session): the V1 port count was re-run (unchanged: 197 / 171 / 35 / 3),
+and the draft-quality section, the Module 1 send-path notes and the critical path were updated from their solution docs
+and records. **The Phase 0 and spike rows above were NOT re-verified in this refresh and keep their own dates** (poller
+not started, S2 and S6 open: nothing in this session's work touched them).
 
 > **Trust rule.** This file is a map, not evidence. Every status row names its SOURCE and a VERIFY command or
 > location. Before acting on a row, or quoting it to Alex as fact, re-check it at the source. If the source
@@ -68,6 +72,24 @@ then 0 off-calendar gigs / 0 missed money or COI dates; then hours back.
 awk -F'|' '/^\| R[0-9]+ \|/{s=$5; gsub(/^ +| +$/,"",s); c[s]++} END{for(k in c) print c[k], k}' docs/research/2026-10-02-booking-hub/port-manifest.md
 ```
 
+## Draft-quality work inside Phase 0 (2026-10-13..14; each row: what it does, source, what is open)
+
+| Cycle | State | Source | Still open |
+|---|---|---|---|
+| COI sentence is app-owned and checked on every send path | DONE, code review R2 GO. A draft without the right sentence FAILS; the approve route refuses stored drafts without it | `docs/solutions/architecture/2026-10-13-coi-sentence-owned-by-the-app-and-every-send-surface.md` | **Module 1 send paths (1.1, 1.4) must apply `coiViolations`** (see the note under Module 1) |
+| Clarification: validator rejects stated prices, not vocabulary | DONE | `docs/solutions/architecture/2026-10-13-clarification-validator-rejects-stated-prices-not-vocabulary.md` | "exactly one question" is the next failure |
+| Clarification: internal pricing terms rejected as compounds only | DONE (Alex decided: bare words pass) | `docs/solutions/architecture/2026-10-13-internal-pricing-terms-are-rejected-as-compounds-not-as-words.md` | anchor/floor false rejects |
+| Clarification: gate opening rule scoped; draft shape | DONE, measured: 0 to 2 of 16 verified; a shorter reply moved the primary 38% to 34% (null) | `docs/solutions/architecture/2026-10-13-verify-gate-asked-a-vague-lead-for-a-detail-it-never-gave.md`; `...-a-shorter-instruction-shortens-the-reply-not-the-scene-two-arm-measurement.md` | the scene gap (needs Alex's reference reply) |
+| Vague-lead quote route | DONE and in code: a vague one-question lead with no ensemble word gets a solo or duo default quote plus one binary question (`defaultVagueFormat`). Measured: price present 50 of 50, verified 9 to 11 of 50 | `docs/solutions/architecture/2026-10-14-vague-lead-quote-route-default-in-code-and-the-gate-it-left-behind.md`; plan `docs/plans/2026-10-13-feat-vague-lead-quote-with-question-plan.md` | the verifier still fails most of these on the opening; copying (30 of 50 clause windows); length (median ~197 words vs ~100) |
+| Verify-gate scoping for the quoted vague lead (`vagueQuoteMode`) | BUILT, measured, **not distinguishable from noise** (6 changed to pass, 2 to fail, p 0.145; noise 2 of 50) | `docs/plans/2026-10-14-fix-vague-quote-gate-opening-plan.md`; solution doc below | none by itself: it has nothing to cite |
+| `lead_words` field (the lead's own occasion, time frame, doubt) | **BUILT, MEASURED, STOPPED, REVERTED.** The classifier prompt edit moved L1 wedding's format and price 15 of 15; control B2 passed a generic opening 6 of 6. `src/prompts/classify.ts` is back to its original bytes (SHA-256 eb8c9b54). The field and its drafter and verifier sections stay in code and are INERT (all-null equals today's text) | `docs/solutions/architecture/2026-10-14-lead-words-field-measured-stopped-and-reverted-and-the-gate-scoping-that-did-not-help.md`; `docs/reviews/2026-10-14-lead-words-measurement.md` | a new route for the lead's own words (Alex's call); the verifier anchor B2 passes through |
+
+**What this means for the path:** nothing here is sendable on its own. The router holds every vague `one_question` lead
+for Alex (`src/automation/router.ts`, the "Vague lead — needs clarifying question" reason), and the post-check, COI and
+payment checks and his own read remain. **Do not edit `src/prompts/classify.ts` without the regression gate**
+(`npx tsx scripts/classifier-regression.ts --compare <before> <after>` must exit 0).
+**No bar says when this work is enough to start Module 1: `todos/087-pending-p2-define-and-score-draft-quality-done-enough.md`.**
+
 ## Checklist: Module 1 (plan §1.1–1.7). Not started.
 
 ☐ 1.1 send gate (structured quote, one final check) · ☐ 1.2 no automatic duplicate send (`outbound_messages`;
@@ -86,6 +108,11 @@ prices, but nothing switches them; picking the other price today means editing t
 classification, `rate_card_tier` set, prices from `lookupPrice`), so the pick is one click and the price line,
 payment sentence and post-check all follow (plan `docs/plans/2026-10-12-fix-tier-b-venue-rule-conflict-hold-plan.md`,
 Revision 6).
+**COI sentence (2026-10-13):** every path that sends a draft (1.1 send gate, 1.4 approvals, any new send surface) must
+apply `coiViolations`; a draft without the sentence the lead's COI requirement calls for must fail, as the approve
+route does for stored drafts (`docs/solutions/architecture/2026-10-13-coi-sentence-owned-by-the-app-and-every-send-surface.md`).
+**Vague one-question leads (2026-10-14):** the router holds all of them; Module 1.4 approvals is where Alex reads and
+edits a quoted vague draft. The auto-send ramp must not include them until a measured bar says so.
 
 ## Known risks on the path (found by sessions; each recorded at its source)
 
@@ -106,11 +133,15 @@ Revision 6).
 1. Things only Alex can unblock, raised every session until done: **0.6 baseline**, **S2** (next GigSalad lead),
    **S6** (a night, after the poller starts), ~~the PF-Intel URL check~~ (fixed 10-11).
 2. Claude: ~~S5~~ (passed 10-11); ~~venues~~ (ported 10-11); the **3 TO PORT** rows (R006 own plan, R398 Module 1, R403 prices need Alex's numbers); venue rows all PORTED (Alex rewrites every sentence after the venue-database pull).
+2b. **Define and score "draft quality done enough"** (`todos/087-...`): Alex sets the bar, Claude plans the scoring set and the
+   numbers. Also open: a new route for the lead's own words, and the verifier anchor B2 passes through (HANDOFF Update 22).
 3. Module 1 plan review → build 1.1–1.7 → redesign 1.2's send-recovery key (G1 failed) → 20-lead ramp → auto-send → 1 week live.
 4. Only then: write the Module 2 plan from the live results.
 
 ## How to update this file
 
 Change a row in the SAME commit as the work that changed it, with the date and the source. Never mark ☑ without
-a source line you checked. If you find this file stale, fix it, and add the stale premise to the trust rule
+a source line you checked.
+This rule was not followed for seven cycles (2026-10-12..14) and was repaired by hand on 2026-10-14; making it
+checked is `todos/088-pending-p3-status-file-updated-in-the-same-commit-as-the-work.md`. If you find this file stale, fix it, and add the stale premise to the trust rule
 above.
