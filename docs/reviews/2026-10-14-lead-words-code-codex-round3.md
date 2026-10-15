@@ -30,3 +30,12 @@ production's extractor so the seam shares it, as was done for `stripCodeFences`)
 Whether it can matter: a real classifier call returns one text block (no tools, no thinking blocks requested), so the
 divergence is unlikely on live output. It is the same shape as round 2's P1-1, though, and the seam's purpose is to
 equal production exactly.
+
+## Resolution (Alex's decision, same day)
+
+Asked after the cap fired, Alex chose "Fix it, no more review". The seam now reads `content[0]` and treats a non-text
+first block as empty text, so production throws exactly as before (`src/lead-words-measure.ts`). LW15 has a
+failing-first test (block 0 valid JSON, block 1 trailing prose: the seam must return block 0's phrases; before the fix
+it measured the joined text as all-null) and a positive control (a non-text first block is an error, not a measurement).
+Mutant 21, the seam back to joining every block, is caught by that test (it failed before the fix).
+Full suite: see the commit. No Codex round follows; the real-model grounding run exercises this seam on live output.

@@ -5,7 +5,7 @@ import { setClaudeRequesterForTests, stripCodeFences } from "./claude.js";
 import { classifyLead } from "./pipeline/classify.js";
 import { coerceLeadWords, type LeadWords } from "./lead-words.js";
 
-type Requester = (request: unknown) => Promise<{ content?: Array<{ text?: string }> }>;
+type Requester = (request: unknown) => Promise<{ content?: Array<{ type?: string; text?: string }> }>;
 
 export interface GroundingRun { returned: LeadWords; kept: LeadWords }
 
@@ -14,7 +14,9 @@ export async function groundingRun(leadText: string, today: string, inner: Reque
   let lastText = "";
   setClaudeRequesterForTests((async (request: unknown) => {
     const res = await inner(request);
-    lastText = (res.content ?? []).map((c) => c.text ?? "").join("");
+    // production reads content[0] and rejects a non-text block (src/claude.ts), so the seam does the same (Codex code R3)
+    const first = res.content?.[0];
+    lastText = first && first.type === "text" ? first.text ?? "" : "";
     return res;
   }) as never);
   try {

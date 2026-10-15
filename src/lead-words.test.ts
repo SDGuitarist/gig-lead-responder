@@ -276,6 +276,21 @@ describe("Lead Words LW15: the measurement seam and the raw-consumer inventory (
     assert.deepEqual(r.returned, PHRASES);
   });
 
+  it("Lead Words LW15 only the first content block is read, as production does (Codex code R3)", async () => {
+    const { groundingRun } = await import("./lead-words-measure.js");
+    const multi = async () => ({
+      id: "m", type: "message", role: "assistant", model: "t", stop_reason: "end_turn", stop_sequence: null,
+      usage: { input_tokens: 1, output_tokens: 1 },
+      content: [{ type: "text", text: body(PHRASES) }, { type: "text", text: "trailing note from the model" }] });
+    const r = await groundingRun(lead, "2026-10-12", multi);
+    assert.deepEqual(r.returned, PHRASES, "production accepted block 0; the seam must read block 0 only");
+    // positive control: a non-text first block is what production rejects, so the run is an error, not a measurement
+    const nonText = async () => ({
+      id: "m", type: "message", role: "assistant", model: "t", stop_reason: "end_turn", stop_sequence: null,
+      usage: { input_tokens: 1, output_tokens: 1 }, content: [{ type: "tool_use", id: "t", name: "x", input: {} }] });
+    await assert.rejects(groundingRun(lead, "2026-10-12", nonText as never));
+  });
+
   it("Lead Words LW15 the requester is restored after a run (no leak into other tests)", async () => {
     const { groundingRun } = await import("./lead-words-measure.js");
     await groundingRun(lead, "2026-10-12", fake(NONE));
