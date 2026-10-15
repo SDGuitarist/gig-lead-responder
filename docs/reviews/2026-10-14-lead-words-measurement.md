@@ -47,3 +47,19 @@ zero (the copying concern is not fixed). `lead_words` kept in 48 of 50 runs.
 - The arm moved in the direction the plan hoped, but the verifier also let a generic opening through in control B2, so part
   of the drop in opening-false may be a looser verifier, not better openings. The two cannot be separated from these runs.
 - Neither STOP is interpreted away here. Revert / accept / re-plan is Alex's decision.
+
+## Rerun of both stops (Alex's decision: "Re-run both stops once, then decide")
+
+Same code (fa71347), same pre-change worktree (95f3dda), same date 2026-10-12.
+
+| Check | Result |
+|---|---|
+| L1 before, 10 more runs | flamenco_duo/1595 x5, duo/1495 x5 (15 runs total: 7 flamenco_duo, 8 duo) |
+| L1 after, 10 more runs | flamenco_duo/1595 x10 (15 runs total: 15 of 15 flamenco_duo) |
+| Controls, run twice more | both runs identical to the first: B2 passed `lead_specific_opening` in both verifies (B2 is 6 of 6 verifies across 3 runs); every other cell as required; exit 1 |
+
+Reading: neither stop is a coin flip. The classifier was split about evenly before (8 duo, 7 flamenco_duo), and after the
+edit it returned flamenco_duo 15 of 15; with a split near one half, 15 of 15 on one side has a probability around 3e-5 by
+chance. B2 is deterministic: it passes every time. Not shown: why (the prompt edit moving L1 is shown by the counts, but
+which sentence of the classifier paragraph does it is not isolated), and whether B2 would also have passed on the
+pre-change verifier (cell B is new in this plan; the earlier plan's controls did not plant this text).
