@@ -205,6 +205,28 @@ describe("Lead Words LW5: the verifier sentence", () => {
   });
 });
 
+/**
+ * Every way TypeScript source can touch a `lead_words` property outside the accessor (Codex code R2 P2-2): dot access,
+ * string-literal bracket access, and object destructuring (declaration, parameter, or assignment pattern).
+ */
+function rawLeadWordsReads(sf: ts.SourceFile): number {
+  let n = 0;
+  const isPattern = (o: ts.Node) => ts.isBinaryExpression(o.parent) && o.parent.operatorToken.kind === ts.SyntaxKind.EqualsToken && o.parent.left === o;
+  const visit = (node: ts.Node) => {
+    if (ts.isPropertyAccessExpression(node) && node.name.text === "lead_words") n++;
+    else if (ts.isElementAccessExpression(node) && ts.isStringLiteralLike(node.argumentExpression) && node.argumentExpression.text === "lead_words") n++;
+    else if (ts.isBindingElement(node) && ts.isObjectBindingPattern(node.parent)
+      && (node.propertyName ? (ts.isIdentifier(node.propertyName) || ts.isStringLiteralLike(node.propertyName)) && node.propertyName.text === "lead_words"
+        : ts.isIdentifier(node.name) && node.name.text === "lead_words")) n++;
+    else if (ts.isShorthandPropertyAssignment(node) && node.name.text === "lead_words" && ts.isObjectLiteralExpression(node.parent) && isPattern(node.parent)) n++;
+    else if (ts.isPropertyAssignment(node) && (ts.isIdentifier(node.name) || ts.isStringLiteralLike(node.name)) && node.name.text === "lead_words"
+      && ts.isObjectLiteralExpression(node.parent) && isPattern(node.parent)) n++;
+    ts.forEachChild(node, visit);
+  };
+  visit(sf);
+  return n;
+}
+
 describe("Lead Words LW15: the measurement seam and the raw-consumer inventory (Codex code R1)", () => {
   const c8 = GENERATE_CASES.find((c) => c.id === "C8");
   assert.ok(c8);
@@ -225,6 +247,33 @@ describe("Lead Words LW15: the measurement seam and the raw-consumer inventory (
     const { groundingRun } = await import("./lead-words-measure.js");
     // validateClassification throws on a missing format_recommended; callClaude retries once, then the call rejects
     await assert.rejects(groundingRun(lead, "2026-10-12", fake({ occasion: "my mom's 60th birthday" }, { format_recommended: "" })));
+  });
+
+  const seq = (texts: string[]) => {
+    let calls = 0;
+    const requester = async () => ({
+      id: "m", type: "message", role: "assistant", model: "t", stop_reason: "end_turn", stop_sequence: null,
+      usage: { input_tokens: 1, output_tokens: 1 }, content: [{ type: "text", text: texts[Math.min(calls++, texts.length - 1)] }] });
+    return { requester, calls: () => calls };
+  };
+  const body = (leadWords: unknown, over: Record<string, unknown> = {}) => JSON.stringify({ ...c8.classification, lead_words: leadWords, ...over });
+  const PHRASES = { occasion: "my mom's 60th birthday", time_frame: "this spring", doubt: null };
+
+  it("Lead Words LW15 a valid retry response wrapped in code fences with surrounding whitespace is parsed like production (Codex code R2 P1-1)", async () => {
+    const { groundingRun } = await import("./lead-words-measure.js");
+    const s = seq([body(PHRASES, { format_recommended: "" }), "\n  ```json\n" + body(PHRASES) + "\n```  \n\n"]);
+    const r = await groundingRun(lead, "2026-10-12", s.requester);
+    assert.equal(s.calls(), 2, "the first response failed validation and was retried");
+    assert.deepEqual(r.returned, PHRASES);
+    assert.deepEqual(r.kept, { occasion: "my mom's 60th birthday", time_frame: null, doubt: null });
+  });
+
+  it("Lead Words LW15 positive control: an unfenced valid response is read the same way, in one call", async () => {
+    const { groundingRun } = await import("./lead-words-measure.js");
+    const s = seq([body(PHRASES)]);
+    const r = await groundingRun(lead, "2026-10-12", s.requester);
+    assert.equal(s.calls(), 1);
+    assert.deepEqual(r.returned, PHRASES);
   });
 
   it("Lead Words LW15 the requester is restored after a run (no leak into other tests)", async () => {
@@ -255,12 +304,8 @@ describe("Lead Words LW15: the measurement seam and the raw-consumer inventory (
     });
     const found: Record<string, number> = {};
     for (const f of [...walk("src"), ...walk("scripts")]) {
-      const sf = ts.createSourceFile(f, readFileSync(f, "utf-8"), ts.ScriptTarget.Latest, true);
-      const visit = (n: ts.Node) => {
-        if (ts.isPropertyAccessExpression(n) && n.name.text === "lead_words") found[f] = (found[f] ?? 0) + 1;
-        ts.forEachChild(n, visit);
-      };
-      visit(sf);
+      const n = rawLeadWordsReads(ts.createSourceFile(f, readFileSync(f, "utf-8"), ts.ScriptTarget.Latest, true));
+      if (n > 0) found[f] = n;
     }
     // The accessor itself; the producer in classifyLead/validateClassification (assignments); the measurement seam reading
     // the production result; sanitize's presence check; the report reading an already-coerced stored record.
@@ -271,5 +316,23 @@ describe("Lead Words LW15: the measurement seam and the raw-consumer inventory (
       "src/utils/sanitize.ts": 1,
       "scripts/clarification-arm-report.ts": 1,
     });
+  });
+
+  it("Lead Words LW15 the raw-read scanner rejects dot, bracket and destructuring reads, and allows the accessor and writes (Codex code R2 P2-2)", () => {
+    const count = (src: string) => rawLeadWordsReads(ts.createSourceFile("x.ts", src, ts.ScriptTarget.Latest, true));
+    // regression controls: each of these is a raw read and must be counted
+    assert.equal(count("const a = c.lead_words;"), 1, "dot access");
+    assert.equal(count('const a = c["lead_words"];'), 1, "bracket access, double quotes");
+    assert.equal(count("const a = c['lead_words'];"), 1, "bracket access, single quotes");
+    assert.equal(count("const { lead_words } = c;"), 1, "destructuring");
+    assert.equal(count("const { lead_words: lw } = c;"), 1, "destructuring with rename");
+    assert.equal(count('const { "lead_words": lw } = c;'), 1, "destructuring with a quoted key");
+    assert.equal(count("function f({ lead_words }: X) { return 1; }"), 1, "parameter destructuring");
+    assert.equal(count("let lead_words; ({ lead_words } = c);"), 1, "destructuring assignment");
+    // positive controls: the accessor, an unrelated property, an object literal that only WRITES the field
+    assert.equal(count("const a = leadWordsOf(c);"), 0, "the accessor");
+    assert.equal(count("const a = c.lead_words_count;"), 0, "a different property");
+    assert.equal(count("const o = { lead_words: x };"), 0, "writing the field in a literal");
+    assert.equal(count("const o = { ...c, lead_words };"), 0, "writing the field by shorthand");
   });
 });

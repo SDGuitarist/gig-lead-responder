@@ -28,7 +28,7 @@ export function setClaudeRequesterForTests(requester?: ClaudeRequester): void {
  * Strip markdown code fences from Claude's response.
  * Claude sometimes wraps JSON in ```json ... ``` blocks.
  */
-function stripCodeFences(text: string): string {
+export function stripCodeFences(text: string): string {
   const fencePattern = /^```(?:json)?\s*\n?([\s\S]*?)\n?\s*```$/;
   const match = text.trim().match(fencePattern);
   return match ? match[1].trim() : text.trim();
