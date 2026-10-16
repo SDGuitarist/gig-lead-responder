@@ -1,7 +1,7 @@
 ---
 title: "fix: the Yelp parser reads an email format Yelp no longer sends, so every Yelp lead is held with no text"
 date: 2026-10-16
-status: plan, Revision 0 (not yet plan-reviewed)
+status: plan, Revision 1 (plan review R1 NO-GO 0 P1 / 3 P2 / 1 P3, all answered: docs/reviews/2026-10-16-yelp-parser-plan-codex-round1.md)
 branch: feat/hub-phase0
 ---
 
@@ -35,10 +35,13 @@ Every Yelp lead is held at parse time and never reaches the pipeline.
 
 - `extractTruncatedMessage` (`yelp.ts:146`) starts capturing only after a line matching `/sent you|new message|wrote:/i`.
   The quote-request email has none of those, so the captured text is empty.
-- `src/yelp-parser.test.ts` has no lead fixture at all: its one email is a client REPLY ("Kimberly has replied to your
-  message", 2026-07-14), the format the parser was written against. The parser has never been run on a real lead email.
-- `extractYelpPortalUrl` (`yelp.ts:~80`) accepts only `/messaging/<id>/thread/<id>`. The quote-request email's
-  `return_url` is `/leads_center/<id>/leads/<id>`, so `portalUrl` is empty and `router.ts:56` adds "Missing portal URL".
+- `src/yelp-parser.test.ts` has no TEST fixture that is a lead email: its one email is a client REPLY ("Kimberly has replied to your
+  message", 2026-07-14), the format the parser was written against, and the legacy capture rule keeps that client's message
+  (the test at line 79 requires it). A real lead did reach the parser once, through `processLead` (lead #17, Sophia), and came out as the
+  placeholder.
+- `extractYelpPortalUrl` (`yelp.ts:~85-107`) accepts a `return_url` path only if it is `/messaging/<id>/thread/<id>`, and separately a direct
+  `href="https://biz.yelp.com/messaging/..."` link (`yelp.ts:102`, not a credential URL). The quote-request email's `return_url` is
+  `/leads_center/<id>/leads/<id>` and it has no direct messaging link, so `portalUrl` is empty and `router.ts:56` adds "Missing portal URL".
 - `router.ts:47` holds every Yelp lead that is not `enriched`; `orchestrator.ts:106` calls the portal only when
   `!lead.enriched`. So a lead marked complete skips the portal read with no orchestrator change.
 - `source-validator.ts` decides lead versus reply by `/has replied to your message/i` in the body, or a `RE:` subject. A
@@ -46,40 +49,71 @@ Every Yelp lead is held at parse time and never reaches the pipeline.
 - Credential containment is already in `yelp.ts`: `CREDENTIAL_URL`, `ANY_URL`, `stripCredentialUrls`, `normalizeLine`.
   Yelp's "Reply on Yelp Biz" links carry a passwordless login token (a bearer credential). It must never reach the
   database, the dashboard or the model (memory: `project_yelp-allowlist-capture-bug.md`).
-- Nothing sends in Phase 0: the poller forces dry run (`poller.ts:203`), `autoSendEnabled` is false. `submitReply`'s
-  selectors are marked "[VERIFY LIVE]" and the login is blocked; no Yelp send path has ever worked.
+- Nothing sends in Phase 0: the poller forces dry run (`poller.ts:203`); `autoSendEnabled` is configurable and false by default
+  (`config.ts:46`), not hardcoded. `submitReply`'s selectors are marked "[VERIFY LIVE]" and the login is blocked; no Yelp send has ever worked.
+  `dispatchReply` (`orchestrator.ts:~305`) still calls the Yelp sender directly when reached; the router is what keeps a lead from reaching it.
+- The hold branch (`orchestrator.ts:~241`) stores `status: "sent"` and writes the reasons only to the log; the dashboard labels `sent` "Sent"
+  (`dashboard.html:245`). So a held lead already reads "Sent" and shows no reason (todo 097).
+- `rawText` reaches SQLite (`insertLead`, step 3b) and the model (step 6) BEFORE routing, so a router hold cannot contain a text leak:
+  exclusion of tokens and footer content must be done in the parser.
 
 ## Decision
 
-D1. **Parse the form, not a message.** In `parseYelpEmail`, from `msg.bodyText` (fallback `msg.bodyHtml`, tags stripped):
-find the question lines (a line that, after `normalizeLine`, ends in `?`) between the line `You have a new <x> request.`
-and the first "Reply to <name> on Yelp Biz" line. An answer is the paragraphs after a question up to the next question;
-after the LAST question only its first paragraph is kept (the lines after it are the client's display name and three
-`0` counters, which must not enter the text). Every answer line goes through `normalizeLine` and `ANY_URL` removal, and
-the whole text through `stripCredentialUrls`.
+D1. **A deterministic form contract (answers P2-1).** Input is `msg.bodyText` ONLY. If it is empty (HTML-only mail) the parser takes the legacy
+path (D3). Work on paragraphs (blocks separated by a blank line), each passed through `normalizeLine` per line. The SUPPORTED structure, read
+from the two real emails:
 
-D2. **The text the pipeline sees** = the sentence `"<First name> requested a quote from Alex Guillen Music for a <service>."`
-(taken from the email's first line) followed by each `question` / `answer` pair, blank-line separated. NOT included: the
-business's own address ("Sent to Alex Guillen Music, 444 Anita St…"), the client's display name line, the counters, any URL.
-Reason: the address would read as the event's venue; the name line and counters are noise.
+```
+<Name> requested a quote from Alex Guillen Music for a <service>. <more sentences>     (first non-empty paragraph)
+## You have a new <service> request.                                                   (START marker, required)
+[Reply to <Name> on Yelp Biz](https://...)                                              (link paragraph, ignored)
+Sent to Alex Guillen Music / <business address>                                         (ignored: before the first label)
+<LABEL 1>                                                                               (paragraph equal to a known label)
+<answer: one or more paragraphs>
+<LABEL ...> / <answer>
+<display name paragraph>                                                                (dropped)
+0 / 0 / 0                                                                               (three consecutive paragraphs, each exactly "0": END marker, required)
+[Reply to ...](...) ...                                                                 (CTA, ignored)
+```
 
-D3. **Completeness, and what it changes.** The lead is `parseConfidence: "high"` and `enriched: true` only when BOTH the date
-question and the location question were parsed. Anything else keeps today's behavior (`low`, `enriched: false`, the old
-warning, the old placeholder text). The `enriched` field keeps its name; its meaning becomes "the lead text is complete"
-(comment in `types.ts` updated). A lead whose client answered nothing beyond date and zip (Sophia) is still `high`: it is a
-vague lead, which the pipeline already routes (the vague-lead quote route).
+Known labels (matched EXACTLY after trimming and case-folding, nothing fuzzy): date `When do you require this service?`; details
+`Are there any other details you'd like to share?`; location `In what location do you need the service?`.
 
-D4. **Router: an explicit Yelp hold replaces the accident.** Add one mandatory hold reason for EVERY Yelp lead: "Yelp portal
-reply not verified live (todo 094): Alex sends from Yelp". It keeps Yelp from ever reaching auto-send while `submitReply` is
-unproven and the login is blocked, and it is the reason a parsed, complete Yelp lead still shows as a held draft in the
-dashboard. The "not enriched" hold stays for incomplete parses. Lifting the new hold is Module 1 work with Alex's yes.
+The form is SUPPORTED, and the lead is `complete`, only when ALL hold; any failure leaves the lead on the legacy path (D3), never high:
+1. exactly one START marker and exactly one END marker (the first run of three `0` paragraphs after it), START before END;
+2. the date label occurs exactly once and the location label exactly once; the details label at most once; no label occurs twice; order is
+   date, then details (if present), then location;
+3. every present label has a non-empty answer;
+4. the paragraph immediately before the END marker is the display-name paragraph: one line, at most 40 characters, letters, spaces, `.`, `'`, `-`
+   only; it is dropped. The location answer is the paragraphs between the location label and that name paragraph and MUST be exactly one
+   paragraph of at most 80 characters (a zip or a short place);
+5. the first paragraph matches `^(.{1,40}?) requested a quote from .+? for an? (.{1,40}?)\.` with the name made of letters, spaces, `.`, `'`, `-`.
 
-D5. **Portal URL.** `extractYelpPortalUrl` additionally accepts `^/leads_center/[\w-]+/leads/[\w-]+/?$` from `return_url`
-(token discarded, same rule as the thread path). A different path is still refused.
+Everything between two known labels is the earlier label's answer, so a client paragraph such as "Is Saturday okay?", or two paragraphs, stays
+inside the details answer; a line that merely ends in `?` is NEVER a label. A client who types a known label exactly makes that label occur twice, so
+the lead falls back (ambiguity is not guessed). Every answer line goes through `normalizeLine` and `ANY_URL` removal and the whole text through
+`stripCredentialUrls`.
 
-D6. **A parse-only mode for the ingest script.** `scripts/ingest-one.ts <id> --parse-only` fetches the message, runs the
-source validator and `parseLeadEmail`, and prints the parsed lead with the text shown in full and `portalUrl` shown as
-shape only. No database write, no model call, no portal call. It is how a human sees the result on real mail with no API spend.
+D2. **The text the pipeline sees** = `"<Name> requested a quote for a <service>."` (rebuilt from the validated name and service, not copied from the
+email) followed by each `label` / `answer` pair, blank-line separated. NOT included, by construction (only label-delimited answers and the rebuilt
+sentence are used): the business address, the display-name paragraph, the counters, link paragraphs, footer, any URL.
+
+D3. **Complete versus legacy (answers P2-2).** When D1 holds the lead is `parseConfidence: "high"`, `enriched: true`. When it does not, the parser runs
+the EXISTING code path unchanged: `extractClientName` and `extractTruncatedMessage`, `low`, `enriched: false`, the old warning, and the placeholder
+only when that legacy path captures nothing (as today). So the old reply-shaped fixture still returns the client's message. `enriched` keeps its name;
+its meaning becomes "the lead text is complete" (comment in `types.ts`).
+
+D4. **Router: an explicit Yelp hold, and its limit (answers P2-3).** Add one mandatory hold reason for every Yelp lead that reaches `routeLead`:
+"Yelp portal reply not verified live (todo 094): Alex sends from Yelp". It keeps a Yelp lead out of auto-send while `submitReply` is unproven; low-confidence
+leads already exit earlier. This plan is LIMITED to pipeline access and routing. It does NOT change what the dashboard shows: a held lead is
+stored as `sent`, labelled "Sent", with no reason on the row. That is an existing limitation, filed as todo 097; nothing here claims a visible hold.
+
+D5. **Portal URL.** `extractYelpPortalUrl` additionally accepts `^/leads_center/[\w-]+/leads/[\w-]+/?$` from `return_url` (token discarded). Any other path
+is still refused. The direct-link fallback is untouched.
+
+D6. **A parse-only mode for the ingest script, built FIRST.** `scripts/ingest-one.ts <id> --parse-only` fetches the message, runs the source validator and
+`parseLeadEmail`, and prints confidence, enriched, clientName, the full `rawText`, the warnings, and `portalUrl` as shape only. No database write, no
+model call, no portal call, and the printed text stays on Alex's screen (it holds client words). It runs on the sample in the private manifest (below).
 
 ## What must not change
 
@@ -98,101 +132,108 @@ the poller's forced dry run; every pipeline prompt; the portal client; `submitRe
 
 ## Plan Quality Gate
 
-1. **What exactly is changing?** `src/automation/parsers/yelp.ts` (form parsing, completeness, leads_center portal path), one
-   router hold reason, a comment in `src/automation/types.ts`, `scripts/ingest-one.ts` (`--parse-only`), and tests with
-   fixtures that copy the REAL structure of a quote-request email with invented names and text.
-2. **What must not change?** See the section above.
-3. **How will we know it worked?** The EARS tests below; then `--parse-only` on the two real messages (Sophia, Jade) shows the
-   expected text; then, after the API limit is cleared and with Alex's go, one dry-run ingest of a future-dated real lead.
-4. **Most likely way this plan is wrong?** (a) The question/answer split is wrong for a form shape I have not seen: I have
-   read two full emails; the other nine come from a helper's report. Mitigation: `--parse-only` on all 11 real messages is
-   a work step, and an unparseable shape falls back to `low`. (b) A client's answer can look like a question line ("Is
-   Saturday ok?"): D1 treats a line ending in `?` as a question. Mitigation: only a line that EXACTLY equals one of the known
-   form labels, or that follows a blank line and precedes a non-empty answer in the label position, counts; the plan's
-   test E4 pins a free-text answer containing a question mark. (c) A held draft is not a quality draft: this only lets the
-   pipeline run, it says nothing about draft quality (todo 087). (d) The Yelp text may carry a phone number or email typed by
-   the client into the model prompt, like any platform's lead text.
+1. **What exactly is changing?** `src/automation/parsers/yelp.ts` (the D1 contract, completeness, `leads_center` path), one router hold reason, a comment in
+   `src/automation/types.ts`, `scripts/ingest-one.ts` (`--parse-only`), tests with fixtures that copy the REAL line structure with invented names and text.
+2. **What must not change?** See the section above. Plus: the legacy path's output for any input that fails D1 is byte-identical to today's.
+3. **How will we know it worked?** The EARS tests below; the 11-message baseline BEFORE the change and the same run AFTER it, with complete extracted
+   answers inspected; then, with Alex's go, one dry-run ingest of a future-dated real lead.
+4. **Most likely way this plan is wrong?** (a) A form shape I have not read: I have read two emails in full; the sample run reads all 11 first and a
+   shape that fails D1 stays on the legacy path and is listed. (b) The three-`0` end marker or the display-name paragraph moves in a later Yelp template: the
+   lead then falls back to legacy (low) rather than guessing. (c) A complete lead is not a quality draft (todo 087). (d) The Yelp text may carry a phone
+   number or email the client typed, like any platform's lead text. (e) The hold is invisible on the dashboard (todo 097).
 5. **How will a human RUN this, and when?** See Execution Path.
+
+## Sample for the real-email runs (answers P3-4)
+
+Private manifest: `~/Data/gig-lead-responder/yelp-sample-manifest.json` (outside the repo, public-repo rule): the 11 Gmail message ids, dates, and whether
+a details answer was given, no client text. Exact retrieval if it is lost: Gmail search `from:messaging.yelp.com "requested a quote" newer_than:90d`; the first
+message of a thread has the thread's id. The run reads each id with `--parse-only`, and for each one Claude compares the extracted answers with the email's
+visible form, field by field (not only confidence or one keyword), and records counts and shapes, never client text, in the review doc.
 
 ## Acceptance Tests (EARS)
 
-Fixtures are invented text in the exact line structure of the two real emails (blank lines, headings, counters, CTA links
-with a placeholder token of the real shape). No real client text, name or contact detail is committed (public repo).
+Fixtures are invented text in the exact line structure of the two real emails (blank lines, the `##` heading, link paragraphs with a placeholder token of
+the real shape, the display-name paragraph, three `0` paragraphs, the CTA and footer). No real client text, name or contact detail is committed (public repo).
 
 Happy path
-- H1. WHEN a quote-request email has only the date and location answers THE SYSTEM SHALL return `parseConfidence: "high"`,
-  `enriched: true`, and a `rawText` holding the first sentence, the date question and answer, the location question and
-  answer, and none of: the business address, the counter lines, the client display-name line, any URL.
-- H2. WHEN the email also has a details answer THE SYSTEM SHALL include that answer verbatim between the date and the location.
-- H3. WHEN the first line reads "<Name> requested a quote…" THE SYSTEM SHALL set `clientName` to that first name.
-- H4. WHEN `return_url` carries `/leads_center/<a>/leads/<b>` THE SYSTEM SHALL set `portalUrl` to
-  `https://biz.yelp.com/leads_center/<a>/leads/<b>` containing neither "passwordless" nor the token.
-- H5. WHEN a quote-request lead is routed THE SYSTEM SHALL hold it with the reason "Yelp portal reply not verified live".
-- H6. WHEN the orchestrator receives a complete Yelp lead THE SYSTEM SHALL run the pipeline without calling
-  `yelpClient.fetchLeadDetails`.
-- H7. WHEN the message is a quote-request email THE SYSTEM SHALL validate it as `kind: "lead"`; WHEN it has a `RE:` subject or
-  "has replied to your message" THE SYSTEM SHALL still validate it as `kind: "reply"`.
+- H1. WHEN the email has the date and location answers only THE SYSTEM SHALL return `high`, `enriched: true`, and a `rawText` holding the rebuilt first
+  sentence, the date label and answer, the location label and answer, and none of: the business address, the display-name paragraph, a counter, a URL.
+- H2. WHEN the email also has a details answer THE SYSTEM SHALL include it between the date and the location, paragraphs preserved, subject to the
+  existing URL removal, markdown stripping and credential redaction.
+- H3. WHEN the first paragraph reads "<Name> requested a quote from ... for a <service>." THE SYSTEM SHALL set `clientName` to the name.
+- H4. WHEN `return_url` carries `/leads_center/<a>/leads/<b>` THE SYSTEM SHALL set `portalUrl` to `https://biz.yelp.com/leads_center/<a>/leads/<b>` with
+  neither "passwordless" nor the token.
+- H5. WHEN `routeLead` receives a complete Yelp lead with an otherwise auto-sendable pipeline output (verified, small price, no flagged concerns, high
+  confidence, a portal URL) THE SYSTEM SHALL hold it with the reason "Yelp portal reply not verified live".
+- H6. WHEN the orchestrator receives a complete Yelp lead, with `autoSendEnabled` true and a spy for the Yelp client, THE SYSTEM SHALL run the pipeline,
+  not call `fetchLeadDetails`, and not call `submitReply`.
+- H7. WHEN the message is a quote-request email THE SYSTEM SHALL validate it `kind: "lead"`; WHEN it has a `RE:` subject or "has replied to your message" it
+  stays `kind: "reply"`.
 
-Error cases
-- E1. WHEN the email is the old reply-shaped fixture (no form labels) THE SYSTEM SHALL return `low`, `enriched: false` and the
-  placeholder text, exactly as today (every existing test passes unchanged).
-- E2. WHEN only one of the date and location questions is present THE SYSTEM SHALL return `low`.
-- E3. WHEN an answer contains a URL, a markdown link, or a passwordless login URL THE SYSTEM SHALL remove it from `rawText`.
-- E4. WHEN the details answer has two paragraphs, or contains a question mark in a sentence, THE SYSTEM SHALL keep the whole
-  answer and not start a new pair.
-- E5. WHEN the location answer is followed by a name line and `0` counters THE SYSTEM SHALL drop those lines.
-- E6. WHEN `return_url` is any other path THE SYSTEM SHALL leave `portalUrl` empty.
+Error cases (each falls back to the legacy path: `low`, `enriched: false`, never `high`)
+- E1. WHEN the email is the old reply-shaped fixture THE SYSTEM SHALL return exactly today's output (the client's message captured, low, enriched false);
+  every existing test passes unchanged. WHEN the legacy path captures nothing THE SYSTEM SHALL use the placeholder.
+- E2. WHEN a required label (date or location) is missing, duplicated, out of order, or has an empty answer.
+- E3. WHEN the START marker, the END marker (three `0` paragraphs), or the display-name paragraph is missing, or the display-name paragraph is longer than 40
+  characters or has other characters.
+- E4. WHEN the location answer is two paragraphs, empty, or longer than 80 characters.
+- E5. WHEN the mail is HTML-only (empty `bodyText`), even if the HTML holds the same words.
+- E6. WHEN a details answer contains a paragraph equal to a known label THE SYSTEM SHALL fall back (a duplicate label), and WHEN it contains "Is Saturday
+  okay?" as its own paragraph or a question mark mid-sentence, or two paragraphs, THE SYSTEM SHALL keep the whole answer and stay `high`.
+- E7. WHEN an answer contains a URL, a markdown link or a passwordless login URL THE SYSTEM SHALL remove it from `rawText`.
+- E8. WHEN `return_url` is any other path THE SYSTEM SHALL leave `portalUrl` empty.
+- E9. (negative assertions on every supported fixture) `rawText` never contains the token, `passwordless`, "Anita St", the business name line, the footer
+  text, a bare `0` line, or the display-name.
 
-Mutation checks (each test fails if the named change is made; recorded by running them): H1 (drop the trailing-paragraph
-rule, the counters appear); H2 (ignore the details label, the answer vanishes); H4 (return the login URL, the token
-appears); E1 (mark every parse high); H5 (delete the router reason); H6 (remove the `enriched` skip).
+Mutation checks (each test fails if the named change is made; recorded by running them): H1 (drop the name-paragraph rule: the name appears); H2 (ignore
+the details label: the answer vanishes); H4 (return the login URL: the token appears); E1 (always parse as complete: the legacy fixture turns high); E6
+(split on any line ending in `?`: the client question starts a pair); H5 (delete the router reason); H6 (remove the `enriched` skip: the portal is called).
 
 ## Verification Commands
 
-- `node scripts/run-tests.mjs --match yelp` passes; `npm test` shows 0 fail; `npx tsc --noEmit` exits 0.
-- `npx tsx scripts/ingest-one.ts 1a13bd8fa0454331 --parse-only` (Sophia): confidence high, text has the date and zip
-  questions and answers, no "Anita St", no "0" lines.
-- `npx tsx scripts/ingest-one.ts 1a02a69016f40bb2 --parse-only` (Jade): the details answer contains "birthday party".
-- The same on the nine other ids in todo 094's sample; any `low` result is listed with its reason, not hidden.
+- `node scripts/run-tests.mjs --match yelp` passes; `npm test` shows 0 fail (baseline 1143 pass, 0 fail, 1 skip at `882dfea`); `npx tsc --noEmit` exits 0.
+- BEFORE the parser change (step 2): `npx tsx scripts/ingest-one.ts <id> --parse-only` for each id in the manifest; record the current confidence and text
+  shape per id (expected: every one low, the text empty or a placeholder for the quote-request format).
+- AFTER (step 6): the same on all 11. Expected: every id either `high` with the complete answers matching the email's form field by field, or `low` with a
+  stated reason; Sophia has no details answer; Jade's details contain "birthday party". An unexpected `low` is investigated, not tuned away.
 - Leak check unchanged: `npx tsx scripts/check-venue-history.ts` exit 0.
 
 ## Work steps (one concern per commit; failing test first)
 
-1. Fixtures plus H1-H3, E1-E5 failing tests, then the parser change (D1-D3).
-2. D5 plus H4, E6.
-3. D4 router reason plus H5; `types.ts` comment.
-4. H6 and H7 tests (no production change expected; if H6 fails the orchestrator needs one line).
-5. D6 `--parse-only`.
-6. Run the verification commands on the 11 real messages; update `todos/096`, `docs/END-TO-END-STATUS.md`, `HANDOFF.md` in
-   the same commit as the result (the status file's own rule).
+1. D6 `--parse-only` in `scripts/ingest-one.ts` (shows today's behavior).
+2. Run it on the 11 messages and record the BEFORE results in `docs/reviews/2026-10-16-yelp-parser-sample-run.md` (counts and shapes, no client text).
+3. Fixtures plus H1-H3, E1-E9 failing tests, then the parser change (D1-D3).
+4. D5 plus H4, E8.
+5. D4 router reason plus H5, H6, H7; `types.ts` comment.
+6. Rerun the 11 and record AFTER next to BEFORE; update `todos/096`, `docs/END-TO-END-STATUS.md`, `HANDOFF.md` in the same commit as the result.
 
 ## Execution Path
 
 - **Target:** Alex's MacBook, this repo, real Gmail (read-only) for the parse-only runs.
-- **Mechanism:** `npx tsx scripts/ingest-one.ts <gmail-id> --parse-only` (no API spend). The one end-to-end dry run is the
+- **Mechanism:** `npx tsx scripts/ingest-one.ts <gmail-id> --parse-only` (no API spend), on the ids in the private manifest. The one end-to-end dry run is the
   same command without the flag on a future-dated real lead, Yuli (`1a10e18804db9034`, event 2026-10-25), writing a row to
   `data/leads.db` and running the pipeline (about $0.10 to $0.35; the usage log records it).
 - **Prerequisites:** ALREADY HAVE: Gmail token (refreshed 2026-10-14), the ingest script, Node. MUST OBTAIN (verified
   needed): an Anthropic key that is accepted again. Alex set the limit to $190 on 2026-10-16 and a call afterwards was still
   rejected ("regain access on 2026-11-01"). Before the end-to-end run Claude makes one tiny probe call; if it is refused, Alex fixes the limit in the Console and the run waits. It blocks only the end-to-end run, not steps 1-6.
 - **Who:** Claude Code runs it; Alex says "go" for the model call. **Trigger:** after the code and its Codex code review.
+- The held draft will read "Sent" on the dashboard until item 097 is done: say so when showing Alex the result.
 - Lead #17 (Sophia) stays as the record of the old failure; it is not reset without Alex's yes (it is a data change).
 - What this does NOT show: that a Yelp draft is good enough to send (item 087), or that a Yelp reply can be sent (item 094).
 
 ## Feed-Forward
 
-- **Hardest decision:** whether to mark a parsed lead `enriched: true` (one word, no orchestrator change, but a changed
-  meaning) or add a new field and change two call sites; chose the one word with a comment, and a new router hold so the
-  meaning change cannot arm a send.
-- **Rejected:** repairing the portal login (blocked by bot protection and email verification, and 0 of 11 leads needed it);
-  rewinding the poller cursor; letting the model parse the form; reading the Yelp page for the newer version of an edited
-  lead.
-- **Least confident:** that the question and answer split holds for every form shape. I read two emails in full; the rest is a
-  helper's report. The parse-only run on all 11 is the first thing to run, and an unrecognized shape falls back to a hold.
+- **Hardest decision:** how strict the form contract is. Strict (exact labels, three-`0` end marker, one-paragraph location, every rule a fallback) loses a
+  lead to the legacy hold when Yelp changes its template; loose guesses and can put a client's words in the wrong field. Chose strict: a fallback is today's
+  behavior, a wrong field is a new one.
+- **Rejected:** treating any line ending in `?` as a question (Codex P2-1); the placeholder for the old reply fixture (P2-2, my wrong assumption); claiming the
+  dashboard shows a hold (P2-3); repairing the portal login; rewinding the poller cursor; letting the model parse the form.
+- **Least confident:** the form shapes I have not read: two emails in full, nine from a helper. The BEFORE/AFTER run on all 11 is steps 2 and 6, and a shape the
+  contract rejects stays on the legacy path and is listed.
 
 ## Three Questions
 
-1. **Hardest decision in this session?** Keeping `enriched` and changing its meaning, against a new field.
-2. **What did you reject, and why?** Fixing the Yelp login (not needed), and reading edited details from the page (one case).
-3. **Least confident about going into the next phase?** Form shapes I have not read myself; and that a held Yelp draft will
-   be read by Alex as a quality signal when it is only a pipeline that now runs.
+1. **Hardest decision in this session?** How strict to make the form contract, with a fallback to today's behavior as the price of strictness.
+2. **What did you reject, and why?** A `?`-based question rule, a placeholder for the old fixture, and any claim about the dashboard: each was my assumption and
+   a reviewer read the code.
+3. **Least confident about going into the next phase?** Template shapes not yet read, and that a held "Sent" card on the dashboard will be misread (todo 097).
