@@ -122,8 +122,11 @@ D4. **Router: an explicit Yelp hold, and its limit (answers P2-3).** Add one man
 leads already exit earlier. This plan is LIMITED to pipeline access and routing. It does NOT change what the dashboard shows: a held lead is
 stored as `sent`, labelled "Sent", with no reason on the row. That is an existing limitation, filed as todo 097; nothing here claims a visible hold.
 
-D5. **Portal URL.** `extractYelpPortalUrl` additionally accepts `^/leads_center/[\w-]+/leads/[\w-]+/?$` from `return_url` (token discarded). Any other path
-is still refused. The direct-link fallback is untouched.
+D5. **Portal URL, corrected during work (found by the BEFORE run, `docs/reviews/2026-10-16-yelp-parser-sample-run.md`).** `extractYelpPortalUrl` additionally accepts
+`^/leads_center/[\w-]+/leads/[\w-]+/?$` from `return_url` (token discarded). The direct-link fallback (`yelp.ts:~102`) is NOT untouched as Revision 1 said: it matches ANY
+`href="https://biz.yelp.com/messaging/..."`, and on the real emails it matches the "I'm not interested" / "I already replied" links
+(`/messaging/mark_as_replied_autosubmit/<token>?reply_type=...`), so `portalUrl` was non-empty in 11 of 11 and pointed at an action link. It is restricted to the thread path
+`^/messaging/[\w-]+/thread/[\w-]+/?$` (no query). Any other path is refused. Test E8b.
 
 D6. **A parse-only mode for the ingest script, built FIRST.** `scripts/ingest-one.ts <id> --parse-only` fetches the message, runs the source validator and
 `parseLeadEmail`, and prints confidence, enriched, clientName, the full `rawText`, the warnings, and `portalUrl` as shape only. No database write, no
@@ -196,6 +199,7 @@ Error cases (each falls back to the legacy path: `low`, `enriched: false`, never
   "Is Saturday okay?" as its own paragraph or a question mark mid-sentence, or two paragraphs, THE SYSTEM SHALL keep the whole answer and stay `high`.
 - E7. WHEN an answer contains a URL, a markdown link or a passwordless login URL THE SYSTEM SHALL remove it from `rawText`.
 - E8. WHEN `return_url` is any other path THE SYSTEM SHALL leave `portalUrl` empty.
+- E8b. WHEN the email's only `biz.yelp.com/messaging/...` hrefs are the mark-as-replied links THE SYSTEM SHALL leave `portalUrl` empty or the `leads_center` URL, never a mark-as-replied URL.
 - E10. WHEN the display name is missing and the location is followed by a second short paragraph ("92104", "San Diego", then the counters) THE SYSTEM SHALL fall back;
   WHEN a fourth form question sits between the details and location labels THE SYSTEM SHALL stay `high` with its paragraphs in order and no address, name or footer;
   WHEN a fourth question sits after the location label THE SYSTEM SHALL fall back.
