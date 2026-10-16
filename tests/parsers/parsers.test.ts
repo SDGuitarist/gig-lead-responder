@@ -86,7 +86,12 @@ test("parses real Yelp fixture", (t) => {
   const msg = loadFixture(t, "examples/emails/yelp-001.json");
   if (!msg) return;
   const result = parseYelpEmail(msg);
-  assert.ok(result.parseConfidence === "low", "Yelp fixture should still be low (needs portal)");
+  // This fixture is a "requested a quote" notice: the form in the email is complete, so the parser reads it (plan 2026-10-16; the old
+  // "low, needs portal" belonged to a message-notice format Yelp no longer sends for new leads).
+  assert.ok(result.parseConfidence === "high" && result.enriched === true, "Yelp quote-request fixture should parse as complete");
+  assert.ok(result.rawText.includes("When do you require this service?") && result.rawText.includes("In what location do you need the service?"), result.rawText);
+  assert.ok(!/Anita St|Sent to|Reply to|passwordless|https?:|stay responsive/i.test(result.rawText), `leak: ${result.rawText}`);
+  assert.ok(!/mark_as_replied/.test(result.portalUrl), `portalUrl is an action link: ${result.portalUrl}`);
 });
 
 // --- Squarespace Tests ---
