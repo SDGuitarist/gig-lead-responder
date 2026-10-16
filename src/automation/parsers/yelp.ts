@@ -2,14 +2,16 @@ import type { GmailMessage } from "../gmail-watcher.js";
 import type { YelpLead } from "../types.js";
 
 /**
- * Parse a Yelp lead notification email.
+ * Parse a Yelp lead notification email. Two paths, chosen by the SUBJECT only (see isQuoteRequest):
  *
- * IMPORTANT: Yelp truncates the client's message in the email notification.
- * This parser extracts what it can (portal URL, client name, truncated text)
- * and always returns parseConfidence: "low" with enriched: false.
+ *  - Quote path (every message whose subject does not start with "RE:"): Yelp's "requested a quote" notice carries the whole request form in
+ *    its plain text (date, optional details, location). A form that matches the deterministic contract below is returned as parseConfidence
+ *    "high", enriched true, with rebuilt text only; anything else is returned as "low" with a fixed placeholder and NO email text.
+ *  - Legacy path (subject starts with "RE:", the older message and reply notices): Yelp truncated the client's message in those emails, so this
+ *    path extracts what it can (portal URL, client name, truncated text) and always returns "low" with enriched false; the orchestrator then
+ *    tries YelpPortalClient.fetchLeadDetails() to read the full message, which is blocked today (todo 094).
  *
- * The orchestrator must call YelpPortalClient.fetchLeadDetails() to get
- * the full message before running the pipeline.
+ * Plan: docs/plans/2026-10-16-fix-yelp-parser-reads-the-request-a-quote-email-plan.md.
  */
 /**
  * Yelp's "Respond Now" button is a PASSWORDLESS LOGIN URL — a bearer
@@ -62,9 +64,10 @@ function htmlToText(html: string): string {
 /**
  * Is this a "requested a quote" notice, or a reply to one? Decided from the SUBJECT only (code review round 3, cap fired: three rounds each found
  * another way that inferring this from the message TEXT, or from paragraphs rebuilt out of HTML, can be shaped by a client or by inline markup).
- * Yelp's reply notices are the ones whose subject starts with "RE:"; the source validator already drops replies before this parser runs, and drops
- * on the body marker "has replied to your message" too, so in production every message that reaches here is a quote request. The old message and
- * reply format keeps the legacy capture below, selected by its "RE:" subject, so a client's words can never switch the path.
+ * Yelp's reply notices are the ones whose subject starts with "RE:". The source validator drops replies before this parser runs (a "RE:" subject, or
+ * the body marker "has replied to your message"), so every Yelp message admitted by today's callers takes the quote path. That is a statement about
+ * the path, not about the message: a reply the validator does not recognize (an unusual prefix, a marker split by HTML) also takes the quote path and
+ * is stored as the placeholder, which is safe. The legacy capture below is selected by a "RE:" subject, so a client's words can never switch the path.
  */
 function isQuoteRequest(msg: GmailMessage): boolean {
   return !/^\s*re:\s/i.test(msg.subject || "");
@@ -196,7 +199,7 @@ export function parseYelpEmail(msg: GmailMessage): YelpLead {
     // Belt and braces: extractTruncatedMessage already drops URLs, but rawText
     // is what gets sent to the Claude API, so it is guarded again here.
     rawText: stripCredentialUrls(truncatedText || "(truncated — awaiting portal enrichment)"),
-    parseConfidence: "low", // ALWAYS low until portal enrichment
+    parseConfidence: "low", // legacy path: ALWAYS low until portal enrichment
     parseWarnings: warnings,
     enriched: false,
     clientName,

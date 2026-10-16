@@ -266,7 +266,7 @@ describe("code review round 1 findings (docs/reviews/2026-10-16-yelp-parser-code
     const row = getLeadByMessageId("1a13bd8fa0454397");
     assert.ok(row); assert.equal(row!.raw_email, PLACEHOLDER);
   });
-  it("legacy positive control: a genuine old reply with no Yelp form markers still keeps the client's message", () => {
+  it("legacy positive control: a genuine old reply (RE: subject) still keeps the client's message", () => {
     const l = parseYelpEmail({ ...msg(), subject: "RE: x", bodyHtml: "", bodyText: "New Message from Kimberly\n\nThe wedding is at Monserate Winery in Fallbrook.\n\n| [ Respond Now ](https://example.com/x)" } as GmailMessage);
     assert.ok(l.rawText.includes("Monserate Winery"), l.rawText);
   });
@@ -295,7 +295,7 @@ describe("code review round 2 finding (docs/reviews/2026-10-16-yelp-parser-code-
     const row = getLeadByMessageId("1a13bd8fa0454396");
     assert.ok(row); assert.equal(row!.raw_email, PLACEHOLDER);
   });
-  it("positive controls: a standalone label paragraph, a standalone heading paragraph, and the sentence at the start of a paragraph still mark a quote request (placeholder)", () => {
+  it("positive controls: a lead-subject message whose text is a standalone label, a standalone heading, or the notice sentence with a zero-width space, with no valid form, is the placeholder", () => {
     const text = (first: string, ...rest: string[]) => ({ bodyHtml: "", bodyText: [first, ...rest, "Jordan Thompson", FOOTER].join("\n\n") });
     assert.equal(parseYelpEmail(msg({}, text("Hello", DATE_Q, "tomorrow"))).rawText, PLACEHOLDER);
     assert.equal(parseYelpEmail(msg({}, text("Hello", "## You have a new musicians request.", "I sent you the timing"))).rawText, PLACEHOLDER);

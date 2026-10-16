@@ -1,0 +1,14 @@
+# Codex code review round 1: Yelp quote/legacy path decided by subject only (the redesign), 2026-10-16
+
+**Verdict: GO** (0 P0, 0 P1, 0 P2, 1 P3), pasted by Alex. **Reviewed:** `ce8e7d9` (code commit `09eb1c4`; diff range `9a704dd..ce8e7d9`, two files: `src/automation/parsers/yelp.ts`, `src/yelp-quote-parser.test.ts`). This was round 1 of a NEW change; the capped loop on the old text detector is closed.
+Codex ran 66 focused tests, the full suite (1,198 pass / 0 fail / 1 skip outside the sandbox), tsc, and synthetic subject, temporary-SQLite and URL probes, all passing.
+
+| # | Codex finding | My check | Fix |
+|---|---|---|---|
+| P3 | the `isQuoteRequest` comment said every message reaching the parser "is a quote request"; the true guarantee is narrower: every message admitted by today's callers takes the quote path. An unusual reply prefix or a marker split by HTML can escape the validator and is then stored as the placeholder (Codex reproduced; safe). Also stale: the file header said the parser always returns low and that the orchestrator must call `fetchLeadDetails`; a test title still said a label/heading/sentence "marks a quote request" | CONFIRMED by reading the three places | wording only, no behavior change: the file header now describes both paths; the detector comment separates "the path" from "the message" and says an unrecognized reply is stored as the placeholder; the legacy path's "ALWAYS low" comment says "legacy path"; two test titles renamed. Inventory of this class in the two files: 5 stale or overstated descriptions (header, detector comment, legacy comment, 2 test titles), all fixed; nothing else of the kind found |
+
+Codex's other checks: the caller inventory is complete (the dispatcher relies on its callers; `orchestrator.ts:84` validates first; `scripts/ingest-one.ts` requires a valid lead; tests call directly on purpose); the subject probes are safe (RE:, BOM plus RE: and bare "Re:" behave as documented; "RE :", "Fwd: RE:", "AW:", empty and missing subjects take the quote path unless the body marker says reply); `htmlToText` is still used for fallback-name extraction and HTML-only legacy capture, not classification; URL containment holds, `mark_as_replied_autosubmit` is refused, the router hold remains. Not independently reproduced: the 11 private real emails; unseen templates remain the main limit.
+Noted by Codex, accepted (consistent with the earlier record): a direct call of the legacy path with a fabricated quote body under a `RE:` subject can retain a display name or footer; no production path reaches it, because the validator drops `RE:` mail first.
+
+Results after the wording fix: Yelp tests 66 pass / 0 fail; full suite 1198 pass / 0 fail / 1 skip; tsc exit 0; leak check exit 0.
+Counters: Codex code reviews of the redesign 1 (GO); the loop is closed. UNEXECUTED, unchanged: end-to-end dry run (Claude Code, Alex's go), any Yelp send (Module 1), edited portal details (by design).
