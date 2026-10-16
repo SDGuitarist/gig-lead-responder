@@ -1,6 +1,6 @@
 ---
 status: pending
-priority: p2
+priority: p3
 issue_id: "094"
 tags: [yelp, portal, login, module-1, phase-0]
 dependencies: []
@@ -23,13 +23,20 @@ Measured 2026-10-15 (lead #17, Gmail message 1a13bd8fa0454331, run with `scripts
   automated session. The app's browser cannot finish it unattended.
 - The Yelp password in `.env` was never the failing part: the form never rendered.
 
-Not yet known: how many real Yelp leads carry hidden message text. The one lead checked (Sophia, 2026-10-14) had none:
-the Yelp page held only date and zip, no event type, no free text. So the cost of this block is unmeasured.
+MEASURED 2026-10-16 (step 1 below, done): 10 past Yelp leads (2026-08-20 to 2026-10-05) were compared, email vs Yelp Biz page, by a
+read-only helper in Alex's regular browser; plus Sophia (2026-10-14) by me. All pages loaded logged in. Result: **0 of 11 had
+client content hidden from the email.** 6 of 10 carry client free text (the "Are there any other details you'd like to share?"
+answer) and the email's plain text already holds it (I verified one, Jade, by reading the email myself: the full text,
+guest count and budget are in it). Sophia, Jann, Erika, Michael, Eric did not answer that question. One difference: Madalyne
+updated her details after the first email, so the page held a later version. The page adds only a created time and, on some leads, a
+phone number. These counts come from the helper's report and are not re-checked by me beyond Jade; sample = every Yelp
+"requested a quote" email in the last 90 days.
+**So the premise "Yelp emails truncate client messages" does not hold for the current email format, and the portal login is not what
+blocks the leads: the parser is (todo 096).** This todo drops to "park it" unless a later lead shows hidden text.
 
 ## Proposed approach (a plan to write; Alex decides)
 
-1. Measure first: sample 10 to 20 past Yelp lead emails against the Yelp Biz pages (Alex's regular browser) and count how
-   many hold message text the email lacks. If it is rare, the block may not matter.
+1. ~~Measure first~~ DONE 2026-10-16 (see above): 0 of 11 hidden. Re-run the sample only if the email format changes or a lead shows text the email lacked.
 2. Options if it does matter: (a) keep scraping and solve verification by hand once so the profile keeps the session,
    expecting it to expire; (b) stop scraping and treat Yelp as "held, read it on Yelp" explicitly; (c) look for another
    source of the full message (Yelp's own API or forwarding). Do not retry logins repeatedly: bot defenses can escalate

@@ -20,6 +20,10 @@ If that text is a saved Yelp reply or an auto-response, it may go to every Yelp 
 prices that differ from the app's (the app quoted solo $700 for the same lead). Not verified: whether the text is a saved
 reply, an auto-response, or typed by hand. This repo does not send it (the poller is dry-run only).
 
+Wider than one lead (helper report 2026-10-16, not re-checked by me): the same Idyllwild template went to Yuli (Chula Vista), Erika
+(Murrieta) and Morales (Menifee). Eric's reply says "your Idyllwild event on June 14th, 2025" with a different price list, for a
+2026-09-12 request in Valle Vista. So it is a recurring template, not one slip.
+
 ## Proposed approach
 
 1. Alex checks in Yelp Biz (Settings, saved replies / auto-response) whether this is a saved reply, and fixes the town.
