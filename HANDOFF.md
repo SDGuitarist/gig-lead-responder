@@ -293,6 +293,21 @@ pattern (unexecuted); (3) the "exactly one question" rule (12 of 122 runs); (4) 
 (5) Alex's force-push call (I recommend no); (6) older items (nonprofit prices, Saturday/peak-day rule, Module 1
 plan review, R006/R398/R403 TO PORT). Do not read or enter the Sandbox directory while Autopilot Run 104 runs.
 
+**Update 23 (session gig-lead-responder-22, real-lead trial: app opened, usage log, ingest script, Yelp findings, 2026-10-15/16):**
+STATE (CHECKED): branch `feat/hub-phase0`, base HEAD `2455b63`, pushed (this save commit adds one); tree clean; server STOPPED; suite 1143 pass / 0 fail / 1 skip and `tsc` clean at `b26b107`.
+- Alex asked to open the app. Starting it also starts the Gmail poller, so I asked first; Alex chose "Start it, poller included". It ran in DRY RUN (review-only, 60 s) from 2026-10-14 evening PDT until Alex said "stop the server" on 2026-10-16. Status row 0.2 step 5 records this.
+- `b26b107`: `src/claude.ts` appends one line per real API call to `logs/usage.jsonl` (gitignored; tokens only, no prompt text); `scripts/usage-report.ts` sums it. Prices in the report are from memory: verify. Not tested against a real call by me; the report was checked on a hand-made file.
+- `0d97efd`: `scripts/ingest-one.ts <gmail-message-id>` runs one Gmail message through `processLead`, dry run forced; `fetchMessage` is now exported. Reason: the poller only reads mail newer than its cursor.
+- Real lead trial (Alex: "Pull a real lead from Gmail", then "Run Sophia's Yelp lead"): the GigSalad lead emails hold only a name, type and date (details are behind the expired GigSalad logins). Sophia's Yelp lead (Gmail id `1a13bd8fa0454331`) became lead #17, status failed: the Yelp portal login returned 403 (DataDome) headless and headed, and Yelp's 2-step email verification opens outside the automated browser. My first CLI run on the bare text was NOT a valid test (gate failed 3 times; about $0.34).
+- Read in Alex's regular browser (read-only): Sophia's Yelp lead holds only date 10/17/26 and zip 92104, no event type, no message, so nothing was truncated. A reply was already sent to her the day before (template with four options; ends "All rates include travel to Idyllwild", wrong town for San Diego).
+- Alex's decisions: "Add the usage log", "Push it and then restart", "Add a one-off ingest script", "Try option 1" (visible browser; it was blocked), "File both as todos", "push", "stop the server".
+- Todos filed (`2455b63`): 094 p2 Yelp portal login blocked (measure first: how many Yelp leads have hidden text); 095 p2 Yelp reply template says Idyllwild (Alex, Yelp Biz settings).
+- Status file updated in the same stretch (header, row 0.2 step 5, two risk rows, critical path, usage-log note). Rows not named there were NOT re-verified.
+- Still open and Alex's: 095 (urgent, client-facing), 090 (check whether `95f3dda` passes control B2: needs his "go", about $0.50 to $1), 089, 087, 088, 094; unchanged from Update 22: 091-093.
+- Not verified: whether the Yelp text is a saved reply or typed by hand; whether the usage log writes on a real call.
+Three Questions (real-lead trial): 1. Hardest decision? Starting the server, because it also starts the poller (Alex-only gate): asked, got an explicit yes. 2. Rejected? Rewinding the poller cursor: it feeds Alex's personal mail through the pipeline and would not fix the Yelp login. 3. Least confident? That the Yelp block matters at all: one lead checked, and it had no hidden text.
+Prompt for next session: `Read HANDOFF.md Update 23 and docs/END-TO-END-STATUS.md. pwd, branch feat/hub-phase0, expect 2455b63 or later (this save commit adds one), git status clean, server not running. Ask Alex first whether he fixed the Yelp template (todo 095). Do not start the server or poller without his yes. Do not run real-model checks (090) without his go. Do NOT read the Sandbox directory.`
+
 **Update 22 (session gig-lead-responder-22, lead_words BUILT, MEASURED, STOPPED, REVERTED, COMPOUND DONE, 2026-10-14):**
 State: branch `feat/hub-phase0`, **pushed** (origin = local = `69e54ad`, 0 unpushed, worktree clean; this save commit adds one). Suite 1143 pass / 0 fail / 1 skip,
 tsc clean, leak check exit 0. The `lead_words` field is built and INERT: `src/prompts/classify.ts` is back to its

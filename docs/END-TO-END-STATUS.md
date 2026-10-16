@@ -8,6 +8,7 @@ work, never later. **Owner:** whichever session changes the row.
 and the draft-quality section, the Module 1 send-path notes and the critical path were updated from their solution docs
 and records. **The Phase 0 and spike rows above were NOT re-verified in this refresh and keep their own dates** (poller
 not started, S2 and S6 open: nothing in this session's work touched them).
+**Updated 2026-10-16** (session after `2455b63`): the poller WAS started once on 2026-10-14 evening with Alex's yes (row 0.2 step 5), a token-usage log and a one-message ingest script were added, and the Yelp findings are recorded (todos 094, 095). Only the rows named in this paragraph changed; no other row was re-verified.
 
 > **Trust rule.** This file is a map, not evidence. Every status row names its SOURCE and a VERIFY command or
 > location. Before acting on a row, or quoting it to Alex as fact, re-check it at the source. If the source
@@ -51,7 +52,7 @@ then 0 off-calendar gigs / 0 missed money or COI dates; then hours back.
 |---|---|---|---|---|
 | ☑ | 0.1 test instrument (`test:match`) | PASSED 10-03 | `spikes.md` row "0.1 `test:match` instrument" | — |
 | ☑ | 0.2 code: single writer, lease | done | HANDOFF header; plan §0.2 | — |
-| ☐ | 0.2 step 5: **start the Mac poller** | NOT started (`.env` `DRY_RUN=true`) | `spikes.md` row "0.2 step 4" | **Alex only. HARD GATE: never start it against real mail without his explicit yes** |
+| ☐ | 0.2 step 5: **start the Mac poller** | **Started once, DRY RUN only, 2026-10-14 evening PDT, with Alex's explicit yes (he chose "start it, poller included"); stopped 2026-10-16 when he stopped the server.** Observed (server log, `poller_state`): Gmail token refreshed fine at startup, the poller ran every 60 s, GigSalad music and business logins reported EXPIRED. It only reads mail newer than its cursor (set to the start time), so a lead that arrived before the start is never seen; `scripts/ingest-one.ts <gmail-id>` feeds one message through the same path. The row stays open: no real lead was polled end to end, S6 (overnight, catch-up) is still not run, and it is NOT running now. | `spikes.md` row "0.2 step 4" | **Alex only. HARD GATE: never start it against real mail without his explicit yes** |
 | ☐ | 0.3 `invalid_grant` ALERT half | not written (`alert.ts` can't deliver until Module 1) | `spikes.md` row "0.3 `/health` fields" | Claude, inside Module 1.7 |
 | ☑ | 0.3 other live defects, 0.4 migrations | done | `spikes.md` 0.3 rows; HANDOFF header | — |
 | ☐ | **0.5 port: 3 TO PORT, 0 BLOCKED** | TO PORT: R006 (own plan), R398 (Module 1), R403 (NP1/NP3/NP2 3-4h/NP duo prices still open). T4 reference lead R020–R025 PORTED and R329 NOT PORTED 2026-10-12 (plan `docs/plans/2026-10-11-feat-t4-reference-lead-plan.md`). Venues R081–R085, R087–R089, R405 PORTED 2026-10-11 (R085 La Valencia, R089 Scripps added later the same day, Alex). **Every venue sentence is to be rewritten by Alex after the venue-database data pull** (`docs/brainstorms/2026-10-11-venue-database-seed.md`) (private `~/Data` file; plan `docs/plans/2026-10-11-feat-venue-history-private-file-plan.md`) | `port-manifest.md`; count with **V1** below | Claude; **any new or changed price needs Alex's numbers** |
@@ -73,6 +74,8 @@ awk -F'|' '/^\| R[0-9]+ \|/{s=$5; gsub(/^ +| +$/,"",s); c[s]++} END{for(k in c) 
 ```
 
 ## Draft-quality work inside Phase 0 (2026-10-13..14; each row: what it does, source, what is open)
+
+*Cost visibility (2026-10-15):* every real API call now appends tokens to `logs/usage.jsonl` (gitignored; `src/claude.ts`), and `npx tsx scripts/usage-report.ts` sums it per day and model. The dollar column uses list prices written from memory (Sonnet $3 / $15 per million): check them before trusting it. First measurement: one made-up Yelp lead run through `src/index.ts` = 7 calls, 80,460 in / 6,320 out, about $0.34 (the gate failed 3 times; most of the cost is the two retries). Lines are not tagged with a lead id.
 
 | Cycle | State | Source | Still open |
 |---|---|---|---|
@@ -120,6 +123,8 @@ edits a quoted vague draft. The auto-send ramp must not include them until a mea
 |---|---|---|
 | Classifier puts the VENUE in `organization_name` (2/2 runs) → an NP2 in-kind line thanks the hotel | fix: `docs/plans/2026-10-09-fix-organization-name-is-the-venue-plan.md`; runs `docs/reviews/2026-10-09-org-venue-local-runs.md` | **FIXED and reviewed (built `e0ab871`..`bef0bf2`, 3/3 real runs null; Codex code review R1 GO both runs, `docs/reviews/2026-10-09-org-venue-codex-round1.md`; solution `docs/solutions/logic-errors/2026-10-10-organization-name-is-never-the-venue.md`).** Still open: a wrong NON-venue name, "St." vs "Saint" (pinned miss) |
 | **PF-Intel: CHECKED 2026-10-11 (Claude, Alex said drive it).** Production `https://pf-intel-production.up.railway.app` is up (`/health` healthy). Local `.env` is wrong twice: `PF_INTEL_API_URL` is Railway-internal (resolves only inside Railway), and its `PF_INTEL_SERVER_API_KEY` gets 401 (same stale key as `pf-intel/server/.env`). The key in Railway (proud-radiance → pf-intel) returns 200: hit for Hotel del Coronado, `found` false for a made-up venue. Every local run before this had no venue facts. **FIXED 2026-10-11 with Alex's yes:** `.env` now has the production URL and the Railway key (backup `.env.bak-2026-10-11`, gitignored; key copied from Railway without printing). Verified: `lookupVenueContext` hit for Hotel del Coronado, miss for a made-up venue; a full made-up Del lead ran with no `[venue-lookup]` warning | this row | done; if the key rotates in Railway, copy it again |
+| **Yelp portal login blocked** (2026-10-15): Yelp Biz answers the app's browser (headless and headed) with HTTP 403 and DataDome, and its 2-step email verification opens outside the automated session. Every Yelp lead needing portal enrichment is held. The one lead checked (Sophia) had NO hidden message text, so the real cost of the block is unmeasured | `todos/094-pending-p2-yelp-portal-login-blocked-by-bot-protection-and-2fa.md`; screenshot `logs/screenshots/` (gitignored) | Alex decides after a 10-20 lead sample |
+| **Yelp reply says "All rates include travel to Idyllwild"** on a San Diego lead, with prices ($650 / $850 / $1,200 / $1,600) that differ from the app's | `todos/095-pending-p2-yelp-reply-template-says-travel-to-idyllwild.md` | **Alex, in Yelp Biz settings; may affect every Yelp lead now.** `src/` never writes that town (grep 2026-10-15: only `src/yelp-parser.test.ts`) |
 | Classifier's T2/T3 call decides whether NP2 fires (first real texts: 0/3 priced) | local-runs record | watch in the ramp |
 | Real-lead false-hold rate of the price block unmeasured (6 runs, 3 texts) | solution doc `architecture/2026-10-09-app-writes-fixed-lines-model-writes-a-marker.md` | measure in the 20-lead ramp |
 | **Same lead, different price (2026-10-11):** one made-up Tom Ham's anniversary lead (50 guests, 3h solo) ran 7 times: 5 at T2 $895, 2 at T3 $1,200. The model's `stealth_premium` call flipped ("Tier B venue with 50 guests, meets the 50+ waterfront private buyout signal"); 50 sits exactly on the "50+" edge. A client's quote can depend on the run | `docs/reviews/2026-10-11-venue-history-local-runs.md` (F5 re-run, "Observed, out of scope") | **FIXED 2026-10-12** (Tier B cycle; `docs/solutions/architecture/2026-10-12-tier-b-venue-rules-from-facts-hold-with-both-prices.md`): at the four shared Tier B venues 100+ guests is premium, under 100 is held with both prices. Same-lead flips elsewhere (other venues' stealth signals) not measured |
@@ -131,7 +136,7 @@ edits a quoted vague draft. The auto-send ramp must not include them until a mea
 ## Critical path (the order sessions should pull from, unless Alex picks otherwise)
 
 1. Things only Alex can unblock, raised every session until done: **0.6 baseline**, **S2** (next GigSalad lead),
-   **S6** (a night, after the poller starts), ~~the PF-Intel URL check~~ (fixed 10-11).
+   **S6** (a night, after the poller starts), ~~the PF-Intel URL check~~ (fixed 10-11), **the Yelp reply template (todo 095)**.
 2. Claude: ~~S5~~ (passed 10-11); ~~venues~~ (ported 10-11); the **3 TO PORT** rows (R006 own plan, R398 Module 1, R403 prices need Alex's numbers); venue rows all PORTED (Alex rewrites every sentence after the venue-database pull).
 2b. **Define and score "draft quality done enough"** (`todos/087-...`): Alex sets the bar, Claude plans the scoring set and the
    numbers. Also open: a new route for the lead's own words, and the verifier anchor B2 passes through (HANDOFF Update 22).
