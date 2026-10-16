@@ -36,6 +36,13 @@ I read one full email myself (Jade, 2026-08-22): it holds the event type, hours,
    reach the model.
 4. Decide with Alex what a Yelp lead does at route time once it is no longer low confidence (the router still holds vague leads).
 
+## Status 2026-10-16: BUILT, awaiting Codex code review
+
+Plan `docs/plans/2026-10-16-fix-yelp-parser-reads-the-request-a-quote-email-plan.md` Revision 2 (plan reviews R1 and R2 both NO-GO; Alex chose to build with tests, no round 3). Code `2cfce4b`, test `1294619`.
+11 of 11 real emails now parse as complete; results in `docs/reviews/2026-10-16-yelp-parser-sample-run.md`. Also found and fixed: the parser stored the "I'm not interested"
+mark-as-replied link as `portalUrl` for every lead (D5). NOT done: the end-to-end dry run on a real lead (needs Alex's go), the Codex code review, and todo 097 (a held Yelp
+lead still shows as "Sent" on the dashboard).
+
 ## Owner and trigger
 
 Claude plans; Alex approves scope. Trigger: before the 20-lead ramp (Yelp is one of the main sources).

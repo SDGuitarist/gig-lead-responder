@@ -72,7 +72,7 @@ Sent to Alex Guillen Music / <business address>                                 
 <answer: one or more paragraphs>
 <LABEL ...> / <answer>
 <display name paragraph>                                                                (dropped)
-0 / 0 / 0                                                                               (three consecutive paragraphs, each exactly "0": END marker, required)
+0 / 4 / 0                                                                               (three consecutive paragraphs, each 1 to 3 digits, "0" on most mail: END marker, required)
 [Reply to ...](...) ...                                                                 (CTA, ignored)
 ```
 
@@ -80,7 +80,7 @@ Known labels (matched EXACTLY after trimming and case-folding, nothing fuzzy): d
 `Are there any other details you'd like to share?`; location `In what location do you need the service?`.
 
 The form is SUPPORTED, and the lead is `complete`, only when ALL hold; any failure leaves the lead on the legacy path (D3), never high:
-1. exactly one START marker and exactly one END marker (the first run of three `0` paragraphs after it), START before END;
+1. exactly one START marker and exactly one END marker (the first run of three counter paragraphs after it, each 1 to 3 digits: real mail also had `0,4,0` and `0,1,0`, found by the AFTER run), START before END;
 2. the date label occurs exactly once and the location label exactly once; the details label at most once; no label occurs twice; order is
    date, then details (if present), then location;
 3. every present label has a non-empty answer;
