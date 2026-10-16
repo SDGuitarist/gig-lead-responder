@@ -60,39 +60,14 @@ function htmlToText(html: string): string {
 }
 
 /**
- * ONE canonical form for every "is this a quote request" decision: zero-width and format characters removed, non-breaking and every other
- * whitespace (including line breaks left by removed inline tags) collapsed to one space, curly apostrophes straightened, lower-cased.
- * Code review round 1 F2: detection ran on raw text while the form parser normalized later, so "requested a<ZWSP> quote", a line break or
- * an inline tag inside the phrase skipped detection and the old capture stored the display name and footer.
- */
-function canonicalText(text: string): string {
-  return text
-    .replace(/[\u034f\u200b\u200c\u200d\u00ad\ufeff]/g, "")
-    .replace(/\u2019/g, "'")
-    .replace(/\s+/g, " ")
-    .trim()
-    .toLowerCase();
-}
-
-/**
- * Yelp's "requested a quote" notice (template request_a_quote_first_message_v4), as opposed to the older message and reply notices.
- * A marker counts by WHERE it sits, never as a substring (code review round 2: a client's sentence that quotes a form label or the heading is client
- * prose, and treating it as template structure replaced a genuine legacy message with the placeholder). Per canonical paragraph, any ONE of:
- *   - the paragraph STARTS with the notice's whole sentence: a name of at most three words, "requested a quote from <business> for a <service>.";
- *   - the paragraph IS, in full, the heading "You have a new ... request";
- *   - the paragraph IS, in full, one of the three form labels;
- * or the HTML carries the request_a_quote template metadata (template text, not client prose).
- * Normalization is the same for detection and parsing (canonicalText over toParagraphs), so a damaged sentence cannot slip past either.
+ * Is this a "requested a quote" notice, or a reply to one? Decided from the SUBJECT only (code review round 3, cap fired: three rounds each found
+ * another way that inferring this from the message TEXT, or from paragraphs rebuilt out of HTML, can be shaped by a client or by inline markup).
+ * Yelp's reply notices are the ones whose subject starts with "RE:"; the source validator already drops replies before this parser runs, and drops
+ * on the body marker "has replied to your message" too, so in production every message that reaches here is a quote request. The old message and
+ * reply format keeps the legacy capture below, selected by its "RE:" subject, so a client's words can never switch the path.
  */
 function isQuoteRequest(msg: GmailMessage): boolean {
-  const html = msg.bodyHtml || "";
-  if (/request_a_quote/i.test(html)) return true;
-  const labelTexts = Object.values(FORM_LABELS) as string[];
-  return [msg.bodyText || "", htmlToText(html)].some((text) =>
-    toParagraphs(text).map(canonicalText).some((p) =>
-      /^[\p{L}][\p{L}.'-]*(?: [\p{L}][\p{L}.'-]*){0,2} requested a quote from .{1,80}? for an? .{1,40}?\./u.test(p) || /^you have a new .{1,60}? request\.?$/.test(p) || labelTexts.includes(p),
-    ),
-  );
+  return !/^\s*re:\s/i.test(msg.subject || "");
 }
 
 /** "<Name> requested a quote from <business> for a <service>." -> validated name and service, or undefined. */

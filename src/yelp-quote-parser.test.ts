@@ -273,7 +273,7 @@ describe("code review round 1 findings (docs/reviews/2026-10-16-yelp-parser-code
 });
 
 describe("code review round 2 finding (docs/reviews/2026-10-16-yelp-parser-code-codex-round2.md): quoted client prose is not template structure", () => {
-  const legacy = (prose: string) => ({ bodyHtml: "", subject: "x", bodyText: `New Message from Kimberly\n\n${prose}\n\n| [ Respond Now ](https://example.com/x)` });
+  const legacy = (prose: string) => ({ bodyHtml: "", subject: "RE: Alex Guillen Music's response to Kimberly", bodyText: `New Message from Kimberly\n\n${prose}\n\n| [ Respond Now ](https://example.com/x)` });
   it("P2: a legacy message whose sentence quotes a form label keeps the client's text (not the placeholder)", () => {
     const l = parseYelpEmail(msg({}, legacy('You asked "When do you require this service?" The wedding is October 30 in Fallbrook. We need one hour.')));
     assert.ok(l.rawText.includes("wedding is October 30 in Fallbrook"), l.rawText);
@@ -287,18 +287,37 @@ describe("code review round 2 finding (docs/reviews/2026-10-16-yelp-parser-code-
     const l = parseYelpEmail(msg({}, legacy("My friend said he requested a quote from you last year. The wedding is October 30 in Fallbrook.")));
     assert.ok(l.rawText.includes("wedding is October 30 in Fallbrook"), l.rawText);
   });
-  it("P2 storage consequence: processLead stores the client's legacy text, not the placeholder", async () => {
+  it("P2 storage consequence (path chosen by subject since round 3): a lead-kind message (no RE:) is always the quote path, so processLead stores the placeholder or the form text, never text from a legacy-style capture", async () => {
     const cfg = { dryRun: true, autoSendEnabled: false, logPath: "/dev/null", edgeCaseBudgetThreshold: 3000 } as AutomationConfig;
-    const m = msg({}, { id: "1a13bd8fa0454396", ...legacy('You asked "When do you require this service?" The wedding is October 30 in Fallbrook. We need one hour.') });
+    const m = msg({}, { id: "1a13bd8fa0454396", bodyHtml: "", bodyText: 'You asked "When do you require this service?" The wedding is October 30 in Fallbrook. We need one hour.' });
     await processLead(m, cfg, {} as never, { fetchLeadDetails: async () => ({ success: false, fullMessage: "" }) } as never, {} as never, { runPipeline: (async () => { throw new Error("must not run"); }) as never });
     const { getLeadByMessageId } = await import("./db/leads.js");
     const row = getLeadByMessageId("1a13bd8fa0454396");
-    assert.ok(row && row.raw_email.includes("wedding is October 30 in Fallbrook"), row?.raw_email);
+    assert.ok(row); assert.equal(row!.raw_email, PLACEHOLDER);
   });
   it("positive controls: a standalone label paragraph, a standalone heading paragraph, and the sentence at the start of a paragraph still mark a quote request (placeholder)", () => {
     const text = (first: string, ...rest: string[]) => ({ bodyHtml: "", bodyText: [first, ...rest, "Jordan Thompson", FOOTER].join("\n\n") });
     assert.equal(parseYelpEmail(msg({}, text("Hello", DATE_Q, "tomorrow"))).rawText, PLACEHOLDER);
     assert.equal(parseYelpEmail(msg({}, text("Hello", "## You have a new musicians request.", "I sent you the timing"))).rawText, PLACEHOLDER);
     assert.equal(parseYelpEmail(msg({}, text("Jordan Thompson requested a\u200b quote from Alex Guillen Music for a musicians.", "I sent you the timing yesterday"))).rawText, PLACEHOLDER);
+  });
+});
+
+describe("code review round 3 (cap fired): the path is chosen by subject, never by message text (docs/reviews/2026-10-16-yelp-parser-code-codex-round3.md)", () => {
+  const inline = `<b><span>Jordan Thompson requested</span> <span>a quote</span></b><span> from Alex Guillen Music for a musicians.</span><p>I sent you the timing yesterday</p><p>Jordan Thompson</p><p>${FOOTER}</p>`;
+  it("undershoot: an HTML-only quote notice split by nested inline tags returns the placeholder, no display name, footer or tags", () => {
+    const l = parseYelpEmail(msg({}, { bodyText: "", bodyHtml: inline }));
+    assert.equal(l.rawText, PLACEHOLDER);
+  });
+  it("overshoot: a legacy HTML-only message quoting a label inside inline tags keeps the wedding text", () => {
+    const h = `<p>New Message from Kimberly</p><p>You asked <strong><span>${DATE_Q}</span></strong> The wedding is October 30 in Fallbrook. We need one hour.</p><a href="https://example.com/x">Respond Now</a>`;
+    const l = parseYelpEmail(msg({}, { subject: "RE: Alex Guillen Music's response to Kimberly", bodyText: "", bodyHtml: h }));
+    assert.ok(l.rawText.includes("wedding is October 30 in Fallbrook"), l.rawText);
+    assert.notEqual(l.rawText, PLACEHOLDER);
+  });
+  it("a client's words cannot change the path: quote-request text under a RE: subject stays legacy, and legacy-looking prose under a lead subject is the placeholder", () => {
+    assert.notEqual(parseYelpEmail(msg({}, { subject: "RE: x" })).rawText, PLACEHOLDER);
+    const lead = parseYelpEmail(msg({}, { bodyHtml: "", bodyText: "New Message from Kimberly\n\nThe wedding is October 30.\n\nRespond Now" }));
+    assert.equal(lead.rawText, PLACEHOLDER);
   });
 });
