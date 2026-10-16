@@ -59,14 +59,36 @@ function htmlToText(html: string): string {
   return decodeEntities(html.replace(/<(script|style)[\s\S]*?<\/\1>/gi, "").replace(/<[^>]+>/g, "\n"));
 }
 
-/** Yelp's "requested a quote" notice (template request_a_quote_first_message_v4), as opposed to the older message and reply notices. */
+/**
+ * ONE canonical form for every "is this a quote request" decision: zero-width and format characters removed, non-breaking and every other
+ * whitespace (including line breaks left by removed inline tags) collapsed to one space, curly apostrophes straightened, lower-cased.
+ * Code review round 1 F2: detection ran on raw text while the form parser normalized later, so "requested a<ZWSP> quote", a line break or
+ * an inline tag inside the phrase skipped detection and the old capture stored the display name and footer.
+ */
+function canonicalText(text: string): string {
+  return text
+    .replace(/[\u034f\u200b\u200c\u200d\u00ad\ufeff]/g, "")
+    .replace(/\u2019/g, "'")
+    .replace(/\s+/g, " ")
+    .trim()
+    .toLowerCase();
+}
+
+/**
+ * Yelp's "requested a quote" notice (template request_a_quote_first_message_v4), as opposed to the older message and reply notices.
+ * Any ONE marker is enough, so a notice whose sentence is damaged is still caught by its heading or its form labels:
+ * a false positive costs a placeholder, a false negative stores the display name and footer.
+ */
 function isQuoteRequest(msg: GmailMessage): boolean {
   const html = msg.bodyHtml || "";
-  return /requested a quote from/i.test(msg.bodyText || "") || /requested a quote from/i.test(htmlToText(html)) || /request_a_quote/i.test(html);
+  const texts = [canonicalText(msg.bodyText || ""), canonicalText(htmlToText(html))];
+  const labelTexts = Object.values(FORM_LABELS);
+  return /request_a_quote/i.test(html) || texts.some((t) => /requested a quote from/.test(t) || /you have a new .{1,60}? request/.test(t) || labelTexts.some((l) => t.includes(l)));
 }
 
 /** "<Name> requested a quote from <business> for a <service>." -> validated name and service, or undefined. */
-function readQuoteSentence(first: string): { name: string; service: string } | undefined {
+function readQuoteSentence(raw: string): { name: string; service: string } | undefined {
+  const first = raw.replace(/\s+/g, " ").trim();
   const m = first.match(/^(.{1,40}?) requested a quote from .+? for an? (.{1,40}?)\./);
   if (!m || !NAME_CHARS.test(m[1]) || !NAME_CHARS.test(m[2])) return undefined;
   return { name: m[1].trim(), service: m[2].trim() };
@@ -95,19 +117,28 @@ function parseQuoteForm(bodyText: string): { name: string; text: string } | unde
   const starts = paras.flatMap((p, i) => (/^you have a new .+ request\.?$/i.test(p) ? [i] : []));
   if (starts.length !== 1) return undefined;
   const start = starts[0];
-  let end = -1;
-  for (let i = start + 1; i + 2 < paras.length; i++) {
-    // Yelp's three counters are small whole numbers ("0","0","0" on most mail, "0","4","0" and "0","1","0" seen on real mail).
-    if (/^\d{1,3}$/.test(paras[i]) && /^\d{1,3}$/.test(paras[i + 1]) && /^\d{1,3}$/.test(paras[i + 2])) { end = i; break; }
+  // Yelp's three counters are small whole numbers ("0","0","0" on most mail, "0","4","0" and "0","1","0" seen on real mail). The END marker is the
+  // ONLY run of consecutive counter-like paragraphs after START, and that run is exactly three long. A client who writes three numbers, or who forges
+  // a label, a name and counters inside an answer, makes a second run (code review round 1 F1) and the form is ambiguous.
+  const isCounter = (p: string) => /^\d{1,3}$/.test(p);
+  const runs: Array<{ at: number; len: number }> = [];
+  for (let i = start + 1; i < paras.length; i++) {
+    if (!isCounter(paras[i])) continue;
+    let j = i;
+    while (j < paras.length && isCounter(paras[j])) j++;
+    if (j - i >= 3) runs.push({ at: i, len: j - i });
+    i = j;
   }
-  if (end < 0) return undefined;
+  if (runs.length !== 1 || runs[0].len !== 3) return undefined;
+  const end = runs[0].at;
 
   const labelOf = (p: string): keyof typeof FORM_LABELS | undefined => {
     const key = p.replace(/\u2019/g, "'").trim().toLowerCase();
     return (Object.keys(FORM_LABELS) as Array<keyof typeof FORM_LABELS>).find((k) => FORM_LABELS[k] === key);
   };
   const found: Array<{ kind: keyof typeof FORM_LABELS; at: number }> = [];
-  for (let i = start + 1; i < end; i++) {
+  // Every paragraph after START counts, not only those before END: a known label after the END marker is a second form, so ambiguous.
+  for (let i = start + 1; i < paras.length; i++) {
     const kind = labelOf(paras[i]);
     if (kind) found.push({ kind, at: i });
   }

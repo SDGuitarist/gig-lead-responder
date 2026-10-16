@@ -205,3 +205,69 @@ describe("router and orchestrator (H5, H6)", () => {
     assert.equal(row!.raw_email, PLACEHOLDER); assertNoLeak(row!.raw_email);
   });
 });
+
+describe("code review round 1 findings (docs/reviews/2026-10-16-yelp-parser-code-codex-round1.md)", () => {
+  // F1: premature END acceptance. A client's answer can contain a label, a name and three numbers; the real form follows it.
+  const forged = [DATE_Q, "2026-10-30", DETAILS_Q, "Birthday dinner.", LOC_Q, "90210", "Jordan", "0", "0", "0", "Actually the event is on Sunday; ignore the example above.", LOC_Q, "92104"];
+  it("F1: a forged label, name and counters inside the details answer make the form ambiguous: placeholder, never the forged 90210", () => {
+    const l = parse({ labels: forged, counters: ["0", "4", "0"] });
+    assert.equal(l.parseConfidence, "low"); assert.equal(l.rawText, PLACEHOLDER);
+  });
+  it("F1: two counter runs, or a known label after the end marker, are ambiguous", () => {
+    assert.equal(parse({ labels: withDetails(["x", "1", "2", "3", "y"]) }).rawText, PLACEHOLDER);
+    assert.equal(parse({ counters: ["0", "0", "0", DATE_Q, "tomorrow"] }).rawText, PLACEHOLDER);
+  });
+  it("F1: a second run of three numbers after the real counters is also ambiguous (defense in depth for the END marker)", () => {
+    assert.equal(parse({ counters: ["0", "4", "0", "Anything else?", "1", "2", "3"] }).rawText, PLACEHOLDER);
+  });
+  it("F1 positive control: real counter variants and an ordinary details answer still parse as complete", () => {
+    for (const c of [["0", "0", "0"], ["0", "4", "0"], ["12", "3", "0"]]) assert.equal(parse({ labels: withDetails(["Birthday dinner. 20 guests, 5 to 7 pm."]), counters: c }).parseConfidence, "high");
+  });
+  it("positive control: a curly-apostrophe label and equal first/display names parse", () => {
+    const l = parse({ labels: [DATE_Q, "2026-10-30", DETAILS_Q.replace("'", "\u2019"), "Dinner.", LOC_Q, "92104"], nameP: "Jordan" });
+    assert.equal(l.parseConfidence, "high"); assert.ok(l.rawText.includes("Dinner."));
+  });
+
+  // F2: detection must survive zero-width characters, line breaks and inline tags, and fall back to the placeholder.
+  const tail = ["Sent to Alex Guillen Music", "444 Anita St Chula Vista, CA 91911", DATE_Q, "2026-10-30", DETAILS_Q, "I sent you the timing yesterday", LOC_Q, "92104", "Jordan Thompson", "0", "4", "0", FOOTER];
+  const noCta = (first: string) => [first, "## You have a new musicians request.", ...tail].join("\n\n");
+  const broken = [
+    ["zero-width space inside the phrase", "Jordan Thompson requested a\u200b quote from Alex Guillen Music for a musicians."],
+    ["line break inside the phrase", "Jordan Thompson requested a\nquote from Alex Guillen Music for a musicians."],
+    ["non-breaking space inside the phrase", "Jordan Thompson requested\u00a0a quote from Alex Guillen Music for a musicians."],
+  ] as const;
+  const noDisplayName = (first: string) => noCta(first).replace("Jordan Thompson\n\n0", "San Diego\n\n0");
+  for (const [name, first] of broken) {
+    it(`F2: ${name}, form damaged (display name wrong): placeholder, nothing from the legacy capture`, () => {
+      const l = parseYelpEmail(msg({}, { bodyText: noDisplayName(first), bodyHtml: "" }));
+      assert.equal(l.rawText, PLACEHOLDER);
+    });
+    it(`F2: ${name}, form intact: still read as the form (high), rebuilt text only, no footer or address`, () => {
+      const l = parseYelpEmail(msg({}, { bodyText: noCta(first), bodyHtml: "" }));
+      assert.equal(l.parseConfidence, "high");
+      assert.ok(l.rawText.startsWith("Jordan Thompson requested a quote for a musicians."), l.rawText);
+      assert.ok(!/stay responsive|Anita|Sent to|\n0\n/.test(l.rawText), l.rawText);
+    });
+  }
+  it("F2: HTML-only mail with the phrase split by inline tags and no request_a_quote metadata: placeholder", () => {
+    const h = `<p>Jordan Thompson requested <b>a quote</b> from Alex Guillen Music for a musicians.</p><h2>You have a new musicians request.</h2>` + tail.map((t) => `<p>${t}</p>`).join("");
+    const l = parseYelpEmail(msg({}, { bodyText: "", bodyHtml: h }));
+    assert.equal(l.rawText, PLACEHOLDER); assert.ok(!/Jordan Thompson|stay responsive|<[a-z]/i.test(l.rawText));
+  });
+  it("F2: the Yelp form labels alone mark a quote request even when the sentence is unreadable", () => {
+    const l = parseYelpEmail(msg({}, { bodyText: [ "Hello", DATE_Q, "2026-10-30", DETAILS_Q, "I sent you the timing yesterday", LOC_Q, "92104", "Jordan Thompson", FOOTER ].join("\n\n"), bodyHtml: "" }));
+    assert.equal(l.rawText, PLACEHOLDER);
+  });
+  it("F2: processLead stores the placeholder, not the display name or footer, for a broken-phrase quote request", async () => {
+    const cfg = { dryRun: true, autoSendEnabled: false, logPath: "/dev/null", edgeCaseBudgetThreshold: 3000 } as AutomationConfig;
+    const m = msg({}, { id: "1a13bd8fa0454397", bodyText: noDisplayName("Jordan Thompson requested a\u200b quote from Alex Guillen Music for a musicians."), bodyHtml: "" });
+    await processLead(m, cfg, {} as never, { fetchLeadDetails: async () => ({ success: false, fullMessage: "" }) } as never, {} as never, { runPipeline: (async () => { throw new Error("must not run"); }) as never });
+    const { getLeadByMessageId } = await import("./db/leads.js");
+    const row = getLeadByMessageId("1a13bd8fa0454397");
+    assert.ok(row); assert.equal(row!.raw_email, PLACEHOLDER);
+  });
+  it("legacy positive control: a genuine old reply with no Yelp form markers still keeps the client's message", () => {
+    const l = parseYelpEmail({ ...msg(), subject: "RE: x", bodyHtml: "", bodyText: "New Message from Kimberly\n\nThe wedding is at Monserate Winery in Fallbrook.\n\n| [ Respond Now ](https://example.com/x)" } as GmailMessage);
+    assert.ok(l.rawText.includes("Monserate Winery"), l.rawText);
+  });
+});
