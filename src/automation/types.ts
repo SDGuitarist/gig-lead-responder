@@ -27,7 +27,7 @@ export interface GigSaladLead extends ParsedLeadBase {
 export interface YelpLead extends ParsedLeadBase {
   platform: "yelp";
   portalUrl: string;
-  enriched: boolean; // false after email parse, true after portal read
+  enriched: boolean; // true when the lead text is COMPLETE: the quote-request form parsed whole, or the portal was read. false: held, text not complete
 }
 
 export interface SquarespaceLead extends ParsedLeadBase {

@@ -49,6 +49,12 @@ export function routeLead(
     reasons.push("Yelp lead not enriched from portal — truncated message");
   }
 
+  // Yelp: the portal reply (submitReply) is unverified and the Yelp login is blocked (todo 094), so no Yelp lead may auto-send.
+  // Every Yelp lead that reaches here is held for Alex (plan 2026-10-16, D4). Lifting this is Module 1 work with Alex's yes.
+  if (lead.platform === "yelp") {
+    reasons.push("Yelp portal reply not verified live (todo 094): Alex sends from Yelp");
+  }
+
   // Missing portalUrl for portal-based platforms — ALWAYS hold.
   // Without the URL, the sender cannot submit the reply. Catch this
   // at the routing layer so it doesn't silently fall through to a
