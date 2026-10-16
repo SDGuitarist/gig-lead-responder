@@ -76,14 +76,23 @@ function canonicalText(text: string): string {
 
 /**
  * Yelp's "requested a quote" notice (template request_a_quote_first_message_v4), as opposed to the older message and reply notices.
- * Any ONE marker is enough, so a notice whose sentence is damaged is still caught by its heading or its form labels:
- * a false positive costs a placeholder, a false negative stores the display name and footer.
+ * A marker counts by WHERE it sits, never as a substring (code review round 2: a client's sentence that quotes a form label or the heading is client
+ * prose, and treating it as template structure replaced a genuine legacy message with the placeholder). Per canonical paragraph, any ONE of:
+ *   - the paragraph STARTS with the notice's whole sentence: a name of at most three words, "requested a quote from <business> for a <service>.";
+ *   - the paragraph IS, in full, the heading "You have a new ... request";
+ *   - the paragraph IS, in full, one of the three form labels;
+ * or the HTML carries the request_a_quote template metadata (template text, not client prose).
+ * Normalization is the same for detection and parsing (canonicalText over toParagraphs), so a damaged sentence cannot slip past either.
  */
 function isQuoteRequest(msg: GmailMessage): boolean {
   const html = msg.bodyHtml || "";
-  const texts = [canonicalText(msg.bodyText || ""), canonicalText(htmlToText(html))];
-  const labelTexts = Object.values(FORM_LABELS);
-  return /request_a_quote/i.test(html) || texts.some((t) => /requested a quote from/.test(t) || /you have a new .{1,60}? request/.test(t) || labelTexts.some((l) => t.includes(l)));
+  if (/request_a_quote/i.test(html)) return true;
+  const labelTexts = Object.values(FORM_LABELS) as string[];
+  return [msg.bodyText || "", htmlToText(html)].some((text) =>
+    toParagraphs(text).map(canonicalText).some((p) =>
+      /^[\p{L}][\p{L}.'-]*(?: [\p{L}][\p{L}.'-]*){0,2} requested a quote from .{1,80}? for an? .{1,40}?\./u.test(p) || /^you have a new .{1,60}? request\.?$/.test(p) || labelTexts.includes(p),
+    ),
+  );
 }
 
 /** "<Name> requested a quote from <business> for a <service>." -> validated name and service, or undefined. */

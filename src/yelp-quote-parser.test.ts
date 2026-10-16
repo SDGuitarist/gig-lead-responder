@@ -271,3 +271,34 @@ describe("code review round 1 findings (docs/reviews/2026-10-16-yelp-parser-code
     assert.ok(l.rawText.includes("Monserate Winery"), l.rawText);
   });
 });
+
+describe("code review round 2 finding (docs/reviews/2026-10-16-yelp-parser-code-codex-round2.md): quoted client prose is not template structure", () => {
+  const legacy = (prose: string) => ({ bodyHtml: "", subject: "x", bodyText: `New Message from Kimberly\n\n${prose}\n\n| [ Respond Now ](https://example.com/x)` });
+  it("P2: a legacy message whose sentence quotes a form label keeps the client's text (not the placeholder)", () => {
+    const l = parseYelpEmail(msg({}, legacy('You asked "When do you require this service?" The wedding is October 30 in Fallbrook. We need one hour.')));
+    assert.ok(l.rawText.includes("wedding is October 30 in Fallbrook"), l.rawText);
+    assert.notEqual(l.rawText, PLACEHOLDER);
+  });
+  it("P2: a legacy message whose sentence quotes the form heading keeps the client's text", () => {
+    const l = parseYelpEmail(msg({}, legacy('You wrote "you have a new musicians request" earlier. The wedding is October 30 in Fallbrook.')));
+    assert.ok(l.rawText.includes("wedding is October 30 in Fallbrook"), l.rawText);
+  });
+  it("P2: a legacy message quoting the phrase 'requested a quote from' mid-sentence keeps its text", () => {
+    const l = parseYelpEmail(msg({}, legacy("My friend said he requested a quote from you last year. The wedding is October 30 in Fallbrook.")));
+    assert.ok(l.rawText.includes("wedding is October 30 in Fallbrook"), l.rawText);
+  });
+  it("P2 storage consequence: processLead stores the client's legacy text, not the placeholder", async () => {
+    const cfg = { dryRun: true, autoSendEnabled: false, logPath: "/dev/null", edgeCaseBudgetThreshold: 3000 } as AutomationConfig;
+    const m = msg({}, { id: "1a13bd8fa0454396", ...legacy('You asked "When do you require this service?" The wedding is October 30 in Fallbrook. We need one hour.') });
+    await processLead(m, cfg, {} as never, { fetchLeadDetails: async () => ({ success: false, fullMessage: "" }) } as never, {} as never, { runPipeline: (async () => { throw new Error("must not run"); }) as never });
+    const { getLeadByMessageId } = await import("./db/leads.js");
+    const row = getLeadByMessageId("1a13bd8fa0454396");
+    assert.ok(row && row.raw_email.includes("wedding is October 30 in Fallbrook"), row?.raw_email);
+  });
+  it("positive controls: a standalone label paragraph, a standalone heading paragraph, and the sentence at the start of a paragraph still mark a quote request (placeholder)", () => {
+    const text = (first: string, ...rest: string[]) => ({ bodyHtml: "", bodyText: [first, ...rest, "Jordan Thompson", FOOTER].join("\n\n") });
+    assert.equal(parseYelpEmail(msg({}, text("Hello", DATE_Q, "tomorrow"))).rawText, PLACEHOLDER);
+    assert.equal(parseYelpEmail(msg({}, text("Hello", "## You have a new musicians request.", "I sent you the timing"))).rawText, PLACEHOLDER);
+    assert.equal(parseYelpEmail(msg({}, text("Jordan Thompson requested a\u200b quote from Alex Guillen Music for a musicians.", "I sent you the timing yesterday"))).rawText, PLACEHOLDER);
+  });
+});
