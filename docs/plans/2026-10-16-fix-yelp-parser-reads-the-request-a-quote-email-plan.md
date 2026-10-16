@@ -1,7 +1,7 @@
 ---
 title: "fix: the Yelp parser reads an email format Yelp no longer sends, so every Yelp lead is held with no text"
 date: 2026-10-16
-status: plan, Revision 1 (plan review R1 NO-GO 0 P1 / 3 P2 / 1 P3, all answered: docs/reviews/2026-10-16-yelp-parser-plan-codex-round1.md)
+status: plan, Revision 2 (plan review R1 NO-GO 0 P1 / 3 P2 / 1 P3 answered by Revision 1; R2 NO-GO 0 P1 / 2 P2 answered by Revision 2; Alex chose "fix both, build with tests, no round 3" on 2026-10-16; the tests are the executable check and Codex reviews the CODE)
 branch: feat/hub-phase0
 ---
 
@@ -84,10 +84,17 @@ The form is SUPPORTED, and the lead is `complete`, only when ALL hold; any failu
 2. the date label occurs exactly once and the location label exactly once; the details label at most once; no label occurs twice; order is
    date, then details (if present), then location;
 3. every present label has a non-empty answer;
-4. the paragraph immediately before the END marker is the display-name paragraph: one line, at most 40 characters, letters, spaces, `.`, `'`, `-`
-   only; it is dropped. The location answer is the paragraphs between the location label and that name paragraph and MUST be exactly one
+4. the paragraph immediately before the END marker is the display-name paragraph, and it is accepted as that ONLY if it is one line of at most 40
+   characters (letters, spaces, `.`, `'`, `-`) AND, compared case-insensitively, it equals or begins with the name taken from the first sentence ("Jade S."
+   begins with "Jade"; "Sophia" equals "Sophia"). A paragraph that merely looks like a name ("San Diego") fails this, so a missing display name makes the lead fall
+   back (answers R2 P2-1); it is dropped when accepted. The location answer is the paragraphs between the location label and that name paragraph and MUST be exactly one
    paragraph of at most 80 characters (a zip or a short place);
 5. the first paragraph matches `^(.{1,40}?) requested a quote from .+? for an? (.{1,40}?)\.` with the name made of letters, spaces, `.`, `'`, `-`.
+
+What `high` guarantees, stated narrowly: the date and location answers exist, and nothing outside the span from the first known label to the display-name
+paragraph (the address, link paragraphs, display name, counters, CTA, footer) enters `rawText`. It does NOT guarantee that every paragraph inside an answer was
+typed by the client: a fourth form question Yelp might add between known labels is kept, in order, as part of the preceding answer (it is Yelp form text inside the
+span, not a leak); a fourth question after the location label makes the location answer more than one paragraph and the lead falls back. Pinned by E10.
 
 Everything between two known labels is the earlier label's answer, so a client paragraph such as "Is Saturday okay?", or two paragraphs, stays
 inside the details answer; a line that merely ends in `?` is NEVER a label. A client who types a known label exactly makes that label occur twice, so
@@ -98,10 +105,17 @@ D2. **The text the pipeline sees** = `"<Name> requested a quote for a <service>.
 email) followed by each `label` / `answer` pair, blank-line separated. NOT included, by construction (only label-delimited answers and the rebuilt
 sentence are used): the business address, the display-name paragraph, the counters, link paragraphs, footer, any URL.
 
-D3. **Complete versus legacy (answers P2-2).** When D1 holds the lead is `parseConfidence: "high"`, `enriched: true`. When it does not, the parser runs
-the EXISTING code path unchanged: `extractClientName` and `extractTruncatedMessage`, `low`, `enriched: false`, the old warning, and the placeholder
-only when that legacy path captures nothing (as today). So the old reply-shaped fixture still returns the client's message. `enriched` keeps its name;
-its meaning becomes "the lead text is complete" (comment in `types.ts`).
+D3. **Complete, safe fallback, and legacy (answers R1 P2-2 and R2 P2-2).** When D1 holds the lead is `parseConfidence: "high"`, `enriched: true`. When it
+does not, three cases, decided in this order:
+ (a) **The message is a quote request** (its text, or its HTML with tags stripped, contains `requested a quote from`, or the HTML carries
+     `request_a_quote`): NO email text is kept. `rawText` is the fixed placeholder "(Yelp quote request: form not recognized, held for Alex)", `low`, `enriched: false`,
+     `clientName` only if the first-sentence name validates. This covers HTML-only mail and any quote request that fails D1, so a client sentence such as "I sent you
+     the timing yesterday" cannot start the old capture and drag in the display name, address or footer. SQLite stores `rawText` before the low-confidence exit
+     (`orchestrator.ts:96`), so the placeholder is what is stored.
+ (b) **Not a quote request, `bodyText` present:** the EXISTING legacy path, byte-identical (`extractClientName`, `extractTruncatedMessage`, `low`, `enriched: false`, the
+     old warning, the placeholder only if it captures nothing). This is what keeps the genuine old reply fixture's client message (`yelp-parser.test.ts:79`).
+ (c) **Not a quote request, `bodyText` empty:** the legacy path runs on `bodyHtml` with tags stripped and entities decoded first, so tags cannot defeat its stop rule.
+`enriched` keeps its name; its meaning becomes "the lead text is complete" (comment in `types.ts`).
 
 D4. **Router: an explicit Yelp hold, and its limit (answers P2-3).** Add one mandatory hold reason for every Yelp lead that reaches `routeLead`:
 "Yelp portal reply not verified live (todo 094): Alex sends from Yelp". It keeps a Yelp lead out of auto-send while `submitReply` is unproven; low-confidence
@@ -134,7 +148,7 @@ the poller's forced dry run; every pipeline prompt; the portal client; `submitRe
 
 1. **What exactly is changing?** `src/automation/parsers/yelp.ts` (the D1 contract, completeness, `leads_center` path), one router hold reason, a comment in
    `src/automation/types.ts`, `scripts/ingest-one.ts` (`--parse-only`), tests with fixtures that copy the REAL line structure with invented names and text.
-2. **What must not change?** See the section above. Plus: the legacy path's output for any input that fails D1 is byte-identical to today's.
+2. **What must not change?** See the section above. Plus: for a non-quote-request message with `bodyText`, the legacy path's output is byte-identical to today's (case (b)).
 3. **How will we know it worked?** The EARS tests below; the 11-message baseline BEFORE the change and the same run AFTER it, with complete extracted
    answers inspected; then, with Alex's go, one dry-run ingest of a future-dated real lead.
 4. **Most likely way this plan is wrong?** (a) A form shape I have not read: I have read two emails in full; the sample run reads all 11 first and a
@@ -171,30 +185,39 @@ Happy path
   stays `kind: "reply"`.
 
 Error cases (each falls back to the legacy path: `low`, `enriched: false`, never `high`)
-- E1. WHEN the email is the old reply-shaped fixture THE SYSTEM SHALL return exactly today's output (the client's message captured, low, enriched false);
-  every existing test passes unchanged. WHEN the legacy path captures nothing THE SYSTEM SHALL use the placeholder.
+- E1. WHEN the email is the old reply-shaped fixture (not a quote request, `bodyText` present) THE SYSTEM SHALL return exactly today's output (the client's message
+  captured, low, enriched false); every existing test passes unchanged. WHEN the legacy path captures nothing THE SYSTEM SHALL use the old placeholder.
 - E2. WHEN a required label (date or location) is missing, duplicated, out of order, or has an empty answer.
 - E3. WHEN the START marker, the END marker (three `0` paragraphs), or the display-name paragraph is missing, or the display-name paragraph is longer than 40
   characters or has other characters.
 - E4. WHEN the location answer is two paragraphs, empty, or longer than 80 characters.
 - E5. WHEN the mail is HTML-only (empty `bodyText`), even if the HTML holds the same words.
-- E6. WHEN a details answer contains a paragraph equal to a known label THE SYSTEM SHALL fall back (a duplicate label), and WHEN it contains "Is Saturday
-  okay?" as its own paragraph or a question mark mid-sentence, or two paragraphs, THE SYSTEM SHALL keep the whole answer and stay `high`.
+- E6. WHEN any known label occurs twice or out of order (including a client paragraph equal to a label) THE SYSTEM SHALL fall back, and WHEN a details answer contains
+  "Is Saturday okay?" as its own paragraph or a question mark mid-sentence, or two paragraphs, THE SYSTEM SHALL keep the whole answer and stay `high`.
 - E7. WHEN an answer contains a URL, a markdown link or a passwordless login URL THE SYSTEM SHALL remove it from `rawText`.
 - E8. WHEN `return_url` is any other path THE SYSTEM SHALL leave `portalUrl` empty.
+- E10. WHEN the display name is missing and the location is followed by a second short paragraph ("92104", "San Diego", then the counters) THE SYSTEM SHALL fall back;
+  WHEN a fourth form question sits between the details and location labels THE SYSTEM SHALL stay `high` with its paragraphs in order and no address, name or footer;
+  WHEN a fourth question sits after the location label THE SYSTEM SHALL fall back.
+- E11. WHEN the message is a quote request that fails D1, or is HTML-only, THE SYSTEM SHALL return the fixed placeholder as `rawText` and none of: the display name, the
+  business address, footer text, HTML tags; this holds when the client's own text contains "sent you", "new message" or "wrote:" (a synthetic HTML-only fixture with
+  "I sent you the timing yesterday", reproduced as a failure on the existing parser 2026-10-16).
+- E12. WHEN `processLead` receives a quote request that fails D1 THE SYSTEM SHALL store the placeholder, not email text, in the lead row's `raw_email`.
+- E13. WHEN the mail is not a quote request, has an empty `bodyText`, and its `bodyHtml` holds the old reply shape THE SYSTEM SHALL strip tags before the legacy capture.
 - E9. (negative assertions on every supported fixture) `rawText` never contains the token, `passwordless`, "Anita St", the business name line, the footer
   text, a bare `0` line, or the display-name.
 
 Mutation checks (each test fails if the named change is made; recorded by running them): H1 (drop the name-paragraph rule: the name appears); H2 (ignore
 the details label: the answer vanishes); H4 (return the login URL: the token appears); E1 (always parse as complete: the legacy fixture turns high); E6
-(split on any line ending in `?`: the client question starts a pair); H5 (delete the router reason); H6 (remove the `enriched` skip: the portal is called).
+(split on any line ending in `?`: the client question starts a pair); E10 (accept any short paragraph as the display name: "San Diego" is accepted); E11 (use the
+legacy path for a failed quote request: the footer comes back); H5 (delete the router reason); H6 (remove the `enriched` skip: the portal is called).
 
 ## Verification Commands
 
 - `node scripts/run-tests.mjs --match yelp` passes; `npm test` shows 0 fail (baseline 1143 pass, 0 fail, 1 skip at `882dfea`); `npx tsc --noEmit` exits 0.
 - BEFORE the parser change (step 2): `npx tsx scripts/ingest-one.ts <id> --parse-only` for each id in the manifest; record the current confidence and text
   shape per id (expected: every one low, the text empty or a placeholder for the quote-request format).
-- AFTER (step 6): the same on all 11. Expected: every id either `high` with the complete answers matching the email's form field by field, or `low` with a
+- AFTER (step 6): the same on all 11. Expected: every id either `high` with the complete answers matching the email's form field by field, or `low` carrying only the placeholder, with a
   stated reason; Sophia has no details answer; Jade's details contain "birthday party". An unexpected `low` is investigated, not tuned away.
 - Leak check unchanged: `npx tsx scripts/check-venue-history.ts` exit 0.
 
@@ -226,7 +249,7 @@ the details label: the answer vanishes); H4 (return the login URL: the token app
 - **Hardest decision:** how strict the form contract is. Strict (exact labels, three-`0` end marker, one-paragraph location, every rule a fallback) loses a
   lead to the legacy hold when Yelp changes its template; loose guesses and can put a client's words in the wrong field. Chose strict: a fallback is today's
   behavior, a wrong field is a new one.
-- **Rejected:** treating any line ending in `?` as a question (Codex P2-1); the placeholder for the old reply fixture (P2-2, my wrong assumption); claiming the
+- **Rejected:** treating any line ending in `?` as a question (Codex R1 P2-1); the placeholder for the old reply fixture (R1 P2-2, my wrong assumption); a third plan review (Alex chose to build with tests: the findings are about runtime behavior, which the tests execute); a name-shaped tail check (R2 P2-1: it accepts "San Diego"); claiming the
   dashboard shows a hold (P2-3); repairing the portal login; rewinding the poller cursor; letting the model parse the form.
 - **Least confident:** the form shapes I have not read: two emails in full, nine from a helper. The BEFORE/AFTER run on all 11 is steps 2 and 6, and a shape the
   contract rejects stays on the legacy path and is listed.
