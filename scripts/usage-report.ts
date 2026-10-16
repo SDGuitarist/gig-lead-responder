@@ -1,5 +1,7 @@
 // Adds up logs/usage.jsonl (written by src/claude.ts) per day and model.
 // Usage: npx tsx scripts/usage-report.ts [path]
+// Not counted: scripts that call setClaudeRequesterForTests with their own requester (the measurement and controls scripts) bypass
+// the logger in src/claude.ts, so their spend is missing here. The Anthropic Console is the only full total.
 // PRICES are list prices in USD per million tokens, written from memory. Check them against the Anthropic pricing page.
 import { readFileSync } from "node:fs";
 
