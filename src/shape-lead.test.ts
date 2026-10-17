@@ -71,3 +71,17 @@ describe("shapeLead — done_reason", () => {
     assert.equal(shaped.done_reason, "review-only: would-auto-send via gigsalad");
   });
 });
+
+describe("shapeLead hold_reason (todo 097)", () => {
+  it("A1 returns the stored hold reason", () => {
+    const shaped = shapeLead(makeLeadRecord({ status: "sent", hold_reason: "Yelp portal reply not verified live (todo 094): Alex sends from Yelp" }));
+    assert.equal(shaped.hold_reason, "Yelp portal reply not verified live (todo 094): Alex sends from Yelp");
+  });
+
+  it("A1 returns null when the row has none, and when the field is missing", () => {
+    assert.equal(shapeLead(makeLeadRecord({ hold_reason: null })).hold_reason, null);
+    const lead = makeLeadRecord();
+    delete (lead as any).hold_reason;
+    assert.equal(shapeLead(lead).hold_reason, null);
+  });
+});
