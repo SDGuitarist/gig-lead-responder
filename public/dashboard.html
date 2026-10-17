@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>GigLead — Lead Queue</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/dashboard.css?v=5">
+<link rel="stylesheet" href="/dashboard.css?v=6">
 </head>
 <body>
 
@@ -604,7 +604,7 @@
     var html = '<div class="detail-inner review-shell">' +
       '<div class="review-header"><div>' + priorityChipHTML(l) +
       '<h2 class="serif">Review ' + esc(l.client_name || 'this lead') + '</h2>' +
-      '<p>' + esc(l.event_type || 'Event inquiry') + (l.event_date ? ' · ' + fmtDate(l.event_date) : '') + '</p></div>' +
+      '<p>' + esc(l.event_type || 'Event inquiry') + (l.event_date ? ' · ' + fmtDate(l.event_date) : '') + '</p>' + holdNoticeHTML(l) + '</div>' +
       '<div class="confidence-summary ' + scoreClass(l.confidence_score || 0) + '"><span class="confidence-score">' + (l.confidence_score != null ? l.confidence_score : '—') + '</span><div><strong>' + esc(confidence.title) + '</strong><span>' + esc(confidence.body) + '</span></div></div></div>';
 
     // Gut check bar
@@ -726,13 +726,31 @@
     return html;
   }
 
+  /* ── Held leads (todo 097) ───────────────────────────────── */
+  // A held lead is stored as status 'sent' with the router's reasons in hold_reason. It must not read as finished.
+
+  function isHeld(l) {
+    return l.status === 'sent' && typeof l.hold_reason === 'string' && l.hold_reason !== '';
+  }
+
+  function statusDisplay(l) {
+    if (isHeld(l)) return { label: 'Held', css: 'held' };
+    return STATUS_DISPLAY[l.status] || { label: esc(l.status), css: '' };
+  }
+
+  // The reason is only ever element text (escaped), never an attribute or a tooltip.
+  function holdNoticeHTML(l) {
+    if (!isHeld(l)) return '';
+    return '<div class="hold-notice"><strong>Held for you:</strong> ' + esc(l.hold_reason) + '</div>';
+  }
+
   /* ── Row builders ──────────────────────────────────────── */
 
   function buildTableRow(l) {
-    var st = STATUS_DISPLAY[l.status] || { label: esc(l.status), css: '' };
+    var st = statusDisplay(l);
     var sc = l.confidence_score;
     var fmt = FORMAT_NAMES[l.format_recommended] || l.format_recommended || '\u2014';
-    var muted = (l.status === 'sent' || l.status === 'done') ? ' row-muted' : '';
+    var muted = (!isHeld(l) && (l.status === 'sent' || l.status === 'done')) ? ' row-muted' : '';
     var isOpen = expandedId === l.id;
 
     var row = '<tr class="lead-row' + muted + '" data-id="' + l.id + '" tabindex="0" aria-expanded="' + (isOpen ? 'true' : 'false') + '">' +
@@ -759,10 +777,10 @@
   }
 
   function buildMobileCard(l) {
-    var st = STATUS_DISPLAY[l.status] || { label: esc(l.status), css: '' };
+    var st = statusDisplay(l);
     var sc = l.confidence_score;
     var fmt = FORMAT_NAMES[l.format_recommended] || l.format_recommended || '\u2014';
-    var muted = (l.status === 'sent' || l.status === 'done') ? ' mobile-card-muted' : '';
+    var muted = (!isHeld(l) && (l.status === 'sent' || l.status === 'done')) ? ' mobile-card-muted' : '';
     var isOpen = expandedId === l.id;
 
     return '<div class="mobile-card' + muted + '" data-id="' + l.id + '" tabindex="0" aria-expanded="' + (isOpen ? 'true' : 'false') + '">' +

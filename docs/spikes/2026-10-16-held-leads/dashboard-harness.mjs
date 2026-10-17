@@ -1,10 +1,12 @@
 // Plan evidence for todo 097 (not a repo test). Run from the repo root: node docs/spikes/2026-10-16-held-leads/dashboard-harness.mjs
 // Offline, no network, no API. Runs the REAL inline script of public/dashboard.html under node:vm with a stub `document`,
-// then applies a PROTOTYPE of the planned change to a text copy of the script (the real file is never modified) and checks it.
+// then applies a PROTOTYPE of the planned change to a text copy of the PRE-CHANGE script (git show 71611e7:public/dashboard.html) and checks it.
 import { readFileSync } from "node:fs";
 import vm from "node:vm";
 
-const html = readFileSync("public/dashboard.html", "utf8");
+// The PRE-CHANGE page: the real page now contains the change, so the prototype is applied to the version at 71611e7.
+import { execSync } from "node:child_process";
+const html = execSync("git show 71611e7:public/dashboard.html", { encoding: "utf8", maxBuffer: 20 * 1024 * 1024 });
 let bad = 0;
 const check = (ok, msg) => { if (!ok) bad++; console.log(`${ok ? "PASS" : "FAIL"}  ${msg}`); };
 const count = (s, needle) => s.split(needle).length - 1;
