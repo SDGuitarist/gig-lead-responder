@@ -47,19 +47,27 @@ function load(scriptText) {
 
 // ---- PROTOTYPE of the planned change, applied to a text copy ------------------------------------------------------
 const OLD_LOOKUP = "var st = STATUS_DISPLAY[l.status] || { label: esc(l.status), css: '' };";
+const MUTE_ROW = "var muted = (l.status === 'sent' || l.status === 'done') ? ' row-muted' : '';";
+const MUTE_CARD = "var muted = (l.status === 'sent' || l.status === 'done') ? ' mobile-card-muted' : '';";
 const OLD_HEADER = "'</p></div>' +\n      '<div class=\"confidence-summary";
-function patched({ escapeReason = true, patchMobile = true } = {}) {
+function patched({ escapeReason = true, patchMobile = true, patchMute = true } = {}) {
   check(count(script, OLD_LOOKUP) === 2, "found exactly the two current STATUS_DISPLAY[l.status] reads (table row, mobile card)");
   check(count(script, OLD_HEADER) === 1, "found exactly one detail-panel header insertion point");
+  check(count(script, MUTE_ROW) === 1 && count(script, MUTE_CARD) === 1, "found exactly the two muted-style lines (table row, mobile card)");
   const helpers =
-    "function statusDisplay(l) {\n  if (l.status === 'sent' && typeof l.hold_reason === 'string' && l.hold_reason) return { label: 'Held', css: 'held' };\n  return STATUS_DISPLAY[l.status] || { label: esc(l.status), css: '' };\n}\n" +
-    "function holdNoticeHTML(l) {\n  if (!(l.status === 'sent' && typeof l.hold_reason === 'string' && l.hold_reason)) return '';\n  return '<div class=\"hold-notice\"><strong>Held for you:</strong> ' + " + (escapeReason ? "esc(l.hold_reason)" : "l.hold_reason") + " + '</div>';\n}\n\n";
+    "function isHeld(l) {\n  return l.status === 'sent' && typeof l.hold_reason === 'string' && l.hold_reason !== '';\n}\n" +
+    "function statusDisplay(l) {\n  if (isHeld(l)) return { label: 'Held', css: 'held' };\n  return STATUS_DISPLAY[l.status] || { label: esc(l.status), css: '' };\n}\n" +
+    "function holdNoticeHTML(l) {\n  if (!isHeld(l)) return '';\n  return '<div class=\"hold-notice\"><strong>Held for you:</strong> ' + " + (escapeReason ? "esc(l.hold_reason)" : "l.hold_reason") + " + '</div>';\n}\n\n";
   let s = script.replace("  /* ── Row builders", helpers + "  /* ── Row builders");
   check(s !== script, "inserted the helpers before the row builders");
   // table row = first read, mobile card = second read
   const i1 = s.indexOf(OLD_LOOKUP);
   s = s.slice(0, i1) + "var st = statusDisplay(l);" + s.slice(i1 + OLD_LOOKUP.length);
   if (patchMobile) { const i2 = s.indexOf(OLD_LOOKUP); s = s.slice(0, i2) + "var st = statusDisplay(l);" + s.slice(i2 + OLD_LOOKUP.length); }
+  if (patchMute) {
+    s = s.replace(MUTE_ROW, "var muted = (!isHeld(l) && (l.status === 'sent' || l.status === 'done')) ? ' row-muted' : '';");
+    s = s.replace(MUTE_CARD, "var muted = (!isHeld(l) && (l.status === 'sent' || l.status === 'done')) ? ' mobile-card-muted' : '';");
+  }
   s = s.replace(OLD_HEADER, "'</p>' + holdNoticeHTML(l) + '</div>' +\n      '<div class=\"confidence-summary");
   return s;
 }
@@ -94,6 +102,11 @@ for (const [status, label] of Object.entries(labels)) {
 }
 { const l = mkLead({ status: "weird<x>", hold_reason: null }); check(orig.t.buildTableRow(l) === P.t.buildTableRow(l) && P.t.buildTableRow(l).includes("weird&lt;x&gt;"), "D2 unknown status keeps the escaped fallback"); }
 { const l = mkLead({ status: "done", hold_reason: "stale text" }); check(orig.t.buildTableRow(l) === P.t.buildTableRow(l), "D2 a non-sent status never shows Held even if hold_reason is set"); }
+console.log("\nD6 held rows are not faded; other sent/done rows still are");
+{ const t = P.t.buildTableRow(held), c = P.t.buildMobileCard(held);
+  check(!t.includes("row-muted") && !c.includes("mobile-card-muted"), "D6 a held row and a held card carry no muted class");
+  const plain = mkLead({ hold_reason: null });
+  check(P.t.buildTableRow(plain).includes("row-muted") && P.t.buildMobileCard(plain).includes("mobile-card-muted"), "D6 a plain sent row and card still carry the muted class"); }
 console.log("\nD3/D4 detail panel");
 const R = 'ZZREASON <img src=x onerror=1>&"';
 const d = P.t.renderDetailPanel(mkLead({ hold_reason: R }));
@@ -104,5 +117,6 @@ console.log("\nD5 wiring and mutation checks (each must be CAUGHT)");
 check(count(patched(), "STATUS_DISPLAY[l.status]") === 1, "D5 STATUS_DISPLAY[l.status] is read in exactly one place after the change");
 { const M = load(patched({ escapeReason: false })); const o = M.t.renderDetailPanel(mkLead({ hold_reason: R })); check(o.includes("<img src=x"), "MUTATION 1 caught: without esc() the raw <img appears, so D3 would fail"); }
 { const M = load(patched({ patchMobile: false })); const o = M.t.buildMobileCard(held); check(!o.includes('status-badge held">Held<'), "MUTATION 2 caught: leaving the mobile card unpatched loses the Held badge, so D1 would fail"); }
+{ const M = load(patched({ patchMute: false })); check(M.t.buildTableRow(held).includes("row-muted"), "MUTATION 3 caught: leaving the muted lines unpatched keeps a held row faded, so D6 would fail"); }
 console.log(bad === 0 ? "\nALL CHECKS PASS" : `\n${bad} CHECK(S) FAILED`);
 process.exit(bad === 0 ? 0 : 1);

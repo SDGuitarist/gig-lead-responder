@@ -23,7 +23,7 @@ Round 1 of this plan's review said the display claim was only argued, not shown.
 | C1 P2 | Column added in the `migrate.ts` loop breaks startup on an old database | The loop at `migrate.ts:85-101` runs BEFORE the legacy rebuild; the rebuild copies every existing column name (`:145`) into a fixed-schema `leads_new` (`:149-188`) with no `hold_reason` | CONFIRMED by reading: `colNames` is read after the loop, `leads_new` is a literal schema. Runtime reproduction deferred: nothing is built yet; the legacy-rebuild test (M3) is the reproduction, and its mutation check puts the column back in the loop | M3 below; mutation: move the `ALTER` into the `migrate.ts` loop, M3 must fail |
 | C2 P2 | Router reasons are not all fixed text | `router.ts:89` interpolates `classification.format_requested`, the client's raw words (`types.ts:76` "raw"; `classify.ts:181` only requires a string) | REPRODUCED 2026-10-16, synthetic input, no API: `routeLead` with `format_requested = "mariachi band at 412 Palm St token=abc123"` returns the reason `Cross-family format correction: mariachi band at 412 Palm St token=abc123 → solo` | R1 to R4 below (fixtures F-A to F-G); mutation: restore the interpolation, R2 and R3 must fail |
 | C3 P2 | A held row cannot reach the "clear on rerun" update | `orchestrator.ts:75` skips a processed message; `:90` skips an existing row whose status is not `received` or whose `pipeline_completed_at` is set; a held row is `sent` | CONFIRMED by reading. Consequence: clearing is dead code and an unsupported claim; DROPPED | S2, S2b, S3, S4 below |
-| C4 P2 | The UI test checked only a helper, not the rendered reason or escaping | Plan tested `statusDisplay` in isolation; the detail panel has no status lookup (`dashboard.html:587`) | CONFIRMED. Feasibility SPIKED (offline, 2026-10-16): the page's inline script runs under `node:vm` with a stub `document`; `buildTableRow`, `buildMobileCard`, `renderDetailPanel` all returned strings | D1 to D5 below; mutation: drop the helper call from each site once, its test must fail |
+| C4 P2 | The UI test checked only a helper, not the rendered reason or escaping | Plan tested `statusDisplay` in isolation; the detail panel has no status lookup (`dashboard.html:587`) | CONFIRMED. Feasibility SPIKED (offline, 2026-10-16): the page's inline script runs under `node:vm` with a stub `document`; `buildTableRow`, `buildMobileCard`, `renderDetailPanel` all returned strings | D1 to D6 below; mutation: drop the helper call from each site once, its test must fail |
 
 Also accepted from round 1: the column goes through the numbered migration list; `hold_reason: null` is added to the typed fixture at `src/shape-lead.test.ts:6`; verification names exact commands and `npm run serve`; the low-confidence path (`orchestrator.ts:160`, stores `failed` + `error_message`) is stated as another hold-like path that is out of scope.
 
@@ -48,6 +48,8 @@ Also accepted from round 2 and applied: **M3 must use a pre-`'replied'` fixture 
    - `statusDisplay(l)`: returns `{ label: 'Held', css: 'held' }` when `l.status === 'sent'` and `l.hold_reason` is a non-empty string; otherwise returns exactly what `STATUS_DISPLAY[l.status] || { label: esc(l.status), css: '' }` returns today.
    - `holdNoticeHTML(l)`: `''` without a reason; otherwise `<div class="hold-notice"><strong>Held for you:</strong> ` + `esc(l.hold_reason)` + `</div>`. The reason is only ever inserted as element text, never into an attribute or a tooltip.
    - `buildTableRow` (`:732`) and `buildMobileCard` (`:762`) call `statusDisplay(l)` instead of reading `STATUS_DISPLAY[l.status]`; `renderDetailPanel` calls `holdNoticeHTML(l)` in the review header, directly under the event line. After the change `STATUS_DISPLAY[l.status]` is read in exactly one place (inside `statusDisplay`).
+   - `isHeld(l)`: the one shared test (`status === 'sent'` and a non-empty string `hold_reason`) used by `statusDisplay`, `holdNoticeHTML` and the two muted lines below.
+   - **No fade for held rows (Alex's addition, 2026-10-16, after a heads-up that held rows would look finished; NOT seen by Codex in rounds 1 or 2):** the two `var muted = (l.status === 'sent' || l.status === 'done') ? ...` lines (`dashboard.html:735` row, `:765` card) become `(!isHeld(l) && (l.status === 'sent' || l.status === 'done')) ? ...`. Today those classes set `opacity: 0.7` (`dashboard.css:301`, `:1196`). Every other status keeps today's exact output.
    - CSS: `.status-badge.held` (amber) and `.hold-notice`; bump the `?v=` on the stylesheet link.
 
 ## 2. What must not change
@@ -107,15 +109,16 @@ Run: `npm run test:match -- "<test name>"` for focused tests and `npm test` for 
 - D3 WHEN `hold_reason` is `ZZREASON <img src=x onerror=1>&"`, THE SYSTEM SHALL render in `renderDetailPanel` exactly `Held for you:</strong> ZZREASON &lt;img src=x onerror=1&gt;&amp;"</div>`, the sentinel once, as element text and never inside an attribute.
 - D4 WHEN the lead is not held, THE SYSTEM SHALL return a detail panel byte-identical to the unchanged page, with no `hold-notice`.
 - D5 (wiring) THE SYSTEM SHALL read `STATUS_DISPLAY[l.status]` in exactly one place after the change.
-- Mutations (executed on the prototype, both CAUGHT): `holdNoticeHTML` without `esc()` puts a raw `<img` in the output, so D3 fails; leaving the mobile card unpatched loses its `Held` badge, so D1 fails.
-- The prototype in the spike patches a TEXT COPY of the page (two `var st = ...` lines, one header insertion point, two helper functions). The real change in the work phase is the same edit applied to `public/dashboard.html`; the test then runs the real file.
+- D6 WHEN a lead is held, THE SYSTEM SHALL NOT add `row-muted` to its table row or `mobile-card-muted` to its card; a plain `sent` lead (no reason) and a `done` lead SHALL still carry them (D2 already pins the rest byte-identical).
+- Mutations (executed on the prototype, all CAUGHT): `holdNoticeHTML` without `esc()` puts a raw `<img` in the output, so D3 fails; leaving the mobile card unpatched loses its `Held` badge, so D1 fails; leaving the two muted lines unpatched keeps a held row faded, so D6 fails.
+- The prototype in the spike patches a TEXT COPY of the page (two `var st = ...` lines, two `var muted = ...` lines, one header insertion point, three helper functions). The real change in the work phase is the same edit applied to `public/dashboard.html`; the test then runs the real file.
 
 **Full gates:** `npm test` (compare the pass count to the baseline plus the new tests), `npm run typecheck`, and `npx tsx scripts/check-venue-history.ts` (must print PASS, exit 0; `HANDOFF.md` line 750).
 
 ## 4. Most likely way this plan is wrong
 
 - **The harness.** `node:vm` plus a stub `document` is new in this repo. If the page script changes shape, the extraction assertions or D1 fail loudly; it cannot pass silently, because D2 pins byte-identical output for the unchanged statuses. Remaining risk: the stub's text escaping is my implementation of browser serialization, checked against hard-coded strings, not against a browser. Alex's own look (Execution Path) is the check against a real browser.
-- **Held rows stay dimmed.** Rows and cards use a muted style for status `sent` or `done` (`dashboard.html:735`, `:765`), so a Held row will look as faded as a plain Sent one. Not changed here (D2 pins byte-identical output for other statuses; this would be a separate small display choice for Alex). Remaining limitation.
+- **The no-fade rule was added after both Codex reviews.** It is small and was run offline on the prototype (D6 and MUTATION 3 below), but no reviewer has read it; a round 3, if Alex authorizes one, should cover it. The opacity value is read from the stylesheet, not seen in a browser.
 - **Old held leads stay "Sent"**, including lead #20. Accepted and told to Alex.
 - **`logs/leads.jsonl` already holds old cross-family lines with client words** (it records `result.reasons`, `orchestrator.ts:258`). The router fix stops new ones; old lines are not scrubbed. The log is gitignored (`.gitignore:10`). Remaining limitation, not fixed here.
 - **A second instance of the same failure class (client words entering a stored string)** was checked, bounded to the router: every other reason is fixed text, a count, or a price number (`router.ts:44-115`), so the router has one interpolation of client text, and its three consumers (console hold message, `logs/leads.jsonl`, the new column) all receive the fixed string. The structural fix (change the string at its source) is reversible by one revert. Not expanded to other modules: `error_message` for low confidence carries `parseWarnings` (parser-authored text; Yelp tokens are excluded by the existing parser tests) and is out of scope.
@@ -142,12 +145,12 @@ Run: `npm run test:match -- "<test name>"` for focused tests and `npm test` for 
 2. Router string + `holdReasonText` + R1 to R4 (fixtures F-A to F-G), H1 to H4.
 3. Orchestrator write + S1 to S5.
 4. `shapeLead` + fixture + A1, A2.
-5. Dashboard helpers, call sites, CSS + D1 to D5.
+5. Dashboard helpers, call sites, no-fade rule, CSS + D1 to D6.
 6. Todo 097 marked built; HANDOFF; status doc.
 
 ## EXECUTED / UNEXECUTED
 
-**Executed 2026-10-16 (offline, synthetic text or temp databases, no API, no server, `data/leads.db` never opened):** `router-fixtures.ts` (F-A to F-G against the old router and a one-line-changed copy), `dashboard-harness.mjs` (controls S1 to S3, startup control, D1 to D5 on a prototype applied to a text copy, two mutations caught), `migration-scenarios.mjs` (M1 to M4 against `current`, `numbered`, `loop` variants; the rejected placement fails M3 with `table leads_new has no column named hold_reason`). Each ended `ALL CHECKS PASS`.
+**Executed 2026-10-16 (offline, synthetic text or temp databases, no API, no server, `data/leads.db` never opened):** `router-fixtures.ts` (F-A to F-G against the old router and a one-line-changed copy), `dashboard-harness.mjs` (controls S1 to S3, startup control, D1 to D6 on a prototype applied to a text copy, three mutations caught), `migration-scenarios.mjs` (M1 to M4 against `current`, `numbered`, `loop` variants; the rejected placement fails M3 with `table leads_new has no column named hold_reason`). Each ended `ALL CHECKS PASS`.
 
 **UNEXECUTED (reason / owner / trigger):**
 - Real-browser look at the badge, the reason text and the mobile layout: no browser run in this plan; owner Alex; trigger: after server restart.
