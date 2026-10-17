@@ -1,9 +1,9 @@
 // Todo 097 plan S1-S5: a held lead is stored as status 'sent' WITH the router's reasons; nothing else gets a reason.
 // processLead against a temporary SQLite database and an injected pipeline: no network, no model call.
 // Fixture shape copies src/yelp-quote-parser.test.ts (invented names and tokens, real line structure).
-import { describe, it } from "node:test";
+import { describe, it, after } from "node:test";
 import assert from "node:assert/strict";
-import { mkdtempSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import type { GmailMessage } from "./automation/gmail-watcher.js";
@@ -13,6 +13,22 @@ process.env.DATABASE_PATH = join(mkdtempSync(join(tmpdir(), "glr-holdstore-")), 
 const { processLead, handleAutoSendDecision } = await import("./automation/orchestrator.js");
 const { getLeadByMessageId, insertLead } = await import("./db/leads.js");
 const { initDb } = await import("./db/migrate.js");
+const { setLogPath } = await import("./automation/logger.js");
+
+// Codex code review round 1 (docs/reviews/2026-10-16-held-leads-code-codex-round1.md): config.logPath does NOT reach the logger
+// (src/automation/logger.ts keeps its own path, default logs/leads.jsonl, set only by the poller and the ingest script), so
+// processLead appended synthetic events to the real operational log. Two layers here:
+//  1. setLogPath points the REAL logger at a temp file, so the events are still written and can be asserted (logging is not suppressed);
+//  2. the test runs from a private working directory (after every import has resolved), so the logger's relative DEFAULT path lands in
+//     a directory nobody else uses and "the default log was never written" is a deterministic assertion, not a race with other test files.
+const LOG_FILE = join(mkdtempSync(join(tmpdir(), "glr-holdstore-log-")), "leads.jsonl");
+const PRIVATE_CWD = mkdtempSync(join(tmpdir(), "glr-holdstore-cwd-"));
+const ORIGINAL_CWD = process.cwd();
+process.chdir(PRIVATE_CWD);
+setLogPath(LOG_FILE);
+after(() => process.chdir(ORIGINAL_CWD));
+const loggedEvents = (): Array<{ gmailMessageId: string; edgeCase: boolean; edgeCaseReasons?: string[]; status: string }> =>
+  existsSync(LOG_FILE) ? readFileSync(LOG_FILE, "utf8").split("\n").filter(Boolean).map((l) => JSON.parse(l)) : [];
 
 const TOKEN = "MLA" + "0".repeat(29) + "abc";
 const LEADS_PATH = "%2Fleads_center%2FlGwoYFACL339026pNoq5LQ%2Fleads%2FmMH7xkZ-sbMCaBHq8SqnaQ";
@@ -44,7 +60,7 @@ function yelpMsg(id: string, nameP = "Jordan T."): GmailMessage {
   } as GmailMessage;
 }
 
-const cfg = { dryRun: true, autoSendEnabled: false, logPath: "/dev/null", edgeCaseBudgetThreshold: 3000 } as AutomationConfig;
+const cfg = { dryRun: true, autoSendEnabled: false, logPath: LOG_FILE, edgeCaseBudgetThreshold: 3000 } as AutomationConfig;
 const pipelineOutput = () => ({
   classification: { flagged_concerns: [], format_requested: "solo", format_recommended: "solo", vagueness: "clear", action: "quote", stealth_premium: false, client_first_name: "Jordan", venue_name: null, event_date_iso: null },
   pricing: { quote_price: 700 }, drafts: { full_draft: "Hi", compressed_draft: "Hi", compressed_word_count: 1 },
@@ -116,5 +132,21 @@ describe("hold_reason storage (todo 097)", () => {
     assert.equal(row.status, "failed");
     assert.match(row.error_message ?? "", /Low parse confidence/);
     assert.equal(row.hold_reason, null);
+  });
+
+  it("L1 (positive control) the held lead's event reaches the TEMP log: logging is not suppressed", async () => {
+    await processLead(yelpMsg("hold-l1"), cfg, {} as never, yelpClient, {} as never, { runPipeline });
+    const mine = loggedEvents().filter((e) => e.gmailMessageId === "hold-l1");
+    assert.equal(mine.length, 1);
+    assert.equal(mine[0].edgeCase, true);
+    assert.equal(mine[0].status, "dry-run");
+    assert.deepEqual(mine[0].edgeCaseReasons, [YELP_REASON]);
+  });
+
+  it("L2 (overshoot control) nothing from these tests went to the logger's default path, and the temp log holds only these tests' events", () => {
+    assert.equal(existsSync(join(PRIVATE_CWD, "logs")), false, "the default logs/ directory was never created");
+    const ids = new Set(loggedEvents().map((e) => e.gmailMessageId));
+    assert.ok(ids.size > 0);
+    for (const id of ids) assert.match(id, /^hold-/, `unexpected event id in the temp log: ${id}`);
   });
 });
