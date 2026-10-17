@@ -48,7 +48,7 @@ Also accepted from round 1: the column goes through the numbered migration list;
 
 ## 3. Acceptance tests (EARS)
 
-Run: `npx tsx --test <file>` for one file, then `npm test` and `npm run typecheck` for the whole repo. Baseline to compare: record the pass count before the first commit.
+Run: `node --import tsx --test <file>` for one file (checked 2026-10-16 on `src/shape-lead.test.ts`: 4 pass), then `npm test` and `npm run typecheck` for the whole repo. `npm test` reads the globs `src/**/*.test.ts`, `scripts/**/*.test.ts`, `tests/**/*.test.ts` (`scripts/test-files.mjs`), so new files in `src/` need no registry edit. `npm test` also sets the API key to a dead value, so no test can bill. Baseline to compare: record the pass count before the first commit.
 
 **Migration (new file `src/hold-reason-migration.test.ts`; each scenario runs `initDb()` in a child process with `DATABASE_PATH` set to a temp file, because `initDb` is a module-level singleton):**
 - M1 (happy) WHEN no database file exists, THE SYSTEM SHALL create `leads` with `hold_reason` and `user_version = 4`.
@@ -83,7 +83,7 @@ Run: `npx tsx --test <file>` for one file, then `npm test` and `npm run typechec
 - D5 (wiring) THE SYSTEM SHALL read `STATUS_DISPLAY[l.status]` in exactly one place. Mutation: put the old read back into the mobile card, D1 on the mobile card fails; drop `holdNoticeHTML` from the detail header, D4 fails.
 - Positive control for the harness itself: before the change, D2's expected labels equal the current page's output (checked against the unmodified page in the first commit).
 
-**Full gates:** `npm test` (compare the pass count to the baseline plus the new tests), `npm run typecheck`, and the repo's existing leak check (`HANDOFF.md` lists it as exit 0; run it as that file states).
+**Full gates:** `npm test` (compare the pass count to the baseline plus the new tests), `npm run typecheck`, and `npx tsx scripts/check-venue-history.ts` (must print PASS, exit 0; `HANDOFF.md` line 750).
 
 ## 4. Most likely way this plan is wrong
 
@@ -96,8 +96,8 @@ Run: `npx tsx --test <file>` for one file, then `npm test` and `npm run typechec
 ## 5. Execution commands (what a human or Claude runs, in order)
 
 1. Gate: `pwd`, `git branch --show-current`, `git rev-parse feat/hub-phase0`, `git status --short`.
-2. Per commit: `npx tsx --test <the new test file>` then `npm run typecheck`.
-3. Before push: `npm test` and the leak check.
+2. Per commit: `node --import tsx --test <the new test file>` then `npm run typecheck`.
+3. Before push: `npm test` and `npx tsx scripts/check-venue-history.ts`.
 
 ## Execution Path
 
