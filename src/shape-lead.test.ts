@@ -29,6 +29,7 @@ function makeLeadRecord(overrides: Partial<LeadRecord> = {}): LeadRecord {
     edit_round: 0,
     edit_instructions: null,
     done_reason: null,
+    hold_reason: null,
     outcome: null,
     outcome_reason: null,
     actual_price: null,

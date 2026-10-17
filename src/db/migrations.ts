@@ -53,6 +53,13 @@ export const MIGRATIONS: Migration[] = [
     name: "strategic_reserve",
     up: (db) => db.exec("ALTER TABLE leads ADD COLUMN strategic_reserve_json TEXT"),
   },
+  {
+    // Todo 097: why the router held a lead (shown on the dashboard). In this list, not the migrate.ts column loop:
+    // the loop runs BEFORE the legacy follow-up rebuild, which copies into a fixed-schema table without this column.
+    version: 4,
+    name: "hold_reason",
+    up: (db) => db.exec("ALTER TABLE leads ADD COLUMN hold_reason TEXT"),
+  },
 ];
 
 /** Throws if the DB was written by newer code; returns its current version. */

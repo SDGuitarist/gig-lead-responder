@@ -109,7 +109,7 @@ const UPDATE_ALLOWED_COLUMNS = new Set<string>([
   "status", "classification_json", "pricing_json",
   "full_draft", "compressed_draft", "gate_passed", "gate_json",
   "confidence_score", "error_message", "pipeline_completed_at", "sms_sent_at",
-  "edit_round", "edit_instructions", "done_reason",
+  "edit_round", "edit_instructions", "done_reason", "hold_reason",
   "outcome", "outcome_reason", "actual_price", "outcome_at",
   "follow_up_status", "follow_up_count", "follow_up_due_at", "follow_up_draft",
   "snoozed_until", "updated_at", "strategic_reserve_json",

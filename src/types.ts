@@ -418,6 +418,7 @@ export interface LeadApiResponse {
   follow_up_draft: string | null;
   snoozed_until: string | null;
   done_reason: string | null;
+  hold_reason: string | null; // why the router held this lead (todo 097); status stays 'sent'
 }
 
 // --- Follow-up V2 request/response types ---
@@ -469,6 +470,7 @@ export interface LeadRecord {
   edit_round: number;
   edit_instructions: string | null;
   done_reason: string | null;
+  hold_reason: string | null; // why the router held this lead (todo 097); status stays 'sent'
   outcome: LeadOutcome | null;
   outcome_reason: LossReason | null;
   actual_price: number | null;
