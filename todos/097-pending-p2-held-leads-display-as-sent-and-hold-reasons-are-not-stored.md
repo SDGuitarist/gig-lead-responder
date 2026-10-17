@@ -29,7 +29,8 @@ on a running dashboard: read from the code only.
 
 Alex chose: keep stored status `sent`, add a `hold_reason` column, show a Held badge plus the reason. Plan:
 `docs/plans/2026-10-16-fix-held-leads-show-as-sent-plan.md` (Revision 1). Codex plan review round 1: NO-GO, four P2, all confirmed
-(`docs/reviews/2026-10-16-held-leads-plan-codex-round1.md`). Revision 1 written; round 2 is next. Not built.
+(`docs/reviews/2026-10-16-held-leads-plan-codex-round1.md`). Revision 1 written. Round 2: NO-GO, 2 P2 + 1 P3, all confirmed
+(`docs/reviews/2026-10-16-held-leads-plan-codex-round2.md`); automatic iteration STOPPED, waiting for Alex's choice. Not built.
 
 ## Owner and trigger
 
