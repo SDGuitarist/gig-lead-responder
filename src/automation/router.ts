@@ -86,7 +86,9 @@ export function routeLead(
   const requestedFamily = guessFormatFamily(classification.format_requested);
   const recommendedFamily = getFormatFamily(classification.format_recommended);
   if (requestedFamily && recommendedFamily && requestedFamily !== recommendedFamily) {
-    reasons.push(`Cross-family format correction: ${classification.format_requested} → ${classification.format_recommended}`);
+    // Fixed wording on purpose (todo 097): format_requested is the client's raw words and format_recommended is only
+    // checked as a string, and these reasons are stored on the lead and written to logs/leads.jsonl.
+    reasons.push("Cross-family format correction (the client asked for a different kind of act than the one recommended)");
   }
 
   // Vague lead with one-question action
