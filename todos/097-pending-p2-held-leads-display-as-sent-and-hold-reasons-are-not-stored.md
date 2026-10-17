@@ -25,6 +25,12 @@ on a running dashboard: read from the code only.
 3. Cover with a test that routes a hold and reads the stored reason and the label. Beware: other code reads `status === "sent"`
    (follow-up scheduling, approve routes); changing the value needs an inventory first.
 
+## Plan status (2026-10-16)
+
+Alex chose: keep stored status `sent`, add a `hold_reason` column, show a Held badge plus the reason. Plan:
+`docs/plans/2026-10-16-fix-held-leads-show-as-sent-plan.md` (Revision 1). Codex plan review round 1: NO-GO, four P2, all confirmed
+(`docs/reviews/2026-10-16-held-leads-plan-codex-round1.md`). Revision 1 written; round 2 is next. Not built.
+
 ## Owner and trigger
 
 Claude plans; Alex decides the display. Trigger: before the 20-lead review-only ramp, since the ramp is Alex reading held drafts.
