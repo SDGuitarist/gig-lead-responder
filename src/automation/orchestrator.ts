@@ -6,6 +6,7 @@ import { validateSource, incrementRejectedEmailCount } from "./source-validator.
 import { isProcessed, markProcessed } from "./dedup.js";
 import { parseLeadEmail } from "./parsers/index.js";
 import { routeLead } from "./router.js";
+import { holdReasonText } from "../utils/hold-reason.js";
 import { logLead, type LeadLogEntry } from "./logger.js";
 import { alertAlexSafe as sendSms } from "../alert.js";
 import { sendSquarespaceReply } from "./senders/gmail-sender.js";
@@ -241,7 +242,7 @@ export async function processLead(
   if (result.action === "hold") {
     const reasonSummary = result.reasons.slice(0, 2).join("; ");
     const holdMsg = `HOLD: Lead #${leadId} ${platform} — ${reasonSummary}. Check dashboard.`;
-    updateLead(leadId, { status: "sent" });
+    updateLead(leadId, { status: "sent", hold_reason: holdReasonText(result.reasons) });
     if (!config.dryRun) {
       await sendSms(config, holdMsg);
     } else {
