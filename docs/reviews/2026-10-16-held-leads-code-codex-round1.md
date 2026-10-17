@@ -28,3 +28,29 @@ structural assessment: make `logLead` skip or redirect its write when `NODE_TEST
 one conditional in a production module, reversible by one revert, no data migration, fixes all six files at once; or the narrower, per-file fix of a `setLogPath(tempFile)` call in
 each of the five files. Either is a scope expansion beyond the reviewed finding (the surface is five untouched test files or a production module), so it is DEFERRED and escalated to
 Alex. Existing entries are not deleted or scrubbed.
+
+## Fix (Claude code fix attempt 1), commit `dba99f6`
+
+Only `src/hold-reason-storage.test.ts` changed. (1) `setLogPath(<temp file>)` points the REAL logger at a temporary file before any `processLead` call, and `cfg.logPath` now names the
+same file; (2) after every import has resolved the test `chdir`s into a private temp directory (restored in `after`), so the logger's relative default `logs/leads.jsonl` could only land
+there. New tests: **L1 (positive control)** the held lead's event reaches the temp log with `edgeCase: true`, status `dry-run`, reasons equal to the Yelp reason (logging is not suppressed);
+**L2 (overshoot control)** the private directory never gets a `logs/` folder and the temp log holds only `hold-*` ids. Why a private directory and not a before/after size check of the real
+log: `node --test` runs files in parallel and the five older files write the same default log, so a size check would be flaky.
+
+| Fix-contract item | Result |
+|---|---|
+| Reproduction | Done BEFORE the fix, in a disposable directory: S1 alone created `logs/leads.jsonl` there with one `hold-s1` event; the real log stayed at 1978 lines |
+| Regression that fails without the fix | Mutation: delete the `setLogPath` line. Result: L1 and L2 FAIL, S1-S5 still pass; restored byte-for-byte; the stray writes of that mutation went to the private temp directory, not the real log |
+| Positive / overshoot controls | L1 (events DO reach the temp log) and L2 (nothing reaches the default path); production logging is untouched (no change under `src/automation/`) |
+| Focused protected-runner result | `npm run test:match -- "hold_reason storage"`: 8 of 8 (S1, S2, S2b, S3, S4, S5, L1, L2) |
+| Full suite | Run in a DISPOSABLE COPY of the repo (so the five older files could not append to the real log): 1238 tests, 1236 pass, 1 skip, 1 fail. The one fail, `travel fee table is tracked in git and loads`, is an artifact of the copy (no `.git`); run in the real repo it passes. Net: 1237 pass, 0 fail, 1 skip of 1238 (baseline before the build 1198 + 40 new). In that run my tests wrote 0 `hold-*` events to the copy's default log |
+| Typecheck, leak check | `npm run typecheck` exit 0; `npx tsx scripts/check-venue-history.ts` PASS exit 0 |
+| Real log | 1978 lines before the reproduction and 1978 after every run in this fix (the log is not deleted or scrubbed; its 50 `hold-s*` lines and ~1,700 other synthetic lines remain) |
+
+**Second instance, decision needed from Alex (not applied; escalated).** Five older test files (`orchestrator.test.ts`, `orchestrator-platform.test.ts`, `orchestrator-retry.test.ts`,
+`orchestrator-gigsalad.test.ts`, `yelp-quote-parser.test.ts`) still append to the real log on every `npm test`, which is why this file is mostly synthetic. Options, both reversible:
+(A) one conditional in `src/automation/logger.ts` that skips the write when `NODE_TEST_CONTEXT` is set and no path was set explicitly (the `logUsage` pattern in `src/claude.ts`): one production module, fixes all
+six files, but it is a production-code change nobody reviewed; (B) a `setLogPath(tempFile)` call (and, if the file asserts nothing on the log, nothing else) in each of the five files: five test-only edits, no
+production change. My lean: B, because it changes no production code. Either way, the existing log lines are Alex's to keep or clear.
+
+Remaining risks: the older files keep polluting the real log until A or B is chosen; the dashboard and server restart items from Update 28 are unchanged and still UNEXECUTED (owner Alex).
