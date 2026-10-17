@@ -30,7 +30,7 @@ on a running dashboard: read from the code only.
 Alex chose: keep stored status `sent`, add a `hold_reason` column, show a Held badge plus the reason. Plan:
 `docs/plans/2026-10-16-fix-held-leads-show-as-sent-plan.md` (Revision 1). Codex plan review round 1: NO-GO, four P2, all confirmed
 (`docs/reviews/2026-10-16-held-leads-plan-codex-round1.md`). Revision 1 written. Round 2: NO-GO, 2 P2 + 1 P3, all confirmed
-(`docs/reviews/2026-10-16-held-leads-plan-codex-round2.md`); automatic iteration STOPPED; Alex chose "fix the plan and test it offline first"; plan Revision 2 written with three offline spikes (`docs/spikes/2026-10-16-held-leads/`, all pass). Waiting for Alex: round 3 or build. Not built.
+(`docs/reviews/2026-10-16-held-leads-plan-codex-round2.md`); automatic iteration STOPPED; Alex chose "fix the plan and test it offline first"; plan Revision 2 written with three offline spikes (`docs/spikes/2026-10-16-held-leads/`, all pass). Round 3 (authorized by Alex): GO, plan-review loop closed (`docs/reviews/2026-10-16-held-leads-plan-codex-round3.md`). Next: build under Revision 2, then Codex code review. Not built.
 
 ## Owner and trigger
 
