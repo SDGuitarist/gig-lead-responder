@@ -1,7 +1,8 @@
 // Plan evidence for todo 097 (not a repo test). Run from the repo root: npx tsx docs/plans/2026-10-16-held-leads-spikes/router-fixtures.ts
 // Offline, synthetic text, no API. Runs the SAME fixtures against (a) the current router and (b) a temp copy with the ONE planned change
 // (the cross-family reason loses both interpolated values). Prints PASS/FAIL per check so the checks can be seen to discriminate.
-import { readFileSync, writeFileSync, mkdtempSync } from "node:fs";
+import { writeFileSync, mkdtempSync } from "node:fs";
+import { execSync } from "node:child_process";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
@@ -10,7 +11,8 @@ const root = resolve(".");
 const SENT = ["ZZSENTINEL", "412 Palm", "abc123", "ZZRECOMMENDED", "9 Elm", "xyz"];
 const FIXED = "Cross-family format correction (the client asked for a different kind of act than the one recommended)";
 
-const src = readFileSync(join(root, "src/automation/router.ts"), "utf8");
+// The PRE-CHANGE router: the repo router now has the change, so both variants are built from the version at 71611e7.
+const src = execSync("git show 71611e7:src/automation/router.ts", { encoding: "utf8" });
 const OLD = "reasons.push(`Cross-family format correction: ${classification.format_requested} → ${classification.format_recommended}`);";
 if (src.split(OLD).length !== 2) throw new Error("expected exactly one cross-family push in router.ts");
 const patched = src.replace(OLD, `reasons.push("${FIXED}");`);

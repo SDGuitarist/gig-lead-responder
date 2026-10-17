@@ -14,7 +14,8 @@ const { insertLead, updateLead, getLead } = await import("./db/index.js");
 
 test("port manifest R018: migration v3 adds strategic_reserve_json, with a backup first", () => {
   const db = initDb();
-  assert.equal(db.pragma("user_version", { simple: true }), 3);
+  // At least 3: later migrations (v4 hold_reason, todo 097) advance the version; this test is about v3's column and backup.
+  assert.ok((db.pragma("user_version", { simple: true }) as number) >= 3);
   const cols = (db.pragma("table_info(leads)") as Array<{ name: string }>).map((c) => c.name);
   assert.ok(cols.includes("strategic_reserve_json"));
   assert.ok(existsSync(join(dirname(process.env.DATABASE_PATH!), "backups", "pre-v3.db")));

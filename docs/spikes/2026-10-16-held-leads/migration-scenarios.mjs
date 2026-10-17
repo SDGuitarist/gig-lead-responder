@@ -7,7 +7,7 @@
 import { readFileSync, writeFileSync, mkdtempSync, mkdirSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
-import { spawnSync } from "node:child_process";
+import { spawnSync, execSync } from "node:child_process";
 import { pathToFileURL } from "node:url";
 import Database from "better-sqlite3";
 
@@ -17,8 +17,10 @@ let bad = 0;
 const check = (ok, msg) => { if (!ok) bad++; console.log(`${ok ? "PASS" : "FAIL"}  ${msg}`); };
 
 // ---- build the three variants as temp copies -----------------------------------------------------------------------------
-const mig = readFileSync(join(root, "src/db/migrate.ts"), "utf8");
-const migs = readFileSync(join(root, "src/db/migrations.ts"), "utf8");
+// The PRE-CHANGE sources (71611e7): the repo now has the change, so the three variants are built from the old text.
+const git = (f) => execSync(`git show 71611e7:${f}`, { encoding: "utf8" });
+const mig = git("src/db/migrate.ts");
+const migs = git("src/db/migrations.ts");
 const BETTER = pathToFileURL(join(root, "node_modules/better-sqlite3/lib/index.js")).href;
 const fixImports = (s) => s.replace('from "better-sqlite3"', `from "${BETTER}"`).replace('from "../types.js"', `from "${pathToFileURL(join(root, "src/types.ts")).href}"`);
 const LOOP_ANCHOR = '    ["snoozed_until", "TEXT"],\n';
